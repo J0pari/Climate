@@ -1,0 +1,259 @@
+# Climate Modeling Framework Configuration
+# Central configuration file for all climate system components
+# All parameters are documented with units and valid ranges
+
+[system]
+# System-wide configuration
+name = "Climate Geometric Modeling Framework"
+version = "0.1.0"
+log_level = "INFO"  # DEBUG, INFO, WARN, ERROR
+output_dir = "./output"
+checkpoint_dir = "./checkpoints"
+checkpoint_interval_minutes = 30
+enable_telemetry = true
+telemetry_endpoint = "localhost:9090"  # Prometheus endpoint
+
+[domain]
+# Spatial and temporal domain configuration
+# Grid specification
+grid_type = "gaussian"  # "gaussian", "regular_latlon", "cubed_sphere"
+lat_resolution = 1.0  # degrees
+lon_resolution = 1.0  # degrees
+vertical_levels = 37  # number of vertical levels
+vertical_coordinate = "hybrid_sigma_pressure"  # "pressure", "sigma", "hybrid_sigma_pressure"
+top_pressure_pa = 100.0  # Top of atmosphere pressure in Pascals
+
+# Temporal configuration
+start_date = "2020-01-01T00:00:00Z"
+end_date = "2025-01-01T00:00:00Z"
+timestep_seconds = 1800  # 30 minutes
+output_frequency_hours = 6
+
+[manifold]
+# Riemannian manifold configuration
+dimensions = 8  # Start with 8, can be adaptive
+metric_type = "fisher_information"  # "euclidean", "fisher_information", "pullback"
+curvature_threshold = 1000.0  # Threshold for tipping point detection
+use_automatic_differentiation = true
+christoffel_method = "autodiff"  # "finite_difference", "autodiff", "symbolic"
+geodesic_integrator = "symplectic_euler"  # "euler", "rk4", "symplectic_euler"
+geodesic_tolerance = 1e-6
+
+# Adaptive dimensionality
+enable_adaptive_dimensions = true
+min_dimensions = 4
+max_dimensions = 20
+variance_explained_threshold = 0.95  # For PCA-based dimension selection
+dimension_update_frequency_days = 30
+
+[physics]
+# Physical parameterization switches
+# Radiation
+radiation_scheme = "rrtmgp"  # "gray", "rrtmg", "rrtmgp"
+solar_constant_wm2 = 1361.0
+co2_ppm = 421.0  # Can be time-varying
+ch4_ppb = 1900.0
+n2o_ppb = 335.0
+
+# Convection
+convection_scheme = "zhang_mcfarlane"  # "emanuel", "zhang_mcfarlane", "tiedtke"
+convective_adjustment_time_hours = 2.0
+
+# Boundary layer
+pbl_scheme = "mellor_yamada"  # "mellor_yamada", "k_epsilon", "les"
+surface_layer_scheme = "monin_obukhov"
+
+# Cloud microphysics
+microphysics_scheme = "morrison_2moment"  # "kessler", "thompson", "morrison_2moment"
+cloud_fraction_scheme = "statistical"  # "diagnostic", "prognostic", "statistical"
+
+# Ocean coupling
+ocean_coupling = true
+ocean_model = "mom6"  # "slab", "mom6", "nemo"
+coupling_frequency_hours = 3
+
+[optimization]
+# Parameter optimization configuration
+optimization_method = "natural_gradient"  # "gradient_descent", "newton", "natural_gradient", "levenberg_marquardt"
+learning_rate = 0.01
+learning_rate_schedule = "cosine"  # "constant", "exponential", "cosine"
+max_iterations = 1000
+convergence_tolerance = 1e-5
+
+# Trust region (for Levenberg-Marquardt)
+trust_region_radius = 1.0
+trust_region_max_radius = 10.0
+trust_region_eta = 0.125  # Threshold for step acceptance
+
+# Regularization
+l2_regularization = 0.001
+parameter_bounds_enforcement = "projection"  # "projection", "penalty", "barrier"
+
+# Information geometry
+use_fisher_metric = true
+fisher_matrix_regularization = 1e-6  # Prevents singularity
+natural_gradient_momentum = 0.9
+
+[modal_logic]
+# Modal logic for scenario verification
+enable_modal_verification = true
+necessity_constraints = [
+    "energy_conservation",
+    "mass_conservation", 
+    "clausius_clapeyron",
+    "positive_kelvin"
+]
+possibility_space = "ssp_all"  # "ssp1", "ssp2", "ssp3", "ssp4", "ssp5", "ssp_all"
+verification_method = "smt"  # "brute_force", "sat", "smt"
+verification_timeout_seconds = 60
+
+# Modal transfer operators
+transfer_operator_kernel = "gaussian"  # "gaussian", "exponential", "matern"
+transfer_operator_bandwidth = 0.1
+modal_coupling_strength = 0.5  # Between necessity and possibility modes
+
+[data]
+# Data source configuration
+primary_source = "era5"  # "era5", "merra2", "ncep_fnl"
+era5_path = "/data/era5"
+era5_variables = [
+    "temperature",
+    "geopotential",
+    "u_wind",
+    "v_wind",
+    "specific_humidity",
+    "surface_pressure"
+]
+
+# CMIP6 configuration
+cmip6_path = "/data/cmip6"
+cmip6_models = ["CESM2", "GFDL-CM4", "HadGEM3-GC31-LL", "IPSL-CM6A-LR"]
+cmip6_experiment = "historical"  # "historical", "ssp245", "ssp585"
+cmip6_variant = "r1i1p1f1"
+
+# Data preprocessing
+interpolation_method = "conservative"  # "linear", "conservative", "spectral"
+quality_control = true
+outlier_threshold_sigma = 5.0
+missing_data_strategy = "interpolate"  # "skip", "interpolate", "climatology"
+
+[performance]
+# Performance and parallelization settings
+num_threads = 8
+use_gpu = true
+gpu_device_id = 0
+gpu_memory_fraction = 0.8
+
+# MPI configuration (for climate_parallel.cpp)
+enable_mpi = false
+mpi_ranks = 16
+domain_decomposition = "latitude_bands"  # "blocks", "latitude_bands", "custom"
+
+# Memory management
+max_memory_gb = 32
+use_memory_pool = true
+cache_size_mb = 1024
+
+# I/O optimization
+use_parallel_io = true
+io_format = "netcdf4"  # "netcdf3", "netcdf4", "zarr", "hdf5"
+compression_level = 4  # 0-9
+chunking_strategy = "time_optimized"  # "time_optimized", "space_optimized", "balanced"
+
+[numerical]
+# Numerical method configuration
+# Advection
+advection_scheme = "weno5"  # "upwind", "centered", "weno3", "weno5", "spectral"
+flux_limiter = "van_leer"  # "none", "minmod", "van_leer", "superbee"
+
+# Time integration
+time_integration_scheme = "rk4"  # "euler", "rk2", "rk4", "adams_bashforth"
+implicit_solver = "gmres"  # "jacobi", "gauss_seidel", "gmres", "bicgstab"
+implicit_iterations = 50
+implicit_tolerance = 1e-8
+
+# Stability
+cfl_number = 0.5
+adaptive_timestep = true
+min_timestep_seconds = 60
+max_timestep_seconds = 3600
+
+# Filtering
+horizontal_diffusion_order = 4
+horizontal_diffusion_coefficient = 1e15  # m^4/s for 4th order
+vertical_diffusion_coefficient = 1.0  # m^2/s
+sponge_layer_top_km = 10.0
+
+[uncertainty]
+# Uncertainty quantification configuration
+enable_uncertainty_quantification = true
+uncertainty_method = "ensemble"  # "monte_carlo", "polynomial_chaos", "ensemble"
+ensemble_size = 50
+perturbation_method = "stochastic_physics"  # "initial_condition", "parameter", "stochastic_physics"
+perturbation_amplitude = 0.01
+
+# Error propagation
+error_propagation_method = "unscented_transform"  # "linearized", "unscented_transform", "particle_filter"
+confidence_level = 0.95
+bootstrap_samples = 1000
+
+[testing]
+# Testing and validation configuration
+enable_conservation_checks = true
+conservation_tolerance = 1e-10
+enable_regression_tests = true
+regression_test_tolerance = 1e-6
+benchmark_frequency_days = 7
+reference_solution_path = "./reference"
+
+[experimental]
+# Experimental features (use with caution)
+enable_p_adic_teleconnections = false  # Pending empirical validation
+p_adic_primes = [2, 3, 5, 7, 11]  # Regional oscillation mapping
+p_adic_correlation_threshold = 0.7  # Minimum correlation to justify usage
+
+enable_sheaf_cohomology = false  # Over-engineering for current needs
+sheaf_resolution = "fine"  # "coarse", "medium", "fine"
+
+# Controlled noise injection (formerly "ATP synthase wobble")
+enable_noise_injection = true
+noise_amplitude = 0.001  # ~9 degrees in radians
+noise_correlation_time_hours = 6
+noise_prevents_local_minima = true
+
+[output]
+# Output configuration
+output_variables = [
+    "temperature",
+    "pressure",
+    "winds",
+    "humidity",
+    "precipitation",
+    "cloud_fraction",
+    "curvature_scalar",
+    "fisher_information",
+    "modal_state"
+]
+
+# Diagnostics
+output_diagnostics = true
+diagnostic_variables = [
+    "energy_tendency",
+    "mass_tendency",
+    "enstrophy",
+    "available_potential_energy"
+]
+
+# Visualization
+enable_realtime_visualization = false
+visualization_backend = "matplotlib"  # "matplotlib", "plotly", "vtk"
+visualization_update_seconds = 60
+
+# Metadata
+include_metadata = true
+metadata_convention = "CF-1.8"  # Climate and Forecast conventions
+global_attributes = [
+    "institution = 'Climate Geometric Modeling Project'",
+    "source = 'CGMF v0.1.0'",
+    "references = 'https://github.com/J0pari/Climate'"
+]

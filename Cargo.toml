@@ -1,0 +1,102 @@
+[package]
+name = "climate-geometric-framework"
+version = "0.1.0"
+edition = "2021"
+authors = ["Climate Geometric Modeling Project"]
+license = "MIT"
+repository = "https://github.com/J0pari/Climate"
+description = "Geometric framework for climate modeling using Riemannian manifolds and information geometry"
+keywords = ["climate", "modeling", "geometry", "manifold", "simulation"]
+categories = ["science", "simulation", "mathematics"]
+
+[workspace]
+members = ["CORE"]
+
+[dependencies]
+# Linear algebra and numerical computation
+nalgebra = { version = "0.32", features = ["serde-serialize"] }
+ndarray = { version = "0.15", features = ["rayon", "serde"] }
+num-dual = { version = "0.8", features = ["linalg"] }
+num-traits = "0.2"
+num-complex = "0.4"
+
+# Automatic differentiation
+autodiff = "0.6"
+
+# Parallelization
+rayon = "1.8"
+crossbeam = "0.8"
+parking_lot = "0.12"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+bincode = "1.3"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging and telemetry
+log = "0.4"
+env_logger = "0.11"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Date and time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Configuration
+config = "0.13"
+clap = { version = "4.4", features = ["derive"] }
+
+# Testing
+proptest = "1.4"
+criterion = "0.5"
+approx = "0.5"
+
+# Optional: NetCDF support
+netcdf = { version = "0.8", optional = true }
+hdf5 = { version = "0.8", optional = true }
+
+# Optional: GPU support
+cuda-sys = { version = "0.2", optional = true }
+cust = { version = "0.3", optional = true }
+
+# Optional: MPI support
+mpi = { version = "0.7", optional = true }
+
+[dev-dependencies]
+tempfile = "3.8"
+pretty_assertions = "1.4"
+rstest = "0.18"
+
+[features]
+default = ["netcdf-io", "parallel"]
+netcdf-io = ["netcdf", "hdf5"]
+gpu = ["cuda-sys", "cust"]
+mpi-parallel = ["mpi"]
+parallel = ["rayon", "ndarray/rayon"]
+full = ["netcdf-io", "gpu", "mpi-parallel", "parallel"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+inherits = "release"
+
+[profile.dev]
+opt-level = 1
+
+[profile.test]
+opt-level = 2
+
+# Workspace-level dependencies for CORE subdirectory
+[workspace.dependencies]
+nalgebra = "0.32"
+ndarray = "0.15"
+serde = "1.0"

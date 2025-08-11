@@ -1,0 +1,102 @@
+name = "ClimateGeometricFramework"
+uuid = "a5d7c3e2-8f4b-4c6d-9e1a-2b3f4a5c6d7e"
+authors = ["Climate Geometric Modeling Project"]
+version = "0.1.0"
+
+[deps]
+# Core numerical and scientific computing
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+# Differential equations and dynamical systems
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+DynamicalSystems = "61744808-ddfa-5f27-97ff-6e42cc95d634"
+BifurcationKit = "0f109fa4-8a5d-4b75-95aa-f515264e7665"
+
+# Automatic differentiation
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+
+# Optimization
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+NLopt = "76087f3c-5699-56af-9a33-bf431cd00edd"
+
+# Statistical analysis
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
+MultivariateStats = "6f286f6a-111f-5878-ab1e-185364afe411"
+
+# Data manipulation and I/O
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
+Zarr = "0a941bbe-ad1d-11e8-39d9-ab76183a1d99"
+
+# Parallel computing
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+SharedArrays = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
+DistributedArrays = "aaf54ef3-cdf8-58ed-94cc-d582ad619b94"
+MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+
+# GPU computing
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
+
+# Plotting and visualization
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+
+# Special functions and mathematics
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a"
+
+# Geometry and manifolds
+Manifolds = "1cead3c2-87b3-11e9-0ccd-23c62b72b94e"
+ManifoldDiff = "af67fdf4-a580-4b9f-bbec-742ef357defd"
+ManifoldDiffEq = "1143c485-9b1e-4d04-859c-056a8d7b30f5"
+
+# Information theory
+InformationMeasures = "96684042-fbdc-5399-9b8e-d34e539a126c"
+
+# Climate-specific packages
+ClimateTools = "4f4ee721-4970-5af2-8560-6c1d960e3231"
+ClimateBase = "35604d93-0fb8-4872-9436-495b01d137e2"
+
+# Utilities
+ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+julia = "1.9"
+DifferentialEquations = "7"
+Optim = "1.7"
+ForwardDiff = "0.10"
+Zygote = "0.6"
+Distributions = "0.25"
+DataFrames = "1.6"
+NCDatasets = "0.13"
+CUDA = "5"
+Plots = "1.39"
+Makie = "0.20"
+BenchmarkTools = "1.3"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+
+[targets]
+test = ["Test", "SafeTestsets", "BenchmarkTools"]
