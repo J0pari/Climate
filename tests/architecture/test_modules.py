@@ -34,6 +34,39 @@ class ModuleIntegrityTests(unittest.TestCase):
             findings = check_modules.check(root, {"modules": []}, claims())
             self.assertIn("modules.source_unregistered", {f.code for f in findings})
 
+    def test_unregistered_nested_source_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            nested = root / "future_package" / "solver.rs"
+            nested.parent.mkdir(parents=True)
+            nested.write_text("fn main() {}\n", encoding="utf-8")
+            findings = check_modules.check(root, {"modules": []}, claims())
+            matching = [f for f in findings if f.code == "modules.source_unregistered"]
+            self.assertEqual([f.path for f in matching], ["future_package/solver.rs"])
+
+    def test_reference_source_is_part_of_module_surface(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reference = root / "reference" / "oracle.py"
+            reference.parent.mkdir(parents=True)
+            reference.write_text("pass\n", encoding="utf-8")
+            findings = check_modules.check(root, {"modules": []}, claims())
+            matching = [f for f in findings if f.code == "modules.source_unregistered"]
+            self.assertEqual([f.path for f in matching], ["reference/oracle.py"])
+
+    def test_architecture_file_cannot_be_registered_as_scientific_module(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "architecture" / "gate.py"
+            path.parent.mkdir(parents=True)
+            path.write_text("pass\n", encoding="utf-8")
+            findings = check_modules.check(
+                root,
+                {"modules": [module("architecture/gate.py")]},
+                claims(),
+            )
+            self.assertIn("modules.path_not_module_surface", {f.code for f in findings})
+
     def test_duplicate_module_path_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

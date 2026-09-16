@@ -1,34 +1,28 @@
 #!/usr/bin/env python3
 """Integrity checks for Climate's module/maturity inventory.
 
-The module inventory is the bridge between legacy source and the scientific
-claim/evidence system. It must stay complete enough that adding or moving a
-scientific source file cannot silently escape maturity and known-gap tracking.
+The module inventory is the bridge between scientific/reference source and the
+claim/evidence system. Discovery comes from ``architecture.source_surface`` so
+package migration cannot silently change what counts as tracked source.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(ROOT))
+
+from architecture import source_surface
+
 DEFAULT_MODULES = ROOT / "architecture" / "modules.json"
 DEFAULT_CLAIMS = ROOT / "claims" / "registry.json"
-
-SOURCE_SUFFIXES = {
-    ".rs": "rust",
-    ".py": "python",
-    ".cu": "cuda",
-    ".cpp": "cpp",
-    ".cc": "cpp",
-    ".cxx": "cpp",
-    ".f90": "fortran",
-    ".F90": "fortran",
-    ".jl": "julia",
-    ".hs": "haskell",
-}
+SOURCE_SUFFIXES = source_surface.SOURCE_LANGUAGES
 
 MATURITY_RANK = {
     "concept": 0,
@@ -39,17 +33,6 @@ MATURITY_RANK = {
     "replicated": 5,
     "decision-eligible": 6,
 }
-
-# The current legacy scientific implementation is flat at repository root.
-# New architecture-control/test code is intentionally excluded. When the
-# migration introduces package directories, this discovery rule should change
-# in the same commit as the layout contract.
-def discover_legacy_sources(root: Path) -> set[str]:
-    return {
-        path.name
-        for path in root.iterdir()
-        if path.is_file() and path.suffix in SOURCE_SUFFIXES
-    }
 
 
 @dataclass(frozen=True)
@@ -124,6 +107,14 @@ def check(
             ))
             continue
 
+        role = source_surface.classify_relative_path(Path(path))
+        if role not in source_surface.MODULE_TRACKED_ROLES:
+            findings.append(Finding(
+                "modules.path_not_module_surface",
+                f"registered module has source role {role!r}, not a scientific/reference role",
+                path=path,
+            ))
+
         expected_language = SOURCE_SUFFIXES.get(file_path.suffix)
         actual_language = module.get("language")
         if expected_language and actual_language != expected_language:
@@ -187,19 +178,14 @@ def check(
                 path=path,
             ))
 
-    discovered = discover_legacy_sources(root)
+    discovered = source_surface.module_tracked_paths(root)
     registered_paths = set(registered)
     for path in sorted(discovered - registered_paths):
         findings.append(Finding(
             "modules.source_unregistered",
-            "legacy scientific source exists without a module/maturity record",
+            "scientific/reference source exists without a module/maturity record",
             path=path,
         ))
-    for path in sorted(registered_paths - discovered):
-        # Nested paths are allowed for future package migration; if they exist
-        # they were already accepted above. Only missing paths are errors here.
-        if not (root / path).is_file():
-            continue
 
     return sorted(findings, key=lambda item: (item.code, item.path or "", item.reference or ""))
 
