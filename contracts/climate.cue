@@ -15,6 +15,8 @@ package climate
 #EvidenceRelation: "supports" | "attacks" | "depends_on"
 #DeterminismClass: "D0" | "D1" | "D2"
 #NetworkPolicy: "none" | "restricted" | "required"
+#ClaimType: "software" | "numerical" | "physical" | "statistical" | "predictive" | "causal" | "interpretive" | "performance" | "resource" | "interoperability"
+#ParameterProvenance: "placeholder" | "fallback" | "heuristic" | "calibrated" | "literature_fixed" | "learned"
 
 #ResourceEnvelope: {
 	cpu_cores?:      number & >0
@@ -96,7 +98,6 @@ package climate
 	interval?: {
 		lower: number
 		upper: number
-		lower <= upper
 		level?: number & >0 & <1
 	}
 	sample_size?: int & >=0
@@ -198,12 +199,18 @@ package climate
 }
 
 #Claim: {
-	claim_id:    #Id
-	statement:   string & !=""
-	claim_type:  "software" | "numerical" | "physical" | "statistical" | "predictive" | "interpretive"
-	maturity:    #Maturity
-	scope:       string & !=""
-	depends_on:  [...#Id]
-	evidence:    [...#Id]
-	decision_policy?: string
+	claim_id:          #Id
+	statement:         string & !=""
+	claim_type:        #ClaimType
+	subject?:          string
+	maturity:          #Maturity
+	scope:             string & !=""
+	depends_on:        [...#Id]
+	required_evidence: [...string]
+	supporting_evidence: [...#Id]
+	attacking_evidence:  [...#Id]
+	unresolved_falsifiers: [...string]
+	owner?:            string
+	supersedes?:       [...#Id]
+	decision_policy?:  string
 }
