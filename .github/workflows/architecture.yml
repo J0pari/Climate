@@ -18,6 +18,8 @@ jobs:
         run: python architecture/check_claims.py
       - name: Module inventory integrity
         run: python architecture/check_modules.py
+      - name: Generated repository status is current
+        run: python architecture/render_status.py --check
       - name: Semantic hazard freshness and resolution integrity
         run: python architecture/check_hazards.py
       - name: Experiment graph integrity
