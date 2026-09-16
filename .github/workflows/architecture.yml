@@ -58,8 +58,10 @@ jobs:
         run: |
           rustc --version
           cargo --version
-      - name: Compile and test canonical Rust surface
+      - name: Test canonical Rust surface
         run: cargo test --all-targets
+      - name: Compile legacy Rust compatibility surface
+        run: cargo check --all-targets --features legacy-rust
 
   fortran-reference:
     runs-on: ubuntu-24.04

@@ -19,6 +19,10 @@ This file is the binding contributor/agent contract. `README.md` is descriptive 
 11. **Performance is not scientific evidence by itself.** A faster GPU path does not strengthen a scientific claim unless it preserves the declared numerical semantics and passes the same validation contract.
 12. **Fallbacks are distinct implementations.** CPU, fake/compatibility MPI or NCCL, reduced precision, tensor-core fallbacks, approximate solvers, and alternate algorithms must not masquerade as the requested implementation in evidence-producing runs.
 13. **Unavailable resources remain explicit gates.** Compile success, static inspection, mocks, shims, or prose must not stand in for execution on a resource that the claim actually depends on. CUDA correctness needs a CUDA device; integrated scheduling needs the integrated system; real-data generalization needs the declared data.
+14. **Preserve semantic information, not incidental syntax.** Refactors may substantially change layout, control flow, abstractions, or language boundaries when that increases technical accuracy, composability, falsifiability, or scientific meaning. Do not preserve brittle structure merely because it is old.
+15. **No semantic smoothing.** A migration may simplify syntax, but it must not collapse scientifically meaningful distinctions such as missing vs zero, undefined vs stable, unavailable vs failed, heuristic vs measured, proposal vs evidence, or policy threshold vs physical tipping claim. If legacy code conflates states, canonical code should split them and document the compatibility difference.
+16. **Legacy code is a source reservoir, not automatic authority.** Prefer preserve -> slice -> type the seams -> recompose -> verify. Quarantine only code that is unsafe to invoke or semantically fraudulent; otherwise retain useful formulas, kernels, fixtures, algorithms, and thresholds with provenance. Canonical tests may reject known-broken legacy expectations while compatibility checks keep the old surface inspectable and compilable where practical.
+17. **Abstraction must buy epistemic or engineering leverage.** Do not add wrapper types, indirection, or framework ceremony solely for stylistic purity. Use meaningfully different constructs—typed states, algebraic variants, declarative registries, generated views, staged pipelines, independent references, or property tests—when they make invalid states harder to represent, expose uncertainty, deepen the model, or enable stronger witnesses.
 
 ## 2. Claim maturity vocabulary
 
@@ -177,16 +181,3 @@ Until the gates in `docs/COMMONS-INTEGRATION.md` are satisfied, Climate should b
 The first integration milestone is read-only inspection and evidence capture. Execution comes later behind a sandbox. Write/PR authority comes after binding contracts, reproducible gates, and immutable receipts exist.
 
 For GPU work, Commons should eventually own cross-repository resource leases and run identity; Climate owns device-local numerical execution, streams, layouts, kernels, numerical checkpoint semantics, and hardware-specific correctness tests.
-
-## 13. Read before substantive changes
-
-- `docs/ARCHITECTURE.md`
-- `docs/EXECUTION-TOPOLOGY.md`
-- `docs/GPU-ENGINEERING.md`
-- `docs/VALIDATION-AND-EVIDENCE.md`
-- `docs/META-EXPERIMENTATION.md`
-- `docs/COMMONS-INTEGRATION.md`
-- `docs/ROADMAP.md`
-- `docs/GEOMETRY-VERIFICATION.md` for geometric/manifold work
-
-When these documents conflict, prefer the more specific scientific/validation constraint over implementation convenience. Amend the spec deliberately rather than bypassing it in code.
