@@ -225,6 +225,15 @@
       "evidence_eligible": false,
       "intended_role": "numerical-method experiments and reference implementations",
       "known_gaps": ["source explicitly labels some formulas and execution checks as unvalidated", "requires convergence and manufactured-solution witnesses"]
+    },
+    {
+      "path": "reference/geometry_sympy.py",
+      "family": "reference_geometry",
+      "language": "python",
+      "maturity": "runnable",
+      "evidence_eligible": false,
+      "intended_role": "independent symbolic differential-geometry oracle for analytic verification fixtures",
+      "known_gaps": ["scope is limited to the preregistered analytic geometry fixtures", "no accelerated implementation equivalence has been established", "produces no climate interpretation"]
     }
   ]
 }
