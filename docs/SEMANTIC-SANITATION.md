@@ -1,0 +1,147 @@
+# Semantic sanitation: remove plausible lies before adding capability
+
+Status: **binding cross-cutting safety policy**.
+
+Climate currently contains a class of technical debt more dangerous than missing code: implementations that return plausible-looking values while being explicitly placeholder, arbitrary, simplified beyond their advertised semantics, or incapable of supporting the interpretation their types/names imply.
+
+These paths are treated as **semantic hazards**, not ordinary TODOs.
+
+## 1. Governing rule
+
+Prefer, in order:
+
+1. a correct implementation with evidence;
+2. an explicit typed/unambiguous failure saying the capability is unavailable;
+3. an absent capability with an in-place blueprint/specification;
+4. **never** a plausible-output placeholder whose result can be consumed as though it were the intended feature.
+
+Compilation, API completeness, demos, or apparent end-to-end execution are not reasons to retain fake behavior.
+
+Git history is the archive for removed prototypes. The live tree is not required to preserve misleading executable sketches merely so future agents can see them.
+
+## 2. Hazard classes
+
+### S0 — absent / declared unavailable
+
+No implementation exists, or an entrypoint fails immediately with an explicit `Unavailable`/`NotImplemented` diagnostic before producing scientific output.
+
+This is safe by default.
+
+### S1 — incomplete but non-deceptive
+
+Implementation is partial, but unsupported branches fail explicitly and supported branches have accurately narrow names/contracts.
+
+May remain as prototype.
+
+### S2 — heuristic with explicit heuristic semantics
+
+A deliberately approximate method exists and is *actually intended* to be heuristic. Its output type/name says so, and no stronger claim consumes it.
+
+Requires a hypothesis/experiment contract before evidence use.
+
+### S3 — misleading simplification
+
+Code performs a static/default/simplified operation while presenting the result under the name/type/interface of a materially stronger capability.
+
+Examples:
+
+- zero-filled IMFs returned by an EEMD routine;
+- fixed humidity injected into a state advertised as observational state;
+- fixed eigenvalues used as if computed conditioning diagnostics;
+- a CPU/fake-MPI path retaining the identity of a CUDA/NCCL implementation;
+- a hard-coded probability transform returned as a physical probability.
+
+**S3 must be removed, renamed/retyped as an explicit heuristic, or converted to fail-closed behavior.**
+
+### S4 — fake/plausible-output placeholder
+
+The implementation is known not to implement the advertised capability and emits values likely to flow downstream as valid results.
+
+Examples include explicitly fake forecast skill, uninitialized-data diagnostics, stub scientific transforms that return numerically reasonable arrays, or fabricated calibration values.
+
+**S4 is merge-blocking for any touched path and is a high-priority legacy removal target.**
+
+## 3. Fail-closed patterns
+
+Preferred failure forms depend on language:
+
+- Rust: `Result::Err` with a dedicated unavailable/unsupported error; `unimplemented!` only at a clearly unreachable prototype boundary.
+- Python: raise a dedicated `NotImplementedError`/domain error before constructing an output artifact.
+- Fortran: `error stop` at the entrypoint, or remove the procedure/module from the executable build until a real implementation exists.
+- C/C++/CUDA: explicit status/error return before output buffers are presented as valid; poison/debug fills are acceptable only if the API also reports failure and evidence paths reject them.
+- Julia/Haskell: explicit error/`Either`-style unavailable result rather than a value inhabiting the successful scientific result type.
+
+A sentinel value such as `0`, `NaN`, `1000`, empty array, or identity matrix **is not sufficient by itself** when downstream code can ignore the reason and continue.
+
+## 4. Blueprint requirement for destructive removals
+
+When removing a substantial prototype, leave a compact blueprint under `blueprints/` or the relevant method/architecture document containing:
+
+- intended scientific capability;
+- input/output semantics;
+- known conventional definitions/baselines;
+- what was removed and why it was unsafe;
+- minimum verification required before reintroduction;
+- likely implementation/resource partition;
+- links to claim/method/experiment IDs where applicable.
+
+Do not preserve the dangerous implementation inline merely as documentation. Git history already preserves it.
+
+## 5. Priority ordering
+
+Sanitation priority is based on **semantic contamination risk**, not ease of fixing.
+
+1. fake values feeding authoritative or scientific-looking output;
+2. placeholder fallbacks hidden behind successful return paths;
+3. mislabeled physical probabilities/confidences/risk/timescale outputs;
+4. silent synthetic/default observations or state variables;
+5. stub transforms returning arrays/tensors under real algorithm names;
+6. fake compatibility layers retaining real capability identity;
+7. dead demos/tests that can be mistaken for validation;
+8. ordinary TODOs that already fail closed.
+
+## 6. Immediate legacy targets
+
+Initial audit has identified at least these high-priority examples:
+
+- `climate_oscillation_monitor.f90`: arbitrary/fake forecast-skill formulas plus a placeholder test using uninitialized data; replace executable sketch with an unavailable stub and blueprint.
+- `climate_safety_protocols.rs`: hard-coded fallback eigenvalues used as conditioning diagnostics; remove fallback and fail when real eigen diagnostics are unavailable.
+- `climate_spectral_analysis.f90`: EEMD routine allocates zero IMFs and returns the input as residue; convert that path to explicit unavailable behavior until implemented and verified.
+- `climate_state.rs`: placeholder state fields such as fixed relative humidity must not masquerade as observational/physical initialization.
+- `climate_physics_core.f90`: placeholder solar declination and other simplified physical constants/closures must either be narrowly named as fixed idealized assumptions or removed from general physical-model paths.
+- `climate_ffi_bridge.rs`: placeholder Julia/Haskell integration must fail capability discovery rather than present itself as implemented interoperability.
+
+This list is not exhaustive. `architecture/source_gates.py` remains an inventory aid; sanitation review decides which findings are harmless notes versus S3/S4 hazards.
+
+## 7. Interaction with maturity and evidence
+
+A module containing an active S3/S4 path cannot be `verified`, `validated`, `replicated`, or `decision-eligible` for a claim that can reach that path.
+
+A run that activates an unrequested fallback cannot retain the preferred implementation identity.
+
+A blueprint or unavailable stub is allowed to coexist with a `concept`/`prototype` method descriptor because it cannot manufacture supporting evidence.
+
+## 8. CI direction
+
+The sanitation system should evolve toward:
+
+- a machine-readable hazard ledger with owner/action/status;
+- negative witnesses proving guards catch plausible-output placeholders;
+- source gates for known dangerous patterns;
+- module/method checks preventing maturity promotion while unresolved S3/S4 hazards are reachable;
+- explicit allowlists only for correctly named heuristics, never for fake implementations.
+
+The goal is not zero TODO comments. The goal is zero successful-looking execution paths that lie about what computation occurred.
+
+## 9. Reintroduction rule
+
+Removed capability may return when it has:
+
+1. a narrow contract;
+2. an independent reference or benchmark where applicable;
+3. explicit failure semantics;
+4. tests showing unsupported cases fail closed;
+5. evidence appropriate to its advertised maturity;
+6. no need for fabricated data/results to keep an end-to-end demo green.
+
+A smaller truthful system is preferred to a larger system whose apparent completeness contaminates future reasoning.
