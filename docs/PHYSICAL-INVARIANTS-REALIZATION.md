@@ -1,806 +1,885 @@
-# Physical invariants, balance laws, and symmetry realization
+# Physical laws, invariants, balance budgets, and verification
 
-Status: **binding research and verification plan for conservation/symmetry work**.
+Status: **binding research and engineering plan for physical-law realization**.
 
-This document defines the work required before Climate may describe Noether structure, higher-order invariants, or conservation laws as being meaningfully connected to deployed climate physics. It is intentionally stricter than a list of mathematical identities. The target is not to decorate an evolving model with conserved quantities after the fact; it is to make the governing equations, discretization, coupling, numerical corrections, and verification machinery agree about what is conserved, what is only balanced, what is deliberately dissipated, and under which assumptions each statement is valid.
+This document defines how Climate turns mathematical structure into trustworthy climate-model behavior. The goal is a dynamical core whose governing equations, spatial operators, time integration, solvers, coupling, stabilization, and diagnostics agree about the quantities they transport, exchange, conserve, dissipate, or produce.
 
-The current exact Noether reference remains useful, but it is only the first rung of this ladder.
-
----
-
-## 1. Current assessment
-
-### 1.1 What is already technically sound
-
-`reference/noether_sympy.py` is a legitimate exact reference for a narrow mathematical problem: finite-dimensional, first-order Lagrangians `L(t, q, qdot)` with point symmetries. It computes the variational invariance residual, Noether charge, Euler-Lagrange residuals, characteristic, and the off-shell Noether identity. Its current tests correctly cover examples such as time translation of a harmonic oscillator, spatial translation of a free particle, rotational symmetry, a Galilean boost requiring a boundary term, an explicit non-symmetry, and rejection of a velocity-dependent generator that does not belong to the declared point-symmetry class.
-
-That is a useful theorem oracle. It is **not** yet a climate-physics realization.
-
-### 1.2 What is not yet realized
-
-The repository does not currently have the layers needed to connect that oracle to the physically important invariants of a climate dynamical core:
-
-- no continuum variational-field implementation for atmosphere/ocean PDEs;
-- no Lagrangian particle-label/relabeling symmetry authority for fluid circulation or potential-vorticity results;
-- no noncanonical Hamiltonian/Poisson-bracket reference for fluid Casimirs;
-- no canonical rotating shallow-water model serving as an invariant laboratory;
-- no canonical full momentum equation or pressure-gradient operator;
-- no coupled total-energy equation including internal, kinetic, potential, moisture/phase, radiation, surface, and subgrid transfers;
-- no axial angular-momentum budget with pressure/mountain/friction/surface torques;
-- no canonical vorticity or Ertel potential-vorticity equation;
-- no higher-order invariant implementation such as potential enstrophy with its assumptions made executable;
-- no runtime process ledger that attributes invariant changes to resolved fluxes, physical sources/sinks, coupling, filters, limiters, remapping, solver tolerances, or roundoff;
-- no fully discrete proof or differential witness showing that a chosen space/time discretization preserves the intended semi-discrete invariant;
-- no empirical budget closure study against reanalysis/observations that is separate from mathematical correctness.
-
-The legacy `climate_symmetries.hs` contains useful hints about desired budgets and data sources, but it also mixes physically serious ideas with heuristic symmetry detection, variance thresholds, confidence-like values, and broad Noether language. It must remain a source reservoir rather than an authority.
-
-### 1.3 The repository currently overstates the connection in one important place
-
-The README language saying that approximate climate symmetries, via Noether's theorem, correspond to conserved quantities is too broad. Approximate constancy, a low variance diagnostic, a scaling law, or a broken empirical pattern is not enough to invoke Noether. For forced, dissipative, moist, radiating Earth-system dynamics the scientifically useful object is usually a **balance law with explicit production, destruction, flux, and exchange terms**, not an exact conserved Noether charge.
-
-The correct architectural direction is therefore:
-
-> exact theorem oracle -> model-specific continuum law -> discrete law -> runtime budget -> adversarial verification -> empirical/process validation.
-
-Passing an earlier step never promotes a later one automatically.
+The standard is stronger than observing that a diagnostic stays nearly constant. Every claimed law must have a declared model, assumptions, discrete realization, runtime accounting, and adversarial witness.
 
 ---
 
-## 2. Vocabulary that must not be blurred
+## 1. Authority ladder
 
-Every invariant-related object must be assigned one of the following semantic classes. These are not interchangeable labels.
+Physical-law work proceeds through distinct layers:
+
+```text
+continuum model + assumptions
+        ↓
+independent mathematical derivation
+        ↓
+reference operator / analytic fixture
+        ↓
+semi-discrete spatial law
+        ↓
+fully discrete time/solver law
+        ↓
+runtime source/sink/exchange/correction budget
+        ↓
+adversarial and convergence verification
+        ↓
+benchmark / empirical validation
+```
+
+Success at one layer does not imply success at the next.
+
+The repository already contains exact finite-dimensional variational machinery in `reference/noether_sympy.py`. Its appropriate role is as one mathematical reference for deliberately defined finite-dimensional Lagrangian systems. Continuum fluids additionally require field-theoretic, Hamiltonian/Poisson, material-transport, and balance-law authorities matched to the actual governing equations.
+
+---
+
+## 2. Law classes
+
+Every physically important quantity must be assigned a semantic class before implementation. The class determines its assumptions, diagnostics, and tests.
 
 ### 2.1 Exact continuum invariant
 
-A quantity `I[u]` satisfying `dI/dt = 0` for a precisely declared continuum model, domain, boundary condition, regularity class, and set of absent forcings/dissipations.
-
-Examples may include mass or energy of an inviscid closed system, but only after the relevant assumptions are explicit.
-
-### 2.2 Continuum balance law
-
-A local or global relation of the form
+A functional `I[u]` satisfying
 
 ```text
-storage tendency + flux divergence = physical sources - physical sinks + exchange terms.
+dI/dt = 0
 ```
 
-This is the normal object for radiating, forced, dissipative climate dynamics. A good balance law is not a failed conservation law; it is often the more physically correct statement.
+for a named continuum model, domain, boundary condition, regularity class, and declared absence of forcing/dissipation.
 
-### 2.3 Casimir / degeneracy invariant
+Examples can include total mass or total energy in closed idealized systems.
 
-A conserved functional associated with the degeneracy of a noncanonical Poisson structure rather than an ordinary finite-dimensional point symmetry. Potential-enstrophy families in ideal fluid models belong in this discussion. They must not be mislabeled as ordinary point-Noether charges.
+### 2.2 Local or global balance law
 
-### 2.4 Material invariant
+A relation of the form
 
-A quantity conserved following fluid parcels under a specific idealized set of thermodynamic and mechanical assumptions, such as a form of potential vorticity in adiabatic, frictionless flow. Material conservation is not automatically a global integral conservation statement.
+```text
+storage tendency + flux divergence = sources - sinks + exchanges.
+```
 
-### 2.5 Adiabatic invariant / wave action / pseudomomentum
+This is the principal language for radiating, forced, dissipative Earth-system models.
 
-A quantity conserved only under scale separation, slowly varying backgrounds, linearization, symmetry of the basic state, or another perturbative assumption. These require their own asymptotic error statement.
+### 2.3 Material invariant
 
-### 2.6 Statistical scaling relation
+A quantity satisfying a parcel-following relation such as
 
-An inertial-range exponent, spectral slope, flux plateau, structure-function law, or other statistical relation. Scale invariance in turbulence must live here unless a precise symmetry theorem is actually established. A power law is not by itself a Noether conservation law.
+```text
+Dq/Dt = 0
+```
 
-### 2.7 Semi-discrete invariant
+under explicitly stated mechanical and thermodynamic assumptions. Material invariance and global integral conservation are separate statements.
 
-A discrete functional preserved exactly by the spatially discretized ODE/PDE system before time discretization. This is where Arakawa-type energy/enstrophy constructions and mimetic/compatible operators belong.
+### 2.4 Hamiltonian / Poisson invariant
 
-### 2.8 Fully discrete invariant or controlled drift
+A quantity generated or preserved by a Hamiltonian structure. Noncanonical fluid systems may carry invariants through Poisson degeneracy and Casimir families.
 
-A property of the actual time-stepping algorithm. A spatial scheme may conserve an invariant in continuous time while the chosen integrator introduces drift. The fully discrete statement must therefore name the time integrator, timestep, solver tolerance, nonlinear convergence policy, and precision.
+### 2.5 Casimir / potential-vorticity functional
 
-### 2.9 Numerical correction budget
+A functional associated with the degeneracy of a noncanonical Poisson bracket. In shallow-water-like systems, PV-dependent integral families and potential enstrophy belong here.
 
-Any change introduced by clipping, positivity repair, filters, Robert-Asselin-like damping, artificial diffusion, remapping, flux correction, pressure projection, constraint stabilization, iterative-solver tolerance, or restart/regridding. Such corrections must be measured rather than disappearing into the state update.
+### 2.6 Entropy law
 
-### 2.10 Empirical Earth-system budget
+Depending on the model, the relevant statement may be material entropy conservation, a discrete entropy conservation identity, or an entropy inequality. Shock-capturing and irreversible moist physics require production/dissipation semantics rather than simple constancy.
 
-A comparison of model or diagnostic terms with observations/reanalysis. Closure error here contains sampling, retrieval, forcing, unresolved process, and dataset uncertainty in addition to numerical error. It is not the same verification problem as exact mathematical conservation.
+### 2.7 Wave action / pseudomomentum
+
+A perturbative or asymptotic quantity whose validity depends on background-state symmetry, linearization, scale separation, slowly varying coefficients, or another declared approximation.
+
+### 2.8 Statistical cascade law
+
+A scale-dependent flux, spectral slope, structure-function relation, or inertial-range law. These require resolution, forcing-range, dissipation-range, anisotropy, finite-domain, and uncertainty diagnostics.
+
+### 2.9 Semi-discrete invariant
+
+A functional preserved by the spatially discretized continuous-time system. This is where compatible/mimetic operators and energy/enstrophy-preserving constructions are judged.
+
+### 2.10 Fully discrete invariant or controlled drift
+
+A property of the actual time-stepping and nonlinear/linear solve. It must name timestep, substeps, solver tolerances, convergence criteria, precision, and splitting order.
+
+### 2.11 Numerical correction budget
+
+A measured contribution from filtering, limiting, positivity repair, remapping, projection, stabilization, artificial diffusion, clipping, iterative-solver tolerance, or restart/regrid operations.
+
+### 2.12 Empirical Earth-system budget
+
+A comparison against reanalysis or observations in which closure error also includes sampling, retrieval, forcing, unresolved-process, and dataset uncertainty.
 
 ---
 
-## 3. Where Noether is genuinely relevant—and where it is not the whole story
+## 3. Design principle: structure before correction
 
-### 3.1 Finite-dimensional variational subsystems
+The preferred numerical method makes the desired physical cancellation an algebraic property of the discrete operators.
 
-The current SymPy reference is directly applicable to deliberately reduced models whose action and generalized coordinates are explicitly defined. Examples include idealized oscillators, mechanically reduced modes, or carefully derived finite-dimensional truncations.
+Examples:
 
-Required before climate interpretation:
+- internal face fluxes cancel pairwise between adjacent cells;
+- pressure work appears with equal-and-opposite conversion terms where appropriate;
+- divergence and gradient operators satisfy the intended discrete adjoint relation;
+- curl/divergence complexes respect compatible identities;
+- mass flux used by tracer transport is the same mass flux that updates the carrier mass;
+- coupled interface exchanges are equal-and-opposite between modeled reservoirs;
+- skew-symmetric or Hamiltonian operators preserve the intended quadratic form;
+- dissipative operators are sign-definite with respect to the quantity they are intended to remove.
 
-1. derive the reduced Lagrangian from the declared physical model rather than fit it because it produces a desired invariant;
-2. identify the exact transformation group and boundary/gauge term;
-3. establish the reduction error relative to the parent equations;
-4. distinguish a true symmetry from an approximately constant trajectory statistic;
-5. test the charge against direct numerical trajectories from an independent integrator.
-
-### 3.2 Continuum fluids require field theory and particle-relabeling structure
-
-Atmospheric and oceanic fluids are not collections of a few generalized coordinates. Important fluid invariants arise from spatial fields, advected quantities, boundary geometry, and relabeling freedom of fluid parcels.
-
-For ideal fluids, circulation, vorticity, helicity, and potential-vorticity results can be connected to particle-relabeling symmetries in a Lagrangian description. This is a deeper and different use of Noether's theorem than the current point-symmetry oracle. A correct implementation therefore needs a field/continuum reference layer or an independently derived Hamiltonian/Poisson authority.
-
-Do **not** generalize the existing `PointSymmetry` API until the required mathematical object is clear. A larger generic API that silently treats field symmetries, generalized symmetries, gauge freedoms, and relabelings as the same thing would make the mathematics less trustworthy, not more.
-
-### 3.3 Casimirs and higher-order invariants need their own authority
-
-In rotating shallow-water and related noncanonical Hamiltonian systems, potential-vorticity-dependent integrals form Casimir families under ideal assumptions. Potential enstrophy is especially important numerically because uncontrolled grid-scale enstrophy can contaminate long integrations and energy cascades.
-
-These quantities should be represented as `Casimir`/`PVInvariant`-type obligations, not squeezed into a point-Noether charge type merely to create conceptual uniformity.
-
-### 3.4 Forced and dissipative climate physics should normally use balance laws
-
-Radiation, surface drag, turbulent mixing, convection, microphysics, precipitation, chemistry, gravity-wave drag, ocean exchange, and data-assimilation increments all break one or more ideal symmetries or transfer quantities between modeled reservoirs.
-
-The useful diagnostic is then something like
-
-```text
-energy_after - energy_before
-  - resolved_boundary_flux
-  - radiation
-  - surface_exchange
-  - phase-change/internal conversion
-  - subgrid_dissipation
-  - numerical_correction
-  = unexplained_residual.
-```
-
-A small unexplained residual is meaningful only when the named terms are independently defined and the signs/units/normalizations are fixed.
+Global projection or rescaling may be useful as a diagnostic experiment or tightly specified solver operation, but it is not a substitute for the correct discrete law.
 
 ---
 
-## 4. The model-specific invariant ladder
+## 4. Runtime accounting model
 
-The repository should not attempt a universal conservation framework before it has one physically complete model-specific ladder. The following ordering gives increasing realism while keeping the laws independently testable.
+Every timestep should be explainable as a ledger.
 
-### 4.1 Barotropic vorticity / 2-D incompressible flow
+For a quantity `Q`, define
 
-Purpose: smallest fluid laboratory for nonlinear invariant preservation.
+```text
+Q_after - Q_before
+  = boundary_flux
+  + resolved_physical_sources
+  - resolved_physical_sinks
+  + internal_exchange_net
+  + coupling_exchange_net
+  + numerical_correction
+  + solver_residual_effect
+  + roundoff_estimate
+  + unexplained_residual.
+```
 
-Target continuum objects:
+For a closed ideal test, the legitimate right-hand-side terms collapse to zero except roundoff and controlled solver error.
 
-- circulation/vorticity transport under declared boundary conditions;
+For a forced system, closure means the measured state change agrees with the independently accumulated terms.
+
+### Required ledger properties
+
+Each term carries:
+
+- quantity identity;
+- units;
+- sign convention;
+- spatial support/domain;
+- start/end time;
+- process/operator identity;
+- precision;
+- accumulation method;
+- boundary classification;
+- whether it is physical, coupling, stabilization, solver, or diagnostic;
+- optional uncertainty/error estimate.
+
+A process that mutates state without an accounting channel is incomplete.
+
+---
+
+## 5. Lessons from mature numerical engines
+
+Climate dynamics differ from rigid-body game physics, but mature engines and mature geophysical models converge on several engineering disciplines that are directly transferable.
+
+### 5.1 Timestep semantics are part of the model implementation
+
+Fixed-step engines make deterministic behavior and stability limits visible. Climate should retain the same clarity even when adaptive or multirate methods are used.
+
+Required behavior:
+
+- record every accepted timestep;
+- record rejected adaptive steps when relevant to reproducibility;
+- record internal substeps;
+- separate outer coupling cadence from inner fast-wave/chemistry/microphysics cadence;
+- include timestep policy in restart identity;
+- test refinement trajectories, not only one nominal timestep.
+
+### 5.2 Substepping is a physical-numerical contract
+
+Fast processes should be resolved at a cadence consistent with their stability and accuracy requirements.
+
+Candidate uses include:
+
+- acoustic/gravity-wave subcycling;
+- split-explicit atmospheric dynamics;
+- chemistry subcycling;
+- microphysics substeps;
+- stiff source integration;
+- ocean-atmosphere coupling accumulation.
+
+Outer-step budgets must reconcile with the sum of inner-step exchanges.
+
+### 5.3 Solver residuals are first-class diagnostics
+
+Iteration count is not a measure of physical correctness.
+
+Each iterative solve should expose:
+
+- equation residual norm;
+- scaled/physical residual where useful;
+- convergence reason;
+- iteration count;
+- tolerance;
+- conditioning or preconditioner diagnostics where available;
+- resulting contribution to any monitored physical budget.
+
+Reaching an iteration cap is a failed or explicitly degraded solve, not a successful state update with less confidence.
+
+### 5.4 Warm starts are an optimization, not hidden state semantics
+
+When iterative systems use previous solutions, cached multipliers, or previous pressure corrections:
+
+- cold and warm starts must converge to compatible solutions within declared tolerances;
+- restart files must include any state needed for bitwise or tolerance-level replay;
+- warm-start dependence must not alter the physical fixed point.
+
+### 5.5 Stabilization has its own identity
+
+Numerical stabilization is recorded independently from the physical tendency.
+
+Examples:
+
+- filters;
+- hyperdiffusion;
+- monotonicity limiters;
+- positivity repair;
+- divergence damping;
+- pressure projection;
+- remapping;
+- flux correction;
+- implicit regularization.
+
+The budget must reveal what each stabilization step changed.
+
+### 5.6 Refusal is preferable to plausible corruption
+
+Fail closed on:
+
+- invalid pressure/vertical-coordinate ordering;
+- non-finite state or tendency values;
+- unsupported boundary combinations;
+- negative masses or depths outside a declared dry-state scheme;
+- invalid thermodynamic composition;
+- failed nonlinear/linear convergence;
+- violated CFL/stability prerequisites when the integrator requires them;
+- incompatible grid/operator metadata;
+- unit mismatches.
+
+---
+
+## 6. Model ladder
+
+A physical invariant program should advance through compact models whose laws are independently checkable before being embedded in a complete climate core.
+
+### 6.1 Barotropic vorticity / two-dimensional incompressible flow
+
+Purpose: smallest nonlinear fluid laboratory for simultaneous structure and cascade behavior.
+
+Continuum targets:
+
+- vorticity transport;
 - kinetic energy;
 - enstrophy;
-- controlled viscous/enstrophy dissipation when viscosity is enabled.
+- declared viscous/enstrophy dissipation when enabled.
 
-Why it matters: the Arakawa Jacobian literature demonstrates that preserving the right discrete nonlinear structure can suppress spurious numerical cascades even when another formally accurate discretization does not. This is a direct example of "real behavior" depending on structure, not just local truncation order.
+Implementation targets:
 
-### 4.2 Rotating shallow water — first high-value canonical target
+- periodic Cartesian grid first;
+- independently derived Arakawa-style Jacobian reference;
+- a conventional competitor using the same grid and timestep;
+- explicit discrete energy and enstrophy functionals;
+- spatial convergence against manufactured or analytic cases;
+- long-time nonlinear roll-up/cascade behavior;
+- spectral flux diagnostics where resolution permits.
 
-Purpose: first model that simultaneously exercises mass, wave propagation, rotation, balanced flow, vorticity/PV, energy, and a higher-order invariant.
+Acceptance requires the structure-preserving operator to demonstrate its intended invariants algebraically/numerically and the competitor to provide a useful negative-control contrast.
 
-Target continuum objects for the inviscid closed/periodic idealization:
+### 6.2 Rotating shallow water — first full invariant laboratory
 
-- total layer mass;
-- total energy;
-- materially transported potential vorticity `q = (zeta + f) / h` under the appropriate ideal assumptions;
-- potential enstrophy `1/2 integral h q^2 dA`;
-- more general PV Casimir families only after the basic case is verified.
+Purpose: compact system combining waves, rotation, balance, mass transport, vorticity, PV, energy, and higher-order invariant structure.
 
-Target forced/dissipative variants:
+Initial domain:
 
-- explicit wind stress / drag / viscosity / mass-source contributions;
-- energy-conserving but potential-enstrophy-dissipating options where scientifically/numerically appropriate;
-- boundary flux terms for nonperiodic domains.
+- periodic beta-plane or f-plane Cartesian geometry;
+- positive layer depth;
+- closed inviscid baseline;
+- explicit metric/grid contract.
 
-This should be the first place where the project proves that a discrete scheme can preserve two nontrivial invariants simultaneously and where an intentionally nonconserving competitor is used as a negative control.
-
-### 4.3 Dry compressible Euler / ideal-gas atmosphere
-
-Target objects depend on domain and boundary assumptions, but should include:
+Continuum targets:
 
 - total mass;
-- component or total momentum where boundary/coordinate symmetries permit it;
-- total energy with kinetic + internal + gravitational potential contributions;
-- entropy material conservation only for smooth adiabatic inviscid flow, with an entropy inequality/shock-aware statement if shocks are admitted;
-- vorticity/circulation/PV relations under their exact assumptions.
+- total energy;
+- potential vorticity `q = (zeta + f)/h`;
+- material PV transport in the ideal limit;
+- potential enstrophy `1/2 ∫ h q^2 dA`;
+- balanced steady states;
+- inertia-gravity and Rossby-wave dispersion in the appropriate limits.
 
-The project must not claim simultaneous exact preservation of mutually incompatible discrete properties without demonstrating it. Compressible-flow discretizations often trade strict energy conservation, entropy stability, positivity, shock robustness, and monotonicity; the chosen policy must be explicit.
+Forced/dissipative variants:
 
-### 4.4 Hydrostatic / primitive-equation atmosphere
+- drag;
+- viscosity/hyperviscosity;
+- mass sources;
+- wind forcing;
+- boundary fluxes in later nonperiodic tests;
+- energy-preserving / potential-enstrophy-dissipating options when intentionally selected.
 
-Target objects:
+Required discretization work:
 
-- dry-air mass and pressure-coordinate continuity;
-- total energy for the exact declared hydrostatic thermodynamic system;
-- axial angular momentum for a closed, torque-free idealization, with mountain/friction/surface torques exposed when present;
-- Ertel-like PV in the declared adiabatic/frictionless limit;
-- tracer and constituent budgets;
-- geostrophic/hydrostatic balance preservation as a separate balanced-state property, not a conservation law.
+- cell/edge/vertex quantity placement chosen explicitly;
+- compatible divergence, gradient, curl, and averaging operators;
+- shared mass flux between continuity and advected quantities;
+- kinetic/potential energy functional matched to placement;
+- PV definition matched to discrete circulation and mass;
+- energy/enstrophy exchange algebra derived before optimization;
+- time integrator chosen with an explicit fully-discrete drift policy.
 
-The existing pressure-coordinate hydrostatics, Coriolis, continuity work, and conservative extensive transport are adjacent prerequisites, but they are not yet a primitive-equation conservation system.
+Required witnesses:
 
-### 4.5 Moist atmosphere
+- constant state;
+- solid-body/balanced state where geometry permits;
+- linear gravity wave;
+- geostrophic adjustment;
+- Rossby-wave propagation;
+- vortex advection;
+- long-time turbulent evolution;
+- grid refinement;
+- timestep/substep refinement;
+- deliberately altered sign/orientation/averaging operators.
 
-Moist physics makes careless conservation language especially dangerous. Required objects include:
+### 6.3 Dry compressible Euler
 
-- total dry-air mass;
-- total water across vapor/liquid/ice plus precipitation boundary fluxes;
-- moist total energy with a single documented thermodynamic reference convention;
-- latent/internal/kinetic/potential energy conversions that cancel internally when they should;
-- entropy production with irreversible phase change, diffusion, precipitation, and radiation distinguished from reversible transformations;
-- constituent positivity without silently creating or destroying total mass/water/energy.
+Target quantities:
 
-Any saturation adjustment or microphysics scheme must provide a budget receipt. "Clipping q to saturation" is not an acceptable hidden correction.
+- mass;
+- momentum subject to domain symmetry and boundary conditions;
+- kinetic + internal + gravitational total energy;
+- entropy conservation for smooth adiabatic inviscid flow;
+- entropy-stable/entropy-producing behavior for discontinuous or dissipative variants;
+- circulation/vorticity/PV relations with assumptions declared.
 
-### 4.6 Radiation and surface/ocean/land coupling
+Design decisions must explicitly balance:
 
-These are fundamentally open-system terms. The primary object is an exchange ledger:
+- energy conservation;
+- entropy stability;
+- positivity;
+- monotonicity;
+- shock robustness;
+- high-order accuracy.
 
-- top-of-atmosphere shortwave/longwave fluxes;
-- surface radiative/turbulent fluxes;
-- ocean/land/ice storage changes;
-- freshwater and constituent fluxes;
-- equal-and-opposite interface exchanges where both sides of a coupled system are modeled.
+No single property is promoted without measuring its interaction with the others.
 
-The coupling layer should make violations of action/reaction or energy exchange symmetry visible. This is conceptually analogous to a physics engine ensuring equal-and-opposite impulses across an internal constraint: an internal exchange should not create net system quantity unless the model says it can.
+### 6.4 Hydrostatic primitive-equation atmosphere
 
-### 4.7 Wave activity and pseudomomentum
+Target quantities and balances:
 
-Wave-action, Eliassen-Palm, or pseudomomentum diagnostics should be added only with their background-state and perturbation assumptions declared. They are powerful but easy to overinterpret as globally exact conserved quantities.
+- dry-air mass;
+- pressure-coordinate continuity;
+- total energy for the declared hydrostatic thermodynamic system;
+- axial angular momentum with resolved pressure, mountain, friction, and surface torques;
+- Ertel-like PV in the declared ideal limit;
+- tracer/constituent mass;
+- hydrostatic and geostrophic balance preservation.
 
-### 4.8 Turbulence and scale invariance
+Existing canonical pressure hydrostatics, Coriolis rotation, thermodynamic algebra, vertical diffusion, and conservative extensive transport are prerequisites, not substitutes for the coupled dynamical law.
 
-The repository should explicitly reject the shortcut "power law -> scale symmetry -> Noether charge".
+### 6.5 Moist atmosphere
 
-Required evidence for turbulence-scale claims includes:
+Target budgets:
 
-- flux diagnostics across scales;
-- inertial-range extent and resolution sensitivity;
-- forcing and dissipation range separation;
-- spectral/structure-function uncertainty;
-- finite-domain and anisotropy effects;
-- comparison against known cascade phenomenology for the declared dimensionality/rotation/stratification regime.
+- dry-air mass;
+- total water across vapor, liquid, ice, and precipitating categories;
+- moist total energy under one documented thermodynamic reference convention;
+- phase-change conversion terms;
+- precipitation boundary export;
+- entropy production for irreversible processes;
+- constituent positivity with compensating budget accounting.
 
-A scaling exponent is a statistical property, not by itself a conservation theorem.
+Every saturation adjustment or microphysical process emits mass/water/energy receipts.
 
----
+### 6.6 Radiation and surface/ocean/land/ice exchange
 
-## 5. Lessons to import from mature game physics engines
+These layers are open-system physics.
 
-Game physics is not climate physics, but decades of production rigid-body engines contain engineering lessons about enforcing mathematical structure under finite precision, finite timesteps, heterogeneous constraints, and strict runtime budgets. The transferable lesson is **not** to make climate physics game-like; it is to copy the discipline around constraints, residuals, timestep semantics, and failure visibility.
+Required exchange channels include:
 
-### 5.1 Fixed timestep identity matters
+- top-of-atmosphere shortwave and longwave fluxes;
+- surface radiative fluxes;
+- sensible/latent turbulent fluxes;
+- freshwater exchange;
+- momentum stress;
+- ocean/land/ice storage;
+- phase/mass transfer;
+- constituent exchange.
 
-Box2D recommends a fixed timestep because variable steps produce variable behavior and make debugging difficult. Climate should apply the analogous rule to invariant verification:
+Where both sides of an interface are modeled, internal exchange is equal-and-opposite up to explicitly measured numerical/coupling residual.
 
-- every invariant witness records the actual timestep sequence;
-- adaptive integration is allowed, but the controller and accepted/rejected steps are part of the implementation identity;
-- comparisons must distinguish spatial-discretization error from time-integration error;
-- restart/replay must reproduce the same tolerance/controller policy.
+### 6.7 Wave activity and pseudomomentum
 
-### 5.2 Substepping is often more valuable than pretending one large solve is exact
+Add these only after the background-state and perturbation system is explicit.
 
-Box2D and PhysX TGS improve difficult constraints by resolving them over smaller internal time increments. Climate analogues include acoustic/gravity-wave subcycling, split-explicit dynamics, microphysics substeps, chemistry subcycling, and multirate integration.
+Required metadata:
 
-Rules:
+- basic state;
+- perturbation definition;
+- linearization order;
+- averaging operator;
+- scale-separation assumption;
+- source/dissipation terms;
+- asymptotic error interpretation.
 
-- subcycling cadence is explicit configuration;
-- external forcing application across substeps is declared rather than accidental;
-- exchanges accumulated over substeps must reconcile with the outer-step budget;
-- reducing the outer step and increasing substeps become metamorphic tests.
+### 6.8 Turbulent cascades
 
-### 5.3 Report constraint residuals; do not infer quality from iteration count
+Required diagnostics:
 
-PhysX explicitly supports solver residual reporting and warns that unusually high iteration counts may indicate a bad configuration rather than a need for more brute force.
-
-Climate equivalent:
-
-- nonlinear/implicit solves report equation residuals and invariant/balance residuals separately;
-- a solver that reaches its iteration cap cannot silently return a plausible field;
-- tolerance tightening should show the expected residual response;
-- invariants must not be "repaired" by increasing iterations without identifying whether the error is spatial, temporal, algebraic, or physical.
-
-### 5.4 Stabilization must have a separate identity from physical dynamics
-
-Rigid-body solvers distinguish geometric correction/bias from the velocity state carried forward. Climate should similarly separate:
-
-- physical tendency;
-- numerical stabilization/filter;
-- positivity/monotonicity correction;
-- remapping/regridding;
-- iterative projection/correction.
-
-Every one of those channels receives a budget contribution. This prevents an energy fix, tracer clipping, or divergence cleanup from masquerading as physical evolution.
-
-### 5.5 Warm starting is an optimization, not physical memory
-
-Physics engines reuse previous constraint impulses to accelerate convergence. The stored impulse is a numerical initial guess, not a new physical state variable.
-
-Climate analogue: cached Krylov vectors, previous Jacobians, preconditioners, lagged tendencies, and extrapolated solver guesses must not change the declared mathematical solution beyond tolerance. Cold-start vs warm-start differential tests should detect hidden dependence.
-
-### 5.6 Units and numerical scale are part of solver validity
-
-Box2D explicitly tunes tolerances for an MKS-scale operating range. Climate has a much wider dynamic range and cannot rely on accidental scaling.
-
-Required practice:
-
-- SI units or explicit nondimensionalization at interfaces;
-- named scales for normalized residuals;
-- conditioning diagnostics for pressure, energy, moisture, and momentum equations;
-- rescaling metamorphic tests where the underlying physics permits them;
-- no absolute epsilon shared blindly between quantities with different units/magnitudes.
-
-### 5.7 Continuous collision detection has an analogue: do not step over fast physics
-
-Game engines need CCD because a finite step can skip a collision entirely. Climate solvers can similarly step over fast waves, stiff chemistry, rapid saturation/phase transitions, or sharp source activation.
-
-The response should be one of:
-
-- smaller timestep/subcycling;
-- implicit/IMEX treatment;
-- event-aware integration where scientifically meaningful;
-- a fail-closed timestep/CFL/stiffness gate.
-
-Not acceptable: allow a large step and then clip the state back into admissibility without recording the correction.
-
-### 5.8 Determinism, replay, pause, and single-step are scientific debugging tools
-
-Box2D treats deterministic execution as important for debugging. Climate evidence-producing kernels should similarly support:
-
-- fixed input -> reproducible output under a declared determinism class;
-- single-step state/budget inspection;
-- exact restart metadata;
-- process-order logging;
-- CPU/GPU differential replay where acceleration exists.
-
-Bitwise identity is not always scientifically necessary, but unexplained nondeterminism is not acceptable in a verification path.
+- energy/enstrophy or other relevant scale fluxes;
+- spectra and compensated spectra;
+- structure functions where useful;
+- forcing-band and dissipation-band separation;
+- grid-resolution sweep;
+- anisotropy/rotation/stratification diagnostics;
+- finite-domain effects;
+- uncertainty across realizations.
 
 ---
 
-## 6. Lessons to import from mature geophysical and scientific models
+## 7. Discrete operator obligations
 
-### 6.1 Conservation should be built into flux/operator structure
+### 7.1 Topology and geometry are separate contracts
 
-FV3's development emphasizes conservative finite-volume transport, consistency of momentum/tracer treatment, no false vorticity generation in its shallow-water lineage, and pressure-gradient forces constructed so internal cell-to-cell forces are equal and opposite. These are stronger design statements than checking a global sum after a step.
+The mesh representation should distinguish:
 
-Climate should prefer operators whose algebra makes the desired cancellation visible.
+- incidence/topology;
+- metric/geometric factors;
+- field placement;
+- orientation;
+- boundary ownership.
 
-### 6.2 The same mass flux must mean the same mass flux across equations
+This enables orientation and permutation tests without changing the physical solution.
 
-MITgcm documents that tracer conservation with a nonlinear free surface requires tracer fluxes to use a form consistent with the continuity integration. The transferable rule is fundamental:
+### 7.2 Compatible operator identities
 
-> quantities advected by mass must use a mass flux consistent with the mass continuity equation, or the coupled conservation claim is structurally broken even if each isolated routine looks reasonable.
-
-This directly constrains future work connecting `conservative_transport.f90` to geometry/velocity-derived face fluxes and pressure-coordinate continuity.
-
-### 6.3 Preserve the invariants that control long-time nonlinear behavior
-
-Arakawa-Lamb-type shallow-water schemes demonstrate that simultaneous energy and potential-enstrophy behavior can materially change nonlinear stability, cascade behavior, and flow regime. A higher-order nonconservative method is not automatically better for long climate integrations.
-
-This does not mean "conserve everything." Controlled potential-enstrophy dissipation with minimal energy dissipation can be more physically/numerically appropriate when unresolved small scales must be removed. The key is to choose the invariant/dissipation policy deliberately and test it.
-
-### 6.4 Mimetic/compatible structure is often worth more than local formula fidelity
-
-Divergence, gradient, curl, incidence, and Hodge-like metric operators should satisfy the appropriate discrete identities. This reduces opportunities for spurious sources that no local unit test will catch.
-
-Examples of useful structural witnesses:
-
-- discrete divergence of discrete curl where mathematically applicable;
-- gradient/curl compatibility;
-- flux antisymmetry across internal faces;
-- integration-by-parts / adjointness identities;
-- pressure-work cancellation against kinetic/internal energy transfers;
-- PV/vorticity identities on the chosen grid;
-- metric/orientation invariance on equivalent meshes.
-
-### 6.5 Balanced-state preservation deserves first-class tests
-
-A model can conserve a global quantity and still generate disastrous spurious motion. FV3's hydrostatic-over-topography tests illustrate why rest/geostrophic balance tests belong beside conservation tests.
-
-Climate needs adversarial balanced states such as:
-
-- hydrostatic resting atmosphere over topography;
-- geostrophically balanced flow;
-- solid-body rotation on the sphere;
-- balanced vortex;
-- stationary tracer under zero flow.
-
-The expected result is not merely small global drift; local spurious acceleration and wave generation must be bounded and converge appropriately.
-
-### 6.6 Idealized benchmark suites must precede realistic climate claims
-
-A physically serious dynamical core should pass analytic/manufactured and community idealized tests before real-data interpretation. Candidate families include shallow-water spherical tests, baroclinic waves, mountain waves, resting-atmosphere topography, tracer deformation, and known vortical flows.
-
-Realistic full-physics output is a poor debugging oracle because compensating errors can look plausible.
-
----
-
-## 7. Required architecture
-
-The following objects should eventually become machine-readable authorities. Names here are design targets, not a requirement to implement these exact structs immediately.
-
-### 7.1 `PhysicalLawSpec`
-
-Fields should include:
-
-- `law_id` and semantic version;
-- governing model/equation family;
-- semantic class: exact invariant / balance / Casimir / material invariant / inequality / statistical relation;
-- mathematical statement;
-- state variables and units;
-- domain and boundary conditions;
-- required smoothness/regularity assumptions;
-- forcing/dissipation processes that invalidate exact conservation;
-- symmetry origin when one exists;
-- reference derivation/citation;
-- known non-applicability cases.
-
-### 7.2 `DiscreteLawSpec`
-
-Fields:
-
-- parent `PhysicalLawSpec`;
-- mesh/grid/coordinate assumptions;
-- discrete state locations;
-- spatial operators and their defining identities;
-- semi-discrete invariant/balance expression;
-- time integrator identity;
-- precision and nonlinear/linear solver policy;
-- explicit numerical dissipation/correction channels;
-- expected conservation order/tolerance, with normalization.
-
-### 7.3 `BalanceReceipt`
-
-Every important prognostic update should be able to emit a compact receipt:
+Where mathematically appropriate, executable tests should cover identities such as:
 
 ```text
-quantity_before
-quantity_after
-resolved_boundary_flux
-physical_sources
-physical_sinks
-internal_exchange_terms
-numerical_filter_or_limiter_change
-solver_or_projection_correction
-roundoff_estimate_or_scale
-unexplained_residual
+curl(grad(phi)) = 0
+div(curl(A)) = 0
 ```
 
-Internal exchanges should cancel when summed over the complete modeled system.
+or their discrete analogue on the chosen grid.
 
-### 7.4 `CorrectionLedger`
+Adjoint/skew relationships required by energy conservation should be checked directly as matrix/operator identities on tiny fixtures.
 
-Any method that changes the state to maintain admissibility records:
+### 7.3 Flux consistency
 
-- cells/variables affected;
-- raw candidate state;
-- corrected state;
-- reason;
-- quantity changes induced by correction;
-- whether the correction is mathematically conservative;
-- whether the run remains eligible for a given evidence class.
+For finite-volume transport:
 
-### 7.5 Independent reference paths
+- each internal face has one authoritative mass flux;
+- neighboring cells consume that same flux with opposite orientation;
+- tracer extensive flux derives from the same carrier mass flux plus the declared reconstruction;
+- remapping and coupling cannot substitute a separately recomputed inconsistent mass flux.
 
-The repository should maintain at least two conceptually distinct authorities where practical:
+### 7.4 Boundary operators
 
-- symbolic/analytic continuum reference;
-- canonical portable numerical implementation;
-- optional alternative discretization/reference implementation;
-- accelerator path only later.
+Boundary conditions are operators with budget semantics.
 
-A conservation test that computes the expected answer using the same flux/operator implementation as the candidate is not independent evidence.
+Each boundary declares:
 
----
-
-## 8. Adversarial verification program
-
-The default posture is to try to falsify the conservation claim.
-
-### 8.1 Positive exact cases
-
-For each law, include the simplest state where the invariant should hold exactly or to roundoff:
-
-- uniform/rest states;
-- symmetry-generated analytic trajectories;
-- periodic waves with known invariant;
-- solid-body rotation;
-- exact geostrophic/hydrostatic states;
-- known shallow-water steady solutions.
-
-### 8.2 Deliberate symmetry breaking
-
-Add one controlled term known to break the invariant and verify that:
-
-1. the invariant changes;
-2. the change matches the declared source/sink term;
-3. removing the term restores the ideal behavior.
-
-Examples: drag torque, radiative heating, explicit viscosity, mass source, topographic torque, phase conversion, imposed boundary flux.
-
-### 8.3 Sign adversaries
-
-Flip a source/flux sign in a planted negative fixture and require the test to fail. Budget code that still reports closure after a sign flip is probably reusing candidate algebra rather than independently checking it.
-
-### 8.4 Unit adversaries
-
-Inject Pa vs hPa, J/kg vs J, geopotential vs geometric height, mixing ratio vs specific humidity, and mass flux vs velocity confusions in negative fixtures. These must fail structurally or produce a diagnostic mismatch, never a plausible-looking conservation result.
-
-### 8.5 Coordinate/orientation adversaries
-
-Where the mathematics is coordinate invariant or orientation independent:
-
-- reverse face/edge orientation;
-- permute cell ordering;
-- rotate longitude origin;
-- change equivalent map coordinates;
-- compare geometrically equivalent meshes.
-
-Invariant changes beyond declared numerical tolerance are defects unless the quantity is explicitly coordinate dependent.
-
-### 8.6 Resolution and refinement
-
-Run systematic grid refinement and record separately:
-
-- state error;
-- invariant drift;
-- balance residual;
-- dispersive/dissipative error;
-- wall-clock cost.
-
-Exact discrete conservation with a wrong solution does not pass the benchmark; convergence and conservation are separate axes.
-
-### 8.7 Timestep and substep adversaries
-
-At minimum compare:
-
-- `dt`, `dt/2`, `dt/4`;
-- one vs multiple dynamics substeps;
-- warm vs cold solver start;
-- split-order permutations when operators are not commuting;
-- adaptive tolerance sweeps where applicable.
-
-A spatial invariant that degrades with timestep must be described as semi-discrete, not fully discrete.
-
-### 8.8 Boundary-condition adversaries
-
-Repeat laws under periodic, closed/no-flux, prescribed-flux, and open/radiative boundaries where supported. The expected global budget changes with the boundary semantics; tests should make this visible.
-
-### 8.9 Filter/limiter/remap adversaries
-
-Run with each numerical correction disabled/enabled separately. Require the `CorrectionLedger` to explain any invariant change. A monotonic/positive solution may legitimately dissipate an invariant, but that dissipation must be measured and bounded.
-
-### 8.10 Roundoff/precision adversaries
-
-Compare FP64 with reduced precision where supported. Record residual scaling with problem magnitude and reduction order. A GPU/mixed-precision path needs stage-level differential witnesses before its conservation behavior is treated as equivalent.
-
-### 8.11 Restart and replay
-
-Checkpoint mid-trajectory, restart, and require budget continuity across the seam. Restart metadata must include integrator history, multistep state, solver/controller state that materially affects the solution, and stochastic state where relevant.
-
-### 8.12 Long-time adversaries
-
-Short tests can hide secular drift. Include long integrations that reveal:
-
-- monotonic invariant drift;
-- energy pile-up at the grid scale;
-- checkerboard/computational modes;
-- slowly accumulating tracer mass error;
-- coupling leaks;
-- solver-tolerance bias.
-
-### 8.13 Pathological but valid states
-
-Stress high/low pressure, thin layers, steep topography, strong shear, near-dry/shallow cells where supported, large density ratios, strong stratification, and near-singular coordinates. Invalid states must fail closed; valid extreme states should not require hidden clipping.
+- impermeable / periodic / prescribed-flux / radiative / open behavior;
+- transported quantities;
+- sign convention;
+- energy/work terms;
+- torque terms where relevant;
+- tracer/constituent terms.
 
 ---
 
-## 9. Acceptance gates
+## 8. Time integration obligations
 
-No quantity should be called "conserved" in canonical documentation until the relevant gates are satisfied.
+For every integrator used in physical-law tests, record:
 
-### Gate I0 — statement integrity
+- order;
+- explicit/implicit/IMEX structure;
+- stability assumptions;
+- conserved or dissipated quantities known analytically;
+- nonlinear solve policy;
+- linear solver/preconditioner;
+- adaptive controller if any;
+- split ordering;
+- subcycling policy;
+- dense-output/interpolation semantics if coupling uses them.
 
-- exact mathematical statement;
-- units;
-- domain/boundary conditions;
-- forcing/dissipation assumptions;
-- semantic class correctly identified.
+Tests must distinguish:
 
-### Gate I1 — independent continuum/reference authority
-
-- symbolic derivation, published derivation reproduced independently, or exact analytic fixture;
-- positive and negative symmetry cases;
-- no climate interpretation implied by theorem correctness.
-
-### Gate I2 — semi-discrete structure
-
-- discrete operator identities witnessed;
-- discrete invariant/balance derived algebraically;
-- planted sign/orientation/unit faults detected.
-
-### Gate I3 — fully discrete numerical behavior
-
-- timestep/refinement study;
-- solver tolerance/substep sensitivity;
-- long-time drift test;
-- numerical correction ledger complete.
-
-### Gate I4 — coupled process closure
-
-- every enabled physical process has an exchange/source/sink term;
-- internal transfers cancel across components;
-- coupling cadence/order sensitivity characterized;
-- restart/replay closure passes.
-
-### Gate I5 — external benchmark agreement
-
-- community benchmark or materially independent implementation;
-- same initial/boundary conditions;
-- declared error metrics;
-- failed/negative comparisons retained.
-
-### Gate I6 — empirical/process validation
-
-- observational/reanalysis budget with data provenance and uncertainty;
-- unresolved terms acknowledged;
-- no promotion from numerical conservation to empirical truth.
+- spatial truncation error;
+- temporal truncation error;
+- algebraic solver error;
+- splitting error;
+- coupling error;
+- roundoff.
 
 ---
 
-## 10. Concrete work packages
+## 9. Correction ledger
 
-### P0. Repair authority language now
+Every non-physical state modification gets a named channel.
 
-- keep `reference/noether_sympy.py` as `reference_variational_symmetry`;
-- remove README wording that implies broad climate conservation follows from approximate symmetry;
-- describe `climate_symmetries.hs` as legacy hypothesis/budget material;
-- link this document from the roadmap.
+Minimum channels:
 
-### P1. Build the balance/invariant contract before adding more theorem machinery
+```text
+filter
+limiter
+positivity_repair
+remap
+regrid
+projection
+artificial_diffusion
+implicit_regularization
+solver_inexactness
+restart_conversion
+precision_conversion
+```
 
-Design the machine-readable `PhysicalLawSpec`/`DiscreteLawSpec` concepts and a portable `BalanceReceipt` pattern. Start with existing kernels:
+For each channel record:
 
-- conservative mass/tracer transport;
-- pressure-coordinate hydrostatics/continuity;
-- Coriolis rotation;
-- vertical diffusion.
+- state before/after or sufficient delta diagnostics;
+- quantity deltas for monitored budgets;
+- triggering criterion;
+- affected cells/levels;
+- magnitude norms;
+- whether correction was expected, exceptional, or fatal.
 
-For each, state whether the kernel should conserve, exchange, dissipate, or merely diagnose the relevant quantity.
-
-### P2. Add a barotropic-vorticity invariant laboratory
-
-Implement an independently testable 2-D periodic model with at least two nonlinear discretizations:
-
-1. a structure-preserving Arakawa-type Jacobian;
-2. a simpler/nonconserving comparison path.
-
-Witness energy/enstrophy behavior, convergence, and long-time cascade contamination. This provides a small hard test of whether the project can preserve a nontrivial fluid invariant for the right reason.
-
-### P3. Add a rotating shallow-water canonical laboratory
-
-This is the highest-value first serious higher-order-invariant target.
-
-Required before `runnable` promotion:
-
-- explicit equations, grid/metric, boundary conditions, and Coriolis semantics;
-- mass conservation;
-- energy functional;
-- PV definition;
-- potential enstrophy / Casimir reference;
-- discrete operator identities;
-- balanced-state tests;
-- convergence and long-time tests;
-- comparison of conservation-oriented and deliberately different numerical schemes;
-- controlled forcing/dissipation variants.
-
-Do not begin with a full 3-D moist atmosphere; that would make invariant failures too hard to localize.
-
-### P4. Connect primitive-equation mechanics only after the pressure-gradient/momentum contract exists
-
-Extend the canonical Fortran dynamics frontier with pressure-gradient and momentum operators whose internal work/force exchanges can be checked. Then connect:
-
-- Coriolis (no isolated kinetic-energy work);
-- pressure work;
-- continuity/mass flux;
-- kinetic/potential/internal energy conversion;
-- angular-momentum torque terms.
-
-### P5. Add moist total-water and energy receipts
-
-Only after condensate/latent thermodynamics has an explicit contract. Phase changes must be internally energy-consistent and total-water-consistent before any microphysics scheme is called physically conservative.
-
-### P6. Add continuum field/relabeling mathematical references
-
-Once at least one canonical fluid model exists, add the correct mathematical references for:
-
-- field-theoretic Noether currents for spacetime symmetries;
-- particle-relabeling/circulation/PV relationships;
-- noncanonical Hamiltonian bracket and Casimirs for the chosen shallow-water/fluid model.
-
-This order is deliberate: build the reference for an actual deployed model, not a broad abstract framework waiting for a use case.
-
-### P7. Add empirical angular-momentum/energy/water budget experiments
-
-Treat legacy source lists as leads, then verify current data products and construct immutable projections. Candidate later experiments include atmospheric angular momentum plus torque terms, TOA/surface energy balance, and total-column water budgets. These are validation studies, not theorem tests.
+Repeated large correction is a diagnostic failure even when the final state remains bounded.
 
 ---
 
-## 11. Priority of higher-order quantities
+## 10. Adversarial verification matrix
 
-Not every mathematically conserved quantity deserves implementation. Prioritize by physical/numerical leverage.
+Verification should try to make incorrect implementations look plausible and then ensure the tests still reject them.
 
-1. **Potential enstrophy / PV Casimirs in rotating shallow water** — high leverage for nonlinear vortical dynamics and a classic discriminator between discretizations.
-2. **Ertel PV / circulation limits in a dry adiabatic fluid** — high physical relevance but requires a more complete dynamical core.
-3. **Axial angular momentum and torques** — physically interpretable and externally diagnosable, but geometry, pressure, surface, and mountain torque bookkeeping must be correct.
-4. **Helicity** — useful in selected 3-D inviscid/barotropic contexts; lower priority until the supported model actually has the assumptions and resolution to make it informative.
-5. **Wave action / pseudomomentum** — useful for wave-mean-flow interaction but must remain perturbation/background-state scoped.
-6. **Arbitrary formal Casimir families** — defer until a concrete diagnostic or numerical design question requires them.
+### 10.1 Algebraic mutations
 
-The rule is the same as elsewhere in Climate: mathematical richness does not earn runtime authority by itself.
+Inject test-only variants with:
+
+- one flux sign reversed;
+- one face orientation reversed;
+- one metric factor omitted;
+- one averaging weight changed;
+- inconsistent mass/tracer fluxes;
+- swapped Coriolis sign;
+- missing pressure-work conversion;
+- incomplete equal-and-opposite coupling exchange.
+
+Expected result: the appropriate local/global law witness fails with diagnostic localization.
+
+### 10.2 Unit mutations
+
+Test controlled mistakes involving:
+
+- Pa vs hPa;
+- K vs degC offsets where applicable;
+- mixing ratio vs specific humidity;
+- geopotential vs geometric height;
+- per-area vs extensive quantities;
+- seconds vs days;
+- radians vs degrees.
+
+Unit metadata and dimensional tests should reject these before a long integration.
+
+### 10.3 Orientation/permutation metamorphics
+
+Transform:
+
+- cell numbering;
+- edge numbering;
+- mesh orientation;
+- coordinate-axis ordering;
+- periodic-domain origin.
+
+After mapping outputs back, physical results and invariant residuals should agree within the declared tolerance.
+
+### 10.4 Timestep stress
+
+Sweep:
+
+- stable small steps;
+- nominal steps;
+- near-limit steps;
+- deliberately invalid steps;
+- substep counts;
+- adaptive tolerances.
+
+Expected behavior must distinguish controlled convergence, known dissipation, and explicit refusal.
+
+### 10.5 Solver stress
+
+Sweep:
+
+- nonlinear tolerance;
+- linear tolerance;
+- preconditioner choice;
+- iteration cap;
+- cold/warm starts;
+- ill-conditioned but valid states.
+
+Budget residuals should respond consistently with solver accuracy.
+
+### 10.6 Boundary stress
+
+Compare:
+
+- periodic closure;
+- impermeable boundaries;
+- prescribed flux;
+- open/radiative configurations when implemented.
+
+Global budget changes must equal integrated boundary terms.
+
+### 10.7 Precision stress
+
+Compare FP64 with any reduced-precision path using:
+
+- one-step differential checks;
+- long-time drift;
+- invariant residual distribution;
+- cancellation-sensitive states;
+- deterministic reduction behavior where required.
+
+### 10.8 Restart/replay stress
+
+Checkpoint at adversarial times:
+
+- immediately before/after coupling;
+- mid-subcycling where supported;
+- after a limiter/correction event;
+- near solver convergence difficulty.
+
+Restarted evolution must match the declared bitwise or tolerance-level reproducibility contract.
+
+### 10.9 Physical corner states
+
+Include:
+
+- thin layers / low mass;
+- strong shear;
+- near-saturation thermodynamics;
+- near-zero tracer concentrations;
+- strong rotation;
+- weak/strong stratification;
+- steep pressure/height gradients within the model's valid regime.
+
+The expected response is either correct bounded evolution or explicit refusal according to the declared domain.
+
+### 10.10 Long-time behavior
+
+Short-step correctness is insufficient for climate-scale integrations.
+
+Measure:
+
+- secular invariant drift;
+- phase error;
+- wave amplitude error;
+- balance degradation;
+- spectral pile-up;
+- grid imprinting;
+- cumulative correction budget;
+- ensemble sensitivity to roundoff/ordering where relevant.
 
 ---
 
-## 12. What "adherence to real behavior" means here
+## 11. Acceptance gates
 
-The project should resist two opposite mistakes.
+A physical-law feature becomes canonical only after the gates appropriate to its class are satisfied.
 
-### Mistake A: theorem-first formalism with weak physics
+### Gate A — definition
 
-Symptoms:
+- governing equations written;
+- units declared;
+- variables and placement declared;
+- domain and boundary conditions declared;
+- law class declared;
+- assumptions listed.
 
-- exact symbolic charge with no deployed governing equation;
-- calling approximate stationarity a symmetry;
-- treating all invariants as Noether charges;
-- no forcing/dissipation terms;
-- no grid/time-step dependence study;
-- no benchmark flow.
+### Gate B — independent authority
 
-### Mistake B: engine-style correction that merely looks stable
+At least one of:
 
-Symptoms:
+- symbolic derivation;
+- analytic derivation encoded as executable fixture;
+- independent reference implementation;
+- manufactured solution;
+- formal proof for a stable finite identity.
 
-- clipping variables until budgets look plausible;
-- numerical damping with no energy/enstrophy accounting;
-- conservation fixed by global renormalization after each step;
-- tuned tolerances that hide instability;
-- visually smooth output treated as physical correctness.
+### Gate C — discrete structure
 
-The target is between them:
+- operator identities tested;
+- local/internal cancellation demonstrated;
+- boundary semantics executable;
+- correction channels explicit.
 
-> derive the right law, discretize it with structure-aware operators, expose every intentional violation, and stress it until the remaining residual has a defensible explanation.
+### Gate D — convergence
 
-A real physics engine is not trustworthy because objects look plausible; it is trustworthy when the solver's approximations, constraints, tolerances, and failure modes are understood. A scientific climate model demands the same engineering discipline plus a much stronger obligation: the equations and closures themselves must also be scientifically justified.
+- spatial refinement;
+- temporal refinement;
+- solver-tolerance refinement where relevant;
+- expected order or asymptotic trend documented.
+
+### Gate E — adversarial rejection
+
+Planted sign, orientation, unit, flux-consistency, or solver errors must be detected by the intended witnesses.
+
+### Gate F — long-time behavior
+
+The relevant invariant/balance, phase, wave, and spectral properties remain within declared envelopes over a duration long enough to expose secular error.
+
+### Gate G — benchmark/empirical interpretation
+
+Only after mathematical/numerical verification should the quantity be interpreted against established benchmark solutions, reanalysis, or observations.
 
 ---
 
-## 13. Immediate next decisions
+## 12. Machine-readable law contracts
 
-Before implementing more Noether machinery, do these in order:
+Introduce a registry only when the first canonical fluid laboratory requires it. A useful record shape is:
 
-1. land the pressure-coordinate continuity work independently if its canonical CI lane remains green;
-2. repair the README Noether overstatement and link this plan;
-3. define the first `PhysicalLawSpec` vocabulary around already-realized mass/tracer and Coriolis kernels;
-4. specify the barotropic-vorticity and rotating-shallow-water laboratories, including exact invariants and negative-control discretizations;
-5. implement the smallest laboratory and make the adversarial tests fail for the wrong schemes before optimizing anything;
-6. only then extend the symbolic authority toward continuum/relabeling/Hamiltonian structure for the model that actually exists.
+```text
+law_id
+model_id
+law_class
+quantity
+units
+continuum_statement
+assumptions
+boundary_requirements
+spatial_discretization
+integrator_contract
+physical_source_terms
+physical_sink_terms
+exchange_terms
+numerical_correction_channels
+reference_witnesses
+adversarial_witnesses
+acceptance_tolerances
+validation_status
+```
 
-This sequencing preserves the repository's core rule: a strong mathematical name creates an implementation obligation, but mathematics must be attached to the correct physical object rather than used as a substitute for it.
+The registry should generate status rather than duplicate prose.
 
 ---
 
-## 14. External precedents to study, not copy blindly
+## 13. Recommended implementation packages
 
-These references are included because they encode hard-earned design lessons relevant to the work above.
+### Package P1 — barotropic invariant laboratory
 
-### Numerical/geophysical modeling
+Deliver:
 
-- Arakawa, A. and V. R. Lamb (1981), *A Potential Enstrophy and Energy Conserving Scheme for the Shallow Water Equations*, Monthly Weather Review, DOI `10.1175/1520-0493(1981)109<0018:APEAEC>2.0.CO;2`.
-- Arakawa, A. and Y.-J. G. Hsu (1990), *Energy Conserving and Potential-Enstrophy Dissipating Schemes for the Shallow Water Equations*.
-- Salmon, R. (2004), *Poisson-Bracket approach to the construction of energy- and potential-enstrophy-conserving algorithms for the shallow-water equations*.
-- Eldred, C. and D. Randall (2017), *Total energy and potential enstrophy conserving schemes for the shallow water equations using Hamiltonian methods – Part 1*, Geoscientific Model Development 10, 791–810.
-- Salmon, R. (1988), fluid particle-relabeling / Noether derivations of vorticity-law structure; use as mathematical background, not as automatic authority for a discrete climate model.
-- GFDL FV3 design/documentation: `https://www.gfdl.noaa.gov/fv3/` and `https://www.gfdl.noaa.gov/fv3/fv3-key-components/`.
-- MITgcm documentation, especially momentum, energy-conservation, and tracer/free-surface consistency sections: `https://mitgcm.readthedocs.io/en/latest/`.
-- MPAS-Atmosphere technical documentation: `https://www2.mmm.ucar.edu/projects/mpas/site/documentation.html`.
+- compact canonical state/grid contract;
+- vorticity-streamfunction inversion using maintained linear algebra;
+- structure-preserving nonlinear Jacobian;
+- explicit energy/enstrophy diagnostics;
+- conventional comparison operator;
+- manufactured/analytic tests;
+- long-time nonlinear test;
+- adversarial mutation tests.
 
-### Production physics-engine engineering
+### Package P2 — rotating shallow-water core
 
-- Box2D simulation documentation: `https://box2d.org/documentation/md_simulation.html` — fixed timestep, substeps, continuous collision, determinism, persistence/warm starting, tolerances.
-- Erin Catto, *Modeling and Solving Constraints* (GDC): `https://box2d.org/files/ErinCatto_ModelingAndSolvingConstraints_GDC2009.pdf` — iterative constraints and warm starting.
-- NVIDIA PhysX simulation documentation: `https://nvidia-omniverse.github.io/PhysX/physx/5.7.0/docs/Simulation.html` — PGS/TGS, substep behavior, solver iterations, residual reporting, force application.
+Deliver:
 
-These systems solve different physical problems. Their value here is methodological: make discretization and solver behavior explicit, measure residuals, expose stabilization, use reproducible stepping, and design tests around known failure modes rather than around attractive output.
+- mass and momentum state placement;
+- compatible divergence/gradient/curl operators;
+- Coriolis/PV flux operator;
+- mass-consistent transport;
+- discrete energy/PV/potential-enstrophy diagnostics;
+- ideal periodic tests;
+- forcing/dissipation ledger;
+- balanced-state and wave benchmarks;
+- timestep/solver/restart adversarial suite.
+
+### Package P3 — physical budget infrastructure
+
+Deliver:
+
+- typed quantity/budget records;
+- process identity;
+- local/global accumulation;
+- correction ledger;
+- closure residual computation;
+- deterministic serialization;
+- restart preservation;
+- test helpers for expected cancellation.
+
+### Package P4 — pressure-coordinate momentum dynamics
+
+After shallow-water operator discipline is established, apply it to:
+
+- horizontal pressure-gradient force;
+- momentum flux/advection;
+- pressure-coordinate continuity coupling;
+- axial angular momentum diagnostics;
+- kinetic/potential/internal conversion terms;
+- hydrostatic/geostrophic balance tests.
+
+### Package P5 — moist total-water and total-energy budget
+
+Deliver:
+
+- condensed-phase thermodynamics;
+- one thermodynamic reference convention;
+- reversible phase-change witnesses;
+- irreversible process receipts;
+- precipitation/export accounting;
+- positivity policy with conservation receipts;
+- coupled column tests.
+
+### Package P6 — coupled interfaces
+
+Deliver equal-and-opposite exchange contracts for atmosphere/ocean/land/ice surfaces before adding broad parameterization complexity.
+
+---
+
+## 14. Relationship to current canonical kernels
+
+Current kernels should become inputs to the physical-law program through explicit composition tests.
+
+### Coriolis rotation
+
+Use as a local skew operator witness. Composition tests should show the expected kinetic-energy behavior for the declared discretization and timestep policy.
+
+### Pressure-coordinate hydrostatics
+
+Use in pressure-gradient and total-energy derivations. Hydrostatic correctness alone does not define horizontal momentum work.
+
+### Pressure-coordinate continuity
+
+Once landed, use its `omega` closure residual as one vertical mass-balance component. Surface-pressure and moving-boundary semantics remain separate obligations.
+
+### Conservative extensive transport
+
+Use as the carrier/tracer budget primitive. The next responsibility is mass-flux construction and reconstruction consistent with the dynamics.
+
+### Dry/moist thermodynamic algebra
+
+Use to construct energy and water budgets only after a single state-variable/reference-energy convention is fixed.
+
+### Vertical diffusion
+
+Give diffusion a sign-definite dissipation/flux budget and boundary-flux accounting rather than treating it as a generic smoother.
+
+### Time integration
+
+Use reference integrators to separate spatial-law errors from time-discretization errors before selecting production integration strategies.
+
+---
+
+## 15. Practical success criteria
+
+The physical-law program is succeeding when:
+
+- every major prognostic update can explain its contribution to mass, energy, momentum, water, tracer, and other applicable budgets;
+- local internal exchanges cancel globally for the mathematically declared reason;
+- legitimate forcing and dissipation produce the measured budget change;
+- numerical correction is visible and quantitatively small or intentionally controlled;
+- planted errors are rejected quickly;
+- refinement reduces the appropriate residuals at the expected rate;
+- long integrations do not hide secular drift behind bounded-looking fields;
+- restarts and solver choices obey explicit reproducibility contracts;
+- higher-order quantities such as PV and potential enstrophy are tied to a concrete fluid model and compatible discretization;
+- empirical validation is layered on top of verified mathematics rather than used to mask implementation ambiguity.
+
+The target is not maximal formalism. It is a physical core whose behavior remains intelligible under finite precision, finite resolution, stiff coupling, long integration, and hostile testing.
