@@ -88,8 +88,8 @@
       "language": "rust",
       "maturity": "prototype",
       "evidence_eligible": false,
-      "intended_role": "parameter, numerical-stability, and recovery guardrail experiments",
-      "known_gaps": ["legacy placeholder eigenvalue approximations remain", "guardrail thresholds are not yet separated from scientific tipping interpretation"]
+      "intended_role": "legacy parameter, numerical-stability, and recovery guardrail experiments being migrated into canonical typed modules",
+      "known_gaps": ["legacy file retains fabricated conditioning fallback and mixed runtime/serialization concerns", "guardrail thresholds are not yet separated from scientific tipping interpretation", "canonical replacements must be migrated before this legacy module can be retired"]
     },
     {
       "path": "climate_manifold.rs",
@@ -225,6 +225,15 @@
       "evidence_eligible": false,
       "intended_role": "numerical-method experiments and reference implementations",
       "known_gaps": ["source explicitly labels some formulas and execution checks as unvalidated", "requires convergence and manufactured-solution witnesses"]
+    },
+    {
+      "path": "src/numerics.rs",
+      "family": "numerics",
+      "language": "rust",
+      "maturity": "prototype",
+      "evidence_eligible": false,
+      "intended_role": "canonical numerical verification primitives with measured conditioning separated from acceptance policy",
+      "known_gaps": ["currently covers SVD-based conditioning only", "callers must migrate from legacy guardrail implementations before legacy conditioning code can be retired"]
     },
     {
       "path": "reference/geometry_sympy.py",
