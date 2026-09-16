@@ -1,0 +1,28 @@
+{
+  "experiment_id": "geometry.bad.v1",
+  "semantic_version": "0.1.0",
+  "question": "This fixture is intentionally invalid because it omits a required baseline.",
+  "candidate_methods": ["geometry.candidate.flat_v1"],
+  "baseline_methods": [],
+  "datasets": [
+    {
+      "id": "fixture.euclidean_grid.v1",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "source_family": "synthetic_fixture",
+      "variables": ["x"]
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "geometry.scalar_curvature_abs_max",
+      "semantic_version": "0.1.0",
+      "direction": "lower",
+      "aggregation_domain": "fixture",
+      "missing_data_policy": "fail"
+    }
+  ],
+  "negative_controls": [],
+  "falsifiers": [],
+  "seeds": [],
+  "stopping_rule": "once"
+}
