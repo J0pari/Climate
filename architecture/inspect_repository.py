@@ -22,10 +22,7 @@ from typing import Iterable
 ROOT = Path(__file__).resolve().parents[1]
 
 # Support both `python -m architecture.inspect_repository` and the documented
-# direct-script entrypoint `python architecture/inspect_repository.py`. Python
-# does not guarantee that the repository root is importable when a package file
-# is launched by path, so make that dependency explicit rather than relying on
-# ambient PYTHONPATH/current-environment behavior.
+# direct-script entrypoint `python architecture/inspect_repository.py`.
 if __package__ in {None, ""}:
     sys.path.insert(0, str(ROOT))
 
@@ -49,8 +46,10 @@ class SourceEntry:
     bytes: int
 
 
-def _relative(path: Path, root: Path) -> str:
-    return path.relative_to(root).as_posix()
+@dataclass(frozen=True)
+class CMakeSubdirectory:
+    path: str
+    guards: tuple[str, ...]
 
 
 def source_inventory(root: Path) -> list[SourceEntry]:
@@ -88,6 +87,34 @@ def inspect_required_architecture_files(root: Path) -> list[Finding]:
     return findings
 
 
+def _cargo_existing_targets(root: Path, data: dict) -> set[str]:
+    """Find existing conventional or explicitly named Cargo lib/bin targets."""
+    candidates: set[Path] = {root / "src/lib.rs", root / "src/main.rs"}
+    bin_dir = root / "src/bin"
+    if bin_dir.is_dir():
+        candidates.update(bin_dir.glob("*.rs"))
+
+    lib = data.get("lib")
+    if isinstance(lib, dict) and isinstance(lib.get("path"), str):
+        candidates.add(root / lib["path"])
+
+    bins = data.get("bin", [])
+    if isinstance(bins, list):
+        for entry in bins:
+            if not isinstance(entry, dict):
+                continue
+            if isinstance(entry.get("path"), str):
+                candidates.add(root / entry["path"])
+            elif isinstance(entry.get("name"), str):
+                candidates.add(root / "src/bin" / f"{entry['name']}.rs")
+
+    return {
+        path.relative_to(root).as_posix()
+        for path in candidates
+        if path.is_file()
+    }
+
+
 def inspect_cargo(root: Path) -> list[Finding]:
     manifest = root / "Cargo.toml"
     if not manifest.is_file():
@@ -119,22 +146,27 @@ def inspect_cargo(root: Path) -> list[Finding]:
                 detail={"member": repr(member)},
             ))
             continue
-        matches = list(root.glob(member))
-        if not matches:
+        if not list(root.glob(member)):
             findings.append(Finding(
                 code="cargo.workspace_member_missing",
                 severity="error",
                 message=f"Cargo workspace member does not exist: {member}",
                 path=member,
             ))
+
+    if isinstance(data.get("package"), dict) and not _cargo_existing_targets(root, data):
+        findings.append(Finding(
+            code="cargo.package_target_missing",
+            severity="error",
+            message="Cargo.toml declares a root package but no existing library or binary target is discoverable",
+            path="Cargo.toml",
+        ))
     return findings
 
 
 # These are intentionally simple structural extractors, not a CMake parser.
-# The goal is to detect literal repository paths asserted by the current file.
 CMAKE_PATH_PATTERNS = (
     re.compile(r"\b(CORE/[A-Za-z0-9_.+/-]+)"),
-    re.compile(r"add_subdirectory\(\s*([A-Za-z0-9_.+/-]+)\s*\)"),
     re.compile(r'configure_file\(\s*"?\$\{PROJECT_SOURCE_DIR\}/([^"\s)]+)'),
 )
 
@@ -148,6 +180,57 @@ def _cmake_references(text: str) -> Iterable[str]:
                 continue
             seen.add(rel)
             yield rel
+
+
+def _cmake_option_defaults(text: str) -> dict[str, bool]:
+    result: dict[str, bool] = {}
+    pattern = re.compile(
+        r'option\(\s*([A-Za-z_][A-Za-z0-9_]*)\s+"[^"]*"\s+(ON|OFF)\s*\)',
+        re.IGNORECASE,
+    )
+    for match in pattern.finditer(text):
+        result[match.group(1)] = match.group(2).upper() == "ON"
+    return result
+
+
+def _cmake_subdirectories(text: str) -> list[CMakeSubdirectory]:
+    """Track only simple if(VAR) guards; unknown conditions stay conservative."""
+    stack: list[str | None] = []
+    result: list[CMakeSubdirectory] = []
+    if_pattern = re.compile(r"^if\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*$", re.IGNORECASE)
+    endif_pattern = re.compile(r"^endif(?:\([^)]*\))?\s*$", re.IGNORECASE)
+    add_pattern = re.compile(r"add_subdirectory\(\s*([A-Za-z0-9_.+/-]+)", re.IGNORECASE)
+
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        match = if_pattern.match(line)
+        if match:
+            stack.append(match.group(1))
+            continue
+        if endif_pattern.match(line):
+            if stack:
+                stack.pop()
+            continue
+        match = add_pattern.search(line)
+        if match:
+            result.append(CMakeSubdirectory(
+                path=match.group(1).rstrip(";,)") ,
+                guards=tuple(value for value in stack if value is not None),
+            ))
+    return result
+
+
+def _cmake_project_languages(text: str) -> set[str]:
+    match = re.search(r"\bproject\s*\((.*?)\)", text, re.IGNORECASE | re.DOTALL)
+    if not match:
+        return set()
+    languages = re.search(r"\bLANGUAGES\b(.*)$", match.group(1), re.IGNORECASE | re.DOTALL)
+    if not languages:
+        return set()
+    return {
+        token.upper()
+        for token in re.findall(r"[A-Za-z][A-Za-z0-9_+.-]*", languages.group(1))
+    }
 
 
 def inspect_cmake(root: Path) -> list[Finding]:
@@ -165,15 +248,46 @@ def inspect_cmake(root: Path) -> list[Finding]:
         )]
 
     findings: list[Finding] = []
+    if "CUDA" in _cmake_project_languages(text):
+        findings.append(Finding(
+            code="cmake.cuda_language_unconditional",
+            severity="error",
+            message="CUDA is enabled by project(... LANGUAGES ...) before ENABLE_CUDA can make accelerator support optional",
+            path="CMakeLists.txt",
+        ))
+
     for rel in _cmake_references(text):
-        # Generated output paths are not repository requirements. All current
-        # extractors target source-side literal references.
         if not (root / rel).exists():
             findings.append(Finding(
                 code="cmake.referenced_path_missing",
                 severity="error",
                 message=f"CMake references a repository path that does not exist: {rel}",
                 path=rel,
+            ))
+
+    option_defaults = _cmake_option_defaults(text)
+    for subdir in _cmake_subdirectories(text):
+        target = root / subdir.path
+        disabled_by_default = any(option_defaults.get(guard) is False for guard in subdir.guards)
+        severity = "warning" if disabled_by_default else "error"
+        suffix = " (guarded by a default-OFF option)" if disabled_by_default else ""
+        detail = {"guards": list(subdir.guards)}
+
+        if not target.exists():
+            findings.append(Finding(
+                code="cmake.optional_subdirectory_missing" if disabled_by_default else "cmake.subdirectory_missing",
+                severity=severity,
+                message=f"CMake add_subdirectory target does not exist: {subdir.path}{suffix}",
+                path=subdir.path,
+                detail=detail,
+            ))
+        elif target.is_dir() and not (target / "CMakeLists.txt").is_file():
+            findings.append(Finding(
+                code="cmake.optional_subdirectory_manifest_missing" if disabled_by_default else "cmake.subdirectory_manifest_missing",
+                severity=severity,
+                message=f"CMake add_subdirectory target has no CMakeLists.txt: {subdir.path}{suffix}",
+                path=f"{subdir.path}/CMakeLists.txt",
+                detail=detail,
             ))
     return findings
 
@@ -199,11 +313,9 @@ def summarize_inventory(entries: list[SourceEntry]) -> dict:
         language_bucket = by_language.setdefault(entry.language, {"files": 0, "bytes": 0})
         language_bucket["files"] += 1
         language_bucket["bytes"] += entry.bytes
-
         role_bucket = by_role.setdefault(entry.role, {"files": 0, "bytes": 0})
         role_bucket["files"] += 1
         role_bucket["bytes"] += entry.bytes
-
     return {
         "source_files": len(entries),
         "source_bytes": sum(entry.bytes for entry in entries),
@@ -225,7 +337,6 @@ def inspect(root: Path = ROOT) -> dict:
     counts: dict[str, int] = {}
     for finding in findings:
         counts[finding.severity] = counts.get(finding.severity, 0) + 1
-
     return {
         "schema_version": 1,
         "repository": "J0pari/Climate",
@@ -259,10 +370,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="statically inspect Climate repository readiness")
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--json", action="store_true")
-    parser.add_argument("--strict", action="store_true",
-                        help="return non-zero when structural errors are present")
+    parser.add_argument("--strict", action="store_true", help="return non-zero when structural errors are present")
     args = parser.parse_args()
-
     report = inspect(args.root)
     if args.json:
         print(json.dumps(report, indent=2, sort_keys=True))

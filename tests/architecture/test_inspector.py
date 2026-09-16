@@ -34,17 +34,77 @@ class RepositoryInspectorTests(unittest.TestCase):
             )
             self.assertEqual(inspector.inspect_cargo(root), [])
 
+    def test_root_cargo_package_without_target_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Cargo.toml").write_text(
+                '[package]\nname = "fixture"\nversion = "0.1.0"\n', encoding="utf-8"
+            )
+            findings = inspector.inspect_cargo(root)
+            self.assertEqual([f.code for f in findings], ["cargo.package_target_missing"])
+
+    def test_root_cargo_package_with_conventional_target_is_accepted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "src").mkdir()
+            (root / "src/lib.rs").write_text("pub fn x() {}\n", encoding="utf-8")
+            (root / "Cargo.toml").write_text(
+                '[package]\nname = "fixture"\nversion = "0.1.0"\n', encoding="utf-8"
+            )
+            self.assertEqual(inspector.inspect_cargo(root), [])
+
     def test_missing_literal_cmake_reference_is_reported(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "CMakeLists.txt").write_text(
-                'set(SOURCES CORE/climate_physics_core.f90)\nadd_subdirectory(tests)\n',
+                'set(SOURCES CORE/climate_physics_core.f90)\n',
                 encoding="utf-8",
             )
             findings = inspector.inspect_cmake(root)
             codes = {(f.code, f.path) for f in findings}
             self.assertIn(("cmake.referenced_path_missing", "CORE/climate_physics_core.f90"), codes)
-            self.assertIn(("cmake.referenced_path_missing", "tests"), codes)
+
+    def test_unconditional_cuda_project_language_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "CMakeLists.txt").write_text(
+                'project(Fixture LANGUAGES CXX CUDA Fortran)\n'
+                'option(ENABLE_CUDA "Enable CUDA" OFF)\n',
+                encoding="utf-8",
+            )
+            findings = inspector.inspect_cmake(root)
+            self.assertIn("cmake.cuda_language_unconditional", {f.code for f in findings})
+
+    def test_default_off_missing_subdirectory_is_warning(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "CMakeLists.txt").write_text(
+                'option(ENABLE_BENCHMARKS "Enable benchmarks" OFF)\n'
+                'if(ENABLE_BENCHMARKS)\n'
+                '  add_subdirectory(benchmarks)\n'
+                'endif()\n',
+                encoding="utf-8",
+            )
+            findings = inspector.inspect_cmake(root)
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].code, "cmake.optional_subdirectory_missing")
+            self.assertEqual(findings[0].severity, "warning")
+
+    def test_enabled_subdirectory_without_manifest_is_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "tests").mkdir()
+            (root / "CMakeLists.txt").write_text(
+                'option(ENABLE_TESTING "Enable tests" ON)\n'
+                'if(ENABLE_TESTING)\n'
+                '  add_subdirectory(tests)\n'
+                'endif()\n',
+                encoding="utf-8",
+            )
+            findings = inspector.inspect_cmake(root)
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0].code, "cmake.subdirectory_manifest_missing")
+            self.assertEqual(findings[0].severity, "error")
 
     def test_source_inventory_uses_shared_roles(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -90,8 +150,6 @@ class RepositoryInspectorTests(unittest.TestCase):
     def test_full_report_is_json_serializable_and_refuses_execution_readiness(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            # Create only the architecture files so the intended structural
-            # failure comes from the Cargo member rather than the contract spine.
             for rel in (
                 "AGENTS.md",
                 "docs/ARCHITECTURE.md",
