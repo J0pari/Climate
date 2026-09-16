@@ -29,22 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if __package__ in {None, ""}:
     sys.path.insert(0, str(ROOT))
 
-from architecture import source_gates
-
-LANGUAGES = {
-    ".rs": "rust",
-    ".py": "python",
-    ".cu": "cuda",
-    ".cuh": "cuda-header",
-    ".cpp": "cpp",
-    ".cc": "cpp",
-    ".cxx": "cpp",
-    ".f90": "fortran",
-    ".F90": "fortran",
-    ".jl": "julia",
-    ".hs": "haskell",
-    ".cue": "cue",
-}
+from architecture import source_gates, source_surface
 
 
 @dataclass(frozen=True)
@@ -60,6 +45,7 @@ class Finding:
 class SourceEntry:
     path: str
     language: str
+    role: str
     bytes: int
 
 
@@ -69,17 +55,12 @@ def _relative(path: Path, root: Path) -> str:
 
 def source_inventory(root: Path) -> list[SourceEntry]:
     entries: list[SourceEntry] = []
-    for path in sorted(root.rglob("*")):
-        if not path.is_file() or path.suffix not in LANGUAGES:
-            continue
-        rel = path.relative_to(root)
-        if any(part in {".git", "build", "target", ".venv", "venv", "__pycache__"}
-               for part in rel.parts):
-            continue
+    for item in source_surface.iter_source_files(root):
         entries.append(SourceEntry(
-            path=rel.as_posix(),
-            language=LANGUAGES[path.suffix],
-            bytes=path.stat().st_size,
+            path=item.relative_path,
+            language=item.language,
+            role=item.role,
+            bytes=item.path.stat().st_size,
         ))
     return entries
 
@@ -213,14 +194,21 @@ def inspect_source_risks(root: Path) -> list[Finding]:
 
 def summarize_inventory(entries: list[SourceEntry]) -> dict:
     by_language: dict[str, dict[str, int]] = {}
+    by_role: dict[str, dict[str, int]] = {}
     for entry in entries:
-        bucket = by_language.setdefault(entry.language, {"files": 0, "bytes": 0})
-        bucket["files"] += 1
-        bucket["bytes"] += entry.bytes
+        language_bucket = by_language.setdefault(entry.language, {"files": 0, "bytes": 0})
+        language_bucket["files"] += 1
+        language_bucket["bytes"] += entry.bytes
+
+        role_bucket = by_role.setdefault(entry.role, {"files": 0, "bytes": 0})
+        role_bucket["files"] += 1
+        role_bucket["bytes"] += entry.bytes
+
     return {
         "source_files": len(entries),
         "source_bytes": sum(entry.bytes for entry in entries),
         "by_language": dict(sorted(by_language.items())),
+        "by_role": dict(sorted(by_role.items())),
     }
 
 
@@ -255,8 +243,12 @@ def _print_human(report: dict) -> None:
     print(f"ready_for_execution: {str(report['ready_for_execution']).lower()}")
     inv = report["inventory"]
     print(f"source_files: {inv['source_files']} ({inv['source_bytes']} bytes)")
+    print("by_language:")
     for language, stats in inv["by_language"].items():
         print(f"  {language}: {stats['files']} file(s), {stats['bytes']} bytes")
+    print("by_role:")
+    for role, stats in inv["by_role"].items():
+        print(f"  {role}: {stats['files']} file(s), {stats['bytes']} bytes")
     print("findings:")
     for finding in report["findings"]:
         path = f" [{finding['path']}]" if finding.get("path") else ""

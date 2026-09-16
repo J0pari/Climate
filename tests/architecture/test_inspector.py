@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 from architecture import inspect_repository as inspector
+from architecture import source_surface
 
 
 class RepositoryInspectorTests(unittest.TestCase):
@@ -44,6 +45,36 @@ class RepositoryInspectorTests(unittest.TestCase):
             codes = {(f.code, f.path) for f in findings}
             self.assertIn(("cmake.referenced_path_missing", "CORE/climate_physics_core.f90"), codes)
             self.assertIn(("cmake.referenced_path_missing", "tests"), codes)
+
+    def test_source_inventory_uses_shared_roles(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            files = {
+                "future/solver.rs": "fn x() {}\n",
+                "reference/oracle.py": "pass\n",
+                "architecture/gate.py": "pass\n",
+                "tests/test_gate.py": "pass\n",
+                "contracts/model.cue": "package fixture\n",
+                "build/generated.rs": "fn generated() {}\n",
+            }
+            for rel, body in files.items():
+                path = root / rel
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(body, encoding="utf-8")
+
+            entries = inspector.source_inventory(root)
+            by_path = {entry.path: entry.role for entry in entries}
+            self.assertEqual(by_path["future/solver.rs"], source_surface.ROLE_SCIENTIFIC)
+            self.assertEqual(by_path["reference/oracle.py"], source_surface.ROLE_REFERENCE)
+            self.assertEqual(by_path["architecture/gate.py"], source_surface.ROLE_ARCHITECTURE)
+            self.assertEqual(by_path["tests/test_gate.py"], source_surface.ROLE_TEST)
+            self.assertEqual(by_path["contracts/model.cue"], source_surface.ROLE_CONTRACT)
+            self.assertNotIn("build/generated.rs", by_path)
+
+            summary = inspector.summarize_inventory(entries)
+            self.assertEqual(summary["source_files"], 5)
+            self.assertEqual(summary["by_role"][source_surface.ROLE_SCIENTIFIC]["files"], 1)
+            self.assertEqual(summary["by_role"][source_surface.ROLE_REFERENCE]["files"], 1)
 
     def test_source_audit_is_exposed_as_warning_not_structural_error(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -85,6 +116,7 @@ class RepositoryInspectorTests(unittest.TestCase):
                 f["code"] == "cargo.workspace_member_missing"
                 for f in report["findings"]
             ))
+            self.assertIn("by_role", report["inventory"])
 
     def test_documented_direct_script_entrypoint_works_without_pythonpath(self):
         with tempfile.TemporaryDirectory() as tmp:
