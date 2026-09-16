@@ -3,299 +3,313 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
 
--- Climate data sheaf with Čech cohomology
--- Weather station network consistency checking
--- Detects inconsistencies and gaps using topological invariants
+-- Legacy station-network diagnostics retained as a source reservoir while the
+-- mathematically exact finite-sheaf reference is developed under reference/.
 --
--- DATA SOURCE REQUIREMENTS:
---
--- 1. GLOBAL WEATHER STATION NETWORK:
---    - Source: GHCN-Daily (Global Historical Climatology Network)
---    - Stations: 100,000+ worldwide with varying record lengths
---    - Variables: TMAX, TMIN, PRCP, SNOW, SNWD, plus 30+ others
---    - Temporal: Daily, 1880-present for some stations
---    - Format: Fixed-width text or NetCDF4
---    - Size: ~50GB for complete archive (NEVER TESTED WITH REAL DATA)
---    - API: ftp://ftp.ncdc.noaa.gov/pub/data/ghcn/daily/
---    - Metadata: Station locations, elevations, relocations
---    - Missing: Station moves not always documented
---
--- 2. STATION METADATA:
---    - Source: GHCN-M station inventory
---    - Format: CSV with lat, lon, elevation, name, WMO ID
---    - Size: <10MB
---    - Critical: Station history (moves, instrument changes)
---    - Missing: Everything - just stubs, no actual station data handling
---
--- 3. REGIONAL HIGH-DENSITY NETWORKS:
---    - Source: USCRN (US), ECAD (Europe), ACORN-SAT (Australia)
---    - Resolution: ~50-100km spacing
---    - Temporal: Hourly to daily
---    - Format: NetCDF4 or CSV
---    - Size: ~10GB per network
---    - Purpose: Validate sheaf consistency at high resolution
---    - Missing: Africa, South America coverage
---
--- 4. GRIDDED COMPARISON DATA:
---    - Source: CRU TS, Berkeley Earth, GISTEMP
---    - Resolution: 0.5° to 5° grids
---    - Purpose: Check sheaf reconstructions against gridded products
---    - Format: NetCDF4
---    - Size: ~5GB per dataset
---    - Missing: Uncertainty in interpolation methods
---
--- 5. TOPOLOGICAL STRUCTURE:
---    - Source: Computed from station locations
---    - Method: Delaunay triangulation, Voronoi cells
---    - Purpose: Define nerve complex for Čech cohomology
---    - Missing: Any actual coverage radius - just hardcoded values
+-- IMPORTANT SEMANTICS:
+-- * overlap/discrepancy calculations in this file are heuristics, not
+--   cohomology or topological invariants;
+-- * candidate restriction functions have not been shown to satisfy sheaf
+--   functoriality and therefore do not constitute a realized climate sheaf;
+-- * arbitrary time-series union is preserved only as an explicitly named
+--   legacy operation and is not sheaf gluing or reconstruction;
+-- * missing observations are distinct from zero discrepancy and fail closed in
+--   pairwise-consistency decisions.
 
 module ClimateMultiscaleSheaf where
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
-import Data.Maybe (fromMaybe, mapMaybe)
-import Control.Monad (guard)
+import Data.Maybe (catMaybes, mapMaybe)
 
--- Core types
+-- Core observational types
 
--- | A weather station with location and coverage radius
 data Station = Station
     { stationId :: String
     , latitude :: Double
     , longitude :: Double
-    , elevation :: Double  -- meters
-    , coverageRadius :: Double  -- km
+    , elevation :: Double
+    , coverageRadius :: Double
     } deriving (Eq, Ord, Show)
 
--- | Climate measurement at a point in time
 data Measurement = Measurement
-    { temperature :: Maybe Double  -- Celsius
-    , pressure :: Maybe Double     -- hPa
-    , humidity :: Maybe Double     -- percentage
-    , windSpeed :: Maybe Double    -- m/s
-    , precipitation :: Maybe Double -- mm
+    { temperature :: Maybe Double
+    , pressure :: Maybe Double
+    , humidity :: Maybe Double
+    , windSpeed :: Maybe Double
+    , precipitation :: Maybe Double
     } deriving (Eq, Show)
 
--- | Time-indexed measurements
-type TimeSeries = Map.Map Double Measurement  -- Time -> Measurement
+type TimeSeries = Map.Map Double Measurement
 
--- Sheaf structure
+type StationSnapshot = Map.Map Station (Maybe Measurement)
 
--- | A sheaf of climate data over the station network
-data ClimateSheaf = ClimateSheaf
+-- | Legacy prototype container. The maps in 'restrictionCandidates' are
+-- hypotheses for later sheaf construction; this type does not assert that they
+-- satisfy identity/composition laws.
+data ClimateNetworkPrototype = ClimateNetworkPrototype
     { sections :: Map.Map Station TimeSeries
-    , overlaps :: Map.Map (Station, Station) Double  -- Overlap strength [0,1]
-    , restrictions :: Map.Map (Station, Station) (Measurement -> Measurement)
+    , overlaps :: Map.Map (Station, Station) Double
+    , restrictionCandidates :: Map.Map (Station, Station) (Measurement -> Measurement)
     }
 
--- | Create local section from station data
 createLocalSection :: Station -> TimeSeries -> (Station, TimeSeries)
 createLocalSection station series = (station, series)
 
--- | Compute overlap between two stations based on distance
 computeOverlap :: Station -> Station -> Double
-computeOverlap s1 s2 = 
-    let dist = haversineDistance (latitude s1, longitude s1) 
+computeOverlap s1 s2 =
+    let dist = haversineDistance (latitude s1, longitude s1)
                                  (latitude s2, longitude s2)
         combined = coverageRadius s1 + coverageRadius s2
-    in max 0 (1 - dist / combined)
+    in if combined <= 0 then 0 else max 0 (1 - dist / combined)
 
--- | Haversine distance between two points (in km)
 haversineDistance :: (Double, Double) -> (Double, Double) -> Double
 haversineDistance (lat1, lon1) (lat2, lon2) =
-    let r = 6371  -- Earth radius in km
+    let r = 6371
         dLat = (lat2 - lat1) * pi / 180
         dLon = (lon2 - lon1) * pi / 180
-        a = sin(dLat/2)^2 + cos(lat1*pi/180) * cos(lat2*pi/180) * sin(dLon/2)^2
+        a = sin(dLat/2)^2
+          + cos(lat1*pi/180) * cos(lat2*pi/180) * sin(dLon/2)^2
         c = 2 * atan2 (sqrt a) (sqrt (1-a))
     in r * c
 
--- Čech cohomology for consistency checking
+-- Heuristic discrepancy layer -------------------------------------------------
 
--- | 0-cochains: Assignments to stations
-type C0 = Map.Map Station Measurement
+-- | Pair diagnostic with explicit observability. A missing comparable variable
+-- is not treated as zero disagreement.
+data PairAssessment
+    = PairUnavailable
+    | PairObserved
+        { normalizedDiscrepancy :: Double
+        , comparedVariableCount :: Int
+        }
+    deriving (Eq, Show)
 
--- | 1-cochains: Assignments to overlapping pairs
-type C1 = Map.Map (Station, Station) Double  -- Discrepancy measure
+type PairDiagnostics = Map.Map (Station, Station) PairAssessment
 
--- | 2-cochains: Assignments to triple overlaps
-type C2 = Map.Map (Station, Station, Station) Double
+type TripleResiduals = Map.Map (Station, Station, Station) Double
 
--- | Coboundary operator δ⁰: C⁰ → C¹
-coboundary0 :: ClimateSheaf -> C0 -> C1
-coboundary0 sheaf c0 = 
+-- | Preserve the legacy normalizations, but return Nothing when the two
+-- measurements share no supported observed variable. These constants are
+-- diagnostic scaling choices, not physical uncertainty models.
+measurementDiscrepancy :: Measurement -> Measurement -> Maybe (Double, Int)
+measurementDiscrepancy m1 m2 =
+    let diffs = catMaybes
+            [ fmap (\(a,b) -> abs (a-b) / 10)  ((,) <$> temperature m1 <*> temperature m2)
+            , fmap (\(a,b) -> abs (a-b) / 50)  ((,) <$> pressure m1 <*> pressure m2)
+            , fmap (\(a,b) -> abs (a-b) / 100) ((,) <$> humidity m1 <*> humidity m2)
+            ]
+    in case diffs of
+        [] -> Nothing
+        _  -> Just (sum diffs / fromIntegral (length diffs), length diffs)
+
+pairDiagnostics :: ClimateNetworkPrototype -> StationSnapshot -> PairDiagnostics
+pairDiagnostics model snapshot =
     Map.fromList
-        [ ((s1, s2), measureDiscrepancy m1 m2 * overlap)
-        | ((s1, s2), overlap) <- Map.toList (overlaps sheaf)
+        [ ((s1, s2), assess s1 s2 overlap)
+        | ((s1, s2), overlap) <- Map.toList (overlaps model)
         , overlap > 0
-        , Just m1 <- [Map.lookup s1 c0]
-        , Just m2 <- [Map.lookup s2 c0]
-        ]
-
--- | Coboundary operator δ¹: C¹ → C²
-coboundary1 :: ClimateSheaf -> C1 -> C2
-coboundary1 sheaf c1 =
-    Map.fromList
-        [ ((s1, s2, s3), cycleSum)
-        | s1 <- stations
-        , s2 <- stations
-        , s3 <- stations
-        , s1 < s2, s2 < s3  -- Ordered triples only
-        , let cycleSum = fromMaybe 0 (Map.lookup (s1,s2) c1) 
-                       - fromMaybe 0 (Map.lookup (s1,s3) c1)
-                       + fromMaybe 0 (Map.lookup (s2,s3) c1)
-        , abs cycleSum > 1e-6  -- Non-zero cycles only
         ]
   where
-    stations = Map.keys (sections sheaf)
+    assess s1 s2 overlap =
+        case (Map.lookup s1 snapshot, Map.lookup s2 snapshot) of
+            (Just (Just m1), Just (Just m2)) ->
+                case measurementDiscrepancy m1 m2 of
+                    Just (score, n) -> PairObserved (score * overlap) n
+                    Nothing -> PairUnavailable
+            _ -> PairUnavailable
 
--- | Measure discrepancy between two measurements
-measureDiscrepancy :: Measurement -> Measurement -> Double
-measureDiscrepancy m1 m2 =
-    let tempDiff = case (temperature m1, temperature m2) of
-                     (Just t1, Just t2) -> abs (t1 - t2) / 10  -- Normalize by 10°C
-                     _ -> 0
-        presDiff = case (pressure m1, pressure m2) of
-                     (Just p1, Just p2) -> abs (p1 - p2) / 50  -- Normalize by 50 hPa
-                     _ -> 0
-        humDiff = case (humidity m1, humidity m2) of
-                    (Just h1, Just h2) -> abs (h1 - h2) / 100
-                    _ -> 0
-    in (tempDiff + presDiff + humDiff) / 3
+lookupObservedPair :: PairDiagnostics -> Station -> Station -> Maybe Double
+lookupObservedPair diagnostics a b =
+    case Map.lookup (a,b) diagnostics of
+        Just (PairObserved score _) -> Just score
+        _ -> case Map.lookup (b,a) diagnostics of
+            Just (PairObserved score _) -> Just score
+            _ -> Nothing
 
--- Betti numbers and topological invariants
+hasPositiveOverlap :: ClimateNetworkPrototype -> Station -> Station -> Bool
+hasPositiveOverlap model a b =
+    maybe False (> 0) (Map.lookup (a,b) (overlaps model))
+    || maybe False (> 0) (Map.lookup (b,a) (overlaps model))
 
--- | Compute Betti numbers for the climate data topology
-computeBettiNumbers :: ClimateSheaf -> C0 -> (Int, Int, Int)
-computeBettiNumbers sheaf c0 =
-    let c1 = coboundary0 sheaf c0
-        c2 = coboundary1 sheaf c1
-        
-        -- b₀: Connected components (always 1 for connected network)
-        b0 = 1
-        
-        -- b₁: Cycles (inconsistency loops)
-        b1 = length $ filter (> 0.3) $ Map.elems c1
-        
-        -- b₂: Voids (coverage gaps)
-        b2 = length $ filter (> 0.4) $ Map.elems c2
-        
-    in (b0, b1, b2)
+-- | Legacy triangle residual retained as a heuristic. Unlike the old routine,
+-- it is emitted only for genuine pairwise overlaps with all three pair scores
+-- observed; missing edges are never silently substituted by zero.
+tripleResiduals :: ClimateNetworkPrototype -> PairDiagnostics -> TripleResiduals
+tripleResiduals model diagnostics =
+    Map.fromList $ mapMaybe residual triples
+  where
+    stations = Map.keys (sections model)
+    triples =
+        [ (a,b,c)
+        | a <- stations, b <- stations, c <- stations
+        , a < b, b < c
+        , hasPositiveOverlap model a b
+        , hasPositiveOverlap model a c
+        , hasPositiveOverlap model b c
+        ]
+    residual (a,b,c) = do
+        ab <- lookupObservedPair diagnostics a b
+        ac <- lookupObservedPair diagnostics a c
+        bc <- lookupObservedPair diagnostics b c
+        pure ((a,b,c), ab - ac + bc)
 
--- | Euler characteristic χ = b₀ - b₁ + b₂
-eulerCharacteristic :: (Int, Int, Int) -> Int
-eulerCharacteristic (b0, b1, b2) = b0 - b1 + b2
+-- Policy is separate from measurement ----------------------------------------
 
--- Adjoint functors: Analysis ⊣ Synthesis
+data DiagnosticThresholds = DiagnosticThresholds
+    { pairDiscrepancyThreshold :: Double
+    , tripleResidualThreshold :: Double
+    } deriving (Eq, Show)
 
--- | Left adjoint F: Observations → Climate State (analysis)
+data ThresholdDiagnostics = ThresholdDiagnostics
+    { overlapComponentCount :: Int
+    , largePairDiscrepancyCount :: Int
+    , largeTripleResidualCount :: Int
+    , unavailablePairCount :: Int
+    } deriving (Eq, Show)
+
+networkStations :: ClimateNetworkPrototype -> Set.Set Station
+networkStations model =
+    let endpoints = concatMap (\((a,b),_) -> [a,b]) (Map.toList (overlaps model))
+    in Set.union (Map.keysSet (sections model)) (Set.fromList endpoints)
+
+neighbors :: ClimateNetworkPrototype -> Station -> Set.Set Station
+neighbors model station = Set.fromList
+    [ if station == a then b else a
+    | ((a,b), weight) <- Map.toList (overlaps model)
+    , weight > 0
+    , station == a || station == b
+    ]
+
+overlapComponents :: ClimateNetworkPrototype -> Int
+overlapComponents model = go (networkStations model) 0
+  where
+    go remaining count
+        | Set.null remaining = count
+        | otherwise =
+            let seed = Set.findMin remaining
+                component = flood Set.empty (Set.singleton seed)
+            in go (remaining `Set.difference` component) (count + 1)
+    flood visited frontier
+        | Set.null frontier = visited
+        | otherwise =
+            let current = Set.findMin frontier
+                rest = Set.delete current frontier
+                next = neighbors model current `Set.difference` visited
+            in flood (Set.insert current visited) (Set.union rest next)
+
+computeThresholdDiagnostics
+    :: DiagnosticThresholds
+    -> ClimateNetworkPrototype
+    -> StationSnapshot
+    -> ThresholdDiagnostics
+computeThresholdDiagnostics policy model snapshot =
+    let pairs = pairDiagnostics model snapshot
+        triples = tripleResiduals model pairs
+        pairScores = [score | PairObserved score _ <- Map.elems pairs]
+        unavailable = length [() | PairUnavailable <- Map.elems pairs]
+    in ThresholdDiagnostics
+        { overlapComponentCount = overlapComponents model
+        , largePairDiscrepancyCount =
+            length (filter (> pairDiscrepancyThreshold policy) pairScores)
+        , largeTripleResidualCount =
+            length (filter ((> tripleResidualThreshold policy) . abs) (Map.elems triples))
+        , unavailablePairCount = unavailable
+        }
+
+-- Analysis/synthesis diagnostics ---------------------------------------------
+
+-- These records and scalar diagnostics are not a categorical adjunction.
 data ClimateAnalysis a = ClimateAnalysis
     { rawData :: Map.Map Station TimeSeries
     , processedState :: a
     , coherence :: Double
     }
 
--- | Right adjoint G: Climate State → Predictions (synthesis)
 data ClimateSynthesis a = ClimateSynthesis
     { climateState :: a
     , predictions :: Map.Map Station TimeSeries
     , confidence :: Double
     }
 
--- | Unit of adjunction η: Id → G∘F
--- Measures information preservation during analysis
-adjunctionUnit :: ClimateAnalysis a -> ClimateSynthesis a -> Double
-adjunctionUnit analysis synthesis =
+analysisSynthesisCoverageRatio
+    :: ClimateAnalysis a -> ClimateSynthesis a -> Maybe Double
+analysisSynthesisCoverageRatio analysis synthesis =
     let dataPoints = sum $ map Map.size $ Map.elems (rawData analysis)
         predPoints = sum $ map Map.size $ Map.elems (predictions synthesis)
-    in fromIntegral (min dataPoints predPoints) / fromIntegral (max dataPoints predPoints)
+        denominator = max dataPoints predPoints
+    in if denominator == 0
+       then Nothing
+       else Just (fromIntegral (min dataPoints predPoints) / fromIntegral denominator)
 
--- | Counit of adjunction ε: F∘G → Id
--- Measures reconstruction quality
-adjunctionCounit :: ClimateSynthesis a -> ClimateAnalysis a -> Double
-adjunctionCounit synthesis analysis = 
+reconstructionQualityProduct :: ClimateSynthesis a -> ClimateAnalysis a -> Double
+reconstructionQualityProduct synthesis analysis =
     coherence analysis * confidence synthesis
 
--- Gluing morphisms for consistency
+-- Explicit legacy merge semantics --------------------------------------------
 
--- | Glue local sections into global climate field
-glueLocalSections :: ClimateSheaf -> Map.Map Station TimeSeries -> Maybe TimeSeries
-glueLocalSections sheaf localData =
-    let overlappingPairs = [(s1, s2) | ((s1, s2), w) <- Map.toList (overlaps sheaf), w > 0.5]
-        
-        -- Check consistency at overlaps
-        consistent = all (checkConsistency localData) overlappingPairs
-        
-        -- If consistent, merge with weighted average
-        merged = if consistent
-                then Just $ mergeTimeSeries localData (overlaps sheaf)
-                else Nothing
-    in merged
+data ConsistencyStatus = Consistent | Inconsistent | InsufficientOverlapData
+    deriving (Eq, Show)
 
--- | Check consistency between two overlapping stations
-checkConsistency :: Map.Map Station TimeSeries -> (Station, Station) -> Bool
-checkConsistency localData (s1, s2) =
+pairConsistency
+    :: Double
+    -> Map.Map Station TimeSeries
+    -> (Station, Station)
+    -> ConsistencyStatus
+pairConsistency threshold localData (s1, s2) =
     case (Map.lookup s1 localData, Map.lookup s2 localData) of
-        (Just ts1, Just ts2) -> 
+        (Just ts1, Just ts2) ->
             let commonTimes = Set.intersection (Map.keysSet ts1) (Map.keysSet ts2)
-                discrepancies = [measureDiscrepancy (ts1 Map.! t) (ts2 Map.! t) 
-                               | t <- Set.toList commonTimes]
-            in all (< 0.2) discrepancies  -- Threshold for consistency
-        _ -> True  -- No overlap means no inconsistency
+                scores = mapMaybe scoreAt (Set.toList commonTimes)
+                scoreAt t = fmap fst (measurementDiscrepancy (ts1 Map.! t) (ts2 Map.! t))
+            in if null scores
+               then InsufficientOverlapData
+               else if any (>= threshold) scores then Inconsistent else Consistent
+        _ -> InsufficientOverlapData
 
--- | Merge time series with weighted averaging
-mergeTimeSeries :: Map.Map Station TimeSeries -> Map.Map (Station, Station) Double -> TimeSeries
-mergeTimeSeries localData weights =
-    -- Simplified: just take union of all measurements
-    -- STUB: Should do kriging but just takes arbitrary union
-    Map.unions $ Map.elems localData
+-- | Preserve the historical Map.unions behavior for comparison only. This is
+-- not reconstruction and not sheaf gluing. It refuses to merge when any
+-- declared strong-overlap pair is inconsistent or lacks comparable data.
+legacyUnionIfPairwiseConsistent
+    :: Double
+    -> ClimateNetworkPrototype
+    -> Map.Map Station TimeSeries
+    -> Either String TimeSeries
+legacyUnionIfPairwiseConsistent threshold model localData =
+    let pairs = [(a,b) | ((a,b), w) <- Map.toList (overlaps model), w > 0.5]
+        statuses = map (pairConsistency threshold localData) pairs
+    in if any (== Inconsistent) statuses
+       then Left "pairwise discrepancy threshold exceeded"
+       else if any (== InsufficientOverlapData) statuses
+            then Left "insufficient overlap data for legacy union"
+            else Right (Map.unions $ Map.elems localData)
 
--- Example: Detecting network inconsistencies
+-- Observational snapshot ------------------------------------------------------
 
--- | Analyze climate network for topological features
-analyzeClimateTopology :: ClimateSheaf -> IO ()
-analyzeClimateTopology sheaf = do
-    -- Get current measurements from all stations
-    let currentMeasurements = getCurrentMeasurements sheaf
-    
-    -- Compute cohomology
-    let (b0, b1, b2) = computeBettiNumbers sheaf currentMeasurements
-    let chi = eulerCharacteristic (b0, b1, b2)
-    
-    -- Report findings
-    putStrLn $ "Climate Network Topology Analysis:"
-    putStrLn $ "  Connected components (b₀): " ++ show b0
-    putStrLn $ "  Inconsistency cycles (b₁): " ++ show b1
-    putStrLn $ "  Coverage gaps (b₂): " ++ show b2
-    putStrLn $ "  Euler characteristic (χ): " ++ show chi
-    
-    -- Interpret results
-    when (b1 > 0) $ putStrLn "  ⚠ Data inconsistencies detected between stations"
-    when (b2 > 0) $ putStrLn "  ⚠ Coverage gaps detected in network"
-    when (chi < 0) $ putStrLn "  ⚠ Complex topology indicates systematic issues"
+currentMeasurements :: ClimateNetworkPrototype -> StationSnapshot
+currentMeasurements model = Map.fromList
+    [ (station, fmap snd (Map.lookupMax series))
+    | (station, series) <- Map.toList (sections model)
+    ]
 
--- | Get current measurements from all stations (simplified)
-getCurrentMeasurements :: ClimateSheaf -> C0
-getCurrentMeasurements sheaf =
-    Map.fromList
-        [ (station, fromMaybe emptyMeasurement $ Map.lookupMax series >>= return . snd)
-        | (station, series) <- Map.toList (sections sheaf)
-        ]
-  where
-    emptyMeasurement = Measurement Nothing Nothing Nothing Nothing Nothing
+-- | Human-readable exploratory report. Its counts are threshold diagnostics,
+-- not invariants and not evidence of a sheaf/cohomological climate mechanism.
+analyzeNetworkHeuristics :: DiagnosticThresholds -> ClimateNetworkPrototype -> IO ()
+analyzeNetworkHeuristics policy model = do
+    let snapshot = currentMeasurements model
+        result = computeThresholdDiagnostics policy model snapshot
+    putStrLn "Climate network heuristic diagnostics (not topological invariants):"
+    putStrLn $ "  overlap graph components: " ++ show (overlapComponentCount result)
+    putStrLn $ "  pair discrepancies above policy threshold: "
+            ++ show (largePairDiscrepancyCount result)
+    putStrLn $ "  triangle residuals above policy threshold: "
+            ++ show (largeTripleResidualCount result)
+    putStrLn $ "  unavailable overlap pairs: " ++ show (unavailablePairCount result)
 
 {-
-Experimental sheaf framework for climate networks.
-
-Limitations:
-- Simplified overlap computation
-- Basic discrepancy measures
-- No temporal correlation
-- Static network assumption
-
-Enables:
-- Inconsistency detection via cohomology
-- Coverage gap identification via Betti numbers
-- Cross-scale consistency verification
+Remaining scientific/mathematical obligations are tracked in
+methods/sheaf-realization.v1.json. The exact finite-complex/cellular-sheaf
+reference lives in reference/sheaf_cohomology.py. This legacy file intentionally
+retains only station-network heuristics and candidate semantics that may be
+compared, ablated, migrated, or rejected.
 -}

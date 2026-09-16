@@ -98,22 +98,30 @@
     {
       "hazard_id": "sheaf.mislabeled_betti_numbers",
       "path": "climate_multiscale_sheaf.hs",
-      "reviewed_source_blob": "dc791169e8d2f067ff7d920e9c4cab3070a4ce7c",
+      "reviewed_source_blob": "803d5784cda1bd6c5d665d9d657a055366446551",
       "class": "S3",
-      "status": "open",
-      "disposition": "rename_or_remove",
-      "blocks_evidence": true,
-      "reason": "Threshold counts are labeled as Betti numbers without computing homology/cohomology ranks."
+      "status": "resolved",
+      "disposition": "retyped_legacy_threshold_counts_and_moved_topological_authority_to_exact_reference",
+      "blocks_evidence": false,
+      "reason": "Legacy threshold counts, nonlinear discrepancies, and triangle residuals are now explicitly named heuristic diagnostics rather than Betti numbers, cochains, coboundaries, Euler characteristics, or topological invariants. Exact cohomology dimensions live only in the finite cellular-sheaf reference and remain separate from climate interpretation.",
+      "resolution_witness_ids": [
+        "legacy.sheaf.heuristics_retyped",
+        "reference.sheaf.cohomology_rank_witnesses"
+      ]
     },
     {
       "hazard_id": "sheaf.stub_global_gluing",
       "path": "climate_multiscale_sheaf.hs",
-      "reviewed_source_blob": "dc791169e8d2f067ff7d920e9c4cab3070a4ce7c",
+      "reviewed_source_blob": "803d5784cda1bd6c5d665d9d657a055366446551",
       "class": "S4",
-      "status": "open",
-      "disposition": "fail_closed",
-      "blocks_evidence": true,
-      "reason": "Global gluing uses an arbitrary union while the interface implies a reconstructed global section."
+      "status": "resolved",
+      "disposition": "remove_false_gluing_interface_and_fail_closed_on_missing_overlap_data",
+      "blocks_evidence": false,
+      "reason": "The legacy Map.unions behavior is retained only under an explicitly non-gluing compatibility name, refuses inconsistent or insufficient overlap data, and no longer claims reconstruction. Exact finite-sheaf compatibility is represented separately as membership in ker(d^0); climate-data global-section reconstruction remains an open realization obligation.",
+      "resolution_witness_ids": [
+        "legacy.sheaf.union_explicitly_non_gluing",
+        "reference.sheaf.global_section_kernel_witness"
+      ]
     },
     {
       "hazard_id": "numerics.fake_convergence_check",
