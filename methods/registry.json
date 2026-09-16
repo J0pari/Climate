@@ -73,6 +73,86 @@
         }
       },
       "reference_methods": ["geometry.reference.cpu_v1"]
+    },
+    {
+      "method_id": "sheaf.real.spectral_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "e0804c047114792ed84988ef2e2b0db2e529ff90",
+      "maturity": "runnable",
+      "hypothesis_family": "finite_sheaf_structural_ablation",
+      "input_contracts": ["finite_real_cellular_sheaf/v1", "local_section/v1"],
+      "output_contracts": ["compatibility_energy/v1", "sheaf_spectrum_report/v1"],
+      "assumptions": [
+        "all finite-dimensional stalks and restriction matrices are declared explicitly",
+        "the same restriction maps are available to the strong local-residual baseline",
+        "numerical rank tolerance is machine-precision and scale derived rather than a scientific significance threshold",
+        "no climate interpretation is produced by this method"
+      ],
+      "known_limitations": [
+        "current witnesses are deterministic synthetic finite networks",
+        "degree-zero graph sheaves only; higher cochain degrees are not represented by this Rust operator",
+        "spectral structure has no demonstrated incremental empirical value yet"
+      ],
+      "resource": {
+        "cpu_cores": 2,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": ["sheaf.real.local_residual_v1", "graph.scalar_laplacian_v1"]
+    },
+    {
+      "method_id": "sheaf.real.local_residual_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "e0804c047114792ed84988ef2e2b0db2e529ff90",
+      "maturity": "runnable",
+      "hypothesis_family": "finite_sheaf_local_residual_baseline",
+      "input_contracts": ["finite_real_cellular_sheaf/v1", "local_section/v1"],
+      "output_contracts": ["edge_residuals/v1", "compatibility_energy/v1"],
+      "assumptions": [
+        "uses exactly the same endpoint restriction matrices as the spectral candidate",
+        "computes edge-local residuals independently of the assembled global coboundary",
+        "no spectral aggregation or climate interpretation is used"
+      ],
+      "known_limitations": [
+        "local residuals do not characterize global nullspace or spectral gap structure",
+        "synthetic structural baseline only"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": []
+    },
+    {
+      "method_id": "graph.scalar_laplacian_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "e0804c047114792ed84988ef2e2b0db2e529ff90",
+      "maturity": "runnable",
+      "hypothesis_family": "scalar_graph_structural_baseline",
+      "input_contracts": ["scalar_graph/v1", "vertex_signal/v1"],
+      "output_contracts": ["graph_laplacian/v1", "compatibility_energy/v1"],
+      "assumptions": [
+        "rank-one vertex and edge spaces use identity endpoint restrictions",
+        "edge orientation is representational and must not change the graph Laplacian",
+        "no climate interpretation is produced"
+      ],
+      "known_limitations": [
+        "cannot represent non-identity or dimension-changing restriction maps",
+        "serves as the exact collapse case rather than a climate-data baseline"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": []
     }
   ]
 }
