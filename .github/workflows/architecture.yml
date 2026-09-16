@@ -86,10 +86,15 @@ jobs:
         run: |
           gfortran --version | head -n 1
           cmake --version | head -n 1
+      - name: Install BLAS/LAPACK development libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libblas-dev liblapack-dev
       - name: Configure canonical Fortran reference
         run: |
           cmake -S . -B build-reference \
             -DENABLE_LEGACY_FORTRAN_PROBES=OFF \
+            -DENABLE_LAPACK_BACKEND=ON \
             -DENABLE_CUDA=OFF \
             -DENABLE_MPI=OFF \
             -DENABLE_TESTING=ON \
@@ -112,6 +117,7 @@ jobs:
         run: |
           cmake -S . -B build-physics \
             -DENABLE_LEGACY_FORTRAN_PROBES=ON \
+            -DENABLE_LAPACK_BACKEND=OFF \
             -DENABLE_CUDA=OFF \
             -DENABLE_MPI=OFF \
             -DENABLE_TESTING=OFF \
