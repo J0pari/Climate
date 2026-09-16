@@ -21,13 +21,21 @@ class SourceSurfaceTests(unittest.TestCase):
             source_surface.ROLE_SCIENTIFIC,
         )
 
-    def test_python_package_marker_is_audited_but_not_module_tracked(self):
-        self.assertEqual(
-            source_surface.classify_relative_path(Path("reference/__init__.py")),
-            source_surface.ROLE_PACKAGE,
-        )
+    def test_package_scaffolding_is_audited_but_not_module_tracked(self):
+        for path in ("reference/__init__.py", "src/lib.rs"):
+            with self.subTest(path=path):
+                self.assertEqual(
+                    source_surface.classify_relative_path(Path(path)),
+                    source_surface.ROLE_PACKAGE,
+                )
         self.assertIn(source_surface.ROLE_PACKAGE, source_surface.AUDITED_ROLES)
         self.assertNotIn(source_surface.ROLE_PACKAGE, source_surface.MODULE_TRACKED_ROLES)
+
+    def test_non_root_src_file_remains_scientific(self):
+        self.assertEqual(
+            source_surface.classify_relative_path(Path("src/solver.rs")),
+            source_surface.ROLE_SCIENTIFIC,
+        )
 
     def test_known_roles_are_distinct(self):
         cases = {
@@ -65,10 +73,14 @@ class SourceSurfaceTests(unittest.TestCase):
             (root / "reference" / "__init__.py").write_text("\n", encoding="utf-8")
             (root / "architecture").mkdir()
             (root / "architecture" / "gate.py").write_text("pass\n", encoding="utf-8")
+            (root / "src").mkdir()
+            (root / "src" / "lib.rs").write_text("\n", encoding="utf-8")
+            (root / "src" / "solver.rs").write_text("fn y() {}\n", encoding="utf-8")
 
             paths = source_surface.module_tracked_paths(root)
-            self.assertEqual(paths, {"physics/nested.rs", "reference/oracle.py"})
+            self.assertEqual(paths, {"physics/nested.rs", "reference/oracle.py", "src/solver.rs"})
             self.assertNotIn("reference/__init__.py", paths)
+            self.assertNotIn("src/lib.rs", paths)
             self.assertNotIn("architecture/gate.py", paths)
 
 
