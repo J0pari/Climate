@@ -1,24 +1,31 @@
-"""Exact finite-complex reference for the first sheaf/cohomology realization layer.
+"""Exact finite-complex reference for staged sheaf/cohomology realization.
 
-This module implements simplicial cohomology over GF(2), equivalently the
-cohomology of the constant rank-one cellular sheaf on a finite simplicial
-complex.  It is deliberately narrower than a climate-data sheaf: there are no
-station measurements, learned restriction maps, interpolation semantics, or
-empirical claims here.
+The reference deliberately separates mathematical realization from climate
+interpretation.  It currently provides:
 
-The purpose is to establish a non-negotiable mathematical kernel for later
-work: a real complex, linear coboundaries, d^2 = 0, and Betti numbers computed
-as dimensions of cohomology groups rather than threshold counts.
+* finite abstract simplicial complexes;
+* exact nerves of declared finite covers of a discrete support set;
+* finite-dimensional cellular sheaves over GF(2) with explicit stalks and
+  restriction maps;
+* functoriality checks for restriction composition;
+* block coboundary matrices and executable d^2 = 0 witnesses;
+* cohomology dimensions computed by exact rank arithmetic.
+
+None of those facts imply that a station network has been modeled by the right
+cover, that climate measurements form the right stalks, or that a cohomology
+class detects a scientifically meaningful defect.  Those remain separate open
+obligations in ``methods/sheaf-realization.v1.json``.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from itertools import combinations
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping
 
 
 Simplex = tuple[str, ...]
 Matrix = list[list[int]]
+RestrictionKey = tuple[Simplex, Simplex]
 
 
 def _canonical_simplex(vertices: Iterable[str]) -> Simplex:
@@ -29,7 +36,7 @@ def _canonical_simplex(vertices: Iterable[str]) -> Simplex:
 
 
 def _matrix_product_mod2(left: Matrix, right: Matrix) -> Matrix:
-    """Return left @ right over GF(2)."""
+    """Return ``left @ right`` over GF(2)."""
     if not left:
         return []
     if not right:
@@ -103,22 +110,145 @@ class FiniteSimplicialComplex:
             return ()
         return tuple(sorted(s for s in self.faces if len(s) == degree + 1))
 
-    def coboundary_matrix(self, degree: int) -> Matrix:
-        """Matrix of d^degree: C^degree -> C^(degree+1) over GF(2).
 
-        With constant rank-one stalks and identity restrictions, orientation
-        signs disappear in characteristic two.  An entry is one exactly when
-        the lower-dimensional simplex is a codimension-one face of the upper.
+@dataclass(frozen=True)
+class FiniteCover:
+    """Declared finite cover of a discrete support set.
+
+    This is an exact combinatorial reference, not yet a geographic station
+    coverage model.  Each cover member is represented by the support atoms it
+    contains; a nerve simplex exists exactly when the corresponding members
+    have non-empty common intersection.
+    """
+
+    members: Mapping[str, frozenset[str]]
+
+    @classmethod
+    def from_members(
+        cls, members: Mapping[str, Iterable[str]]
+    ) -> "FiniteCover":
+        if not members:
+            raise ValueError("finite cover must contain at least one member")
+        clean: dict[str, frozenset[str]] = {}
+        for name, support in members.items():
+            if not isinstance(name, str) or not name:
+                raise ValueError("cover member names must be non-empty strings")
+            atoms = frozenset(str(atom) for atom in support)
+            if not atoms:
+                raise ValueError(f"cover member {name!r} has empty support")
+            clean[name] = atoms
+        return cls(clean)
+
+    def nerve(self) -> FiniteSimplicialComplex:
+        names = sorted(self.members)
+        intersecting: list[tuple[str, ...]] = []
+        for size in range(1, len(names) + 1):
+            for candidate in combinations(names, size):
+                common = set(self.members[candidate[0]])
+                for name in candidate[1:]:
+                    common.intersection_update(self.members[name])
+                if common:
+                    intersecting.append(candidate)
+        return FiniteSimplicialComplex.from_maximal_simplices(intersecting)
+
+
+@dataclass(frozen=True)
+class CellularSheafGF2:
+    """Finite-dimensional cellular sheaf on a simplicial complex over GF(2).
+
+    ``stalk_dimensions[sigma]`` gives ``dim F(sigma)``.  For every strict face
+    inclusion ``sigma < tau``, ``restrictions[(sigma, tau)]`` is the matrix of
+    ``F(sigma <= tau): F(sigma) -> F(tau)``.  All comparable-pair maps are
+    explicit so composition can be checked rather than inferred from names.
+    """
+
+    base: FiniteSimplicialComplex
+    stalk_dimensions: Mapping[Simplex, int]
+    restrictions: Mapping[RestrictionKey, Matrix]
+
+    def __post_init__(self) -> None:
+        faces = set(self.base.faces)
+        dimensions = dict(self.stalk_dimensions)
+        if set(dimensions) != faces:
+            missing = sorted(faces - set(dimensions))
+            extra = sorted(set(dimensions) - faces)
+            raise ValueError(f"stalk dimensions do not match base; missing={missing}, extra={extra}")
+        for simplex, dimension in dimensions.items():
+            if not isinstance(dimension, int) or dimension <= 0:
+                raise ValueError(f"stalk dimension for {simplex} must be a positive integer")
+
+        required: set[RestrictionKey] = {
+            (face, coface)
+            for face in faces
+            for coface in faces
+            if set(face) < set(coface)
+        }
+        supplied = set(self.restrictions)
+        if supplied != required:
+            missing = sorted(required - supplied)
+            extra = sorted(supplied - required)
+            raise ValueError(f"restriction map surface mismatch; missing={missing}, extra={extra}")
+
+        for (face, coface), matrix in self.restrictions.items():
+            rows = dimensions[coface]
+            cols = dimensions[face]
+            if len(matrix) != rows or any(len(row) != cols for row in matrix):
+                raise ValueError(
+                    f"restriction {face}->{coface} must have shape {rows}x{cols}"
+                )
+            if any(entry not in {0, 1} for row in matrix for entry in row):
+                raise ValueError(f"restriction {face}->{coface} contains non-GF(2) entries")
+
+        for lower, middle in required:
+            for upper in faces:
+                if set(middle) < set(upper):
+                    direct = self.restrictions[(lower, upper)]
+                    composed = _matrix_product_mod2(
+                        self.restrictions[(middle, upper)],
+                        self.restrictions[(lower, middle)],
+                    )
+                    if direct != composed:
+                        raise ValueError(
+                            f"restriction composition fails for {lower} < {middle} < {upper}"
+                        )
+
+    @classmethod
+    def constant_rank_one(cls, base: FiniteSimplicialComplex) -> "CellularSheafGF2":
+        dimensions = {simplex: 1 for simplex in base.faces}
+        restrictions: dict[RestrictionKey, Matrix] = {}
+        for face in base.faces:
+            for coface in base.faces:
+                if set(face) < set(coface):
+                    restrictions[(face, coface)] = [[1]]
+        return cls(base, dimensions, restrictions)
+
+    def cochain_dimension(self, degree: int) -> int:
+        return sum(self.stalk_dimensions[s] for s in self.base.simplices(degree))
+
+    def coboundary_matrix(self, degree: int) -> Matrix:
+        """Block matrix of d^degree over GF(2).
+
+        Characteristic two removes orientation signs.  Each codimension-one
+        incidence contributes the corresponding restriction-map block.
         """
-        lower = self.simplices(degree)
-        upper = self.simplices(degree + 1)
-        if not upper:
-            return []
-        lower_sets = [set(simplex) for simplex in lower]
-        return [
-            [int(face.issubset(set(simplex))) for face in lower_sets]
-            for simplex in upper
-        ]
+        lower = self.base.simplices(degree)
+        upper = self.base.simplices(degree + 1)
+        row_count = sum(self.stalk_dimensions[s] for s in upper)
+        col_count = sum(self.stalk_dimensions[s] for s in lower)
+        matrix = [[0 for _ in range(col_count)] for _ in range(row_count)]
+
+        row_offset = 0
+        for coface in upper:
+            col_offset = 0
+            for face in lower:
+                if set(face) < set(coface):
+                    block = self.restrictions[(face, coface)]
+                    for i, row in enumerate(block):
+                        for j, value in enumerate(row):
+                            matrix[row_offset + i][col_offset + j] = value
+                col_offset += self.stalk_dimensions[face]
+            row_offset += self.stalk_dimensions[coface]
+        return matrix
 
     def d_squared_is_zero(self, degree: int) -> bool:
         first = self.coboundary_matrix(degree)
@@ -128,34 +258,49 @@ class FiniteSimplicialComplex:
         composite = _matrix_product_mod2(second, first)
         return all(entry == 0 for row in composite for entry in row)
 
+    def verify_complex(self) -> None:
+        for degree in range(max(0, self.base.dimension - 1)):
+            if not self.d_squared_is_zero(degree):
+                raise AssertionError(f"d^{degree + 1} o d^{degree} != 0")
 
-@dataclass(frozen=True)
-class ConstantCellularSheafGF2:
-    """Constant rank-one cellular sheaf on a finite simplicial complex."""
-
-    base: FiniteSimplicialComplex
-
-    def coboundary_matrix(self, degree: int) -> Matrix:
-        return self.base.coboundary_matrix(degree)
-
-    def betti_number(self, degree: int) -> int:
-        """dim H^degree = dim ker d_degree - dim im d_(degree-1)."""
-        cochains = len(self.base.simplices(degree))
+    def cohomology_dimension(self, degree: int) -> int:
+        """Return dim H^degree = dim ker d_degree - dim im d_(degree-1)."""
+        cochains = self.cochain_dimension(degree)
         if cochains == 0:
             return 0
         outgoing_rank = rank_mod2(self.coboundary_matrix(degree))
         incoming_rank = (
             rank_mod2(self.coboundary_matrix(degree - 1)) if degree > 0 else 0
         )
-        betti = cochains - outgoing_rank - incoming_rank
-        if betti < 0:
+        dimension = cochains - outgoing_rank - incoming_rank
+        if dimension < 0:
             raise AssertionError("cohomology dimension became negative")
-        return betti
+        return dimension
+
+    def cohomology_dimensions(self) -> tuple[int, ...]:
+        return tuple(
+            self.cohomology_dimension(k) for k in range(self.base.dimension + 1)
+        )
+
+
+@dataclass(frozen=True)
+class ConstantCellularSheafGF2:
+    """Compatibility wrapper for the constant rank-one cellular sheaf."""
+
+    base: FiniteSimplicialComplex
+
+    @property
+    def _generic(self) -> CellularSheafGF2:
+        return CellularSheafGF2.constant_rank_one(self.base)
+
+    def coboundary_matrix(self, degree: int) -> Matrix:
+        return self._generic.coboundary_matrix(degree)
+
+    def betti_number(self, degree: int) -> int:
+        return self._generic.cohomology_dimension(degree)
 
     def betti_numbers(self) -> tuple[int, ...]:
-        return tuple(self.betti_number(k) for k in range(self.base.dimension + 1))
+        return self._generic.cohomology_dimensions()
 
     def verify_complex(self) -> None:
-        for degree in range(max(0, self.base.dimension - 1)):
-            if not self.base.d_squared_is_zero(degree):
-                raise AssertionError(f"d^{degree + 1} o d^{degree} != 0")
+        self._generic.verify_complex()

@@ -35,9 +35,29 @@
       ]
     },
     {
-      "obligation_id": "station_cover_nerve",
+      "obligation_id": "finite_cover_nerve",
       "layer": "R2",
-      "statement": "Station simplices are derived from a declared cover/intersection rule rather than arbitrary station tuples.",
+      "statement": "For a declared finite cover of a discrete support set, nerve simplices are constructed exactly from non-empty common intersections.",
+      "status": "reference_realized",
+      "witnesses": [
+        "reference/sheaf_cohomology.py",
+        "tests/reference/test_sheaf_cohomology.py"
+      ]
+    },
+    {
+      "obligation_id": "generic_stalks_and_restrictions",
+      "layer": "R2",
+      "statement": "A finite cellular sheaf can carry non-constant finite-dimensional stalks with explicit restriction maps whose composition is checked as a hard invariant.",
+      "status": "reference_realized",
+      "witnesses": [
+        "reference/sheaf_cohomology.py",
+        "tests/reference/test_sheaf_cohomology.py"
+      ]
+    },
+    {
+      "obligation_id": "station_cover_nerve",
+      "layer": "R3",
+      "statement": "Station simplices are derived from a scientifically declared geographic coverage/intersection rule rather than arbitrary station tuples.",
       "status": "open",
       "witnesses": []
     },
@@ -51,7 +71,7 @@
     {
       "obligation_id": "restriction_functoriality",
       "layer": "R3",
-      "statement": "Identity and composition laws for restrictions are executable invariants.",
+      "statement": "Identity and composition laws for the actual climate-data restrictions are executable invariants.",
       "status": "open",
       "witnesses": []
     },

@@ -1,9 +1,14 @@
-"""Mathematical witnesses for finite-complex cohomology realization."""
+"""Mathematical witnesses for staged finite sheaf/cohomology realization."""
 from __future__ import annotations
 
 import unittest
 
-from reference.sheaf_cohomology import ConstantCellularSheafGF2, FiniteSimplicialComplex
+from reference.sheaf_cohomology import (
+    CellularSheafGF2,
+    ConstantCellularSheafGF2,
+    FiniteCover,
+    FiniteSimplicialComplex,
+)
 
 
 class SheafCohomologyReferenceTests(unittest.TestCase):
@@ -51,12 +56,75 @@ class SheafCohomologyReferenceTests(unittest.TestCase):
         sheaf.verify_complex()
         self.assertEqual(sheaf.betti_numbers(), (1, 0, 1))
 
-    def test_d_squared_zero_is_checked_in_every_supported_degree(self):
-        complex_ = FiniteSimplicialComplex.from_maximal_simplices(
+    def test_declared_finite_cover_builds_exact_nerve(self):
+        cover = FiniteCover.from_members(
+            {
+                "A": {"x", "y"},
+                "B": {"y", "z"},
+                "C": {"z"},
+            }
+        )
+        nerve = cover.nerve()
+        self.assertEqual(
+            nerve.faces,
+            frozenset(
+                {
+                    ("A",),
+                    ("B",),
+                    ("C",),
+                    ("A", "B"),
+                    ("B", "C"),
+                }
+            ),
+        )
+        self.assertEqual(ConstantCellularSheafGF2(nerve).betti_numbers(), (1, 0))
+
+    def test_three_way_intersection_creates_filled_nerve_triangle(self):
+        cover = FiniteCover.from_members(
+            {"A": {"x"}, "B": {"x"}, "C": {"x"}}
+        )
+        nerve = cover.nerve()
+        self.assertIn(("A", "B", "C"), nerve.faces)
+        self.assertEqual(ConstantCellularSheafGF2(nerve).betti_numbers(), (1, 0, 0))
+
+    def test_nonconstant_stalk_dimensions_form_real_block_coboundary(self):
+        base = FiniteSimplicialComplex.from_maximal_simplices([("a", "b")])
+        sheaf = CellularSheafGF2(
+            base=base,
+            stalk_dimensions={
+                ("a",): 2,
+                ("b",): 1,
+                ("a", "b"): 1,
+            },
+            restrictions={
+                (("a",), ("a", "b")): [[1, 0]],
+                (("b",), ("a", "b")): [[1]],
+            },
+        )
+        self.assertEqual(sheaf.coboundary_matrix(0), [[1, 0, 1]])
+        self.assertEqual(sheaf.cohomology_dimensions(), (2, 0))
+
+    def test_restriction_composition_is_a_hard_invariant(self):
+        base = FiniteSimplicialComplex.from_maximal_simplices([("a", "b", "c")])
+        dimensions = {simplex: 1 for simplex in base.faces}
+        restrictions = {
+            (face, coface): [[1]]
+            for face in base.faces
+            for coface in base.faces
+            if set(face) < set(coface)
+        }
+        restrictions[(("a",), ("a", "b", "c"))] = [[0]]
+        with self.assertRaisesRegex(ValueError, "restriction composition fails"):
+            CellularSheafGF2(base, dimensions, restrictions)
+
+    def test_d_squared_zero_is_checked_for_generic_sheaf(self):
+        base = FiniteSimplicialComplex.from_maximal_simplices(
             [("a", "b", "c", "d")]
         )
-        for degree in range(complex_.dimension - 1):
-            self.assertTrue(complex_.d_squared_is_zero(degree))
+        sheaf = CellularSheafGF2.constant_rank_one(base)
+        sheaf.verify_complex()
+        for degree in range(base.dimension - 1):
+            self.assertTrue(sheaf.d_squared_is_zero(degree))
 
 
 if __name__ == "__main__":
