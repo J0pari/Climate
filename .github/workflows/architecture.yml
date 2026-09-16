@@ -12,10 +12,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Negative witnesses for source gates
+      - name: Negative witnesses for architecture guards
         run: python -m unittest discover -s tests/architecture -v
       - name: Claim graph integrity
         run: python architecture/check_claims.py
+      - name: Module inventory integrity
+        run: python architecture/check_modules.py
       - name: Legacy source audit
         run: python architecture/source_gates.py --summary
       - name: Static repository inspection
