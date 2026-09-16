@@ -1,8 +1,10 @@
-//! Compile-checked Rust surface for Climate.
+//! Canonical compile-checked Rust surface for Climate.
 //!
-//! This crate intentionally starts with modules that can be built without
-//! CUDA, MPI, Python/Julia FFI, or native data libraries. Additional legacy
-//! modules should join only when their dependencies and tests are explicit.
+//! Legacy root-level prototypes remain available for migration and comparison,
+//! but canonical implementations live under `src/` and join this crate only when
+//! their dependencies, failure semantics, and tests are explicit.
+
+pub mod numerics;
 
 #[path = "../climate_scenario_logic.rs"]
 pub mod climate_scenario_logic;
