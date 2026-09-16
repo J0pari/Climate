@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **40**.
+Registered modules: **41**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 11 |
+| `canonical` | 12 |
 | `legacy` | 24 |
 | `reference` | 5 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 14 |
+| `runnable` | 15 |
 
 ### Canonical and reference modules
 
@@ -25,9 +25,10 @@ Registered modules: **40**.
 | --- | --- | --- | --- | --- |
 | `canonical` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
 | `canonical` | `src/feedback.rs` | `feedback_diagnostics` | `prototype` | no |
-| `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_numerics` | `runnable` | no |
+| `canonical` | `src/fortran/lapack_tridiagonal.f90` | `lapack_tridiagonal_backend` | `runnable` | no |
+| `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
 | `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
-| `canonical` | `src/fortran/time_integration.f90` | `time_integration_numerics` | `runnable` | no |
+| `canonical` | `src/fortran/time_integration.f90` | `time_integration_reference` | `runnable` | no |
 | `canonical` | `src/geometry.rs` | `riemannian_geometry_reference` | `runnable` | no |
 | `canonical` | `src/inference.rs` | `information_geometry_numerics` | `runnable` | no |
 | `canonical` | `src/modal.rs` | `modal_logic_reference` | `runnable` | no |
