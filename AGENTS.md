@@ -2,7 +2,7 @@
 
 This repository is an **experimental climate-methods research workspace**. It contains conventional climate-science components, incomplete numerical infrastructure, and deliberately unusual mathematical hypotheses. The repository must preserve that distinction rather than presenting all code as one validated climate model.
 
-This file is the binding contributor/agent contract. `README.md` is descriptive and may lag it. The architectural documents under `docs/` define the intended direction; implementation may be incomplete until the staged gates in `docs/ROADMAP.md` are met.
+This file is the binding contributor/agent contract. `README.md` is descriptive and may lag it. The architectural documents under `docs/` define the intended direction; implementation may be incomplete until the dependency/resource gates in `docs/ROADMAP.md` and `docs/EXECUTION-TOPOLOGY.md` are met.
 
 ## 1. Non-negotiable rules
 
@@ -18,6 +18,7 @@ This file is the binding contributor/agent contract. `README.md` is descriptive 
 10. **Commons is a control/evidence boundary, not a scientific authority.** Commons may schedule, fingerprint, trace, and compare Climate experiments. It must not convert experimental Climate output into stronger evidence classes than Climate earned.
 11. **Performance is not scientific evidence by itself.** A faster GPU path does not strengthen a scientific claim unless it preserves the declared numerical semantics and passes the same validation contract.
 12. **Fallbacks are distinct implementations.** CPU, fake/compatibility MPI or NCCL, reduced precision, tensor-core fallbacks, approximate solvers, and alternate algorithms must not masquerade as the requested implementation in evidence-producing runs.
+13. **Unavailable resources remain explicit gates.** Compile success, static inspection, mocks, shims, or prose must not stand in for execution on a resource that the claim actually depends on. CUDA correctness needs a CUDA device; integrated scheduling needs the integrated system; real-data generalization needs the declared data.
 
 ## 2. Claim maturity vocabulary
 
@@ -120,28 +121,55 @@ Do not optimize away the reference implementation before the accelerated path ha
 
 Climate data artifacts should move toward CF-compliant metadata and explicit provenance. Never silently substitute missing observations with climatological/default values in a path used for validation. Missingness, imputation, regridding, temporal aggregation, unit conversion, detrending, anomaly baselines, and quality-control exclusions are part of the experiment definition.
 
-## 9. Architecture/source audit discipline
+## 9. Resource-aware execution planning
 
-The repository now contains `architecture/source_gates.py` plus planted negative witnesses in `tests/architecture/`.
+`docs/EXECUTION-TOPOLOGY.md` is binding for work selection.
+
+The numbered phases in `docs/ROADMAP.md` describe dependencies and maturity targets; they are **not** a requirement to finish one phase globally before beginning all work in the next.
+
+Treat the project as a dependency/resource graph. A blocked CUDA, integrated-system, or large-data node must not block independent static, portable-CPU, reference-math, contract, baseline, or CI-toolchain work.
+
+Use the execution classes defined in the topology document:
+
+```text
+R0_static
+R1_portable_cpu
+R2_toolchain_ci
+R3_cuda_device
+R4_integrated_system
+R5_large_data
+```
+
+Prefer ready work that removes substantial uncertainty, creates a reusable boundary, or manufactures an executable question for a currently unavailable resource.
+
+Do not simulate evidence for a missing resource. Instead preregister the experiment, create independent reference outputs, define tolerances/failure semantics, and leave the resource-dependent edge explicitly unsatisfied.
+
+## 10. Architecture/source audit discipline
+
+The repository contains static/control checks under `architecture/` plus planted negative witnesses in `tests/architecture/`.
 
 During the current migration stage:
 
 ```text
 python -m unittest discover -s tests/architecture -v
+python architecture/check_claims.py
+python architecture/check_modules.py
+python architecture/check_experiments.py
 python architecture/source_gates.py --summary
+python architecture/inspect_repository.py --json
 ```
 
-The first command is binding: the guards must prove that they detect their planted violations. The second command is currently an **audit**, not a cleanliness assertion, because legacy source intentionally contains known debt.
+The integrity checks are binding. The source-gate summary is currently an **audit**, not a cleanliness assertion, because legacy source intentionally contains known debt.
 
-`python architecture/source_gates.py --strict` becomes binding only as individual debt classes are retired under `docs/ROADMAP.md`. Do not make a broad allowlist permanent merely to turn CI green; either repair the source, narrow the gate to the intended semantic boundary, or record a temporary exception with rationale and expiry.
+`python architecture/source_gates.py --strict` becomes binding only as individual debt classes are retired under the roadmap. Do not make a broad allowlist permanent merely to turn CI green; either repair the source, narrow the gate to the intended semantic boundary, or record a temporary exception with rationale and expiry.
 
-## 10. Current repository status
+## 11. Current repository status
 
 The current `main` tree is not a coherent build workspace. In particular, build metadata refers to a `CORE/` hierarchy and test/config paths that do not exist in the current flat tree. Do not "fix" that by fabricating empty directories or moving files before the target package/layout plan is agreed and migration tests exist.
 
 Several modules already label themselves unvalidated or contain explicit placeholders. Preserve those warnings until evidence justifies changing them.
 
-## 11. Commons-facing behavior
+## 12. Commons-facing behavior
 
 Until the gates in `docs/COMMONS-INTEGRATION.md` are satisfied, Climate should be treated by Commons as **experimental / observe-only**.
 
@@ -149,13 +177,15 @@ The first integration milestone is read-only inspection and evidence capture. Ex
 
 For GPU work, Commons should eventually own cross-repository resource leases and run identity; Climate owns device-local numerical execution, streams, layouts, kernels, numerical checkpoint semantics, and hardware-specific correctness tests.
 
-## 12. Read before substantive changes
+## 13. Read before substantive changes
 
 - `docs/ARCHITECTURE.md`
+- `docs/EXECUTION-TOPOLOGY.md`
 - `docs/GPU-ENGINEERING.md`
 - `docs/VALIDATION-AND-EVIDENCE.md`
 - `docs/META-EXPERIMENTATION.md`
 - `docs/COMMONS-INTEGRATION.md`
 - `docs/ROADMAP.md`
+- `docs/GEOMETRY-VERIFICATION.md` for geometric/manifold work
 
 When these documents conflict, prefer the more specific scientific/validation constraint over implementation convenience. Amend the spec deliberately rather than bypassing it in code.
