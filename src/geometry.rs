@@ -1,9 +1,9 @@
 //! Canonical local Levi-Civita geometry from explicit metric jets.
 //!
-//! This module computes geometric tensors from a symmetric nondegenerate metric
-//! and its first/second coordinate derivatives at one point. It deliberately
-//! does not construct a climate metric and does not assign physical meaning to
-//! curvature. Those are separate scientific hypotheses.
+//! A caller supplies a symmetric nondegenerate metric and its first/second
+//! coordinate derivatives at one point. This module derives the connection and
+//! curvature tensors only. It does not construct a climate metric and does not
+//! attach physical, probabilistic, or tipping-point meaning to curvature.
 
 use nalgebra::DMatrix;
 use thiserror::Error;
@@ -14,21 +14,17 @@ pub enum GeometryError {
     EmptyMetric,
     #[error("metric must be square; got {rows}x{cols}")]
     NonSquareMetric { rows: usize, cols: usize },
-    #[error("expected {expected} first-derivative matrices; got {actual}")]
-    FirstDerivativeCount { expected: usize, actual: usize },
-    #[error("expected {expected} second-derivative rows; got {actual}")]
-    SecondDerivativeOuterCount { expected: usize, actual: usize },
-    #[error("second-derivative row {deriv_a} expected {expected} matrices; got {actual}")]
-    SecondDerivativeInnerCount {
-        deriv_a: usize,
+    #[error("expected {expected} {order}-derivative entries; got {actual}")]
+    DerivativeCount {
+        order: &'static str,
         expected: usize,
         actual: usize,
     },
-    #[error("{kind} derivative ({deriv_a},{deriv_b:?}) has shape {rows}x{cols}; expected {expected}x{expected}")]
+    #[error("{order} derivative ({a},{b:?}) has shape {rows}x{cols}; expected {expected}x{expected}")]
     DerivativeShape {
-        kind: &'static str,
-        deriv_a: usize,
-        deriv_b: Option<usize>,
+        order: &'static str,
+        a: usize,
+        b: Option<usize>,
         rows: usize,
         cols: usize,
         expected: usize,
@@ -73,13 +69,13 @@ impl MetricJet {
         }
         if metric.ncols() != n {
             return Err(GeometryError::NonSquareMetric {
-                rows: metric.nrows(),
+                rows: n,
                 cols: metric.ncols(),
             });
         }
-        validate_finite("metric", &metric)?;
+        validate_matrix("metric", &metric, n, None)?;
 
-        let scale = metric.iter().fold(0.0_f64, |acc, value| acc.max(value.abs()));
+        let scale = metric.iter().fold(0.0_f64, |acc, x| acc.max(x.abs()));
         let symmetry_tolerance = f64::EPSILON * n as f64 * scale.max(1.0);
         for i in 0..n {
             for j in (i + 1)..n {
@@ -98,33 +94,33 @@ impl MetricJet {
         }
 
         if first.len() != n {
-            return Err(GeometryError::FirstDerivativeCount {
+            return Err(GeometryError::DerivativeCount {
+                order: "first",
                 expected: n,
                 actual: first.len(),
             });
         }
         for (k, derivative) in first.iter().enumerate() {
-            validate_shape("first", k, None, derivative, n)?;
-            validate_finite(&format!("first derivative {k}"), derivative)?;
+            validate_matrix("first derivative", derivative, n, Some((k, None)))?;
         }
 
         if second.len() != n {
-            return Err(GeometryError::SecondDerivativeOuterCount {
+            return Err(GeometryError::DerivativeCount {
+                order: "second outer",
                 expected: n,
                 actual: second.len(),
             });
         }
         for (k, row) in second.iter().enumerate() {
             if row.len() != n {
-                return Err(GeometryError::SecondDerivativeInnerCount {
-                    deriv_a: k,
+                return Err(GeometryError::DerivativeCount {
+                    order: "second inner",
                     expected: n,
                     actual: row.len(),
                 });
             }
             for (l, derivative) in row.iter().enumerate() {
-                validate_shape("second", k, Some(l), derivative, n)?;
-                validate_finite(&format!("second derivative ({k},{l})"), derivative)?;
+                validate_matrix("second derivative", derivative, n, Some((k, Some(l))))?;
             }
         }
 
@@ -148,29 +144,25 @@ impl MetricJet {
     }
 }
 
-fn validate_shape(
-    kind: &'static str,
-    deriv_a: usize,
-    deriv_b: Option<usize>,
+fn validate_matrix(
+    component: &str,
     matrix: &DMatrix<f64>,
-    expected: usize,
+    n: usize,
+    derivative: Option<(usize, Option<usize>)>,
 ) -> Result<(), GeometryError> {
-    if matrix.shape() != (expected, expected) {
+    if matrix.shape() != (n, n) {
+        let (a, b) = derivative.unwrap_or((0, None));
         return Err(GeometryError::DerivativeShape {
-            kind,
-            deriv_a,
-            deriv_b,
+            order: if derivative.is_some() { component } else { "metric" },
+            a,
+            b,
             rows: matrix.nrows(),
             cols: matrix.ncols(),
-            expected,
+            expected: n,
         });
     }
-    Ok(())
-}
-
-fn validate_finite(component: &str, matrix: &DMatrix<f64>) -> Result<(), GeometryError> {
-    for row in 0..matrix.nrows() {
-        for col in 0..matrix.ncols() {
+    for row in 0..n {
+        for col in 0..n {
             let value = matrix[(row, col)];
             if !value.is_finite() {
                 return Err(GeometryError::NonFinite {
@@ -233,10 +225,10 @@ pub fn levi_civita_from_jet(jet: &MetricJet) -> Result<GeometryAtPoint, Geometry
             for lower_b in 0..n {
                 let mut value = 0.0;
                 for contracted in 0..n {
-                    let metric_derivative = jet.first[lower_a][(contracted, lower_b)]
+                    let derivative = jet.first[lower_a][(contracted, lower_b)]
                         + jet.first[lower_b][(contracted, lower_a)]
                         - jet.first[contracted][(lower_a, lower_b)];
-                    value += 0.5 * inverse[(upper, contracted)] * metric_derivative;
+                    value += 0.5 * inverse[(upper, contracted)] * derivative;
                 }
                 christoffel[idx3(n, upper, lower_a, lower_b)] = value;
             }
@@ -246,7 +238,7 @@ pub fn levi_civita_from_jet(jet: &MetricJet) -> Result<GeometryAtPoint, Geometry
     let inverse_derivatives: Vec<DMatrix<f64>> = jet
         .first
         .iter()
-        .map(|derivative| -(&inverse * derivative * &inverse))
+        .map(|dg| -(&inverse * dg * &inverse))
         .collect();
 
     // d_christoffel[p,i,j,k] = ∂_p Γ^i_jk.
@@ -295,17 +287,22 @@ pub fn levi_civita_from_jet(jet: &MetricJet) -> Result<GeometryAtPoint, Geometry
     }
 
     let mut ricci = DMatrix::<f64>::zeros(n, n);
-    for lower_a in 0..n {
-        for lower_b in 0..n {
-            ricci[(lower_a, lower_b)] = (0..n)
-                .map(|contracted| riemann[idx4(n, contracted, lower_a, contracted, lower_b)])
-                .sum();
+    for i in 0..n {
+        for j in 0..n {
+            let mut value = 0.0;
+            for contracted in 0..n {
+                value += riemann[idx4(n, contracted, i, contracted, j)];
+            }
+            ricci[(i, j)] = value;
         }
     }
 
-    let scalar_curvature = (0..n)
-        .flat_map(|i| (0..n).map(move |j| inverse[(i, j)] * ricci[(i, j)]))
-        .sum();
+    let mut scalar_curvature = 0.0;
+    for i in 0..n {
+        for j in 0..n {
+            scalar_curvature += inverse[(i, j)] * ricci[(i, j)];
+        }
+    }
 
     Ok(GeometryAtPoint {
         dimension: n,
@@ -335,9 +332,8 @@ mod tests {
 
     #[test]
     fn cartesian_plane_is_flat() {
-        let metric = DMatrix::identity(2, 2);
         let jet = MetricJet::new(
-            metric,
+            DMatrix::identity(2, 2),
             vec![zeros(2), zeros(2)],
             vec![vec![zeros(2), zeros(2)], vec![zeros(2), zeros(2)]],
         )
@@ -409,7 +405,6 @@ mod tests {
             }
         }
 
-        // Metric compatibility ∇_k g_ij = 0.
         for deriv in 0..2 {
             for i in 0..2 {
                 for j in 0..2 {
@@ -425,7 +420,6 @@ mod tests {
             }
         }
 
-        // First Bianchi identity R^i_jkl + R^i_klj + R^i_ljk = 0.
         for upper in 0..2 {
             for j in 0..2 {
                 for k in 0..2 {
