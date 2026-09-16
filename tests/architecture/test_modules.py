@@ -62,7 +62,7 @@ class ModuleIntegrityTests(unittest.TestCase):
             (root / "x.rs").write_text("fn main() {}\n", encoding="utf-8")
             findings = check_modules.check(
                 root,
-                {"modules": [module("x.rs", claim_ids=["missing")]},
+                {"modules": [module("x.rs", claim_ids=["missing"])]},
                 claims("known"),
             )
             self.assertIn("modules.claim_missing", {f.code for f in findings})
