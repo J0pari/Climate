@@ -74,6 +74,40 @@ class GeometryReferenceTests(unittest.TestCase):
                         0,
                     )
 
+    def test_levi_civita_connection_is_metric_compatible(self):
+        result = compute_fixture(self.fixtures["sphere.radius2.2d"])
+        n = len(result.coordinates)
+        for deriv in range(n):
+            for i in range(n):
+                for j in range(n):
+                    covariant_derivative = sp.diff(
+                        result.metric[i, j], result.coordinates[deriv]
+                    )
+                    for contracted in range(n):
+                        covariant_derivative -= (
+                            result.christoffel[contracted][deriv][i]
+                            * result.metric[contracted, j]
+                        )
+                        covariant_derivative -= (
+                            result.christoffel[contracted][deriv][j]
+                            * result.metric[i, contracted]
+                        )
+                    self.assertEqual(sp.simplify(covariant_derivative), 0)
+
+    def test_first_bianchi_identity_holds(self):
+        result = compute_fixture(self.fixtures["sphere.radius2.2d"])
+        n = len(result.coordinates)
+        for upper in range(n):
+            for j in range(n):
+                for k in range(n):
+                    for l in range(n):
+                        cyclic = (
+                            result.riemann[upper][j][k][l]
+                            + result.riemann[upper][k][l][j]
+                            + result.riemann[upper][l][j][k]
+                        )
+                        self.assertEqual(sp.simplify(cyclic), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
