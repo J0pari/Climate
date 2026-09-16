@@ -130,6 +130,18 @@ jobs:
       - name: Run independent geometry witnesses
         run: python -m unittest discover -s tests/reference -p 'test_geometry_sympy.py' -v
 
+  reference-noether:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned symbolic oracle
+        run: python -m pip install --disable-pip-version-check 'sympy==1.14.0'
+      - name: Run exact variational-symmetry witnesses
+        run: python -m unittest discover -s tests/reference -p 'test_noether_sympy.py' -v
+
   reference-sheaf-cohomology:
     runs-on: ubuntu-latest
     steps:
