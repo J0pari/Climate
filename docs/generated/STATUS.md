@@ -69,7 +69,7 @@ Experiment specifications: **2**.
 | Experiment | File |
 | --- | --- |
 | `geometry.correctness.v1` | `experiments/geometry-correctness.v1.json` |
-| `sheaf.structural-ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
+| `sheaf.structural_ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
 
 ## Sheaf realization frontier
 
