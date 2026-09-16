@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **44**.
+Registered modules: **45**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 15 |
+| `canonical` | 16 |
 | `legacy` | 24 |
 | `reference` | 5 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 18 |
+| `runnable` | 19 |
 
 ### Canonical and reference modules
 
@@ -29,6 +29,7 @@ Registered modules: **44**.
 | `canonical` | `src/fortran/dry_thermodynamics.f90` | `dry_thermodynamics` | `runnable` | no |
 | `canonical` | `src/fortran/lapack_tridiagonal.f90` | `lapack_tridiagonal_backend` | `runnable` | no |
 | `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
+| `canonical` | `src/fortran/moist_vapor_algebra.f90` | `moist_vapor_algebra` | `runnable` | no |
 | `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
 | `canonical` | `src/fortran/time_integration.f90` | `time_integration_reference` | `runnable` | no |
 | `canonical` | `src/fortran/vertical_diffusion.f90` | `vertical_diffusion_operator` | `runnable` | no |

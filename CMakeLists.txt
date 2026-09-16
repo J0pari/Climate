@@ -58,6 +58,15 @@ target_include_directories(climate_dry_thermodynamics PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Exact ideal-gas algebra for a dry-air/water-vapor mixture. Saturation-vapor-
+# pressure and condensed-phase models remain separate scientific providers.
+add_library(climate_moist_vapor_algebra STATIC
+    src/fortran/moist_vapor_algebra.f90
+)
+target_include_directories(climate_moist_vapor_algebra PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Climate-specific geometric-height finite-volume diffusion operator. Solver
 # choice is deliberately separate from operator construction.
 add_library(climate_vertical_diffusion STATIC
@@ -111,6 +120,15 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_dry_thermodynamics PRIVATE climate_dry_thermodynamics)
     add_test(NAME dry_thermodynamics COMMAND test_dry_thermodynamics)
+
+    add_executable(test_moist_vapor_algebra
+        tests/fortran/test_moist_vapor_algebra.f90
+    )
+    target_link_libraries(test_moist_vapor_algebra PRIVATE
+        climate_moist_vapor_algebra
+        climate_dry_thermodynamics
+    )
+    add_test(NAME moist_vapor_algebra COMMAND test_moist_vapor_algebra)
 
     add_executable(test_vertical_diffusion
         tests/fortran/test_vertical_diffusion.f90
@@ -187,6 +205,7 @@ message(STATUS "  Canonical time integration:   ON")
 message(STATUS "  Canonical linear reference:   ON")
 message(STATUS "  Exact Coriolis rotation:      ON")
 message(STATUS "  Dry thermodynamics:           ON")
+message(STATUS "  Moist vapor algebra:          ON")
 message(STATUS "  Vertical diffusion operator:  ON")
 message(STATUS "  LAPACK tridiagonal backend:   ${ENABLE_LAPACK_BACKEND}")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")
