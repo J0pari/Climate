@@ -76,6 +76,19 @@ target_include_directories(climate_saturation_vapor_pressure PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Thin semantic composition of the phase provider and exact vapor algebra.
+# It introduces no new saturation or moist-air formula.
+add_library(climate_saturation_moisture STATIC
+    src/fortran/saturation_moisture.f90
+)
+target_include_directories(climate_saturation_moisture PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_saturation_moisture PUBLIC
+    climate_saturation_vapor_pressure
+    climate_moist_vapor_algebra
+)
+
 # Climate-specific geometric-height finite-volume diffusion operator. Solver
 # choice is deliberately separate from operator construction.
 add_library(climate_vertical_diffusion STATIC
@@ -147,6 +160,16 @@ if(ENABLE_TESTING)
         climate_moist_vapor_algebra
     )
     add_test(NAME saturation_vapor_pressure COMMAND test_saturation_vapor_pressure)
+
+    add_executable(test_saturation_moisture
+        tests/fortran/test_saturation_moisture.f90
+    )
+    target_link_libraries(test_saturation_moisture PRIVATE
+        climate_saturation_moisture
+        climate_saturation_vapor_pressure
+        climate_moist_vapor_algebra
+    )
+    add_test(NAME saturation_moisture COMMAND test_saturation_moisture)
 
     add_executable(test_vertical_diffusion
         tests/fortran/test_vertical_diffusion.f90
@@ -225,6 +248,7 @@ message(STATUS "  Exact Coriolis rotation:      ON")
 message(STATUS "  Dry thermodynamics:           ON")
 message(STATUS "  Moist vapor algebra:          ON")
 message(STATUS "  Saturation vapor pressure:    ON")
+message(STATUS "  Saturation moisture:          ON")
 message(STATUS "  Vertical diffusion operator:  ON")
 message(STATUS "  LAPACK tridiagonal backend:   ${ENABLE_LAPACK_BACKEND}")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")
