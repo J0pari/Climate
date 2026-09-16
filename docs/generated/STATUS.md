@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **37**.
+Registered modules: **38**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 8 |
+| `canonical` | 9 |
 | `legacy` | 24 |
 | `reference` | 5 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 11 |
+| `runnable` | 12 |
 
 ### Canonical and reference modules
 
@@ -27,6 +27,7 @@ Registered modules: **37**.
 | `canonical` | `src/feedback.rs` | `feedback_diagnostics` | `prototype` | no |
 | `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
 | `canonical` | `src/geometry.rs` | `riemannian_geometry_reference` | `runnable` | no |
+| `canonical` | `src/inference.rs` | `information_geometry_numerics` | `runnable` | no |
 | `canonical` | `src/modal.rs` | `modal_logic_reference` | `runnable` | no |
 | `canonical` | `src/numerics.rs` | `numerics` | `prototype` | no |
 | `canonical` | `src/padic.rs` | `ultrametric_reference` | `runnable` | no |
