@@ -5,20 +5,20 @@
       "hazard_id": "oscillation.plausible_output_prototype",
       "path": "climate_oscillation_monitor.f90",
       "class": "S4",
-      "status": "resolved",
-      "disposition": "stubbed",
+      "status": "open",
+      "disposition": "scope_and_fail_closed_or_retype_affected_paths",
       "blocks_evidence": true,
-      "reason": "Legacy module mixed fake forecast-skill formulas, incomplete oscillation states, uninitialized-data execution, and authoritative oscillation labels.",
+      "reason": "Prototype mixes fake forecast-skill formulas, incomplete oscillation states, uninitialized-data execution, and authoritative oscillation labels. The source was restored after a coarse whole-file removal was rejected; hazardous procedures must be isolated surgically rather than treating the entire module as absent.",
       "blueprint": "blueprints/oscillation-monitor.md"
     },
     {
       "hazard_id": "spectral.zero_or_empty_algorithms",
       "path": "climate_spectral_analysis.f90",
       "class": "S4",
-      "status": "resolved",
-      "disposition": "stubbed",
+      "status": "open",
+      "disposition": "scope_and_fail_closed_or_implement_per_algorithm",
       "blocks_evidence": true,
-      "reason": "Legacy omnibus module exposed real algorithm names while EEMD/SSA/CEEMDAN and other paths returned zeros, no result, or inconsistent code.",
+      "reason": "Omnibus spectral prototype exposes real algorithm names while EEMD/SSA/CEEMDAN and other paths contain zero, empty, placeholder, or inconsistent behavior. Preserve potentially useful implemented routines while isolating each hazardous algorithm path.",
       "blueprint": "blueprints/spectral-analysis.md"
     },
     {
@@ -26,9 +26,9 @@
       "path": "climate_manifold.rs",
       "class": "S4",
       "status": "open",
-      "disposition": "replace_with_stub",
+      "disposition": "scope_and_block_reachable_curvature_evidence",
       "blocks_evidence": true,
-      "reason": "Dual metric/Christoffel paths are incomplete while higher curvature and climate-risk interpretation depend on them.",
+      "reason": "Dual metric/Christoffel paths are incomplete while higher curvature and climate-risk interpretation depend on them. Preserve unrelated geometric code and quarantine only computations whose derivative chain reaches the incomplete paths.",
       "blueprint": "docs/GEOMETRY-VERIFICATION.md"
     },
     {
