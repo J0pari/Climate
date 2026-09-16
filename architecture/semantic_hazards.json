@@ -4,6 +4,7 @@
     {
       "hazard_id": "oscillation.plausible_output_prototype",
       "path": "climate_oscillation_monitor.f90",
+      "reviewed_source_blob": "18ae69d9f8008e83a6373b905320a22a97042bee",
       "class": "S4",
       "status": "open",
       "disposition": "scope_and_fail_closed_or_retype_affected_paths",
@@ -14,6 +15,7 @@
     {
       "hazard_id": "spectral.zero_or_empty_algorithms",
       "path": "climate_spectral_analysis.f90",
+      "reviewed_source_blob": "e121b38a8b3e82fa9325f1555cc8adb3e36e41c1",
       "class": "S4",
       "status": "open",
       "disposition": "scope_and_fail_closed_or_implement_per_algorithm",
@@ -24,6 +26,7 @@
     {
       "hazard_id": "geometry.dual_derivative_placeholders",
       "path": "climate_manifold.rs",
+      "reviewed_source_blob": "08df1eff5c05a81e4048d8c804c761dc91db2b1d",
       "class": "S4",
       "status": "open",
       "disposition": "scope_and_block_reachable_curvature_evidence",
@@ -34,6 +37,7 @@
     {
       "hazard_id": "geometry.heuristic_tipping_probability",
       "path": "climate_manifold.rs",
+      "reviewed_source_blob": "08df1eff5c05a81e4048d8c804c761dc91db2b1d",
       "class": "S4",
       "status": "open",
       "disposition": "remove_or_retype",
@@ -44,6 +48,7 @@
     {
       "hazard_id": "guardrails.fabricated_conditioning_eigenvalues",
       "path": "climate_safety_protocols.rs",
+      "reviewed_source_blob": "525c64c14d5c3414a0b3546a44a5512dd869f054",
       "class": "S4",
       "status": "open",
       "disposition": "fail_closed",
@@ -53,6 +58,7 @@
     {
       "hazard_id": "state.synthetic_default_humidity",
       "path": "climate_state.rs",
+      "reviewed_source_blob": "32f52572abb40ffb2f21d1a94482fcacb8ae1e6f",
       "class": "S3",
       "status": "open",
       "disposition": "remove_or_retype",
@@ -62,6 +68,7 @@
     {
       "hazard_id": "physics.placeholder_solar_declination",
       "path": "climate_physics_core.f90",
+      "reviewed_source_blob": "0f644dc497ca57c6d201d85073f198342720ed77",
       "class": "S3",
       "status": "open",
       "disposition": "remove_or_retype",
@@ -71,6 +78,7 @@
     {
       "hazard_id": "ffi.placeholder_backends",
       "path": "climate_ffi_bridge.rs",
+      "reviewed_source_blob": "08a04bf5a51e3edff6925d258de5df91d2f683dc",
       "class": "S3",
       "status": "open",
       "disposition": "fail_capability_discovery",
@@ -80,6 +88,7 @@
     {
       "hazard_id": "scheduler.placeholder_checkpoint_restart",
       "path": "climate_scheduler.rs",
+      "reviewed_source_blob": "6b3888e21f2db4ec030464842265870f6d9458f0",
       "class": "S3",
       "status": "open",
       "disposition": "remove_or_fail_closed",
@@ -89,6 +98,7 @@
     {
       "hazard_id": "sheaf.mislabeled_betti_numbers",
       "path": "climate_multiscale_sheaf.hs",
+      "reviewed_source_blob": "dc791169e8d2f067ff7d920e9c4cab3070a4ce7c",
       "class": "S3",
       "status": "open",
       "disposition": "rename_or_remove",
@@ -98,6 +108,7 @@
     {
       "hazard_id": "sheaf.stub_global_gluing",
       "path": "climate_multiscale_sheaf.hs",
+      "reviewed_source_blob": "dc791169e8d2f067ff7d920e9c4cab3070a4ce7c",
       "class": "S4",
       "status": "open",
       "disposition": "fail_closed",
@@ -107,6 +118,7 @@
     {
       "hazard_id": "numerics.fake_convergence_check",
       "path": "climate_numerics.jl",
+      "reviewed_source_blob": "6d6184f188149864c7a1fdb0179b59134929c0a4",
       "class": "S3",
       "status": "open",
       "disposition": "remove_or_retype",
@@ -116,6 +128,7 @@
     {
       "hazard_id": "information_geometry.synthetic_internal_observations",
       "path": "climate_fisher_information.py",
+      "reviewed_source_blob": "eb4dc1dd78bfa6cd93c07f794fb6c301b6b0a654",
       "class": "S3",
       "status": "open",
       "disposition": "separate_fixture_from_method",
@@ -125,6 +138,7 @@
     {
       "hazard_id": "cuda.compatibility_shims_identity",
       "path": "climate_curvature_compute.cu",
+      "reviewed_source_blob": "f32f3c94b7be2bfe0aa5f59882de32af15baefd7",
       "class": "S3",
       "status": "open",
       "disposition": "separate_implementation_identity",
