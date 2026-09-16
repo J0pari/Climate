@@ -154,6 +154,7 @@ During the current migration stage:
 python -m unittest discover -s tests/architecture -v
 python architecture/check_claims.py
 python architecture/check_modules.py
+python architecture/check_hazards.py
 python architecture/check_experiments.py
 python architecture/source_gates.py --summary
 python architecture/inspect_repository.py --json
