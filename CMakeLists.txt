@@ -19,8 +19,6 @@ option(ENABLE_EXPERIMENTAL_OPTIMIZER "Attempt to wire the experimental C++ optim
 set(CMAKE_Fortran_MODULE_DIRECTORY "${PROJECT_BINARY_DIR}/fortran-modules")
 file(MAKE_DIRECTORY "${CMAKE_Fortran_MODULE_DIRECTORY}")
 
-# Canonical portable numerical code. Unlike the legacy omnibus spectral source,
-# this target contains only implemented primitives with executable witnesses.
 add_library(climate_spectral_reference STATIC
     src/fortran/spectral_reference.f90
 )
@@ -28,9 +26,6 @@ target_include_directories(climate_spectral_reference PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
-# Canonical deterministic explicit time integration. This is intentionally a
-# small ODE primitive; adaptive, split, semi-implicit, and climate-specific
-# stepping remain separate obligations rather than being implied here.
 add_library(climate_time_integration STATIC
     src/fortran/time_integration.f90
 )
@@ -38,11 +33,19 @@ target_include_directories(climate_time_integration PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
-# Transparent no-pivot reference primitives for tridiagonal operators.
 add_library(climate_linear_implicit STATIC
     src/fortran/linear_implicit.f90
 )
 target_include_directories(climate_linear_implicit PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
+# Exact constant-f Coriolis flow for the primitive-equation sign convention.
+# This is a domain-specific closed-form operator, not a generic solver stack.
+add_library(climate_coriolis_rotation STATIC
+    src/fortran/coriolis_rotation.f90
+)
+target_include_directories(climate_coriolis_rotation PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
@@ -56,9 +59,6 @@ target_include_directories(climate_vertical_diffusion PUBLIC
 )
 
 if(ENABLE_LAPACK_BACKEND)
-    # LAPACK is the production-oriented CPU backend for pivoting tridiagonal
-    # solves. Keep it an explicit capability so reference kernels and unrelated
-    # legacy probes do not acquire an ambient BLAS/LAPACK dependency.
     find_package(LAPACK REQUIRED)
 
     add_library(climate_lapack_tridiagonal STATIC
@@ -72,6 +72,7 @@ endif()
 
 if(ENABLE_TESTING)
     enable_testing()
+
     add_executable(test_spectral_reference
         tests/fortran/test_spectral_reference.f90
     )
@@ -89,6 +90,12 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_linear_implicit PRIVATE climate_linear_implicit)
     add_test(NAME linear_implicit COMMAND test_linear_implicit)
+
+    add_executable(test_coriolis_rotation
+        tests/fortran/test_coriolis_rotation.f90
+    )
+    target_link_libraries(test_coriolis_rotation PRIVATE climate_coriolis_rotation)
+    add_test(NAME coriolis_rotation COMMAND test_coriolis_rotation)
 
     add_executable(test_vertical_diffusion
         tests/fortran/test_vertical_diffusion.f90
@@ -118,16 +125,11 @@ if(ENABLE_TESTING)
 endif()
 
 if(ENABLE_LEGACY_FORTRAN_PROBES)
-    # This file currently contains both a module and an embedded test program.
-    # Compile/link it to expose source defects, but do not register or run it.
     add_executable(climate_physics_compile_probe climate_physics_core.f90)
 endif()
 
 if(ENABLE_MPI)
     find_package(MPI REQUIRED COMPONENTS Fortran)
-
-    # The source contains a placeholder program with extremely large allocations.
-    # It is compile-only here. CMake deliberately does not register or run it.
     add_executable(climate_oscillation_compile_probe climate_oscillation_monitor.f90)
     target_link_libraries(climate_oscillation_compile_probe PRIVATE MPI::MPI_Fortran)
 endif()
@@ -168,6 +170,7 @@ message(STATUS "Climate portable configuration:")
 message(STATUS "  Canonical spectral reference: ON")
 message(STATUS "  Canonical time integration:   ON")
 message(STATUS "  Canonical linear reference:   ON")
+message(STATUS "  Exact Coriolis rotation:      ON")
 message(STATUS "  Vertical diffusion operator:  ON")
 message(STATUS "  LAPACK tridiagonal backend:   ${ENABLE_LAPACK_BACKEND}")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")

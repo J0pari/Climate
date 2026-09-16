@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **42**.
+Registered modules: **43**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 13 |
+| `canonical` | 14 |
 | `legacy` | 24 |
 | `reference` | 5 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 16 |
+| `runnable` | 17 |
 
 ### Canonical and reference modules
 
@@ -25,6 +25,7 @@ Registered modules: **42**.
 | --- | --- | --- | --- | --- |
 | `canonical` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
 | `canonical` | `src/feedback.rs` | `feedback_diagnostics` | `prototype` | no |
+| `canonical` | `src/fortran/coriolis_rotation.f90` | `coriolis_rotation_operator` | `runnable` | no |
 | `canonical` | `src/fortran/lapack_tridiagonal.f90` | `lapack_tridiagonal_backend` | `runnable` | no |
 | `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
 | `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
