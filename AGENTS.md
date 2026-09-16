@@ -13,7 +13,7 @@ This file is the binding contributor/agent contract. `README.md` is descriptive 
 5. **Novelty is neither a defect nor evidence.** Unusual methods must receive fair baselines and falsifiable tests; they receive no exemption from them.
 6. **Physical, statistical, and interpretive claims are distinct.** Do not turn a numerical indicator into a physical probability, tipping threshold, causal mechanism, irreversibility claim, or confidence score without an explicitly validated mapping.
 7. **No silent placeholders.** Stubs, heuristic constants, synthetic data, fallback values, incomplete derivatives, approximate solvers, and unimplemented branches must be machine-discoverable or clearly labeled at the point of use.
-8. **No architecture-by-prose.** Claimed paths, commands, interfaces, datasets, and generated artifacts must eventually be machine checked. Current structural drift is a known defect, not precedent.
+8. **No architecture-by-prose.** Claimed paths, commands, interfaces, datasets, and generated artifacts must eventually be machine checked. Structural drift is a defect, not precedent.
 9. **Reproducibility is part of correctness.** Results intended as evidence must bind code revision, method/config versions, dataset identities, preprocessing, random seeds, environment, command, artifacts, and metric definitions.
 10. **Commons is a control/evidence boundary, not a scientific authority.** Commons may schedule, fingerprint, trace, and compare Climate experiments. It must not convert experimental Climate output into stronger evidence classes than Climate earned.
 11. **Performance is not scientific evidence by itself.** A faster GPU path does not strengthen a scientific claim unless it preserves the declared numerical semantics and passes the same validation contract.
@@ -24,6 +24,8 @@ This file is the binding contributor/agent contract. `README.md` is descriptive 
 16. **Legacy code is a source reservoir, not automatic authority.** Prefer preserve -> slice -> type the seams -> recompose -> verify. Quarantine only code that is unsafe to invoke or semantically fraudulent; otherwise retain useful formulas, kernels, fixtures, algorithms, and thresholds with provenance. Canonical tests may reject known-broken legacy expectations while compatibility checks keep the old surface inspectable and compilable where practical.
 17. **Abstraction must buy epistemic or engineering leverage.** Do not add wrapper types, indirection, or framework ceremony solely for stylistic purity. Use meaningfully different constructs—typed states, algebraic variants, declarative registries, generated views, staged pipelines, independent references, or property tests—when they make invalid states harder to represent, expose uncertainty, deepen the model, or enable stronger witnesses.
 18. **Incomplete mathematics must expose obligations, not borrow finished names.** It is acceptable for an experimental method to have open realization obligations analogous to proof `sorry`s. The statement and definitions must still be correct. Promotion terms such as cohomology, Betti number, adjunction, exact conservation law, or verified solver require the defining laws to have executable witnesses. Pin the intended claim so progress cannot be faked by weakening the statement; reduce the open obligations over time instead.
+19. **Do not weaken a useful mathematical contract merely because the implementation is weak.** If the stronger mathematical object is scientifically/computationally useful and tractable, implement it correctly. Rename/retype downward only when the narrower object is itself the superior reusable abstraction for a real task.
+20. **Generate objective status; curate judgment.** Facts already represented in registries should flow into `docs/generated/STATUS.md` through `architecture/render_status.py`. Scientific priority, interpretation, tradeoffs, and resource strategy remain human-maintained because pretending to infer them would hide judgment.
 
 ## 2. Claim maturity vocabulary
 
@@ -130,9 +132,7 @@ Climate data artifacts should move toward CF-compliant metadata and explicit pro
 
 `docs/EXECUTION-TOPOLOGY.md` is binding for work selection.
 
-The numbered phases in `docs/ROADMAP.md` describe dependencies and maturity targets; they are **not** a requirement to finish one phase globally before beginning all work in the next.
-
-Treat the project as a dependency/resource graph. A blocked CUDA, integrated-system, or large-data node must not block independent static, portable-CPU, reference-math, contract, baseline, or CI-toolchain work.
+`docs/ROADMAP.md` describes a dependency/priority graph; it is **not** a requirement to finish one global phase before beginning independent work elsewhere.
 
 Use the execution classes defined in the topology document:
 
@@ -153,12 +153,13 @@ Do not simulate evidence for a missing resource. Instead preregister the experim
 
 The repository contains static/control checks under `architecture/` plus planted negative witnesses in `tests/architecture/`.
 
-During the current migration stage:
+The binding architecture checks currently include:
 
 ```text
 python -m unittest discover -s tests/architecture -v
 python architecture/check_claims.py
 python architecture/check_modules.py
+python architecture/render_status.py --check
 python architecture/check_hazards.py
 python architecture/check_experiments.py
 python architecture/check_sheaf_realization.py
@@ -168,13 +169,34 @@ python architecture/inspect_repository.py --json
 
 The integrity checks are binding. The source-gate summary is currently an **audit**, not a cleanliness assertion, because legacy source intentionally contains known debt.
 
-`python architecture/source_gates.py --strict` becomes binding only as individual debt classes are retired under the roadmap. Do not make a broad allowlist permanent merely to turn CI green; either repair the source, narrow the gate to the intended semantic boundary, or record a temporary exception with rationale and expiry.
+`python architecture/source_gates.py --strict` becomes binding only as individual debt classes are retired. Do not make a broad allowlist permanent merely to turn CI green; either repair the source, narrow the gate to the intended semantic boundary, or record a temporary exception with rationale and expiry.
+
+Objective status derived from module/claim/experiment/realization registries belongs in `docs/generated/STATUS.md`. When those authorities change, update the generated projection with:
+
+```text
+python architecture/render_status.py --write
+```
+
+Do not hand-edit the generated file.
 
 ## 11. Current repository status
 
-The current `main` tree is not a coherent build workspace. In particular, build metadata refers to a `CORE/` hierarchy and test/config paths that do not exist in the current flat tree. Do not "fix" that by fabricating empty directories or moving files before the target package/layout plan is agreed and migration tests exist.
+`main` is the canonical development line.
 
-Several modules already label themselves unvalidated or contain explicit placeholders. Preserve those warnings until evidence justifies changing them.
+The repository now has **scoped coherent build/test surfaces**, not one globally coherent application build:
+
+- the canonical Rust crate under `src/` is compiled and tested in hosted CI;
+- canonical portable Fortran spectral code configures/builds/tests through CMake/CTest without CUDA/MPI;
+- symbolic reference mathematics runs in independent Python/SymPy jobs;
+- small immutable Lean/Mathlib obligations run in a dedicated formal-verification lane;
+- legacy Rust compatibility is compile-checked where wired;
+- the legacy Fortran physics omnibus remains a deliberately separate failing compile probe and must be decomposed along real physical interfaces rather than patched until superficially green;
+- CUDA execution remains capability-gated and is not verified without a real CUDA device;
+- Julia/Haskell legacy research surfaces are not automatically runtime authorities merely because files exist.
+
+Current module/claim/experiment/realization counts are intentionally not repeated here; see `docs/generated/STATUS.md`.
+
+Several legacy modules contain explicit placeholders or semantic hazards. Preserve those warnings until the underlying computation is repaired or a genuinely superior narrower abstraction replaces it.
 
 ## 12. Commons-facing behavior
 
