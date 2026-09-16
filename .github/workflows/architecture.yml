@@ -16,3 +16,7 @@ jobs:
         run: python -m unittest discover -s tests/architecture -v
       - name: Legacy source audit
         run: python architecture/source_gates.py --summary
+      - name: Install CUE
+        run: go install cuelang.org/go/cmd/cue@v0.17.1
+      - name: Vet research contracts
+        run: "$(go env GOPATH)/bin/cue vet ./contracts"
