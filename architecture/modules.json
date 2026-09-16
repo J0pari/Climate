@@ -236,6 +236,15 @@
       "known_gaps": ["currently covers SVD-based conditioning only", "callers must migrate from legacy guardrail implementations before legacy conditioning code can be retired"]
     },
     {
+      "path": "src/feedback.rs",
+      "family": "feedback_diagnostics",
+      "language": "rust",
+      "maturity": "prototype",
+      "evidence_eligible": false,
+      "intended_role": "canonical typed ice-albedo observation, finite-difference estimation, numerical-degeneracy, and policy-separation primitives",
+      "known_gaps": ["finite-difference estimator currently uses only adjacent albedo/temperature samples", "ice extent is retained as context but not yet used by the estimator", "340 W/m2 mapping and policy thresholds preserve legacy assumptions and are not empirically validated"]
+    },
+    {
       "path": "src/fortran/spectral_reference.f90",
       "family": "spectral_reference",
       "language": "fortran",

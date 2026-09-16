@@ -1,13 +1,17 @@
 //! Canonical compile-checked Rust surface for Climate.
 //!
-//! Legacy root-level prototypes remain available for migration and comparison,
-//! but canonical implementations live under `src/` and join this crate only when
-//! their dependencies, failure semantics, and tests are explicit.
+//! Canonical implementations live under `src/`. Root-level Rust prototypes are
+//! retained as migration/comparison material and can be compile-checked through
+//! the `legacy-rust` feature without making their historical tests or semantics
+//! authoritative for the canonical crate.
 
+pub mod feedback;
 pub mod numerics;
 
+#[cfg(feature = "legacy-rust")]
 #[path = "../climate_scenario_logic.rs"]
 pub mod climate_scenario_logic;
 
+#[cfg(feature = "legacy-rust")]
 #[path = "../climate_feedback_validators.rs"]
 pub mod climate_feedback_validators;

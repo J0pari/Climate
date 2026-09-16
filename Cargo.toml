@@ -10,6 +10,12 @@ description = "Compile-checked Rust slice of the Climate research framework"
 [lib]
 path = "src/lib.rs"
 
+[features]
+default = []
+# Root-level Rust prototypes remain available for compile compatibility and
+# migration comparison, but are not canonical test authority.
+legacy-rust = []
+
 [dependencies]
 nalgebra = "0.32"
 serde = { version = "1.0", features = ["derive"] }
