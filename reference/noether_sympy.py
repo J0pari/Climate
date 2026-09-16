@@ -1,8 +1,7 @@
 """Exact symbolic Noether reference for finite-dimensional point symmetries.
 
-The climate repository contains exploratory symmetry language, but approximate
-constancy of a diagnostic is not Noether's theorem. This module implements the
-actual variational statement for a Lagrangian L(t, q, qdot):
+This module implements the variational statement for a first-order Lagrangian
+L(t, q, qdot):
 
     pr^(1) X(L) + L D_t(tau) = D_t(B)
 
@@ -18,8 +17,10 @@ obeys the off-shell identity
 where R is the invariance residual and E_i(L) = dL/dq_i - D_t(dL/dqdot_i).
 On Euler-Lagrange trajectories and for R=0, J is conserved.
 
-This establishes the mathematics only. It does not imply that the forced,
-dissipative climate system admits these exact symmetries.
+Scope is deliberately finite-dimensional, first-order, and point-variational.
+Continuum fluid, noncanonical Hamiltonian, material-transport, Casimir, and
+forced/dissipative balance-law structure require their own model-specific
+authorities.
 """
 from __future__ import annotations
 
