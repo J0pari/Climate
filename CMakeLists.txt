@@ -67,6 +67,15 @@ target_include_directories(climate_moist_vapor_algebra PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Published phase-explicit equilibrium vapor pressure. Phase selection remains
+# caller-owned; this target intentionally has no automatic liquid/ice switch.
+add_library(climate_saturation_vapor_pressure STATIC
+    src/fortran/saturation_vapor_pressure.f90
+)
+target_include_directories(climate_saturation_vapor_pressure PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Climate-specific geometric-height finite-volume diffusion operator. Solver
 # choice is deliberately separate from operator construction.
 add_library(climate_vertical_diffusion STATIC
@@ -129,6 +138,15 @@ if(ENABLE_TESTING)
         climate_dry_thermodynamics
     )
     add_test(NAME moist_vapor_algebra COMMAND test_moist_vapor_algebra)
+
+    add_executable(test_saturation_vapor_pressure
+        tests/fortran/test_saturation_vapor_pressure.f90
+    )
+    target_link_libraries(test_saturation_vapor_pressure PRIVATE
+        climate_saturation_vapor_pressure
+        climate_moist_vapor_algebra
+    )
+    add_test(NAME saturation_vapor_pressure COMMAND test_saturation_vapor_pressure)
 
     add_executable(test_vertical_diffusion
         tests/fortran/test_vertical_diffusion.f90
@@ -206,6 +224,7 @@ message(STATUS "  Canonical linear reference:   ON")
 message(STATUS "  Exact Coriolis rotation:      ON")
 message(STATUS "  Dry thermodynamics:           ON")
 message(STATUS "  Moist vapor algebra:          ON")
+message(STATUS "  Saturation vapor pressure:    ON")
 message(STATUS "  Vertical diffusion operator:  ON")
 message(STATUS "  LAPACK tridiagonal backend:   ${ENABLE_LAPACK_BACKEND}")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")

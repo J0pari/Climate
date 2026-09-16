@@ -15,13 +15,14 @@ The legacy source is evidence about intended responsibilities. It is not authori
 | geometric-height scalar diffusion | `src/fortran/vertical_diffusion.f90` | nonuniform finite-volume operator with explicit boundaries, conservation, and dissipativity witnesses | pressure/sigma/hybrid-coordinate diffusion, closure validity, or thermodynamic weighting |
 | dry ideal-gas identities | `src/fortran/dry_thermodynamics.f90` | Exner, potential-temperature transforms, dry density, and isothermal hydrostatic thickness with explicit SI parameters | moist thermodynamics, atmospheric state evolution, general hydrostatic discretization, or energy closure |
 | water-vapor mixture algebra | `src/fortran/moist_vapor_algebra.f90` | exact ideal-gas transforms among vapor pressure, mixing ratio, specific humidity, virtual temperature, and vapor-only moist density | saturation-vapor-pressure law, phase equilibrium, condensate, latent heat, microphysics, or prognostic moisture evolution |
+| phase-explicit saturation pressure | `src/fortran/saturation_vapor_pressure.f90` | Murphy–Koop equilibrium vapor pressure over liquid water and hexagonal ice with explicit phase selection and enforced validity ranges | automatic phase diagnosis, condensate partition, latent heat, supersaturation policy, or cloud microphysics |
 | portable spectral oracle | `src/fortran/spectral_reference.f90` | deterministic direct-DFT/analytic-signal reference behavior | a production FFT implementation or superiority of any climate oscillation method |
 
 ## Open physical responsibilities
 
 The following remain explicit obligations rather than being inferred from the presence of neighboring kernels:
 
-- **saturation and condensed-water thermodynamics:** phase-specific equilibrium vapor pressure, liquid/ice convention, latent heats, condensate loading, supersaturation policy, and phase transitions;
+- **condensed-water thermodynamics:** liquid/ice condensate loading, latent heats, phase transitions, mixed-phase partition, and supersaturation/adjustment policy beyond the equilibrium-pressure provider;
 - **hydrostatic/state coupling:** a declared vertical coordinate and mass/pressure/geopotential relationship beyond the analytic isothermal identity;
 - **momentum dynamics:** pressure-gradient force, advection, metric terms, vertical momentum/diagnostic-omega semantics, diffusion/friction, and their conservation properties;
 - **mass and tracer transport:** flux form, positivity/conservation policy, coordinate metrics, and boundary/source semantics;
@@ -38,7 +39,7 @@ Generic numerical or domain-standard machinery should be delegated when a mainta
 - CPU tridiagonal factorization/solve uses LAPACK; the hand-written Thomas path remains a reference oracle.
 - A future production CPU FFT should use FFTW (and a GPU path cuFFT) while the direct DFT remains the transparent differential oracle.
 - Radiative-transfer work should evaluate established maintained packages such as RTE+RRTMGP before implementing generic gas-optics or two-stream machinery locally. Climate-owned code should focus on scientifically explicit inputs, adapters, diagnostics, validation, and evidence.
-- Saturation-vapor-pressure implementations must identify their liquid/ice phase model and validity range explicitly; vapor-mixture algebra must not silently select one.
+- Saturation vapor pressure currently uses the Murphy–Koop (2005) liquid-water and hexagonal-ice parameterizations. Phase selection and validity bounds are explicit; vapor-mixture algebra does not silently select a phase.
 
 Selecting an external package or published parameterization does not by itself validate a scientific process. Version, configuration, implementation identity, numerical diagnostics, input provenance, and differential/benchmark evidence remain required.
 

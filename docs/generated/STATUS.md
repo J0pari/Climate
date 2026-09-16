@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **45**.
+Registered modules: **46**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 16 |
+| `canonical` | 17 |
 | `legacy` | 24 |
 | `reference` | 5 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 19 |
+| `runnable` | 20 |
 
 ### Canonical and reference modules
 
@@ -30,6 +30,7 @@ Registered modules: **45**.
 | `canonical` | `src/fortran/lapack_tridiagonal.f90` | `lapack_tridiagonal_backend` | `runnable` | no |
 | `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
 | `canonical` | `src/fortran/moist_vapor_algebra.f90` | `moist_vapor_algebra` | `runnable` | no |
+| `canonical` | `src/fortran/saturation_vapor_pressure.f90` | `saturation_vapor_pressure` | `runnable` | no |
 | `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
 | `canonical` | `src/fortran/time_integration.f90` | `time_integration_reference` | `runnable` | no |
 | `canonical` | `src/fortran/vertical_diffusion.f90` | `vertical_diffusion_operator` | `runnable` | no |
@@ -68,7 +69,7 @@ Experiment specifications: **2**.
 | Experiment | File |
 | --- | --- |
 | `geometry.correctness.v1` | `experiments/geometry-correctness.v1.json` |
-| `sheaf.structural_ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
+| `sheaf.structural-ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
 
 ## Sheaf realization frontier
 
