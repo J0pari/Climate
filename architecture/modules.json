@@ -1,286 +1,36 @@
 {
   "schema_version": 1,
   "modules": [
-    {
-      "path": "climate_physics_core.f90",
-      "family": "physics",
-      "language": "fortran",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "reference physical and parameterization kernels",
-      "known_gaps": ["placeholder forcing/astronomical values remain", "no repository-level verification harness", "claimed conservation behavior is not yet witnessed"]
-    },
-    {
-      "path": "climate_spectral_analysis.f90",
-      "family": "diagnostics",
-      "language": "fortran",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "legacy spectral, coherence, wavelet, and time-series research prototype",
-      "known_gaps": ["multiple named algorithms remain empty or placeholder", "legacy CWT/Hilbert paths are not the canonical portable implementation", "no independent benchmark suite"]
-    },
-    {
-      "path": "climate_oscillation_monitor.f90",
-      "family": "diagnostics",
-      "language": "fortran",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "oscillation monitoring, index diagnostics, and forecast-verification research prototype",
-      "known_gaps": ["legacy implementation contains arbitrary or fake forecast-skill formulas", "some execution/test paths use incomplete or uninitialized diagnostic state", "oscillation labels and forecast metrics require narrow verified definitions before evidence use"]
-    },
-    {
-      "path": "climate_data_pipeline.py",
-      "family": "data",
-      "language": "python",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "climate-data acquisition, normalization, caching, and preprocessing",
-      "known_gaps": ["large optional dependency surface", "source-specific paths are not covered by immutable fixtures", "data provenance contract is not yet implemented"]
-    },
-    {
-      "path": "climate_state.rs",
-      "family": "state",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "physical state and shared field management",
-      "known_gaps": ["placeholder initialization remains", "physical state and experimental representations are not cleanly separated", "no observational validation"]
-    },
-    {
-      "path": "climate_engine.rs",
-      "family": "simulation",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "component coupling and integration loop",
-      "known_gaps": ["integration/coupling claims are not backed by repository-level witnesses", "restart and reproducibility claims require explicit verification"]
-    },
-    {
-      "path": "climate_feedback_validators.rs",
-      "family": "diagnostics",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "feedback decomposition and parameter validation experiments",
-      "known_gaps": ["cloud and vegetation pathways are incomplete", "observational constraints are not wired into a reproducible benchmark"]
-    },
-    {
-      "path": "climate_scheduler.rs",
-      "family": "orchestration",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "legacy local execution/resource coordination",
-      "known_gaps": ["deadlock handling is not the fully described graph mechanism", "checkpoint/restart is placeholder", "global resource ownership should migrate to Commons rather than expand here"]
-    },
-    {
-      "path": "climate_ffi_bridge.rs",
-      "family": "interoperability",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "narrow cross-language ABI experiments",
-      "known_gaps": ["Julia integration contains placeholder paths", "Haskell bindings are absent", "array/layout ownership contracts are not yet versioned"]
-    },
-    {
-      "path": "climate_safety_protocols.rs",
-      "family": "numerical_guardrails",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "legacy parameter, numerical-stability, and recovery guardrail experiments being migrated into canonical typed modules",
-      "known_gaps": ["legacy file retains fabricated conditioning fallback and mixed runtime/serialization concerns", "guardrail thresholds are not yet separated from scientific tipping interpretation", "canonical replacements must be migrated before this legacy module can be retired"]
-    },
-    {
-      "path": "climate_manifold.rs",
-      "family": "experimental_geometry",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "Riemannian climate-state geometry experiments",
-      "claim_ids": ["climate.geometry.regime_indicator"],
-      "known_gaps": ["dual-number metric implementation is incomplete", "dual Christoffel path is incomplete", "metric mixes hand-built quantities without established statistical/physical derivation", "curvature-to-tipping probability/timescale mappings are heuristic and unvalidated"]
-    },
-    {
-      "path": "climate_curvature_map.rs",
-      "family": "experimental_geometry",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "curvature tensor and candidate regime-indicator experiments",
-      "claim_ids": ["climate.geometry.regime_indicator"],
-      "known_gaps": ["climate interpretation of curvature is not validated", "needs known-geometry and coordinate-invariance verification"]
-    },
-    {
-      "path": "climate_curvature_compute.cu",
-      "family": "gpu_experimental_geometry",
-      "language": "cuda",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "GPU acceleration experiments for geometric calculations",
-      "claim_ids": ["climate.geometry.regime_indicator", "climate.gpu.batched_geometry_equivalence"],
-      "known_gaps": ["monolithic device/runtime responsibilities", "multiple compatibility shims/fallback identities", "resource assumptions are not yet a contract", "no independent GPU/reference equivalence witness"]
-    },
-    {
-      "path": "climate_manifold_network.rs",
-      "family": "experimental_representation",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "latent-dimension and manifold-network research",
-      "claim_ids": ["climate.geometry.regime_indicator"],
-      "known_gaps": ["dimension-selection objective requires independent validation", "topological interpretations need mathematically exact implementations and baselines"]
-    },
-    {
-      "path": "climate_fisher_information.py",
-      "family": "information_geometry",
-      "language": "python",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "Fisher information, natural-gradient, and uncertainty experiments",
-      "claim_ids": ["climate.information_geometry.optimization"],
-      "known_gaps": ["some geometry calculations use synthetic/dummy observations", "statistical family/likelihood semantics are not consistently explicit", "requires recovery and held-out benchmark"]
-    },
-    {
-      "path": "climate_information_geometry.jl",
-      "family": "information_geometry",
-      "language": "julia",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "statistical-manifold and information-geometric reference experiments",
-      "claim_ids": ["climate.information_geometry.optimization"],
-      "known_gaps": ["requires explicit likelihood/reference tasks", "cross-language equivalence is not established"]
-    },
-    {
-      "path": "climate_model_selection.py",
-      "family": "statistical_diagnostics",
-      "language": "python",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "model-selection and information-criterion experiments",
-      "known_gaps": ["criteria need fixture-based verification", "climate-specific dependence assumptions need explicit tests"]
-    },
-    {
-      "path": "climate_optimizer.cpp",
-      "family": "optimization",
-      "language": "cpp",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "constrained trust-region/parameter-optimization experiments",
-      "claim_ids": ["climate.information_geometry.optimization"],
-      "known_gaps": ["optimization routine is explicitly described as unvalidated", "requires standard benchmark and parameter-recovery witnesses"]
-    },
-    {
-      "path": "climate_padic_teleconnections.rs",
-      "family": "experimental_ultrametric",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "p-adic/ultrametric teleconnection hypothesis testing",
-      "claim_ids": ["climate.teleconnection.ultrametric"],
-      "known_gaps": ["prime/encoding choices are heuristic", "no validation currently exists", "must compete with generic hierarchy/metric baselines and random controls"]
-    },
-    {
-      "path": "climate_multiscale_sheaf.hs",
-      "family": "experimental_sheaf",
-      "language": "haskell",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "legacy station-network consistency heuristics and unfinished sheaf experiments",
-      "claim_ids": ["climate.sheaf.consistency"],
-      "known_gaps": ["restriction candidates are not yet a climate-data sheaf", "heuristic discrepancy scaling and thresholds are not empirically calibrated", "legacy union is comparison-only and not reconstruction", "real station data path is absent"]
-    },
-    {
-      "path": "climate_resonance_clifford.jl",
-      "family": "experimental_algebra",
-      "language": "julia",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "Clifford/geometric-algebra representation of oscillation coupling",
-      "known_gaps": ["incremental value over spectral/phase baselines is untested", "physical interpretation remains exploratory"]
-    },
-    {
-      "path": "climate_scenario_logic.rs",
-      "family": "experimental_logic",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "formal scenario/admissibility and reachability experiments",
-      "known_gaps": ["should be separated from numerical dynamics", "physical propositions/accessibility relations require explicit contracts"]
-    },
-    {
-      "path": "climate_symmetries.hs",
-      "family": "experimental_symmetry",
-      "language": "haskell",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "symmetry-derived climate diagnostic experiments",
-      "known_gaps": ["approximate climate symmetries must not be treated as exact conservation laws", "phase-transition/universality interpretations require benchmark evidence"]
-    },
-    {
-      "path": "climate_numerics.jl",
-      "family": "numerics",
-      "language": "julia",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "numerical-method experiments and reference implementations",
-      "known_gaps": ["source explicitly labels some formulas and execution checks as unvalidated", "requires convergence and manufactured-solution witnesses"]
-    },
-    {
-      "path": "src/numerics.rs",
-      "family": "numerics",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "canonical numerical verification primitives with measured conditioning separated from acceptance policy",
-      "known_gaps": ["currently covers SVD-based conditioning only", "callers must migrate from legacy guardrail implementations before legacy conditioning code can be retired"]
-    },
-    {
-      "path": "src/feedback.rs",
-      "family": "feedback_diagnostics",
-      "language": "rust",
-      "maturity": "prototype",
-      "evidence_eligible": false,
-      "intended_role": "canonical typed ice-albedo observation, finite-difference estimation, numerical-degeneracy, and policy-separation primitives",
-      "known_gaps": ["finite-difference estimator currently uses only adjacent albedo/temperature samples", "ice extent is retained as context but not yet used by the estimator", "340 W/m2 mapping and policy thresholds preserve legacy assumptions and are not empirically validated"]
-    },
-    {
-      "path": "src/sheaf.rs",
-      "family": "sheaf_numerics",
-      "language": "rust",
-      "maturity": "runnable",
-      "evidence_eligible": false,
-      "intended_role": "canonical real-valued finite cellular-sheaf operators for explicit restrictions, compatibility residuals, degree-zero sheaf Laplacians, and SVD-derived structural diagnostics",
-      "claim_ids": ["climate.sheaf.consistency"],
-      "known_gaps": ["current canonical operator is degree-zero on finite graphs rather than higher-dimensional cellular complexes", "scientifically defensible climate stalks, restrictions, and station-cover construction remain open", "spectral/nullity diagnostics have no empirical climate interpretation without preregistered benchmarks", "sparse and GPU implementations remain future differential-verified accelerations"]
-    },
-    {
-      "path": "src/fortran/spectral_reference.f90",
-      "family": "spectral_reference",
-      "language": "fortran",
-      "maturity": "runnable",
-      "evidence_eligible": false,
-      "intended_role": "canonical portable reference primitives for deterministic DFT, analytic signals, phase unwrapping, and instantaneous frequency",
-      "known_gaps": ["direct DFT is intentionally reference-speed rather than production FFT", "broader CWT, SSA, multitaper, and coherence methods remain to be migrated with dedicated witnesses", "not yet compared against an independent external numerical implementation"]
-    },
-    {
-      "path": "reference/geometry_sympy.py",
-      "family": "reference_geometry",
-      "language": "python",
-      "maturity": "runnable",
-      "evidence_eligible": false,
-      "intended_role": "independent symbolic differential-geometry oracle for analytic verification fixtures",
-      "known_gaps": ["scope is limited to the preregistered analytic geometry fixtures", "no accelerated implementation equivalence has been established", "produces no climate interpretation"]
-    },
-    {
-      "path": "reference/sheaf_cohomology.py",
-      "family": "reference_sheaf_cohomology",
-      "language": "python",
-      "maturity": "runnable",
-      "evidence_eligible": false,
-      "intended_role": "exact finite-complex and finite cellular-sheaf reference over GF(2) for nerves, restriction functoriality, cohomology dimensions, and global-section compatibility",
-      "claim_ids": ["climate.sheaf.consistency"],
-      "known_gaps": ["GF(2) reference stalks do not model continuous climate measurements", "geographic station-cover and climate restriction semantics remain open", "mathematical correctness does not establish empirical fault-detection or reconstruction value"]
-    }
+    {"path":"climate_physics_core.f90","family":"physics","language":"fortran","maturity":"prototype","evidence_eligible":false,"intended_role":"reference physical and parameterization kernels","known_gaps":["placeholder forcing/astronomical values remain","no repository-level verification harness","claimed conservation behavior is not yet witnessed"]},
+    {"path":"climate_spectral_analysis.f90","family":"diagnostics","language":"fortran","maturity":"prototype","evidence_eligible":false,"intended_role":"legacy spectral, coherence, wavelet, and time-series research prototype","known_gaps":["multiple named algorithms remain empty or placeholder","legacy CWT/Hilbert paths are not the canonical portable implementation","no independent benchmark suite"]},
+    {"path":"climate_oscillation_monitor.f90","family":"diagnostics","language":"fortran","maturity":"prototype","evidence_eligible":false,"intended_role":"oscillation monitoring, index diagnostics, and forecast-verification research prototype","known_gaps":["legacy implementation contains arbitrary or fake forecast-skill formulas","some execution/test paths use incomplete or uninitialized diagnostic state","oscillation labels and forecast metrics require narrow verified definitions before evidence use"]},
+    {"path":"climate_data_pipeline.py","family":"data","language":"python","maturity":"prototype","evidence_eligible":false,"intended_role":"climate-data acquisition, normalization, caching, and preprocessing","known_gaps":["large optional dependency surface","source-specific paths are not covered by immutable fixtures","data provenance contract is not yet implemented"]},
+    {"path":"climate_state.rs","family":"state","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"physical state and shared field management","known_gaps":["placeholder initialization remains","physical state and experimental representations are not cleanly separated","no observational validation"]},
+    {"path":"climate_engine.rs","family":"simulation","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"component coupling and integration loop","known_gaps":["integration/coupling claims are not backed by repository-level witnesses","restart and reproducibility claims require explicit verification"]},
+    {"path":"climate_feedback_validators.rs","family":"diagnostics","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"feedback decomposition and parameter validation experiments","known_gaps":["cloud and vegetation pathways are incomplete","observational constraints are not wired into a reproducible benchmark"]},
+    {"path":"climate_scheduler.rs","family":"orchestration","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"legacy local execution/resource coordination","known_gaps":["deadlock handling is not the fully described graph mechanism","checkpoint/restart is placeholder","global resource ownership should migrate to Commons rather than expand here"]},
+    {"path":"climate_ffi_bridge.rs","family":"interoperability","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"narrow cross-language ABI experiments","known_gaps":["Julia integration contains placeholder paths","Haskell bindings are absent","array/layout ownership contracts are not yet versioned"]},
+    {"path":"climate_safety_protocols.rs","family":"numerical_guardrails","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"legacy parameter, numerical-stability, and recovery guardrail experiments being migrated into canonical typed modules","known_gaps":["legacy file retains fabricated conditioning fallback and mixed runtime/serialization concerns","guardrail thresholds are not yet separated from scientific tipping interpretation","canonical replacements must be migrated before this legacy module can be retired"]},
+    {"path":"climate_manifold.rs","family":"experimental_geometry","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"Riemannian climate-state geometry experiments","claim_ids":["climate.geometry.regime_indicator"],"known_gaps":["dual-number metric implementation is incomplete","dual Christoffel path is incomplete","metric mixes hand-built quantities without established statistical/physical derivation","curvature-to-tipping probability/timescale mappings are heuristic and unvalidated"]},
+    {"path":"climate_curvature_map.rs","family":"experimental_geometry","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"curvature tensor and candidate regime-indicator experiments","claim_ids":["climate.geometry.regime_indicator"],"known_gaps":["climate interpretation of curvature is not validated","needs known-geometry and coordinate-invariance verification"]},
+    {"path":"climate_curvature_compute.cu","family":"gpu_experimental_geometry","language":"cuda","maturity":"prototype","evidence_eligible":false,"intended_role":"GPU acceleration experiments for geometric calculations","claim_ids":["climate.geometry.regime_indicator","climate.gpu.batched_geometry_equivalence"],"known_gaps":["monolithic device/runtime responsibilities","multiple compatibility shims/fallback identities","resource assumptions are not yet a contract","no independent GPU/reference equivalence witness"]},
+    {"path":"climate_manifold_network.rs","family":"experimental_representation","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"latent-dimension and manifold-network research","claim_ids":["climate.geometry.regime_indicator"],"known_gaps":["dimension-selection objective requires independent validation","topological interpretations need mathematically exact implementations and baselines"]},
+    {"path":"climate_fisher_information.py","family":"information_geometry","language":"python","maturity":"prototype","evidence_eligible":false,"intended_role":"Fisher information, natural-gradient, and uncertainty experiments","claim_ids":["climate.information_geometry.optimization"],"known_gaps":["some geometry calculations use synthetic/dummy observations","statistical family/likelihood semantics are not consistently explicit","requires recovery and held-out benchmark"]},
+    {"path":"climate_information_geometry.jl","family":"information_geometry","language":"julia","maturity":"prototype","evidence_eligible":false,"intended_role":"statistical-manifold and information-geometric reference experiments","claim_ids":["climate.information_geometry.optimization"],"known_gaps":["requires explicit likelihood/reference tasks","cross-language equivalence is not established"]},
+    {"path":"climate_model_selection.py","family":"statistical_diagnostics","language":"python","maturity":"prototype","evidence_eligible":false,"intended_role":"model-selection and information-criterion experiments","known_gaps":["criteria need fixture-based verification","climate-specific dependence assumptions need explicit tests"]},
+    {"path":"climate_optimizer.cpp","family":"optimization","language":"cpp","maturity":"prototype","evidence_eligible":false,"intended_role":"constrained trust-region/parameter-optimization experiments","claim_ids":["climate.information_geometry.optimization"],"known_gaps":["optimization routine is explicitly described as unvalidated","requires standard benchmark and parameter-recovery witnesses"]},
+    {"path":"climate_padic_teleconnections.rs","family":"experimental_ultrametric","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"legacy p-adic/ultrametric teleconnection hypothesis testing","claim_ids":["climate.teleconnection.ultrametric"],"known_gaps":["legacy combined distance mixes heuristic prime/encoding choices with geographic weighting and is not the canonical p-adic metric","no validation currently exists","must compete with generic hierarchy/metric baselines and random controls"]},
+    {"path":"climate_multiscale_sheaf.hs","family":"experimental_sheaf","language":"haskell","maturity":"prototype","evidence_eligible":false,"intended_role":"legacy station-network consistency heuristics and unfinished sheaf experiments","claim_ids":["climate.sheaf.consistency"],"known_gaps":["restriction candidates are not yet a climate-data sheaf","heuristic discrepancy scaling and thresholds are not empirically calibrated","legacy union is comparison-only and not reconstruction","real station data path is absent"]},
+    {"path":"climate_resonance_clifford.jl","family":"experimental_algebra","language":"julia","maturity":"prototype","evidence_eligible":false,"intended_role":"Clifford/geometric-algebra representation of oscillation coupling","known_gaps":["incremental value over spectral/phase baselines is untested","physical interpretation remains exploratory"]},
+    {"path":"climate_scenario_logic.rs","family":"experimental_logic","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"formal scenario/admissibility and reachability experiments","known_gaps":["should be separated from numerical dynamics","physical propositions/accessibility relations require explicit contracts"]},
+    {"path":"climate_symmetries.hs","family":"experimental_symmetry","language":"haskell","maturity":"prototype","evidence_eligible":false,"intended_role":"symmetry-derived climate diagnostic experiments","known_gaps":["approximate climate symmetries must not be treated as exact conservation laws","phase-transition/universality interpretations require benchmark evidence"]},
+    {"path":"climate_numerics.jl","family":"numerics","language":"julia","maturity":"prototype","evidence_eligible":false,"intended_role":"numerical-method experiments and reference implementations","known_gaps":["source explicitly labels some formulas and execution checks as unvalidated","requires convergence and manufactured-solution witnesses"]},
+    {"path":"src/numerics.rs","family":"numerics","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"canonical numerical verification primitives with measured conditioning separated from acceptance policy","known_gaps":["currently covers SVD-based conditioning only","callers must migrate from legacy guardrail implementations before legacy conditioning code can be retired"]},
+    {"path":"src/feedback.rs","family":"feedback_diagnostics","language":"rust","maturity":"prototype","evidence_eligible":false,"intended_role":"canonical typed ice-albedo observation, finite-difference estimation, numerical-degeneracy, and policy-separation primitives","known_gaps":["finite-difference estimator currently uses only adjacent albedo/temperature samples","ice extent is retained as context but not yet used by the estimator","340 W/m2 mapping and policy thresholds preserve legacy assumptions and are not empirically validated"]},
+    {"path":"src/padic.rs","family":"ultrametric_reference","language":"rust","maturity":"runnable","evidence_eligible":false,"intended_role":"canonical exact finite-precision p-adic residue-class and ultrametric primitives for falsifiable representation experiments","claim_ids":["climate.teleconnection.ultrametric"],"known_gaps":["mathematical correctness does not justify any climate-to-p-adic encoding","comparisons across distinct prime bases or precisions are intentionally undefined rather than heuristically fabricated","empirical teleconnection value remains untested against generic ultrametric, hierarchical, graph, spectral, and learned baselines"]},
+    {"path":"src/sheaf.rs","family":"sheaf_numerics","language":"rust","maturity":"runnable","evidence_eligible":false,"intended_role":"canonical real-valued finite cellular-sheaf operators for explicit restrictions, compatibility residuals, degree-zero sheaf Laplacians, and SVD-derived structural diagnostics","claim_ids":["climate.sheaf.consistency"],"known_gaps":["current canonical operator is degree-zero on finite graphs rather than higher-dimensional cellular complexes","scientifically defensible climate stalks, restrictions, and station-cover construction remain open","spectral/nullity diagnostics have no empirical climate interpretation without preregistered benchmarks","sparse and GPU implementations remain future differential-verified accelerations"]},
+    {"path":"src/fortran/spectral_reference.f90","family":"spectral_reference","language":"fortran","maturity":"runnable","evidence_eligible":false,"intended_role":"canonical portable reference primitives for deterministic DFT, analytic signals, phase unwrapping, and instantaneous frequency","known_gaps":["direct DFT is intentionally reference-speed rather than production FFT","broader CWT, SSA, multitaper, and coherence methods remain to be migrated with dedicated witnesses","not yet compared against an independent external numerical implementation"]},
+    {"path":"reference/geometry_sympy.py","family":"reference_geometry","language":"python","maturity":"runnable","evidence_eligible":false,"intended_role":"independent symbolic differential-geometry oracle for analytic verification fixtures","known_gaps":["scope is limited to the preregistered analytic geometry fixtures","no accelerated implementation equivalence has been established","produces no climate interpretation"]},
+    {"path":"reference/sheaf_cohomology.py","family":"reference_sheaf_cohomology","language":"python","maturity":"runnable","evidence_eligible":false,"intended_role":"exact finite-complex and finite cellular-sheaf reference over GF(2) for nerves, restriction functoriality, cohomology dimensions, and global-section compatibility","claim_ids":["climate.sheaf.consistency"],"known_gaps":["GF(2) reference stalks do not model continuous climate measurements","geographic station-cover and climate restriction semantics remain open","mathematical correctness does not establish empirical fault-detection or reconstruction value"]}
   ]
 }

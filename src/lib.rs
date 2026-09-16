@@ -7,6 +7,7 @@
 
 pub mod feedback;
 pub mod numerics;
+pub mod padic;
 pub mod sheaf;
 
 #[cfg(feature = "legacy-rust")]
