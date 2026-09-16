@@ -173,12 +173,15 @@ def gate_placeholder_inventory(files: dict[str, list[str]]) -> list[Finding]:
     return findings
 
 
+# Patterns below target process-global/default RNG state or constructors with
+# no explicit seed. Explicit generators such as np.random.default_rng(seed)
+# are intentionally allowed; their seed still has to be captured by RunManifest.
 AMBIENT_RNG_PATTERNS = (
     re.compile(r"\brand\s*\("),
     re.compile(r"\bsrand\s*\("),
     re.compile(r"\bthread_rng\s*\("),
-    re.compile(r"\bnp\.random\b"),
-    re.compile(r"\bnumpy\.random\b"),
+    re.compile(r"\b(?:np|numpy)\.random\.(?:rand|randn|random|random_sample|choice|normal|uniform|shuffle|permutation)\s*\("),
+    re.compile(r"\b(?:np|numpy)\.random\.default_rng\s*\(\s*\)"),
     re.compile(r"\bRandom\.default_rng\s*\(\s*\)"),
 )
 
