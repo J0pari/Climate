@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {
+      "fixture_id": "flat.cartesian.2d",
+      "dimension": 2,
+      "coordinates": [
+        "x",
+        "y"
+      ],
+      "domain": {
+        "x": [
+          -2.0,
+          2.0
+        ],
+        "y": [
+          -2.0,
+          2.0
+        ]
+      },
+      "metric": [
+        [
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "1"
+        ]
+      ],
+      "expected": {
+        "riemann": "zero",
+        "ricci": "zero",
+        "scalar_curvature": "0",
+        "gaussian_curvature": "0"
+      },
+      "purpose": "zero-curvature positive control"
+    },
+    {
+      "fixture_id": "flat.polar.2d",
+      "dimension": 2,
+      "coordinates": [
+        "r",
+        "theta"
+      ],
+      "domain": {
+        "r": [
+          0.25,
+          2.0
+        ],
+        "theta": [
+          0.0,
+          6.283185307179586
+        ]
+      },
+      "metric": [
+        [
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "r^2"
+        ]
+      ],
+      "expected": {
+        "riemann": "zero",
+        "ricci": "zero",
+        "scalar_curvature": "0",
+        "gaussian_curvature": "0"
+      },
+      "purpose": "nonzero-Christoffel coordinate-invariance control"
+    },
+    {
+      "fixture_id": "sphere.radius2.2d",
+      "dimension": 2,
+      "coordinates": [
+        "theta",
+        "phi"
+      ],
+      "domain": {
+        "theta": [
+          0.2,
+          2.941592653589793
+        ],
+        "phi": [
+          0.0,
+          6.283185307179586
+        ]
+      },
+      "metric": [
+        [
+          "4",
+          "0"
+        ],
+        [
+          "0",
+          "4*sin(theta)^2"
+        ]
+      ],
+      "expected": {
+        "gaussian_curvature": "0.25",
+        "scalar_curvature": "0.5",
+        "ricci_relation": "Ric_ij = 0.25 * g_ij"
+      },
+      "purpose": "constant positive curvature control"
+    },
+    {
+      "fixture_id": "hyperbolic.poincare.radius1.2d",
+      "dimension": 2,
+      "coordinates": [
+        "x",
+        "y"
+      ],
+      "domain": {
+        "x": [
+          -0.5,
+          0.5
+        ],
+        "y": [
+          -0.5,
+          0.5
+        ],
+        "constraint": "x^2 + y^2 < 0.64"
+      },
+      "metric": [
+        [
+          "4/(1-x^2-y^2)^2",
+          "0"
+        ],
+        [
+          "0",
+          "4/(1-x^2-y^2)^2"
+        ]
+      ],
+      "expected": {
+        "gaussian_curvature": "-1",
+        "scalar_curvature": "-2",
+        "ricci_relation": "Ric_ij = -1 * g_ij"
+      },
+      "purpose": "constant negative curvature control"
+    }
+  ]
+}
