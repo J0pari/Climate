@@ -1,285 +1,209 @@
-# Climate staged roadmap
+# Climate obligation roadmap
 
-Status: **execution order**, optimized to reduce rework and prevent scientific/architectural overclaiming.
+Status: **binding dependency and priority map**. This is not a serial phase plan.
 
-This roadmap starts from the repository as it exists today: a flat multi-language tree with stale build metadata, incomplete implementations, useful conventional climate components, and several exploratory mathematical methods.
+Climate is a heterogeneous research system: formal mathematics, portable numerical kernels, legacy scientific prototypes, statistical methods, GPU code, external climate data, and Commons integration do not share one global maturity level. Work should advance along independent obligation paths whenever their prerequisites and required resources are available.
 
-The sequence is deliberately not "clean up everything, then do science." Each phase should produce a useful, testable capability and evidence about what to do next.
+Objective repository state is generated from the live registries at [`docs/generated/STATUS.md`](generated/STATUS.md). Do not duplicate module counts, claim maturity tables, experiment lists, or sheaf-obligation counts here. `python architecture/render_status.py --check` makes that projection a drift-checked CI surface.
 
-## Phase 0 — freeze current truth
+`docs/EXECUTION-TOPOLOGY.md` defines resource classes. `AGENTS.md` defines binding correctness and evidence rules. If narrative planning conflicts with executable checks or machine-readable authorities, the executable/machine-readable state wins and this document must be updated.
 
-Goal: preserve what exists before structural migration.
+## 1. Work-selection rule
 
-Deliverables:
+Represent work as an obligation graph. A node is ready when:
 
-- inventory every source file, language, declared role, obvious placeholder/stub status, and current build reference;
-- capture current manifest/build drift (`CORE/`, tests, generated config, etc.);
-- classify existing README claims into software/numerical/physical/statistical/predictive/interpretive claim types;
-- record which claims currently have no executable evidence;
-- create tiny immutable fixtures for a few representative data/algorithm paths;
-- do **not** move files yet.
+1. its semantic prerequisites are satisfied;
+2. the required execution resource is available;
+3. the result can remove material uncertainty or create a reusable correctness boundary;
+4. it does not substitute a weaker witness for a missing stronger one;
+5. it can be falsified, differentially checked, or fail closed.
 
-Exit criterion: a machine-readable/static report can describe current repository structure and known inconsistencies without executing scientific workloads.
+Among ready nodes prefer work that:
 
-## Phase 1 — contract and evidence primitives
+- removes a false authority or plausible-output semantic hazard;
+- creates an independent reference/formal witness reused by several implementations;
+- turns an important prototype into a canonical executable slice;
+- creates a fair baseline or ablation required to evaluate an unusual method;
+- removes a monolith/God-object dependency by exposing scientifically meaningful seams;
+- prepares a resource-gated experiment so scarce hardware/data answers one precise question.
 
-Goal: make later work describable before making it powerful.
+Do not add sophisticated method families merely because they are interesting. Every addition must earn its place through a falsifiable question, independent comparison, or architectural leverage.
 
-Implement initial language-neutral schemas/records for:
+## 2. Authority ladder
 
-- `DatasetRef`;
-- `MethodDescriptor`;
-- `ExperimentSpec`;
-- `RunManifest`;
-- `ArtifactRef`;
-- `MetricResult`;
-- `EvidenceRecord`;
-- `Claim`.
+A recurring obligation is to keep these layers distinct:
 
-Add schema fixtures with positive and negative controls.
+```text
+mathematical/statistical definition
+        ↓
+formal or independently checkable reference
+        ↓
+canonical portable implementation
+        ↓
+optimized / language-specific / accelerated implementation
+        ↓
+experiment result
+        ↓
+empirical validation
+        ↓
+interpretive or decision mapping
+```
 
-Do not overdesign distributed storage or generated language clients yet. JSON + a constraint/schema layer is enough initially.
-
-Exit criterion: a small example experiment can be represented end to end without prose-only assumptions.
-
-## Phase 2 — structural verifier and repository inspector
-
-Goal: convert today's obvious drift into machine findings.
-
-Implement a stable `inspect` command or equivalent that checks:
-
-- declared source/layout paths;
-- manifest/workspace membership;
-- build-script references;
-- required toolchains;
-- missing tests/config templates;
-- placeholder/fallback declarations where mechanically detectable;
-- external-contract files;
-- schema compatibility.
-
-Output machine-readable findings with severity and codes.
-
-Integrate this with Commons `observe` mode first.
-
-Exit criterion: Commons can inspect Climate and report structural readiness without executing repository code.
-
-## Phase 3 — choose and establish the migration skeleton
-
-Goal: create the target directory/package boundaries under tests.
-
-Before moving code, decide:
-
-- whether the Rust crate remains one package or becomes a workspace;
-- which Fortran/C++/CUDA kernels are one native library versus several;
-- whether Julia/Haskell methods remain first-class build products or research-tool entrypoints;
-- canonical CLI location;
-- schema/contracts location;
-- fixture/test layout.
-
-Move one vertical slice at a time with compatibility tests. Do not recreate `CORE/` merely because stale manifests name it.
-
-Exit criterion: top-level build/config metadata describes real paths, and the repository has one documented minimal build/test path that works without optional HPC dependencies.
-
-## Phase 4 — verification harness before model expansion
-
-Goal: establish trustworthy small numerical tests.
-
-Prioritize infrastructure for:
-
-- unit/dimension checks;
-- manufactured/analytic solutions;
-- convergence studies;
-- conservation diagnostics;
-- finite-difference/complex-step gradient verification;
-- CPU/GPU differential tests where applicable;
-- property/metamorphic tests;
-- stochastic equivalence tests.
-
-Use small deterministic fixtures suitable for CI.
-
-Exit criterion: at least one physical/numerical kernel and one statistical method progress from `prototype` to `verified` under explicit criteria.
-
-## Phase 5 — data contract and provenance spine
-
-Goal: make data identity and preprocessing impossible to hand-wave.
-
-Implement:
-
-- CF-aware dataset validation;
-- immutable source/projection identity;
-- transformation DAG records;
-- unit/calendar/grid/anomaly-baseline metadata;
-- checks against silent default/imputation in validation paths;
-- compact acquisition fixtures separated from large external datasets.
-
-Do not require network access for core CI.
-
-Exit criterion: a small observational/reanalysis fixture can be traced from source identity through preprocessing to experiment input digest.
-
-## Phase 6 — established baseline suite
-
-Goal: create scientifically meaningful comparators before evaluating novel methods.
-
-Implement/reference stable baselines for selected tasks:
-
-- EOF/PCA;
-- spectral/coherence analysis;
-- conventional early-warning statistics;
-- simple graph/hierarchical clustering where relevant;
-- standard optimizers/parameter-estimation baselines;
-- ordinary station QC/reconstruction baselines;
-- simple energy-balance/transport benchmarks.
-
-Exit criterion: experimental methods can enter fair comparisons without each inventing its own baseline code.
-
-## Phase 7 — first five meta-experiments
-
-Goal: evaluate high-information uncertain choices independently.
-
-### 7.1 Geometry correctness
-
-Known Euclidean/spherical/constant-curvature fixtures, coordinate transformations, scaling sensitivity, AD derivative checks.
-
-Block climate tipping interpretation until this passes.
-
-### 7.2 Early-warning discrimination
-
-Conventional critical-slowing indicators versus geometric candidates over tipping and non-tipping synthetic systems, then protected real/model cases.
-
-### 7.3 Teleconnection representation
-
-p-adic/ultrametric versus correlation, spectral/coherence, graph, learned-metric, and generic ultrametric baselines. Include random hierarchy/prime controls.
-
-### 7.4 Station consistency
-
-Actual sheaf/cohomology implementation versus graph/residual/QC baselines with injected faults and coverage gaps.
-
-### 7.5 Information geometry
-
-Explicit small likelihood, synthetic parameter recovery, natural gradient versus standard optimizers/preconditioners, held-out prediction/likelihood.
-
-Exit criterion: each method family has positive controls, negative controls, a primary metric, uncertainty, and a retain/revise/reject outcome.
-
-## Phase 8 — scientific claim registry and documentation rendering
-
-Goal: stop README prose from outrunning evidence.
-
-Implement a claim registry and generate or lint documentation against it.
+Passing one layer never promotes the next automatically.
 
 Examples:
 
-- README can say "investigates curvature as a candidate regime indicator" while claim maturity is `prototype`;
-- it cannot say "curvature detects tipping points" as fact unless a validated claim supports that wording.
+- Lean proving a Gram-matrix identity does not formally verify the Rust sheaf implementation as a whole;
+- a correct Levi-Civita kernel does not establish a scientifically meaningful climate metric;
+- an exact p-adic metric does not establish that a climate-to-p-adic encoding is useful;
+- a correct Clifford algebra does not establish that Clifford representations improve oscillation analysis;
+- a GPU differential match does not establish a climate tipping interpretation.
 
-Add checks for forbidden maturity inflation in generated summaries where feasible.
+## 3. Active correctness frontiers
 
-Exit criterion: important scientific assertions in top-level docs resolve to explicit claim/evidence state.
+These are independent fronts, not a global sequence.
 
-## Phase 9 — Commons sandbox-read integration
+### 3.1 Mathematical-name fidelity and exact authorities
 
-Goal: permit controlled execution without write authority.
+Continue sweeping places where the mathematical name outruns the realized structure. The default repair is constructive: if the stronger mathematical object is useful and tractable, implement it correctly rather than renaming downward.
 
-Implement a small gate set:
+Current high-leverage edges:
 
-- repository inspect;
-- fixture validation;
-- method verification by ID;
-- experiment execution from spec;
-- run summarization.
+- derive and verify Amari α-connections from an explicit likelihood/Fisher family rather than dummy observations or regularized matrices;
+- use the exact Lie-bracket and Noether references to separate infinitesimal/variational structure from useful but different black-box diagnostics;
+- continue differential checks between symbolic geometry and canonical Rust geometry;
+- formalize additional small immutable algebraic invariants in Lean only when the statement is stable and the proof reduces ambiguity.
 
-Requirements:
+A weaker abstraction is retained only when it is independently the better tool for a real task, not because it is easier to implement.
 
-- structured gate descriptors;
-- read-only checkout;
-- isolated scratch/artifacts;
-- no inherited secrets;
-- network denied by default;
-- resource/time bounds;
-- Commons `RunId`/causation IDs propagated;
-- immutable receipts.
+### 3.2 Geometry correctness → candidate evaluation
 
-Exit criterion: Commons can execute one baseline-vs-candidate fixture experiment and recover its full evidence lineage.
+The repository now has independent symbolic geometry and a canonical CPU Levi-Civita kernel over explicit metric jets. Remaining obligations include:
 
-## Phase 10 — observational/model benchmark jobs
+- independent derivative-generation witnesses (analytic/AD/finite difference/complex step where applicable);
+- coordinate reparameterization, scale/unit, and permutation metamorphics on the canonical implementation;
+- conditioning/refusal behavior across near-singular and indefinite metrics;
+- explicit candidate metric construction separated from generic tensor machinery;
+- synthetic regime-indicator experiments against conventional early-warning/state-space baselines;
+- CPU/GPU stage-by-stage differential verification once an actual CUDA device is available.
 
-Goal: move from toy verification into scoped scientific validation.
+No curvature-to-tipping probability/timescale mapping is eligible merely because tensor calculations are correct.
 
-Add scheduled, versioned benchmark recipes using selected real datasets/model ensembles. They should not run on every commit.
+### 3.3 Sheaf/descent/cohomology realization
 
-Key requirements:
+The machine ledger `methods/sheaf-realization.v1.json` is authoritative for the exact open/realized frontier; the generated status document renders it automatically.
 
-- immutable dataset projections;
-- protected confirmation splits;
-- dependence-aware uncertainty;
-- provenance and licensing/citations;
-- resource estimates;
-- retained failed runs;
-- comparison against Phase 6 baselines.
+The next scientifically meaningful layer is not more abstract topology. It is a defensible climate-data sheaf:
 
-Exit criterion: at least one claim reaches `validated` with explicit scope without upgrading the whole repository's maturity.
+- station/coverage rule → nerve;
+- typed stalk contents with units/missingness;
+- explicit restrictions;
+- identity/composition witnesses;
+- climate-data coboundary;
+- compatibility/global-section semantics;
+- injected-fault and withheld-data experiments;
+- graph/residual/QC/interpolation baselines.
 
-## Phase 11 — resource-managed HPC/GPU execution
+The real-valued sheaf Laplacian/singular spectrum remains a candidate global aggregation mechanism. It must demonstrate incremental value over the same-restriction local residual baseline; withholding restriction information from the baseline is not allowed.
 
-Goal: integrate expensive workloads without duplicating Commons scheduling.
+### 3.4 Legacy physics decomposition
 
-Clarify what remains local numerical orchestration versus global resource control.
+`climate_physics_core.f90` remains a failing compile probe and a major mixed-concern monolith. The repair strategy is **preserve → slice → type seams → recompose → verify**, not wholesale quarantine and not patch-until-green.
 
-Add:
+Extract scientifically coherent kernels when their interfaces can be made explicit, for example:
 
-- explicit CPU/memory/GPU requests;
-- transactional Commons leases;
-- cancellation and cleanup;
-- checkpoint/restart contracts where scientifically valid;
-- hardware/numerical equivalence criteria.
+- thermodynamics/radiation;
+- transport/dynamics;
+- boundary-layer/convection;
+- microphysics;
+- land/ocean/ice coupling;
+- budgets/diagnostics.
 
-Exit criterion: worker failure/cancellation cannot silently corrupt evidence or strand leases, and restarted runs remain distinguishable in lineage.
+Each extracted kernel should gain units/state assumptions plus analytic/manufactured/budget witnesses before becoming canonical. Embedded demonstration programs and placeholder physical closures must not define the final package shape.
 
-## Phase 12 — controlled write/PR capability
+### 3.5 Data and provenance spine
 
-Goal: let Commons propose Climate changes safely.
+The strongest mathematical methods remain scientifically weak without trustworthy data identity. Build toward:
 
-Only after previous phases:
+- immutable `DatasetRef` projections;
+- CF-aware units/coordinates/calendars;
+- transformation DAGs;
+- explicit QC/missingness/imputation;
+- compact network-free fixtures;
+- source and preprocessing digests in run/evidence records.
 
-- branch/PR-only writes initially;
-- work order/issue/experiment causation required;
-- protected scientific contracts/golden datasets policy;
-- post-write static and fixture gates;
-- rollback/revert path;
-- human review for changes affecting evidence semantics, validation policy, or scientific interpretation.
+Prefer one narrow end-to-end observational/reanalysis fixture over a broad downloader that cannot reconstruct its transformations.
 
-Exit criterion: Commons can make a bounded mechanical change and prove exactly what changed, why, what gates ran, and what evidence was affected.
+### 3.6 Baselines and falsification experiments
 
-## Phase 13 — broader coupled-system decisions
+Novel methods must compete against strong alternatives with the same information access.
 
-Only now revisit questions such as:
+Priority comparison families include:
 
-- should the primitive-equation core become a real coupled climate model or remain a benchmark/reference kernel?
-- should experimental methods feed online state transitions or remain diagnostics?
-- should a shared state representation exist across languages?
-- which language implementations survive based on measured utility/maintainability?
-- which methods graduate, remain sandbox research, or are retired?
+- geometry vs conventional early-warning/Jacobian/state-space indicators;
+- sheaf spectral/global diagnostics vs same-restriction local residuals, graph methods, QC, and interpolation;
+- p-adic/ultrametric encodings vs generic hierarchical, graph, spectral/coherence, Euclidean, and learned representations plus randomized controls;
+- Clifford representations vs complex spectra, Hilbert phase, wavelets, bispectra, DMD/Koopman;
+- natural gradients vs standard optimizers and equally informed preconditioners.
 
-These are evidence-dependent architecture decisions. Delaying them is intentional.
+Every experiment needs positive controls, negative controls, ablations, a primary metric, uncertainty treatment, and retain/revise/reject criteria before results are inspected.
 
-## Priority rule
+## 4. Resource-gated frontiers
 
-When choosing between:
+### CUDA / accelerator (`R3`)
 
-- adding another sophisticated climate method, or
-- making one existing claim reproducible, falsifiable, and correctly labeled,
+Do now in CPU/CI:
 
-prefer the second until the evidence spine is mature enough that adding methods does not increase ambiguity faster than knowledge.
+- immutable fixtures and reference outputs;
+- explicit layouts/precision/determinism contracts;
+- stage-level differential tolerances;
+- candidate-batch isolation tests;
+- resource-envelope hypotheses clearly labeled as estimates.
 
-## Near-term implementation order
+Do only on a real CUDA device:
 
-The next concrete coding tranche should be:
+- kernel execution correctness;
+- race/synchronization behavior;
+- deterministic reductions;
+- mixed-precision/tensor-core behavior;
+- VRAM/transfer/occupancy/profiling;
+- end-to-end performance claims.
 
-1. inventory/static findings generator;
-2. initial contracts/schemas;
-3. placeholder/heuristic annotation mechanism;
-4. tiny verification fixtures;
-5. real minimal build path;
-6. baseline benchmark harness;
-7. first geometry correctness meta-experiment.
+### Integrated Commons (`R4`)
 
-This ordering attacks the current highest-risk failure mode: the repository can currently express more scientific confidence and architectural completeness than its executable evidence supports.
+Current Climate/Commons relationship remains experimental and observe-first. Prepare narrow repository-inspection, experiment, run, artifact, and evidence interfaces. Do not duplicate Commons scheduling or resource leasing inside Climate.
+
+The next meaningful integrated milestone is one real read-only/sandboxed Climate experiment with run/trace/causation/fingerprint lineage preserved end to end.
+
+### Large data (`R5`)
+
+Real-data claims require immutable projections, protected confirmation splits, dependence-aware uncertainty, provenance/licensing, and retained negative/failed results. Synthetic fixtures may verify implementations but cannot substitute for this layer.
+
+## 5. Documentation maintenance model
+
+Documentation has two deliberately different maintenance modes.
+
+**Generated / drift-checked:** objective facts already present in registries, such as module lifecycle/maturity, claim maturity, experiment registration, and realization-ledger status. Update the source authority, run:
+
+```bash
+python architecture/render_status.py --write
+```
+
+and let CI enforce that the generated projection matches.
+
+**Human-maintained:** priority judgments, scientific rationale, interpretation boundaries, architecture tradeoffs, and resource strategy. These should be updated after meaningful changes in capability or evidence; attempting to infer them automatically would hide judgment rather than remove maintenance.
+
+Prefer adding another generated field only when there is an existing authoritative machine source. Do not create a registry merely so prose can be generated.
+
+## 6. Near-term high-leverage edges
+
+Subject to failures discovered by CI, the current high-leverage set is:
+
+1. finish the explicit-likelihood Amari α-connection reference and use it to pressure-test legacy Python/Julia information geometry;
+2. turn geometry reference/canonical agreement into derivative and coordinate metamorphic differential tests;
+3. decompose the legacy Fortran physics compile failure along durable physical interfaces rather than repairing the monolith in place;
+4. progress the climate-data sheaf from generic mathematics into explicit station cover/stalk/restriction semantics;
+5. strengthen experiment baselines/ablations so unusual methods can be rejected cleanly when they add no value;
+6. prepare GPU differential fixtures without consuming GPU/Codespace resources until hardware-specific execution is actually needed.
+
+This list is intentionally short and manually curated. It should change when evidence changes, while the generated status beneath it updates mechanically.
