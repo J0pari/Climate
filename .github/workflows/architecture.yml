@@ -50,18 +50,25 @@ jobs:
       - name: Vet method registry
         run: '"$(go env GOPATH)/bin/cue" vet -d "#MethodRegistry" contracts/climate.cue contracts/methods.cue methods/registry.json'
 
-  portable-build:
+  rust-portable:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Record portable toolchains
+      - name: Record Rust toolchain
         run: |
           rustc --version
           cargo --version
+      - name: Compile and test canonical Rust surface
+        run: cargo test --all-targets
+
+  fortran-portable:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record Fortran toolchain
+        run: |
           gfortran --version | head -n 1
           cmake --version | head -n 1
-      - name: Compile and test wired Rust slice
-        run: cargo test --all-targets
       - name: Configure CPU-only Fortran probes
         run: |
           cmake -S . -B build-portable \
