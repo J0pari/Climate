@@ -59,8 +59,9 @@ def classify_relative_path(relative: Path) -> str | None:
 
     Unknown source-bearing directories deliberately fall through to
     ``scientific``. Adding a new package directory must not create an escape
-    hatch from maturity/registration checks. Python package marker files remain
-    visible to source audits but are not scientific components by themselves.
+    hatch from maturity/registration checks. Package marker/crate-root files
+    remain visible to source audits but are not scientific components by
+    themselves.
     """
     if relative.suffix not in SOURCE_LANGUAGES:
         return None
@@ -85,7 +86,7 @@ def classify_relative_path(relative: Path) -> str | None:
     if root in {"docs", "blueprints", "evidence"}:
         return ROLE_EXCLUDED
 
-    if relative.name == "__init__.py":
+    if relative.name == "__init__.py" or relative == Path("src/lib.rs"):
         return ROLE_PACKAGE
     if root == "reference":
         return ROLE_REFERENCE
