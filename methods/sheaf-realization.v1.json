@@ -54,6 +54,13 @@
       "witnesses": ["src/sheaf.rs", "tests/sheaf_fixture.rs", "fixtures/sheaf/synthetic-linear-v1.json"]
     },
     {
+      "obligation_id": "scalar_identity_restriction_kernel_proof",
+      "layer": "R2",
+      "statement": "For one real rank-one identity-restriction edge, the compatibility energy expands to the scalar graph quadratic form, is invariant under edge-orientation reversal, and is zero if and only if the endpoint values agree; these statements are kernel-checked in Lean without project-authored axioms or proof escape hatches.",
+      "status": "reference_realized",
+      "witnesses": ["formal/ClimateFormal/SheafScalar.lean", ".github/workflows/formal-lean.yml"]
+    },
+    {
       "obligation_id": "station_cover_nerve",
       "layer": "R3",
       "statement": "Station simplices are derived from a scientifically declared geographic coverage/intersection rule rather than arbitrary station tuples.",
