@@ -103,6 +103,7 @@ class SheafCohomologyReferenceTests(unittest.TestCase):
         )
         self.assertEqual(sheaf.coboundary_matrix(0), [[1, 0, 1]])
         self.assertEqual(sheaf.cohomology_dimensions(), (2, 0))
+        self.assertEqual(sheaf.global_section_dimension(), 2)
 
     def test_restriction_composition_is_a_hard_invariant(self):
         base = FiniteSimplicialComplex.from_maximal_simplices([("a", "b", "c")])
@@ -125,6 +126,49 @@ class SheafCohomologyReferenceTests(unittest.TestCase):
         sheaf.verify_complex()
         for degree in range(base.dimension - 1):
             self.assertTrue(sheaf.d_squared_is_zero(degree))
+
+    def test_global_section_compatibility_is_kernel_of_d0(self):
+        base = FiniteSimplicialComplex.from_maximal_simplices([("a", "b")])
+        sheaf = CellularSheafGF2.constant_rank_one(base)
+
+        compatible = {("a",): (1,), ("b",): (1,)}
+        incompatible = {("a",): (1,), ("b",): (0,)}
+
+        self.assertEqual(sheaf.local_compatibility_residual(compatible), (0,))
+        self.assertTrue(sheaf.is_compatible_local_assignment(compatible))
+        self.assertEqual(sheaf.local_compatibility_residual(incompatible), (1,))
+        self.assertFalse(sheaf.is_compatible_local_assignment(incompatible))
+        self.assertEqual(sheaf.global_section_dimension(), 1)
+        self.assertEqual(sheaf.global_section_dimension(), sheaf.cohomology_dimension(0))
+
+    def test_nonconstant_restrictions_change_compatibility_semantics(self):
+        base = FiniteSimplicialComplex.from_maximal_simplices([("a", "b")])
+        sheaf = CellularSheafGF2(
+            base=base,
+            stalk_dimensions={
+                ("a",): 2,
+                ("b",): 1,
+                ("a", "b"): 1,
+            },
+            restrictions={
+                (("a",), ("a", "b")): [[1, 0]],
+                (("b",), ("a", "b")): [[1]],
+            },
+        )
+        self.assertTrue(
+            sheaf.is_compatible_local_assignment({("a",): (1, 1), ("b",): (1,)})
+        )
+        self.assertFalse(
+            sheaf.is_compatible_local_assignment({("a",): (0, 1), ("b",): (1,)})
+        )
+
+    def test_partial_or_malformed_local_assignment_fails_closed(self):
+        base = FiniteSimplicialComplex.from_maximal_simplices([("a", "b")])
+        sheaf = CellularSheafGF2.constant_rank_one(base)
+        with self.assertRaisesRegex(ValueError, "surface mismatch"):
+            sheaf.local_compatibility_residual({("a",): (1,)})
+        with self.assertRaisesRegex(ValueError, "non-GF\(2\)"):
+            sheaf.local_compatibility_residual({("a",): (1,), ("b",): (2,)})
 
 
 if __name__ == "__main__":

@@ -1,19 +1,20 @@
 """Exact finite-complex reference for staged sheaf/cohomology realization.
 
 The reference deliberately separates mathematical realization from climate
-interpretation.  It currently provides:
+interpretation. It currently provides:
 
 * finite abstract simplicial complexes;
 * exact nerves of declared finite covers of a discrete support set;
 * finite-dimensional cellular sheaves over GF(2) with explicit stalks and
   restriction maps;
 * functoriality checks for restriction composition;
+* exact local-compatibility/global-section tests;
 * block coboundary matrices and executable d^2 = 0 witnesses;
 * cohomology dimensions computed by exact rank arithmetic.
 
 None of those facts imply that a station network has been modeled by the right
 cover, that climate measurements form the right stalks, or that a cohomology
-class detects a scientifically meaningful defect.  Those remain separate open
+class detects a scientifically meaningful defect. Those remain separate open
 obligations in ``methods/sheaf-realization.v1.json``.
 """
 from __future__ import annotations
@@ -56,6 +57,17 @@ def _matrix_product_mod2(left: Matrix, right: Matrix) -> Matrix:
         ]
         for i in range(len(left))
     ]
+
+
+def _matrix_vector_product_mod2(matrix: Matrix, vector: list[int]) -> list[int]:
+    if not matrix:
+        return []
+    width = len(matrix[0])
+    if any(len(row) != width for row in matrix):
+        raise ValueError("matrix is ragged")
+    if len(vector) != width:
+        raise ValueError("matrix/vector dimensions do not compose")
+    return [sum(a * b for a, b in zip(row, vector)) % 2 for row in matrix]
 
 
 def rank_mod2(matrix: Matrix) -> int:
@@ -116,7 +128,7 @@ class FiniteCover:
     """Declared finite cover of a discrete support set.
 
     This is an exact combinatorial reference, not yet a geographic station
-    coverage model.  Each cover member is represented by the support atoms it
+    coverage model. Each cover member is represented by the support atoms it
     contains; a nerve simplex exists exactly when the corresponding members
     have non-empty common intersection.
     """
@@ -156,9 +168,9 @@ class FiniteCover:
 class CellularSheafGF2:
     """Finite-dimensional cellular sheaf on a simplicial complex over GF(2).
 
-    ``stalk_dimensions[sigma]`` gives ``dim F(sigma)``.  For every strict face
+    ``stalk_dimensions[sigma]`` gives ``dim F(sigma)``. For every strict face
     inclusion ``sigma < tau``, ``restrictions[(sigma, tau)]`` is the matrix of
-    ``F(sigma <= tau): F(sigma) -> F(tau)``.  All comparable-pair maps are
+    ``F(sigma <= tau): F(sigma) -> F(tau)``. All comparable-pair maps are
     explicit so composition can be checked rather than inferred from names.
     """
 
@@ -228,7 +240,7 @@ class CellularSheafGF2:
     def coboundary_matrix(self, degree: int) -> Matrix:
         """Block matrix of d^degree over GF(2).
 
-        Characteristic two removes orientation signs.  Each codimension-one
+        Characteristic two removes orientation signs. Each codimension-one
         incidence contributes the corresponding restriction-map block.
         """
         lower = self.base.simplices(degree)
@@ -262,6 +274,43 @@ class CellularSheafGF2:
         for degree in range(max(0, self.base.dimension - 1)):
             if not self.d_squared_is_zero(degree):
                 raise AssertionError(f"d^{degree + 1} o d^{degree} != 0")
+
+    def local_compatibility_residual(
+        self, assignment: Mapping[Simplex, Iterable[int]]
+    ) -> tuple[int, ...]:
+        """Return d^0 applied to a complete family of vertex-stalk values.
+
+        A zero residual is the exact finite cellular-sheaf compatibility
+        condition. This is the algebraic gluing boundary; it does not invent a
+        reconstruction/interpolation rule for incompatible data.
+        """
+        vertices = self.base.simplices(0)
+        if set(assignment) != set(vertices):
+            missing = sorted(set(vertices) - set(assignment))
+            extra = sorted(set(assignment) - set(vertices))
+            raise ValueError(f"vertex assignment surface mismatch; missing={missing}, extra={extra}")
+
+        vector: list[int] = []
+        for vertex in vertices:
+            values = list(assignment[vertex])
+            expected = self.stalk_dimensions[vertex]
+            if len(values) != expected:
+                raise ValueError(
+                    f"assignment at {vertex} must have length {expected}, got {len(values)}"
+                )
+            if any(value not in {0, 1} for value in values):
+                raise ValueError(f"assignment at {vertex} contains non-GF(2) values")
+            vector.extend(values)
+        return tuple(_matrix_vector_product_mod2(self.coboundary_matrix(0), vector))
+
+    def is_compatible_local_assignment(
+        self, assignment: Mapping[Simplex, Iterable[int]]
+    ) -> bool:
+        return all(value == 0 for value in self.local_compatibility_residual(assignment))
+
+    def global_section_dimension(self) -> int:
+        """Dimension of the exact global-section space ker(d^0)."""
+        return self.cochain_dimension(0) - rank_mod2(self.coboundary_matrix(0))
 
     def cohomology_dimension(self, degree: int) -> int:
         """Return dim H^degree = dim ker d_degree - dim im d_(degree-1)."""

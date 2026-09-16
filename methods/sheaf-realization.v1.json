@@ -9,50 +9,42 @@
       "layer": "R1",
       "statement": "A finite simplicial complex and cochain groups over an explicit coefficient field are constructed from declared simplices.",
       "status": "reference_realized",
-      "witnesses": [
-        "reference/sheaf_cohomology.py",
-        "tests/reference/test_sheaf_cohomology.py"
-      ]
+      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
     },
     {
       "obligation_id": "linear_coboundary_and_d_squared_zero",
       "layer": "R1",
       "statement": "Coboundary maps are linear over the coefficient field and satisfy d_(k+1) o d_k = 0 on the reference complex.",
       "status": "reference_realized",
-      "witnesses": [
-        "reference/sheaf_cohomology.py",
-        "tests/reference/test_sheaf_cohomology.py"
-      ]
+      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
     },
     {
       "obligation_id": "betti_as_cohomology_dimension",
       "layer": "R1",
       "statement": "Betti numbers are computed as dimensions of cohomology groups and agree with known finite-complex fixtures.",
       "status": "reference_realized",
-      "witnesses": [
-        "reference/sheaf_cohomology.py",
-        "tests/reference/test_sheaf_cohomology.py"
-      ]
+      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
     },
     {
       "obligation_id": "finite_cover_nerve",
       "layer": "R2",
       "statement": "For a declared finite cover of a discrete support set, nerve simplices are constructed exactly from non-empty common intersections.",
       "status": "reference_realized",
-      "witnesses": [
-        "reference/sheaf_cohomology.py",
-        "tests/reference/test_sheaf_cohomology.py"
-      ]
+      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
     },
     {
       "obligation_id": "generic_stalks_and_restrictions",
       "layer": "R2",
       "statement": "A finite cellular sheaf can carry non-constant finite-dimensional stalks with explicit restriction maps whose composition is checked as a hard invariant.",
       "status": "reference_realized",
-      "witnesses": [
-        "reference/sheaf_cohomology.py",
-        "tests/reference/test_sheaf_cohomology.py"
-      ]
+      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
+    },
+    {
+      "obligation_id": "generic_global_section_compatibility",
+      "layer": "R2",
+      "statement": "For the finite cellular reference, local assignments are compatible exactly when they lie in ker(d^0), and the global-section-space dimension is computed from that kernel rather than from a merge heuristic.",
+      "status": "reference_realized",
+      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
     },
     {
       "obligation_id": "station_cover_nerve",
@@ -85,7 +77,7 @@
     {
       "obligation_id": "global_section_and_gluing",
       "layer": "R4",
-      "statement": "Compatibility, existence, and uniqueness semantics for global sections are implemented against the actual restrictions.",
+      "statement": "Compatibility, existence, uniqueness, and any reconstruction semantics for climate-data global sections are implemented against the actual restrictions; incompatibility is not silently merged away.",
       "status": "open",
       "witnesses": []
     },
