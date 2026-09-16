@@ -41,3 +41,5 @@ jobs:
           fi
       - name: Vet claim registry
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ClaimRegistry" contracts/climate.cue contracts/claims.cue claims/registry.json'
+      - name: Vet method registry
+        run: '"$(go env GOPATH)/bin/cue" vet -d "#MethodRegistry" contracts/climate.cue contracts/methods.cue methods/registry.json'
