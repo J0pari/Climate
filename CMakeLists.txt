@@ -37,6 +37,15 @@ target_include_directories(climate_time_integration PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Canonical linear implicit primitives for tridiagonal operators. The operator,
+# boundary semantics, and pivot acceptance policy remain explicit caller inputs.
+add_library(climate_linear_implicit STATIC
+    src/fortran/linear_implicit.f90
+)
+target_include_directories(climate_linear_implicit PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 if(ENABLE_TESTING)
     enable_testing()
     add_executable(test_spectral_reference
@@ -50,6 +59,12 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_time_integration PRIVATE climate_time_integration)
     add_test(NAME time_integration COMMAND test_time_integration)
+
+    add_executable(test_linear_implicit
+        tests/fortran/test_linear_implicit.f90
+    )
+    target_link_libraries(test_linear_implicit PRIVATE climate_linear_implicit)
+    add_test(NAME linear_implicit COMMAND test_linear_implicit)
 endif()
 
 if(ENABLE_LEGACY_FORTRAN_PROBES)
@@ -102,6 +117,7 @@ message(STATUS "")
 message(STATUS "Climate portable configuration:")
 message(STATUS "  Canonical spectral reference: ON")
 message(STATUS "  Canonical time integration:   ON")
+message(STATUS "  Canonical linear implicit:    ON")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")
 message(STATUS "  Legacy Fortran probes:        ${ENABLE_LEGACY_FORTRAN_PROBES}")
 message(STATUS "  MPI probe:                    ${ENABLE_MPI}")
