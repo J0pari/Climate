@@ -53,6 +53,8 @@ Examples:
 
 **S3 must be removed, renamed/retyped as an explicit heuristic, or converted to fail-closed behavior.**
 
+A weaker name or type is **not** a repair strategy for an implementation that failed to meet a stronger contract. Renaming/retyping is permitted only when the narrower operation is itself the scientifically or computationally preferable reusable abstraction for a real task, with a contract worth preserving independently of the broken stronger implementation. If the stronger capability is the right tool, its implementation must rise to that contract or remain unavailable/quarantined. Never choose a weaker API merely because it is easier to make compile, test, or return plausible output.
+
 ### S4 — fake/plausible-output placeholder
 
 The implementation is known not to implement the advertised capability and emits values likely to flow downstream as valid results.
@@ -108,7 +110,7 @@ Initial audit has identified at least these high-priority examples:
 - `climate_safety_protocols.rs`: hard-coded fallback eigenvalues used as conditioning diagnostics; remove fallback and fail when real eigen diagnostics are unavailable.
 - `climate_spectral_analysis.f90`: EEMD routine allocates zero IMFs and returns the input as residue; convert that path to explicit unavailable behavior until implemented and verified.
 - `climate_state.rs`: placeholder state fields such as fixed relative humidity must not masquerade as observational/physical initialization.
-- `climate_physics_core.f90`: placeholder solar declination and other simplified physical constants/closures must either be narrowly named as fixed idealized assumptions or removed from general physical-model paths.
+- `climate_physics_core.f90`: placeholder solar declination and other simplified physical constants/closures must either be narrowly named as fixed idealized assumptions **when those narrower operations are independently useful**, or removed from general physical-model paths; semantic downgrading is not a compile-fix.
 - `climate_ffi_bridge.rs`: placeholder Julia/Haskell integration must fail capability discovery rather than present itself as implemented interoperability.
 
 This list is not exhaustive. `architecture/source_gates.py` remains an inventory aid; sanitation review decides which findings are harmless notes versus S3/S4 hazards.
