@@ -23,6 +23,7 @@ This file is the binding contributor/agent contract. `README.md` is descriptive 
 15. **No semantic smoothing.** A migration may simplify syntax, but it must not collapse scientifically meaningful distinctions such as missing vs zero, undefined vs stable, unavailable vs failed, heuristic vs measured, proposal vs evidence, or policy threshold vs physical tipping claim. If legacy code conflates states, canonical code should split them and document the compatibility difference.
 16. **Legacy code is a source reservoir, not automatic authority.** Prefer preserve -> slice -> type the seams -> recompose -> verify. Quarantine only code that is unsafe to invoke or semantically fraudulent; otherwise retain useful formulas, kernels, fixtures, algorithms, and thresholds with provenance. Canonical tests may reject known-broken legacy expectations while compatibility checks keep the old surface inspectable and compilable where practical.
 17. **Abstraction must buy epistemic or engineering leverage.** Do not add wrapper types, indirection, or framework ceremony solely for stylistic purity. Use meaningfully different constructs—typed states, algebraic variants, declarative registries, generated views, staged pipelines, independent references, or property tests—when they make invalid states harder to represent, expose uncertainty, deepen the model, or enable stronger witnesses.
+18. **Incomplete mathematics must expose obligations, not borrow finished names.** It is acceptable for an experimental method to have open realization obligations analogous to proof `sorry`s. The statement and definitions must still be correct. Promotion terms such as cohomology, Betti number, adjunction, exact conservation law, or verified solver require the defining laws to have executable witnesses. Pin the intended claim so progress cannot be faked by weakening the statement; reduce the open obligations over time instead.
 
 ## 2. Claim maturity vocabulary
 
@@ -160,6 +161,7 @@ python architecture/check_claims.py
 python architecture/check_modules.py
 python architecture/check_hazards.py
 python architecture/check_experiments.py
+python architecture/check_sheaf_realization.py
 python architecture/source_gates.py --summary
 python architecture/inspect_repository.py --json
 ```
