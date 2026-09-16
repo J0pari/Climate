@@ -186,9 +186,9 @@
       "language": "haskell",
       "maturity": "prototype",
       "evidence_eligible": false,
-      "intended_role": "local-to-global data-consistency/sheaf experiments",
+      "intended_role": "legacy station-network consistency heuristics and unfinished sheaf experiments",
       "claim_ids": ["climate.sheaf.consistency"],
-      "known_gaps": ["reported Betti values are threshold counts rather than homology ranks", "global gluing is a stub union rather than reconstruction", "real station data path is absent"]
+      "known_gaps": ["legacy coboundary-named maps are not a demonstrated linear cochain complex", "reported Betti values are threshold counts rather than cohomology dimensions", "restriction maps are not used to construct a sheaf differential or checked for functoriality", "global gluing is a thresholded union rather than sheaf gluing", "real station data path is absent"]
     },
     {
       "path": "climate_resonance_clifford.jl",
@@ -261,6 +261,16 @@
       "evidence_eligible": false,
       "intended_role": "independent symbolic differential-geometry oracle for analytic verification fixtures",
       "known_gaps": ["scope is limited to the preregistered analytic geometry fixtures", "no accelerated implementation equivalence has been established", "produces no climate interpretation"]
+    },
+    {
+      "path": "reference/sheaf_cohomology.py",
+      "family": "reference_sheaf_cohomology",
+      "language": "python",
+      "maturity": "runnable",
+      "evidence_eligible": false,
+      "intended_role": "exact finite-complex cohomology oracle for the constant rank-one cellular sheaf over GF(2)",
+      "claim_ids": ["climate.sheaf.consistency"],
+      "known_gaps": ["constant rank-one GF(2) stalks do not yet model climate measurements", "station-cover nerve construction is not implemented", "nontrivial restriction maps and climate-data gluing remain open", "mathematical correctness does not establish empirical detection value"]
     }
   ]
 }
