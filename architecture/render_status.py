@@ -7,6 +7,7 @@ Those require execution or human interpretation and must not be inferred from fi
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -191,11 +192,22 @@ def main() -> int:
     if not output.exists():
         print(f"generated status missing: {output.relative_to(ROOT)}")
         return 1
-    if output.read_text(encoding="utf-8") != rendered:
+
+    actual = output.read_text(encoding="utf-8")
+    if actual != rendered:
         print(
             f"generated status stale: {output.relative_to(ROOT)}; "
             "run `python architecture/render_status.py --write`"
         )
+        diff = difflib.unified_diff(
+            actual.splitlines(),
+            rendered.splitlines(),
+            fromfile=str(output.relative_to(ROOT)),
+            tofile="rendered status",
+            lineterm="",
+        )
+        for line in diff:
+            print(line)
         return 1
     print(f"generated status current: {output.relative_to(ROOT)}")
     return 0
