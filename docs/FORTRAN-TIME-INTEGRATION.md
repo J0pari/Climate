@@ -19,6 +19,20 @@ The canonical surface separates independently testable contracts that were inter
 
 Separating these concerns is allowed only when the missing semantics remain explicit obligations. A smaller kernel must not silently erase capabilities or physical assumptions that previously existed in one large routine.
 
+## Library boundary: reference locally, delegate generic production numerics
+
+Climate should not spend novelty budget reimplementing mature generic numerical algorithms.
+
+The hand-written RK4, theta-step, and Thomas-factorization code in this repository is retained because it is small, inspectable, deterministic, and useful as a differential/reference oracle. It is not intended to grow into a bespoke production solver stack.
+
+For production-oriented CPU integration, the preferred trajectory is SUNDIALS ARKODE rather than implementing our own adaptive/embedded Runge--Kutta, IMEX, multirate, nonlinear-solver, and error-controller machinery. ARKODE already supplies explicit, implicit, additive IMEX, and multirate methods plus reusable vector/matrix/nonlinear/linear-solver interfaces and modern Fortran bindings. Climate should contribute the scientifically meaningful split of tendencies, Jacobians/operators, tolerances, conservation monitors, and evidence capture around that library.
+
+For tridiagonal linear solves, LAPACK `DGTTRF`/`DGTTRS` is the production-oriented CPU backend because it provides partial pivoting and reusable factorization. `src/fortran/linear_implicit.f90` remains the transparent no-pivot reference path. Differential tests deliberately cover both a system where the two agree and a system that requires LAPACK pivoting and must be rejected by the reference Thomas path.
+
+PETSc TS is a plausible later distributed-system option when Climate reaches a genuinely domain-decomposed, MPI-scale state representation; it is not justified merely to solve independent vertical columns. The dependency should enter only when its scalable vector/matrix/preconditioner and TS machinery solve an actual repository problem better than the lighter ARKODE/LAPACK path.
+
+GPU production paths should likewise prefer maintained vendor/library solvers where their semantics fit, while keeping CPU reference kernels for differential verification. A GPU library call is still not evidence of scientific correctness; implementation identity, precision, determinism, residuals, conditioning, and CPU/GPU agreement remain part of the evidence boundary.
+
 ## Explicit stepping
 
 `src/fortran/time_integration.f90` currently provides deterministic classical RK4 for a real state vector,
@@ -52,15 +66,17 @@ Important semantics:
 
 ## Factorization and performance
 
-The legacy code allocates three dense `nz x nz` matrices while only using their diagonal bands. The canonical solver stores the true tridiagonal representation and performs an O(n) Thomas factorization.
+The legacy code allocates three dense `nz x nz` matrices while only using their diagonal bands. The canonical reference solver stores the true tridiagonal representation and performs an O(n) Thomas factorization.
 
 Factorization and solve are separate operations so one factorization can be reused across multiple right-hand sides when the matrix is unchanged. This is important for repeated column solves, ensembles, multiple tracers, and later batched CPU/GPU implementations.
 
 Reuse is only valid when the exact matrix is unchanged. Any change in operator coefficients, boundary conditions, `theta`, or `dt` that changes the left-hand matrix requires a new factorization.
 
+The LAPACK backend preserves the same reusable-factorization boundary but permits partial pivoting. The repository wrapper records whether row interchanges occurred and computes an explicit residual against the original matrix so a library success code is not treated as sufficient evidence by itself.
+
 ## Numerical policy is explicit
 
-Pivot acceptance uses two caller-supplied tolerances:
+The reference Thomas path uses caller-supplied absolute and relative pivot tolerances:
 
 \[
 \tau = \tau_{abs}+\tau_{rel}\lVert A\rVert_\infty.
@@ -68,12 +84,7 @@ Pivot acceptance uses two caller-supplied tolerances:
 
 A pivot with magnitude less than or equal to `tau` is rejected. The kernel does not embed a universal magic singularity threshold.
 
-Every successful solve reports:
-
-- matrix infinity norm,
-- minimum absolute pivot,
-- minimum pivot scaled by matrix infinity norm,
-- and algebraic residual infinity norm.
+The LAPACK path does not pretend that LAPACK's singular/non-singular status is a task-specific conditioning policy. It reports matrix scale, the factored U-diagonal scale, pivoting use, and the algebraic residual; higher layers still own scientific/numerical acceptance policy.
 
 These are measurements, not acceptance policy. Higher layers decide what residual or conditioning is acceptable for a given experiment or evidence claim.
 
@@ -91,7 +102,9 @@ The portable Fortran witnesses currently require:
 - rejection of a pivot that becomes zero during elimination,
 - exact agreement with the scalar Crank--Nicolson rational update,
 - preservation of the constant-field nullspace of a zero-flux diffusion operator,
-- and fail-closed invalid-theta handling.
+- fail-closed invalid-theta handling,
+- differential agreement between LAPACK and the reference solver when pivoting is unnecessary,
+- and successful LAPACK partial pivoting on a system the reference Thomas path must reject.
 
 These witnesses establish software/numerical behavior only. They do not validate a climate discretization, timestep, parameterization, or physical process.
 
@@ -116,6 +129,6 @@ In particular, the legacy temperature solve suggests a tridiagonal implicit oper
 
 The next higher layer should define a climate-specific operator adapter with explicit units, vertical coordinate semantics, boundary conditions, and coefficient provenance. That adapter can then be tested against manufactured diffusion problems and conservation/nullspace properties.
 
-After that, the final coupled integrator should be selected by requirements rather than legacy fidelity. Candidate families include higher-order IMEX Runge--Kutta/ARK schemes, operator splitting, semi-Lagrangian methods, exponential integrators for appropriate linearized components, or multirate methods. Selection should compare stability region, conservation behavior, stiffness handling, cost, parallel structure, reproducibility, and compatibility with the physical process partition.
+After that, the final coupled integrator should be selected by requirements rather than legacy fidelity. SUNDIALS ARKODE is the default external candidate because it already supplies higher-order adaptive ERK/DIRK/ARK and multirate machinery. Climate's novel work should be the physically meaningful explicit/implicit/fast partition, Jacobians or linear operators, tolerance semantics, conservation monitors, reproducibility/evidence capture, and comparative experiments—not reimplementation of generic time-step controllers.
 
-A more sophisticated method may supersede the theta primitive. The theta primitive remains useful as a reference oracle and a directly testable building block even if it is not the final production stepping method.
+A more sophisticated external method may supersede the theta primitive. The theta primitive remains useful as a reference oracle and a directly testable building block even if it is not the final production stepping method.
