@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "claims": [
+    {
+      "claim_id": "climate.geometry.regime_indicator",
+      "statement": "Geometric state-space quantities may provide incremental information about climate regime transitions beyond conventional early-warning and state-space baselines.",
+      "claim_type": "predictive",
+      "subject": "geometric state-space methods",
+      "maturity": "concept",
+      "scope": "Unestablished; first tests are synthetic dynamical systems with known transition and non-transition cases.",
+      "depends_on": [],
+      "required_evidence": [
+        "numerical verification on known geometries",
+        "negative controls under coordinate transforms and rescaling",
+        "held-out discrimination against non-tipping nonstationary systems",
+        "comparison with conventional early-warning baselines",
+        "independent climate-model or observational confirmation before physical interpretation"
+      ],
+      "supporting_evidence": [],
+      "attacking_evidence": [],
+      "unresolved_falsifiers": [
+        "geometric indicators fail known-geometry verification",
+        "performance is explained by coordinate/scaling artifacts",
+        "no out-of-sample improvement over conventional baselines"
+      ],
+      "owner": "climate"
+    },
+    {
+      "claim_id": "climate.teleconnection.ultrametric",
+      "statement": "A learned hierarchical or ultrametric representation may predict teleconnection relationships better than standard distance and dependence representations on selected tasks.",
+      "claim_type": "predictive",
+      "subject": "ultrametric and p-adic teleconnection methods",
+      "maturity": "concept",
+      "scope": "Unestablished; must be evaluated on predeclared teleconnection prediction/retrieval tasks with protected holdout periods.",
+      "depends_on": [],
+      "required_evidence": [
+        "comparison with correlation, coherence, graph, Euclidean, learned-metric, and generic hierarchical baselines",
+        "random hierarchy and random prime controls",
+        "time-aware holdout evaluation",
+        "mechanism-sensitive analysis where physical pathway claims are made"
+      ],
+      "supporting_evidence": [],
+      "attacking_evidence": [],
+      "unresolved_falsifiers": [
+        "p-adic or ultrametric variants do not outperform simpler hierarchy baselines",
+        "apparent gains disappear under protected temporal splits",
+        "prime assignments encode the target structure rather than discover it"
+      ],
+      "owner": "climate"
+    },
+    {
+      "claim_id": "climate.sheaf.consistency",
+      "statement": "Sheaf/cohomological obstruction measures may identify cross-source climate-data inconsistencies or coverage defects not captured as efficiently by simpler graph and residual diagnostics.",
+      "claim_type": "predictive",
+      "subject": "multiscale sheaf data consistency",
+      "maturity": "concept",
+      "scope": "Unestablished; first target is injected-fault and withheld-data station-network benchmarks.",
+      "depends_on": [],
+      "required_evidence": [
+        "actual chain/cochain or sheaf construction rather than threshold-count proxies",
+        "known-topology synthetic fixtures",
+        "injected station fault and coverage-gap experiments",
+        "comparison with graph, residual, kriging, and standard QC baselines"
+      ],
+      "supporting_evidence": [],
+      "attacking_evidence": [],
+      "unresolved_falsifiers": [
+        "topological quantities do not correspond to the intended mathematical invariants",
+        "simpler QC baselines match or exceed detection/reconstruction performance"
+      ],
+      "owner": "climate"
+    },
+    {
+      "claim_id": "climate.information_geometry.optimization",
+      "statement": "Fisher-information-aware optimization may improve conditioning, convergence, or parameter recovery for selected climate inference problems relative to conventional optimizers and preconditioners.",
+      "claim_type": "performance",
+      "subject": "information geometry and natural-gradient optimization",
+      "maturity": "concept",
+      "scope": "Unestablished; first target is a small model with an explicit likelihood and synthetic parameter-recovery task.",
+      "depends_on": [],
+      "required_evidence": [
+        "well-defined likelihood and Fisher metric",
+        "synthetic parameter recovery with known truth",
+        "held-out likelihood or prediction comparison",
+        "comparison with standard first/second-order optimizers and ordinary preconditioning",
+        "conditioning and regularization sensitivity analysis"
+      ],
+      "supporting_evidence": [],
+      "attacking_evidence": [],
+      "unresolved_falsifiers": [
+        "natural gradient provides no robust convergence or recovery advantage",
+        "benefit disappears when standard methods receive comparable preconditioning",
+        "Fisher approximation is unstable or dominated by regularization choices"
+      ],
+      "owner": "climate"
+    },
+    {
+      "claim_id": "climate.gpu.batched_geometry_equivalence",
+      "statement": "A candidate-batched GPU geometry engine can reproduce an independent reference implementation within declared numerical tolerances while reducing the cost of comparing geometric hypotheses.",
+      "claim_type": "software",
+      "subject": "GPU experiment engine",
+      "maturity": "concept",
+      "scope": "Planned single-GPU reference-equivalence and throughput tests; no current implementation is covered by this claim.",
+      "depends_on": [
+        "climate.geometry.regime_indicator"
+      ],
+      "required_evidence": [
+        "explicit buffer and transfer contract",
+        "CPU or high-precision reference implementation",
+        "precision and conditioning sweeps",
+        "determinism classification",
+        "checked CUDA failure propagation",
+        "matched end-to-end performance measurement including declared transfer/setup costs"
+      ],
+      "supporting_evidence": [],
+      "attacking_evidence": [],
+      "unresolved_falsifiers": [
+        "GPU path changes scientific/numerical outcomes outside declared tolerance",
+        "performance benefit vanishes when full experiment costs are included",
+        "candidate batching introduces cross-candidate state contamination"
+      ],
+      "owner": "climate"
+    }
+  ]
+}
