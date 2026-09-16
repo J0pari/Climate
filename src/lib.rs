@@ -7,6 +7,7 @@
 
 pub mod feedback;
 pub mod numerics;
+pub mod sheaf;
 
 #[cfg(feature = "legacy-rust")]
 #[path = "../climate_scenario_logic.rs"]
