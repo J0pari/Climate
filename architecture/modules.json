@@ -16,8 +16,8 @@
       "language": "fortran",
       "maturity": "prototype",
       "evidence_eligible": false,
-      "intended_role": "spectral, coherence, wavelet, and time-series diagnostics",
-      "known_gaps": ["some decomposition paths are placeholders", "no independent benchmark suite"]
+      "intended_role": "legacy spectral, coherence, wavelet, and time-series research prototype",
+      "known_gaps": ["multiple named algorithms remain empty or placeholder", "legacy CWT/Hilbert paths are not the canonical portable implementation", "no independent benchmark suite"]
     },
     {
       "path": "climate_oscillation_monitor.f90",
@@ -234,6 +234,15 @@
       "evidence_eligible": false,
       "intended_role": "canonical numerical verification primitives with measured conditioning separated from acceptance policy",
       "known_gaps": ["currently covers SVD-based conditioning only", "callers must migrate from legacy guardrail implementations before legacy conditioning code can be retired"]
+    },
+    {
+      "path": "src/fortran/spectral_reference.f90",
+      "family": "spectral_reference",
+      "language": "fortran",
+      "maturity": "runnable",
+      "evidence_eligible": false,
+      "intended_role": "canonical portable reference primitives for deterministic DFT, analytic signals, phase unwrapping, and instantaneous frequency",
+      "known_gaps": ["direct DFT is intentionally reference-speed rather than production FFT", "broader CWT, SSA, multitaper, and coherence methods remain to be migrated with dedicated witnesses", "not yet compared against an independent external numerical implementation"]
     },
     {
       "path": "reference/geometry_sympy.py",
