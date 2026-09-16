@@ -46,6 +46,15 @@ target_include_directories(climate_linear_implicit PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Climate-specific geometric-height finite-volume diffusion operator. Solver
+# choice is deliberately separate from operator construction.
+add_library(climate_vertical_diffusion STATIC
+    src/fortran/vertical_diffusion.f90
+)
+target_include_directories(climate_vertical_diffusion PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 if(ENABLE_LAPACK_BACKEND)
     # LAPACK is the production-oriented CPU backend for pivoting tridiagonal
     # solves. Keep it an explicit capability so reference kernels and unrelated
@@ -81,6 +90,12 @@ if(ENABLE_TESTING)
     target_link_libraries(test_linear_implicit PRIVATE climate_linear_implicit)
     add_test(NAME linear_implicit COMMAND test_linear_implicit)
 
+    add_executable(test_vertical_diffusion
+        tests/fortran/test_vertical_diffusion.f90
+    )
+    target_link_libraries(test_vertical_diffusion PRIVATE climate_vertical_diffusion)
+    add_test(NAME vertical_diffusion COMMAND test_vertical_diffusion)
+
     if(ENABLE_LAPACK_BACKEND)
         add_executable(test_lapack_tridiagonal
             tests/fortran/test_lapack_tridiagonal.f90
@@ -90,6 +105,15 @@ if(ENABLE_TESTING)
             climate_linear_implicit
         )
         add_test(NAME lapack_tridiagonal COMMAND test_lapack_tridiagonal)
+
+        add_executable(test_vertical_diffusion_lapack
+            tests/fortran/test_vertical_diffusion_lapack.f90
+        )
+        target_link_libraries(test_vertical_diffusion_lapack PRIVATE
+            climate_vertical_diffusion
+            climate_lapack_tridiagonal
+        )
+        add_test(NAME vertical_diffusion_lapack COMMAND test_vertical_diffusion_lapack)
     endif()
 endif()
 
@@ -144,6 +168,7 @@ message(STATUS "Climate portable configuration:")
 message(STATUS "  Canonical spectral reference: ON")
 message(STATUS "  Canonical time integration:   ON")
 message(STATUS "  Canonical linear reference:   ON")
+message(STATUS "  Vertical diffusion operator:  ON")
 message(STATUS "  LAPACK tridiagonal backend:   ${ENABLE_LAPACK_BACKEND}")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")
 message(STATUS "  Legacy Fortran probes:        ${ENABLE_LEGACY_FORTRAN_PROBES}")

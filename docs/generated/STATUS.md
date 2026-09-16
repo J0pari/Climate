@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **41**.
+Registered modules: **42**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 12 |
+| `canonical` | 13 |
 | `legacy` | 24 |
 | `reference` | 5 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 15 |
+| `runnable` | 16 |
 
 ### Canonical and reference modules
 
@@ -29,6 +29,7 @@ Registered modules: **41**.
 | `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
 | `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
 | `canonical` | `src/fortran/time_integration.f90` | `time_integration_reference` | `runnable` | no |
+| `canonical` | `src/fortran/vertical_diffusion.f90` | `vertical_diffusion_operator` | `runnable` | no |
 | `canonical` | `src/geometry.rs` | `riemannian_geometry_reference` | `runnable` | no |
 | `canonical` | `src/inference.rs` | `information_geometry_numerics` | `runnable` | no |
 | `canonical` | `src/modal.rs` | `modal_logic_reference` | `runnable` | no |
