@@ -74,7 +74,7 @@ contains
 
         call solve_factored_tridiagonal(factor, rhs_b, solution_b, ierr, solve_diagnostics)
         call require(ierr == IMPLICIT_OK, 'second factored solve must succeed')
-        call require(maxval(abs(solution_b - [3.0_dp, 4.0_dp, 2.0_dp])) < 1.0e-13_dp, &
+        call require(maxval(abs(solution_b - [1.5_dp, 1.0_dp, 0.5_dp])) < 1.0e-13_dp, &
                      'one factorization must support a distinct right-hand side')
         call require(solve_diagnostics%residual_inf_norm < 1.0e-13_dp, &
                      'reused solve must retain residual diagnostics')
