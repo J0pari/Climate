@@ -13,14 +13,23 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 import tomllib
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable
 
-from architecture import source_gates
-
 ROOT = Path(__file__).resolve().parents[1]
+
+# Support both `python -m architecture.inspect_repository` and the documented
+# direct-script entrypoint `python architecture/inspect_repository.py`. Python
+# does not guarantee that the repository root is importable when a package file
+# is launched by path, so make that dependency explicit rather than relying on
+# ambient PYTHONPATH/current-environment behavior.
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(ROOT))
+
+from architecture import source_gates
 
 LANGUAGES = {
     ".rs": "rust",

@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -82,6 +85,25 @@ class RepositoryInspectorTests(unittest.TestCase):
                 f["code"] == "cargo.workspace_member_missing"
                 for f in report["findings"]
             ))
+
+    def test_documented_direct_script_entrypoint_works_without_pythonpath(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env = os.environ.copy()
+            env.pop("PYTHONPATH", None)
+            env["PYTHONDONTWRITEBYTECODE"] = "1"
+            script = inspector.ROOT / "architecture" / "inspect_repository.py"
+            result = subprocess.run(
+                [sys.executable, str(script), "--root", tmp, "--json"],
+                cwd=inspector.ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertEqual(report["repository"], "J0pari/Climate")
+            self.assertEqual(report["mode"], "static-observe")
 
 
 if __name__ == "__main__":
