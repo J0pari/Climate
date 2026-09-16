@@ -6,8 +6,11 @@ import sympy as sp
 
 from reference.information_geometry_sympy import (
     NormalInformationGeometry,
+    alpha_connection_lower_mu_rho,
+    amari_chentsov_mu_rho,
     expected_outer_product,
     expected_vector,
+    levi_civita_lower,
     natural_gradient,
     negative_expected_hessian_mu_rho,
     pullback_metric,
@@ -20,6 +23,16 @@ class InformationGeometryReferenceTests(unittest.TestCase):
 
     def assert_matrix_zero(self, matrix: sp.Matrix) -> None:
         self.assertTrue(all(sp.simplify(value) == 0 for value in matrix))
+
+    def assert_tensor3_zero(self, tensor) -> None:
+        self.assertTrue(
+            all(
+                sp.simplify(value) == 0
+                for plane in tensor
+                for row in plane
+                for value in row
+            )
+        )
 
     def test_score_has_zero_expectation_in_both_coordinate_systems(self) -> None:
         g = self.geometry
@@ -73,6 +86,104 @@ class InformationGeometryReferenceTests(unittest.TestCase):
         bound = information_n.inv().applyfunc(sp.simplify)
         expected = sp.diag(g.sigma**2 / n, g.sigma**2 / (2 * n))
         self.assert_matrix_zero(bound - expected)
+
+    def test_alpha_connection_known_normal_components(self) -> None:
+        g = self.geometry
+        alpha = sp.symbols("alpha", real=True)
+        gamma = alpha_connection_lower_mu_rho(g, alpha)
+        scale = sp.exp(-2 * g.rho)
+
+        expected = (
+            (
+                (sp.Integer(0), (1 - alpha) * scale),
+                (-(alpha + 1) * scale, sp.Integer(0)),
+            ),
+            (
+                (-(alpha + 1) * scale, sp.Integer(0)),
+                (sp.Integer(0), -4 * alpha),
+            ),
+        )
+        residual = tuple(
+            tuple(
+                tuple(sp.simplify(gamma[i][j][k] - expected[i][j][k]) for k in range(2))
+                for j in range(2)
+            )
+            for i in range(2)
+        )
+        self.assert_tensor3_zero(residual)
+
+    def test_alpha_zero_is_fisher_levi_civita_connection(self) -> None:
+        g = self.geometry
+        alpha_zero = alpha_connection_lower_mu_rho(g, sp.Integer(0))
+        levi_civita = levi_civita_lower(g.fisher_mu_rho(), (g.mu, g.rho))
+        residual = tuple(
+            tuple(
+                tuple(sp.simplify(alpha_zero[i][j][k] - levi_civita[i][j][k]) for k in range(2))
+                for j in range(2)
+            )
+            for i in range(2)
+        )
+        self.assert_tensor3_zero(residual)
+
+    def test_alpha_connection_is_torsion_free(self) -> None:
+        g = self.geometry
+        alpha = sp.symbols("alpha", real=True)
+        gamma = alpha_connection_lower_mu_rho(g, alpha)
+        residual = tuple(
+            tuple(
+                tuple(sp.simplify(gamma[i][j][k] - gamma[j][i][k]) for k in range(2))
+                for j in range(2)
+            )
+            for i in range(2)
+        )
+        self.assert_tensor3_zero(residual)
+
+    def test_dual_alpha_connections_reconstruct_metric_derivative(self) -> None:
+        g = self.geometry
+        alpha = sp.symbols("alpha", real=True)
+        positive = alpha_connection_lower_mu_rho(g, alpha)
+        negative = alpha_connection_lower_mu_rho(g, -alpha)
+        metric = g.fisher_mu_rho()
+        coordinates = (g.mu, g.rho)
+
+        residual = tuple(
+            tuple(
+                tuple(
+                    sp.simplify(
+                        sp.diff(metric[j, k], coordinates[i])
+                        - positive[i][j][k]
+                        - negative[i][k][j]
+                    )
+                    for k in range(2)
+                )
+                for j in range(2)
+            )
+            for i in range(2)
+        )
+        self.assert_tensor3_zero(residual)
+
+    def test_alpha_difference_is_controlled_by_amari_chentsov_tensor(self) -> None:
+        g = self.geometry
+        alpha = sp.symbols("alpha", real=True)
+        gamma = alpha_connection_lower_mu_rho(g, alpha)
+        gamma_zero = alpha_connection_lower_mu_rho(g, sp.Integer(0))
+        cubic = amari_chentsov_mu_rho(g)
+
+        residual = tuple(
+            tuple(
+                tuple(
+                    sp.simplify(
+                        gamma[i][j][k]
+                        - gamma_zero[i][j][k]
+                        + sp.Rational(1, 2) * alpha * cubic[i][j][k]
+                    )
+                    for k in range(2)
+                )
+                for j in range(2)
+            )
+            for i in range(2)
+        )
+        self.assert_tensor3_zero(residual)
 
 
 if __name__ == "__main__":
