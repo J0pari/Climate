@@ -5,6 +5,7 @@
 //! the `legacy-rust` feature without making their historical tests or semantics
 //! authoritative for the canonical crate.
 
+pub mod clifford;
 pub mod feedback;
 pub mod modal;
 pub mod numerics;
