@@ -1,0 +1,40 @@
+{
+  "experiment_id": "geometry.euclidean_sanity.v1",
+  "semantic_version": "0.1.0",
+  "question": "Does the candidate geometry reproduce known Euclidean invariants on a held-out fixture?",
+  "hypothesis": "A correct flat-space implementation produces curvature consistent with zero within the declared numerical tolerance.",
+  "candidate_methods": ["geometry.candidate.flat_v1"],
+  "baseline_methods": ["geometry.reference.cpu_v1"],
+  "datasets": [
+    {
+      "id": "fixture.euclidean_grid.v1",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "source_family": "synthetic_fixture",
+      "variables": ["x", "y", "z"],
+      "grid": "regular_cartesian",
+      "quality_control_policy": "exact_generated_fixture"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "geometry.scalar_curvature_abs_max",
+      "semantic_version": "0.1.0",
+      "units": "1",
+      "direction": "lower",
+      "aggregation_domain": "all held-out fixture points",
+      "missing_data_policy": "fail"
+    }
+  ],
+  "negative_controls": ["coordinate rescaling must not create physical curvature"],
+  "falsifiers": ["candidate materially exceeds reference error on the same fixture"],
+  "seeds": [],
+  "stopping_rule": "run the complete finite fixture once per implementation build",
+  "resource": {
+    "cpu_cores": 2,
+    "memory_bytes": 1073741824,
+    "gpu_count": 1,
+    "vram_bytes": 1073741824,
+    "network": "none",
+    "max_seconds": 300
+  }
+}
