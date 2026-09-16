@@ -2,9 +2,9 @@
 
 Status: **binding planning model** for choosing Climate work while capabilities differ across environments.
 
-The numbered roadmap in `docs/ROADMAP.md` describes dependency structure and intended maturity, but it must not be interpreted as a strictly linear schedule. Climate is a research system with heterogeneous dependencies: some questions can be settled by static analysis or small CPU references, some need language-specific CI, some need an actual CUDA device, some need the surrounding Commons/Slime/training/KanForge/LLM-Trader system, and some need large protected climate datasets.
+Climate is a resource/dependency graph, not a serial build. Some questions can be settled by static analysis or ordinary CPU CI, some need language-specific toolchains, some need a real CUDA device, some need the surrounding Commons system, and some need substantial protected climate data.
 
-Work should therefore be selected from a dependency/resource graph, not by asking only "what is the next phase?"
+Objective repository state is rendered from local authorities in `docs/generated/STATUS.md`; this document defines **where a question should execute and what that execution can legitimately prove**.
 
 ## 1. Planning rule
 
@@ -12,317 +12,213 @@ A work item is eligible when:
 
 1. its semantic prerequisites are satisfied;
 2. its required resources are actually available;
-3. its result can remove meaningful uncertainty or create a reusable boundary;
-4. executing it now will not manufacture false evidence about an unavailable resource.
+3. its result removes meaningful uncertainty or creates a reusable boundary;
+4. running it now will not manufacture false evidence about an unavailable resource.
 
-Among eligible items, prefer work with high information gain, broad reuse, or strong bug-prevention value.
-
-A blocked node does not block independent siblings.
+Among eligible work, prefer high information gain, broad reuse, independent witnesses, and bug-prevention leverage. A blocked node does not block independent siblings.
 
 ## 2. Resource classes
 
-Every substantial task or experiment should eventually declare one of these execution classes, plus a concrete `ResourceEnvelope` where executable.
-
 ### `R0_static`
 
-No project code execution is required.
+No project-code execution is required.
 
-Examples:
-
-- architectural specifications;
-- contract/schema design;
-- repository/module/claim inventory;
-- source audits;
-- dependency graph construction;
-- literature/method review;
-- static CUDA/API inspection;
-- experiment preregistration;
-- expected-output fixture design.
-
-This environment is currently strong here because it has direct GitHub integration and can commit, inspect CI, and maintain a coherent review history.
+Examples: architecture/contracts, source/module/claim audits, dependency graphs, semantic sanitation, experiment preregistration, static CUDA/API inspection, expected-output fixture design.
 
 ### `R1_portable_cpu`
 
-Requires only common CPU tooling available in ordinary CI or the present execution environment.
+Requires common CPU tooling and should normally run in hosted CI.
 
-Examples:
-
-- Python reference mathematics;
-- portable C/C++/Fortran kernels;
-- analytic and manufactured-solution fixtures;
-- property/metamorphic tests;
-- deterministic serialization/fingerprint tests;
-- small baseline statistics;
-- repository tooling.
-
-These tasks should be developed deeply now where they establish independent scientific or numerical oracles.
+Examples: canonical Rust tests, portable Fortran/C/C++, Python/SymPy references, small numerical fixtures, property/metamorphic tests, deterministic serialization/fingerprint checks, small baseline statistics.
 
 ### `R2_toolchain_ci`
 
-Requires a language/toolchain absent from the current local runtime but reasonably provisioned in GitHub Actions.
+Requires a specific portable toolchain that can be provisioned reproducibly in CI.
 
-Current examples include:
+Examples: Lean/Mathlib kernel checks, CUE vetting, selected Julia/Haskell jobs, unusual compiler versions, cross-language differential checks.
 
-- CUE contract vetting;
-- isolated Rust checks;
-- selected Julia verification jobs;
-- selected Haskell algebra/type tests;
-- compile-only CUDA checks where a suitable runner/toolkit exists.
-
-CI is an acceptable source of executable evidence for these questions, but iteration latency and runner differences must be recorded.
+`R2` is not a lower-quality substitute for `R1`; it distinguishes questions whose independent authority comes from a specialized toolchain/kernel.
 
 ### `R3_cuda_device`
 
 Requires an actual NVIDIA CUDA-capable device and compatible driver/toolkit.
 
-Examples:
+Examples: kernel numerical correctness, CPU/GPU differential tests, race/synchronization behavior, deterministic reductions, tensor-core/mixed-precision behavior, actual cuBLAS/cuSOLVER/cuFFT behavior, occupancy/transfer/VRAM measurements, Nsight profiling.
 
-- CUDA kernel numerical correctness;
-- CPU/GPU differential tests;
-- race and synchronization behavior;
-- deterministic reduction validation;
-- tensor-core/mixed-precision experiments;
-- actual cuBLAS/cuSOLVER/cuFFT behavior;
-- occupancy and launch-geometry profiling;
-- host/device transfer measurements;
-- VRAM pressure/OOM characterization;
-- Nsight profiling;
-- device-specific performance envelopes.
-
-No result in this class may be inferred from static source inspection or compile success.
+No result in this class may be inferred from source inspection, CUDA compilation alone, compatibility shims, or CPU execution.
 
 ### `R4_integrated_system`
 
-Requires the surrounding multi-repository system or equivalent runtime components.
+Requires Commons/other repositories or equivalent runtime components.
 
-Examples:
-
-- Commons scheduling and leases;
-- cross-repository run/trace/causation propagation;
-- shared GPU contention and cleanup;
-- sandbox execution;
-- cancellation/restart lineage;
-- Climate artifact consumption by another repository;
-- contract pressure testing across Commons, Slime, training-architecture, KanForge, and LLM-Trader.
-
-Until that system is available, Climate should prepare narrow adapters and executable contract fixtures rather than inventing simulated integration results.
+Examples: cross-repository run/trace/causation propagation, sandbox execution, global resource leases, cancellation/restart lineage, shared GPU contention/cleanup, contract pressure-testing across repositories.
 
 ### `R5_large_data`
 
-Requires substantial external climate data, protected confirmation splits, model ensembles, or observational archives.
+Requires substantial external data, model ensembles, or protected confirmation splits.
 
-Examples:
+Examples: ERA5/CMIP/ESGF-scale validation, teleconnection confirmation, observational early-warning validation, station-network reconstruction, process/model evaluation.
 
-- ERA5/CMIP/ESGF-scale validation;
-- teleconnection confirmation tests;
-- observational early-warning validation;
-- large station-network fault/reconstruction experiments;
-- process-oriented model evaluation;
-- confirmation of claims discovered on synthetic/development fixtures.
+Data identity, licensing, provenance, contamination controls, and split policy are part of the resource requirement.
 
-Data availability, licensing, provenance, and contamination controls are part of this resource class.
+## 3. Execution-environment policy
 
-## 3. Current capability map
+### GitHub Actions: default executable authority for portable work
 
-The present execution environment has useful local CPU tooling including Python, GCC/G++, gfortran, Node/npm, Go, CMake, and Ninja. It currently lacks a local CUDA device/toolkit (`nvidia-smi`/`nvcc`), Rust/Cargo, Julia, Haskell/GHC, and CUE.
+Use hosted CI first when the question is reproducible on ordinary CPU/toolchain infrastructure. Current examples include:
 
-This should shape work selection but not be encoded as a permanent property of Climate. Missing portable toolchains can often be supplied by CI. Missing CUDA hardware is a genuine execution boundary.
+- canonical Rust compilation/tests;
+- canonical Fortran configuration/build/tests;
+- symbolic geometry/information-geometry/Noether/sheaf/Lie references;
+- Lean/Mathlib kernel checks;
+- CUE and architecture integrity;
+- deterministic synthetic/analytic experiments.
 
-The expected CUDA-equipped gaming laptop, when available, should be treated as an `R3_cuda_device` worker and later potentially an `R4_integrated_system` worker. Local agents such as OpenCode/Cursor on that device can run the actual shell/toolchains and are therefore especially valuable for hardware-coupled implementation and profiling loops.
+CI is preferred because it is independently reproducible, leaves durable logs, and does not consume scarce interactive Codespace/device time.
+
+Do not create a separate workflow per tiny test if it adds no isolation value. A dedicated workflow/job is justified when it gives a distinct authority/kernel, dependency profile, failure attribution, or caching boundary.
+
+### Codespace: scarce interactive parity/integration environment
+
+Use Codespace only when interactivity or environment composition materially helps, for example:
+
+- diagnosing a toolchain problem that CI logs do not localize efficiently;
+- proving a new Lean statement interactively before moving the stable proof into CI;
+- multi-toolchain parity/integration that is awkward to express in hosted jobs;
+- networked build/package debugging;
+- preparing a later hardware handoff.
+
+A Codespace result should migrate into CI or another durable witness whenever the question is portable.
+
+Before every Codespace task, explicitly switch/update the canonical branch rather than assuming the existing checkout is current:
+
+```bash
+git switch main
+git pull --ff-only
+git rev-parse HEAD
+git status --short
+```
+
+Do not spend Codespace credits repeatedly verifying facts CI can already establish.
+
+### CUDA-equipped local device: scarce hardware witness
+
+Reserve the CUDA-equipped machine for questions only real hardware can answer: execution correctness, differential behavior, race/determinism, precision ladders, VRAM/transfers, profiling, and integrated scheduling/resource behavior.
+
+Prepare fixtures/reference outputs/tolerances before using that device so hardware time is spent on empirical uncertainty rather than discovering missing specifications.
 
 ## 4. Parallel frontiers
 
-Several frontiers should remain active concurrently.
-
 ### Contract/evidence frontier (`R0`/`R1`/`R2`)
 
-- stabilize `DatasetRef`, `MethodDescriptor`, `ExperimentSpec`, `RunManifest`, `ArtifactRef`, `MetricResult`, `EvidenceRecord`, and `Claim`;
-- enforce graph integrity across claims/methods/modules/evidence;
-- make maturity and evidence eligibility mechanically constrained;
-- align Commons-facing identity/fingerprint/causation fields without giving Commons scientific authority.
+- stabilize Dataset/Method/Experiment/Run/Artifact/Evidence/Claim contracts;
+- enforce graph integrity and fingerprint/causation semantics;
+- keep maturity/evidence mechanically constrained;
+- align Commons-facing identity without giving Commons scientific authority.
 
-### Mathematical reference frontier (`R1`)
+### Mathematical/reference frontier (`R1`/`R2`)
 
-- implement deliberately boring reference geometry;
-- build analytic/manufactured fixtures;
-- implement strong conventional baselines;
-- make unit/coordinate/conditioning semantics explicit;
-- create independent witnesses for later optimized implementations.
+Use several kinds of independent authority where they add real leverage:
 
-### GPU-engineering frontier (`R0` now, `R3` later)
+- symbolic references for differential/variational/statistical identities;
+- Lean for small stable propositions where kernel checking reduces ambiguity;
+- canonical Rust/Fortran implementations for executable portable algorithms;
+- differential/metamorphic tests between independent realizations.
 
-Now:
-
-- define layouts, buffer ownership, transfer boundaries, precision classes, determinism contracts, capability identities, and failure semantics;
-- statically audit legacy CUDA;
-- preregister CPU/GPU differential experiments;
-- prepare fixed fixtures and expected outputs.
-
-Later on the CUDA device:
-
-- compile and execute kernels;
-- verify device results against references;
-- measure precision sensitivity, occupancy, transfers, VRAM, and throughput;
-- use profiling evidence to decide fusion/layout/tensor-core changes.
-
-Performance claims remain blocked until the latter occurs.
+Formal proof establishes consequences of a mathematical statement. It does not prove that a climate representation, likelihood, metric, or interpretation is scientifically appropriate.
 
 ### Scientific-method frontier (`R0`/`R1`, later `R3`/`R5`)
 
-- geometry/curvature;
-- information geometry;
-- ultrametric/p-adic teleconnections;
-- sheaf/cohomological consistency;
-- Clifford/resonance representations;
-- symmetry diagnostics;
-- early-warning indicators.
+Geometry, information geometry, ultrametric/p-adic, sheaf/cohomology, Clifford, symmetry, modal/scenario, spectral, feedback, and early-warning methods may progress at different speeds through:
 
-Each method may progress through formal definition, synthetic verification, baseline comparison, accelerated implementation, and real-data validation at different speeds. Do not force all method families through one shared serial milestone.
+```text
+definition → exact/reference witness → canonical implementation
+→ baseline/ablation → acceleration → synthetic validation → real-data validation
+```
+
+Do not force all method families through one serial milestone.
+
+### GPU frontier (`R0`/`R1` now, `R3` later)
+
+Before hardware:
+
+- define layouts/buffer ownership;
+- precision/conditioning/determinism contracts;
+- immutable CPU/reference fixtures;
+- failure semantics;
+- candidate-batch isolation tests;
+- stage-level differential expectations.
+
+On hardware:
+
+- execute and compare stage by stage;
+- measure resource/performance behavior;
+- reject accelerator changes that alter declared numerical semantics outside tolerance.
 
 ### Integration frontier (`R0` now, `R4` later)
 
-Now:
+Now: stable inspection, experiment/resource records, Commons-compatible identities, sandbox/write boundaries.
 
-- emit stable static inspection output;
-- define execution/resource envelopes;
-- preserve Commons-compatible run/trace/causation/fingerprint fields;
-- specify sandbox/write boundaries.
+Later: run one real experiment through Commons and verify end-to-end causation, artifacts, evidence, leases, cancellation, and cleanup.
 
-Later:
+## 5. Authority and DRY rule
 
-- run one real Climate experiment through Commons;
-- propagate IDs end to end;
-- exercise GPU leases/cancellation/cleanup;
-- test whether shared abstractions survive pressure from other repositories.
+DRY is primarily semantic, not stylistic. Prefer one authored authority for:
 
-## 5. DRY as authority control
-
-DRY is primarily semantic here, not stylistic.
-
-Prefer one canonical source for:
-
-- method identity and maturity;
-- claim identity and maturity;
-- dataset identity/provenance;
+- method identity/maturity;
+- claim identity/maturity;
 - experiment definition;
-- run identity and resolved environment;
-- artifact identity;
-- evidence relation;
-- resource requirements;
-- accelerator implementation identity.
+- realization obligations;
+- dataset/run/artifact/evidence identity;
+- resource and accelerator implementation identity.
 
-README tables, dashboards, Commons projections, CI reports, and experiment launchers should derive from these records rather than maintain parallel meanings.
+Generated documentation may project existing authorities. Do **not** invent a new registry solely to generate prose.
 
-Duplicated authority is a scientific correctness risk because two descriptions can drift while both remain syntactically valid.
+The generated status projection is deliberately local/offline; it does not scrape GitHub Actions pass/fail state into committed documentation. CI state is execution evidence and changes too quickly to become a checked-in factual table.
 
-## 6. Layer/partition/interface framing
+## 6. Handoff contract for scarce-resource agents
 
-Climate should preserve these boundaries:
+Before asking a device/local agent to work on a scientific kernel, provide as much as possible of:
 
-```text
-scientific semantics
-        ↓
-experiment + method contracts
-        ↓
-reference implementations
-        ↓
-optimized/accelerated implementations
-        ↓
-execution + resource control
-        ↓
-run/artifact provenance
-        ↓
-evidence
-        ↓
-claims
-```
-
-Authority flows downward only where declared. In particular:
-
-- an optimized implementation does not redefine the mathematical method;
-- Commons does not redefine Climate evidence semantics;
-- a successful run does not promote a claim;
-- a GPU speedup does not validate a climate interpretation;
-- a scientific method does not own global scheduling/resource policy.
-
-Cross-layer communication should occur through narrow versioned records, not shared mutable global state.
-
-## 7. Graph framing
-
-Represent work as a DAG where nodes are obligations/capabilities and edges are real prerequisites.
-
-Example geometry path:
-
-```text
-geometry definitions
-   ├─> analytic fixtures
-   ├─> coordinate/unit conventions
-   └─> conditioning policy
-          ↓
-CPU reference implementation
-          ↓
-reference evidence
-          ├───────────────┐
-          ↓               ↓
-GPU implementation   climate candidate metric design
-          ↓               ↓
-CPU/GPU differential     candidate meta-experiment
-          ↓               ↓
-GPU verification      synthetic discrimination
-          └──────┬────────┘
-                 ↓
-          real-data validation
-                 ↓
-       interpretation mapping
-```
-
-The unavailable CUDA node does not block analytic fixtures, CPU references, candidate specification, or baseline design.
-
-## 8. Handoff contract for CUDA-equipped agents
-
-Before asking a device-local agent to optimize a scientific kernel, Climate should provide as much as possible of:
-
-- exact method/implementation identity;
-- fixed input fixtures and digests;
+- exact repository revision and canonical branch;
+- method/implementation identity;
+- fixed input fixtures/digests;
 - independent reference outputs;
-- tolerances and normalization;
+- tolerances/normalization;
 - precision/determinism requirements;
 - expected failure cases;
-- layout/resource contract;
-- benchmark metric definitions;
-- artifact/run manifest expectations;
-- commands that produce evidence;
-- unresolved hardware questions.
+- resource/layout contract;
+- exact evidence-producing commands;
+- unresolved questions that genuinely require that environment.
 
-The device-local task should then be narrow and empirical: make the accelerated implementation satisfy the declared numerical contract and measure its actual resource/performance behavior.
+The handoff should ask the scarce resource to resolve uncertainty, not perform routine repository archaeology.
 
-## 9. What must remain gated
+## 7. What must remain gated
 
-Do not promote or assert these before the necessary resource class executes:
+Do not promote or assert:
 
 - CUDA correctness from successful compilation;
-- GPU determinism from code inspection;
-- performance from operation counts alone;
-- resource envelopes from guessed VRAM arithmetic alone;
-- multi-GPU behavior from MPI/NCCL compatibility shims;
-- scientific validation from synthetic fixtures;
-- real-data generalization from discovery datasets;
-- cross-repo integration from matching schema names alone.
+- GPU determinism from source inspection;
+- performance from operation counts;
+- resource envelopes from guessed VRAM arithmetic;
+- multi-GPU behavior from MPI/NCCL shims;
+- scientific validation from analytic/synthetic fixtures;
+- real-data generalization from discovery data;
+- cross-repository integration from matching schema names;
+- implementation equivalence from a formal proof about only the abstract mathematics.
 
-Blocked evidence should be represented explicitly rather than replaced with optimistic prose.
+Blocked evidence is represented explicitly rather than replaced by optimistic prose.
 
-## 10. Weekly operating rule while the integrated CUDA system is unavailable
+## 8. Operating rule while scarce hardware/integration is unavailable
 
-Until the CUDA-equipped integrated system is available again, prioritize:
+Prioritize:
 
-1. independent mathematical/reference witnesses;
-2. contract and graph integrity;
-3. synthetic/analytic fixtures and conventional baselines;
-4. static source/module audits;
-5. toolchain-specific CI only where it answers a concrete question;
-6. preregistered GPU experiments and handoff packages;
+1. exact/reference/formal witnesses with reusable leverage;
+2. canonical portable implementations;
+3. semantic sanitation and monolith decomposition;
+4. conventional baselines and falsifiable synthetic experiments;
+5. data/provenance contracts and small immutable fixtures;
+6. resource-gated handoff packages;
 7. Commons-facing static/read-only interfaces.
 
-Avoid speculative large GPU rewrites or broad cross-repository adapters whose correctness cannot be exercised yet.
-
-When the device/system returns, spend its scarce attention on the questions only it can answer: execution, differential correctness, profiling, resource behavior, and integrated scheduling/lineage.
+When scarce hardware/system access returns, spend it on execution, differential correctness, profiling, resource behavior, large-data confirmation, and integrated scheduling/lineage—the questions ordinary CI cannot answer.
