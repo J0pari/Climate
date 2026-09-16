@@ -35,3 +35,5 @@ jobs:
             echo 'invalid experiment fixture was accepted' >&2
             exit 1
           fi
+      - name: Vet claim registry
+        run: '"$(go env GOPATH)/bin/cue" vet -d "#ClaimRegistry" contracts/climate.cue contracts/claims.cue claims/registry.json'
