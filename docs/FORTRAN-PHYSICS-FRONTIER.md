@@ -16,13 +16,14 @@ The legacy source is evidence about intended responsibilities. It is not authori
 | dry ideal-gas identities | `src/fortran/dry_thermodynamics.f90` | Exner, potential-temperature transforms, dry density, and isothermal hydrostatic thickness with explicit SI parameters | moist thermodynamics, atmospheric state evolution, general hydrostatic discretization, or energy closure |
 | water-vapor mixture algebra | `src/fortran/moist_vapor_algebra.f90` | exact ideal-gas transforms among vapor pressure, mixing ratio, specific humidity, virtual temperature, and vapor-only moist density | saturation-vapor-pressure law, phase equilibrium, condensate, latent heat, microphysics, or prognostic moisture evolution |
 | phase-explicit saturation pressure | `src/fortran/saturation_vapor_pressure.f90` | Murphy–Koop equilibrium vapor pressure over liquid water and hexagonal ice with explicit phase selection and enforced validity ranges | automatic phase diagnosis, condensate partition, latent heat, supersaturation policy, or cloud microphysics |
+| saturation moisture composition | `src/fortran/saturation_moisture.f90` | explicit phase provider composed with exact vapor algebra to produce saturation vapor pressure, mixing ratio, and specific humidity while retaining stage-specific error provenance | mixed-phase policy, actual condensate, latent heating, supersaturation relaxation, precipitation, or cloud microphysics |
 | portable spectral oracle | `src/fortran/spectral_reference.f90` | deterministic direct-DFT/analytic-signal reference behavior | a production FFT implementation or superiority of any climate oscillation method |
 
 ## Open physical responsibilities
 
 The following remain explicit obligations rather than being inferred from the presence of neighboring kernels:
 
-- **condensed-water thermodynamics:** liquid/ice condensate loading, latent heats, phase transitions, mixed-phase partition, and supersaturation/adjustment policy beyond the equilibrium-pressure provider;
+- **condensed-water thermodynamics:** liquid/ice condensate loading, latent heats, phase transitions, mixed-phase partition, and supersaturation/adjustment policy beyond the equilibrium-pressure provider and saturation-state composition;
 - **hydrostatic/state coupling:** a declared vertical coordinate and mass/pressure/geopotential relationship beyond the analytic isothermal identity;
 - **momentum dynamics:** pressure-gradient force, advection, metric terms, vertical momentum/diagnostic-omega semantics, diffusion/friction, and their conservation properties;
 - **mass and tracer transport:** flux form, positivity/conservation policy, coordinate metrics, and boundary/source semantics;
