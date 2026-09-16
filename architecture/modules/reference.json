@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "modules": [
+    {"path":"reference/geometry_sympy.py","family":"reference_geometry","language":"python","maturity":"runnable","evidence_eligible":false,"intended_role":"independent symbolic differential-geometry oracle for analytic verification fixtures","known_gaps":["scope is limited to the preregistered analytic geometry fixtures","no accelerated implementation equivalence has been established","produces no climate interpretation"]},
+    {"path":"reference/noether_sympy.py","family":"reference_variational_symmetry","language":"python","maturity":"runnable","evidence_eligible":false,"intended_role":"exact symbolic point-symmetry Noether oracle for invariance residuals, conserved charges, Euler-Lagrange residuals, and the off-shell Noether identity","known_gaps":["scope is finite-dimensional first-order Lagrangians and point symmetries","does not establish that forced dissipative climate dynamics possess exact variational symmetries","climate conservation diagnostics still require explicit balance-law forcing and flux terms"]},
+    {"path":"reference/sheaf_cohomology.py","family":"reference_sheaf_cohomology","language":"python","maturity":"runnable","evidence_eligible":false,"intended_role":"exact finite-complex and finite cellular-sheaf reference over GF(2) for nerves, restriction functoriality, cohomology dimensions, and global-section compatibility","claim_ids":["climate.sheaf.consistency"],"known_gaps":["GF(2) reference stalks do not model continuous climate measurements","geographic station-cover and climate restriction semantics remain open","mathematical correctness does not establish empirical fault-detection or reconstruction value"]}
+  ]
+}

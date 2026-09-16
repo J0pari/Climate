@@ -2,8 +2,10 @@
 """Integrity checks for Climate's module/maturity inventory.
 
 The module inventory is the bridge between scientific/reference source and the
-claim/evidence system. Discovery comes from ``architecture.source_surface`` so
-package migration cannot silently change what counts as tracked source.
+claim/evidence system. Repository authority is split into a few semantic
+fragments under ``architecture/modules/`` rather than one write-hot registry.
+Discovery still comes from ``architecture.source_surface`` so package migration
+cannot silently change what counts as tracked source.
 """
 from __future__ import annotations
 
@@ -20,7 +22,7 @@ if __package__ in {None, ""}:
 
 from architecture import source_surface
 
-DEFAULT_MODULES = ROOT / "architecture" / "modules.json"
+DEFAULT_MODULES = ROOT / "architecture" / "modules"
 DEFAULT_CLAIMS = ROOT / "claims" / "registry.json"
 SOURCE_SUFFIXES = source_surface.SOURCE_LANGUAGES
 
@@ -49,6 +51,44 @@ def load_json(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError(f"{path} must contain a JSON object")
     return data
+
+
+def load_module_registry(path: Path) -> dict[str, Any]:
+    """Load one registry file or merge a directory of authored fragments.
+
+    Single-file support is retained for planted tests and external probes. The
+    repository default is a fragment directory. All fragments must declare the
+    same schema version; module-path uniqueness remains a semantic integrity
+    check in ``check`` so duplicates produce the same stable finding code
+    regardless of whether they occur within or across fragments.
+    """
+    if path.is_file():
+        return load_json(path)
+    if not path.is_dir():
+        raise ValueError(f"module registry path does not exist: {path}")
+
+    fragments = sorted(path.glob("*.json"))
+    if not fragments:
+        raise ValueError(f"module registry directory contains no JSON fragments: {path}")
+
+    schema_version: Any = None
+    modules: list[Any] = []
+    for fragment in fragments:
+        data = load_json(fragment)
+        version = data.get("schema_version")
+        if schema_version is None:
+            schema_version = version
+        elif version != schema_version:
+            raise ValueError(
+                f"module fragment schema mismatch: {fragment} has {version!r}, "
+                f"expected {schema_version!r}"
+            )
+        fragment_modules = data.get("modules")
+        if not isinstance(fragment_modules, list):
+            raise ValueError(f"{fragment}: modules must be a list")
+        modules.extend(fragment_modules)
+
+    return {"schema_version": schema_version, "modules": modules}
 
 
 def _claim_ids(claim_registry: dict[str, Any]) -> set[str]:
@@ -198,13 +238,22 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    modules = load_json(args.modules)
-    claims = load_json(args.claims)
+    try:
+        modules = load_module_registry(args.modules)
+        claims = load_json(args.claims)
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        if args.json:
+            print(json.dumps({"ok": False, "load_error": str(error)}, indent=2, sort_keys=True))
+        else:
+            print(f"modules.registry_load_error: {error}")
+        return 1
+
     findings = check(args.root.resolve(), modules, claims)
 
     if args.json:
         print(json.dumps({
             "ok": not findings,
+            "module_count": len(modules.get("modules", [])),
             "finding_count": len(findings),
             "findings": [asdict(item) for item in findings],
         }, indent=2, sort_keys=True))

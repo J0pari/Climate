@@ -1,6 +1,7 @@
 """Negative witnesses for Climate module inventory integrity."""
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -24,6 +25,42 @@ def module(path: str, **overrides):
     }
     base.update(overrides)
     return base
+
+
+class ModuleRegistryLoadingTests(unittest.TestCase):
+    def write_fragment(self, directory: Path, name: str, version: int, modules):
+        (directory / name).write_text(
+            json.dumps({"schema_version": version, "modules": modules}),
+            encoding="utf-8",
+        )
+
+    def test_fragment_directory_merges_in_filename_order(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            self.write_fragment(directory, "b.json", 1, [module("b.rs")])
+            self.write_fragment(directory, "a.json", 1, [module("a.rs")])
+            registry = check_modules.load_module_registry(directory)
+            self.assertEqual([item["path"] for item in registry["modules"]], ["a.rs", "b.rs"])
+
+    def test_fragment_schema_mismatch_fails_loading(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            self.write_fragment(directory, "a.json", 1, [])
+            self.write_fragment(directory, "b.json", 2, [])
+            with self.assertRaisesRegex(ValueError, "schema mismatch"):
+                check_modules.load_module_registry(directory)
+
+    def test_duplicate_paths_across_fragments_reach_existing_integrity_guard(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "x.rs").write_text("fn main() {}\n", encoding="utf-8")
+            fragments = root / "registry"
+            fragments.mkdir()
+            self.write_fragment(fragments, "a.json", 1, [module("x.rs")])
+            self.write_fragment(fragments, "b.json", 1, [module("x.rs")])
+            registry = check_modules.load_module_registry(fragments)
+            findings = check_modules.check(root, registry, claims())
+            self.assertIn("modules.path_duplicate", {f.code for f in findings})
 
 
 class ModuleIntegrityTests(unittest.TestCase):
