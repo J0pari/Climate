@@ -1,10 +1,21 @@
 # Geometry verification program
 
-Status: **pre-implementation verification specification** for the geometric/manifold family.
+Status: **living verification contract with partially realized reference/canonical CPU coverage** for the geometric/manifold family.
 
-This document defines the minimum mathematical/numerical evidence required before Climate may interpret curvature, connections, geodesics, or related geometric quantities as climate indicators. It intentionally tests the geometry machinery independently of climate data first.
+This document defines the minimum mathematical/numerical evidence required before Climate may interpret curvature, connections, geodesics, or related geometric quantities as climate indicators. Geometry machinery is tested independently of climate data first.
 
-The controlling claim is `climate.geometry.regime_indicator`. Passing this document does **not** validate that claim; it only permits the implementation to progress from an unverified prototype toward numerically verified geometric machinery.
+The controlling claim is `climate.geometry.regime_indicator`. Passing mathematical or numerical geometry tests does **not** validate that claim; it only establishes correctness of a declared geometric computation under the tested scope.
+
+## Current realized boundary
+
+The repository now has two independent portable authorities for a nontrivial subset of this program:
+
+- `reference/geometry_sympy.py` plus `tests/reference/test_geometry_sympy.py`: symbolic known-geometry oracle covering flat Cartesian, flat polar/nonzero-connection, positive-curvature sphere, negative-curvature Poincaré disk, torsion freedom, metric compatibility, Riemann antisymmetry, and first Bianchi witnesses;
+- `src/geometry.rs`: canonical Rust Levi-Civita kernel from explicit local metric jets, with executable Cartesian/polar/sphere fixtures, metric-compatibility and Bianchi witnesses, and fail-closed nonsymmetric/singular-metric behavior.
+
+These implementations deliberately stop before choosing a climate metric or mapping curvature to tipping/risk/timescale. They also do not yet satisfy the whole verification program below. Important open items include independent derivative-generation checks, broader coordinate/unit/permutation metamorphics, conditioning characterization, geodesic verification, canonical-vs-reference differential fixtures, and real CUDA comparison.
+
+The module/claim status itself is rendered from machine authorities in `docs/generated/STATUS.md`; this document owns the richer verification requirements and must be updated manually when those requirements or their interpretation change.
 
 ## 1. Separation of questions
 
@@ -19,11 +30,11 @@ Questions 1–3 must be answered before question 4 can support a physical/predic
 
 ## 2. Reference implementation first
 
-Build a small, readable reference implementation before optimizing the existing CUDA path.
+Maintain small, readable reference implementations before optimizing the CUDA path.
 
 Reference priorities:
 
-- explicit metric input rather than the current climate-specific hand-built metric;
+- explicit metric input rather than a climate-specific hand-built metric;
 - analytic metric functions for fixtures;
 - derivatives computed by at least one independently checkable method;
 - FP64 default;
@@ -31,7 +42,7 @@ Reference priorities:
 - no climate tipping/risk mapping;
 - outputs limited to geometric/numerical diagnostics.
 
-The reference can be Python/JAX, Julia, Rust, or a combination, but the oracle must be independent enough that the optimized CUDA code does not merely reproduce the same implementation bug.
+The reference may use Python/SymPy, Rust, Julia, or another suitable independent mechanism, but the oracle must be independent enough that optimized code does not merely reproduce the same implementation bug.
 
 ## 3. Convention contract
 
@@ -172,7 +183,7 @@ Transform a known geometry into another smooth chart and verify coordinate-invar
 
 Where coordinates represent dimensionful climate quantities, changing units (for example K versus scaled K, ppm versus a documented transformed coordinate) must not accidentally create a different scientific conclusion unless the metric definition explicitly depends on that representation.
 
-This test is particularly important for the current Climate metric, which combines transformed CO2/CH4/N2O, scaled ocean heat, ice fraction, and forcing variables.
+This test is particularly important for legacy Climate metrics combining transformed CO2/CH4/N2O, scaled ocean heat, ice fraction, and forcing variables.
 
 ### 11.3 Permutation
 
@@ -249,7 +260,7 @@ The first accepted GPU implementation should be single-GPU. Multi-GPU equivalenc
 
 ## 15. Batched-candidate isolation test
 
-Because the proposed GPU engine evaluates many `GeometryCandidate`s together, prove candidates cannot contaminate one another.
+Because a proposed GPU engine evaluates many geometry candidates together, prove candidates cannot contaminate one another.
 
 Required metamorphic witness:
 
@@ -295,7 +306,7 @@ A correct geodesic of an arbitrary hand-built metric is still not automatically 
 
 ## 18. Prohibited interpretation before verification
 
-Until this program is satisfied, outputs such as these remain diagnostic/prototype quantities only:
+Until the relevant mathematical, numerical, and empirical programs are satisfied, outputs such as these remain diagnostic/prototype quantities only:
 
 ```text
 "tipping probability"
@@ -305,15 +316,11 @@ Until this program is satisfied, outputs such as these remain diagnostic/prototy
 "timescale to collapse"
 ```
 
-if they are derived only from curvature/eigenvalue thresholds or analogous heuristic transforms.
-
-The source audit already flags some probability/confidence transformations; later claim-aware linting should enforce this more precisely.
+when they are derived only from curvature/eigenvalue thresholds or analogous heuristic transforms.
 
 ## 19. First climate-facing meta-experiment after numerical verification
 
-Only after the geometry machinery is verified, evaluate whether geometry adds information.
-
-Initial task should use synthetic dynamical systems with known labels:
+Evaluate whether geometry adds information on synthetic dynamical systems with known labels before named Earth-system tipping interpretation:
 
 - systems approaching a known bifurcation;
 - systems with no bifurcation but changing variance/noise;
@@ -339,16 +346,18 @@ This is evidence for predictive utility, not yet evidence for a named Earth-syst
 
 ## 20. Promotion criteria
 
-A geometric implementation may progress to `verified` only when:
+A geometric implementation may progress to `verified` only when its declared scope has appropriate evidence for:
 
-- convention contract is pinned;
-- known-geometry fixtures pass;
-- tensor identities pass;
-- derivative witnesses pass;
-- conditioning/refusal behavior passes;
-- coordinate/scaling metamorphic tests pass;
-- declared precision behavior is characterized;
-- accelerated implementation agrees with the independent reference if used;
-- no placeholder path participates in the verified computation.
+- pinned conventions;
+- known-geometry fixtures;
+- tensor identities;
+- derivative witnesses;
+- conditioning/refusal behavior;
+- coordinate/scaling metamorphic tests;
+- precision characterization;
+- independent implementation agreement where applicable;
+- absence of placeholders on the verified computation path.
+
+Verification may be scoped to a subset of these when the module advertises a narrower capability; the scope must be explicit rather than implying the entire geometric stack is verified.
 
 The claim `climate.geometry.regime_indicator` remains `concept` until separate predictive/generalization evidence is attached. Verification of the math implementation must not auto-promote the scientific claim.
