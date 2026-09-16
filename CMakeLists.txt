@@ -49,6 +49,15 @@ target_include_directories(climate_coriolis_rotation PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Dry ideal-gas thermodynamic identities with explicit SI parameters and
+# fail-closed domain validation. Moist and phase-change physics stay separate.
+add_library(climate_dry_thermodynamics STATIC
+    src/fortran/dry_thermodynamics.f90
+)
+target_include_directories(climate_dry_thermodynamics PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Climate-specific geometric-height finite-volume diffusion operator. Solver
 # choice is deliberately separate from operator construction.
 add_library(climate_vertical_diffusion STATIC
@@ -96,6 +105,12 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_coriolis_rotation PRIVATE climate_coriolis_rotation)
     add_test(NAME coriolis_rotation COMMAND test_coriolis_rotation)
+
+    add_executable(test_dry_thermodynamics
+        tests/fortran/test_dry_thermodynamics.f90
+    )
+    target_link_libraries(test_dry_thermodynamics PRIVATE climate_dry_thermodynamics)
+    add_test(NAME dry_thermodynamics COMMAND test_dry_thermodynamics)
 
     add_executable(test_vertical_diffusion
         tests/fortran/test_vertical_diffusion.f90
@@ -171,6 +186,7 @@ message(STATUS "  Canonical spectral reference: ON")
 message(STATUS "  Canonical time integration:   ON")
 message(STATUS "  Canonical linear reference:   ON")
 message(STATUS "  Exact Coriolis rotation:      ON")
+message(STATUS "  Dry thermodynamics:           ON")
 message(STATUS "  Vertical diffusion operator:  ON")
 message(STATUS "  LAPACK tridiagonal backend:   ${ENABLE_LAPACK_BACKEND}")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")
