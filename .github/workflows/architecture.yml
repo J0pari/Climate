@@ -45,8 +45,19 @@ jobs:
             echo 'invalid experiment fixture was accepted' >&2
             exit 1
           fi
-      - name: Vet geometry correctness experiment
-        run: '"$(go env GOPATH)/bin/cue" vet -d "#ExperimentSpec" contracts/climate.cue experiments/geometry-correctness.v1.json'
+      - name: Vet every registered experiment
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          experiments=(experiments/*.json)
+          if [ "${#experiments[@]}" -eq 0 ]; then
+            echo 'no experiment specifications found' >&2
+            exit 1
+          fi
+          for experiment in "${experiments[@]}"; do
+            echo "vetting ${experiment}"
+            "$(go env GOPATH)/bin/cue" vet -d '#ExperimentSpec' contracts/climate.cue "$experiment"
+          done
       - name: Vet claim registry
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ClaimRegistry" contracts/climate.cue contracts/claims.cue claims/registry.json'
       - name: Vet method registry
