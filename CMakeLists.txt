@@ -8,6 +8,7 @@ project(
 )
 
 option(ENABLE_LEGACY_FORTRAN_PROBES "Compile selected legacy Fortran sources without running them" ON)
+option(ENABLE_LAPACK_BACKEND "Build the production-oriented LAPACK tridiagonal backend" OFF)
 option(ENABLE_MPI "Compile MPI-dependent legacy source probes" OFF)
 option(ENABLE_CUDA "Compile the experimental CUDA source probe" OFF)
 option(ENABLE_TESTING "Build and run canonical portable tests" ON)
@@ -17,11 +18,6 @@ option(ENABLE_EXPERIMENTAL_OPTIMIZER "Attempt to wire the experimental C++ optim
 # Keep generated module files outside the source tree.
 set(CMAKE_Fortran_MODULE_DIRECTORY "${PROJECT_BINARY_DIR}/fortran-modules")
 file(MAKE_DIRECTORY "${CMAKE_Fortran_MODULE_DIRECTORY}")
-
-# LAPACK is the production-oriented CPU backend for pivoting tridiagonal solves.
-# The repository-local Thomas implementation remains a differential/reference
-# oracle rather than a replacement for mature generic linear algebra.
-find_package(LAPACK REQUIRED)
 
 # Canonical portable numerical code. Unlike the legacy omnibus spectral source,
 # this target contains only implemented primitives with executable witnesses.
@@ -50,14 +46,20 @@ target_include_directories(climate_linear_implicit PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
-# Production-oriented CPU tridiagonal backend with LAPACK partial pivoting.
-add_library(climate_lapack_tridiagonal STATIC
-    src/fortran/lapack_tridiagonal.f90
-)
-target_include_directories(climate_lapack_tridiagonal PUBLIC
-    "${CMAKE_Fortran_MODULE_DIRECTORY}"
-)
-target_link_libraries(climate_lapack_tridiagonal PUBLIC LAPACK::LAPACK)
+if(ENABLE_LAPACK_BACKEND)
+    # LAPACK is the production-oriented CPU backend for pivoting tridiagonal
+    # solves. Keep it an explicit capability so reference kernels and unrelated
+    # legacy probes do not acquire an ambient BLAS/LAPACK dependency.
+    find_package(LAPACK REQUIRED)
+
+    add_library(climate_lapack_tridiagonal STATIC
+        src/fortran/lapack_tridiagonal.f90
+    )
+    target_include_directories(climate_lapack_tridiagonal PUBLIC
+        "${CMAKE_Fortran_MODULE_DIRECTORY}"
+    )
+    target_link_libraries(climate_lapack_tridiagonal PUBLIC LAPACK::LAPACK)
+endif()
 
 if(ENABLE_TESTING)
     enable_testing()
@@ -79,14 +81,16 @@ if(ENABLE_TESTING)
     target_link_libraries(test_linear_implicit PRIVATE climate_linear_implicit)
     add_test(NAME linear_implicit COMMAND test_linear_implicit)
 
-    add_executable(test_lapack_tridiagonal
-        tests/fortran/test_lapack_tridiagonal.f90
-    )
-    target_link_libraries(test_lapack_tridiagonal PRIVATE
-        climate_lapack_tridiagonal
-        climate_linear_implicit
-    )
-    add_test(NAME lapack_tridiagonal COMMAND test_lapack_tridiagonal)
+    if(ENABLE_LAPACK_BACKEND)
+        add_executable(test_lapack_tridiagonal
+            tests/fortran/test_lapack_tridiagonal.f90
+        )
+        target_link_libraries(test_lapack_tridiagonal PRIVATE
+            climate_lapack_tridiagonal
+            climate_linear_implicit
+        )
+        add_test(NAME lapack_tridiagonal COMMAND test_lapack_tridiagonal)
+    endif()
 endif()
 
 if(ENABLE_LEGACY_FORTRAN_PROBES)
@@ -140,7 +144,7 @@ message(STATUS "Climate portable configuration:")
 message(STATUS "  Canonical spectral reference: ON")
 message(STATUS "  Canonical time integration:   ON")
 message(STATUS "  Canonical linear reference:   ON")
-message(STATUS "  LAPACK tridiagonal backend:   ON")
+message(STATUS "  LAPACK tridiagonal backend:   ${ENABLE_LAPACK_BACKEND}")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")
 message(STATUS "  Legacy Fortran probes:        ${ENABLE_LEGACY_FORTRAN_PROBES}")
 message(STATUS "  MPI probe:                    ${ENABLE_MPI}")
