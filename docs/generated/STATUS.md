@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **49**.
+Registered modules: **50**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 20 |
+| `canonical` | 21 |
 | `legacy` | 24 |
 | `reference` | 5 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 23 |
+| `runnable` | 24 |
 
 ### Canonical and reference modules
 
@@ -31,6 +31,7 @@ Registered modules: **49**.
 | `canonical` | `src/fortran/lapack_tridiagonal.f90` | `lapack_tridiagonal_backend` | `runnable` | no |
 | `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
 | `canonical` | `src/fortran/moist_vapor_algebra.f90` | `moist_vapor_algebra` | `runnable` | no |
+| `canonical` | `src/fortran/pressure_coordinate_continuity.f90` | `pressure_coordinate_continuity` | `runnable` | no |
 | `canonical` | `src/fortran/pressure_coordinate_hydrostatics.f90` | `pressure_coordinate_hydrostatics` | `runnable` | no |
 | `canonical` | `src/fortran/saturation_moisture.f90` | `saturation_moisture_composition` | `runnable` | no |
 | `canonical` | `src/fortran/saturation_vapor_pressure.f90` | `saturation_vapor_pressure` | `runnable` | no |
