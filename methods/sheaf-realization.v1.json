@@ -47,6 +47,13 @@
       "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
     },
     {
+      "obligation_id": "real_degree0_sheaf_operator",
+      "layer": "R2",
+      "statement": "A real-valued finite cellular sheaf on a graph constructs an explicit degree-zero coboundary from declared restriction matrices, computes compatibility residuals and L0=d0^T d0, and derives numerical nullity/gap diagnostics without interpretive thresholds.",
+      "status": "reference_realized",
+      "witnesses": ["src/sheaf.rs", "tests/sheaf_fixture.rs", "fixtures/sheaf/synthetic-linear-v1.json"]
+    },
+    {
       "obligation_id": "station_cover_nerve",
       "layer": "R3",
       "statement": "Station simplices are derived from a scientifically declared geographic coverage/intersection rule rather than arbitrary station tuples.",
