@@ -18,6 +18,8 @@ jobs:
         run: python architecture/check_claims.py
       - name: Module inventory integrity
         run: python architecture/check_modules.py
+      - name: Experiment graph integrity
+        run: python architecture/check_experiments.py
       - name: Legacy source audit
         run: python architecture/source_gates.py --summary
       - name: Static repository inspection
@@ -39,6 +41,8 @@ jobs:
             echo 'invalid experiment fixture was accepted' >&2
             exit 1
           fi
+      - name: Vet geometry correctness experiment
+        run: '"$(go env GOPATH)/bin/cue" vet -d "#ExperimentSpec" contracts/climate.cue experiments/geometry-correctness.v1.json'
       - name: Vet claim registry
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ClaimRegistry" contracts/climate.cue contracts/claims.cue claims/registry.json'
       - name: Vet method registry
