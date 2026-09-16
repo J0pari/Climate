@@ -1,0 +1,122 @@
+{
+  "experiment_id": "geometry.correctness.v1",
+  "semantic_version": "0.1.0",
+  "question": "Does the batched GPU geometry implementation reproduce coordinate-invariant differential-geometric quantities on analytic spaces with known answers, within declared numerical tolerances and without cross-candidate contamination?",
+  "hypothesis": "geometry.candidate.gpu_batched_v1 matches geometry.reference.cpu_v1 and analytic expectations on flat, spherical, and hyperbolic fixtures before any climate interpretation is attempted",
+  "candidate_methods": [
+    "geometry.candidate.gpu_batched_v1"
+  ],
+  "baseline_methods": [
+    "geometry.reference.cpu_v1"
+  ],
+  "datasets": [
+    {
+      "id": "geometry.analytic.v1",
+      "digest": "sha256:15cb86d478e6f4b9784d4fa07b5f0e39aa7486b634e2d1d5a3b011609538c95d",
+      "source_family": "analytic_geometry_fixture_manifest",
+      "source_version": "1",
+      "variables": [
+        "metric_tensor"
+      ],
+      "spatial_domain": "synthetic analytic coordinate domains",
+      "grid": "deterministic sample points declared by the runner",
+      "units_metadata": {
+        "policy": "dimensionless reference coordinates unless fixture declares a scale"
+      },
+      "quality_control_policy": "fixture expressions and expected invariants are independently reviewed before promotion",
+      "citation": "fixtures/geometry/analytic-fixtures.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "geometry.scalar_curvature.max_normalized_error",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless normalized error",
+      "direction": "lower",
+      "target": 0.0,
+      "aggregation_domain": "all nonsingular sample points across analytic fixtures",
+      "missing_data_policy": "any unexplained missing result is experiment failure",
+      "uncertainty_method": "deterministic numerical tolerance envelope"
+    },
+    {
+      "metric_id": "geometry.tensor_identity.max_normalized_residual",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless normalized residual",
+      "direction": "lower",
+      "target": 0.0,
+      "aggregation_domain": "Riemann symmetries, Ricci contraction, and Bianchi witnesses across fixtures",
+      "missing_data_policy": "missing identity witness is experiment failure",
+      "uncertainty_method": "deterministic numerical tolerance envelope"
+    },
+    {
+      "metric_id": "geometry.cpu_gpu.max_normalized_difference",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless normalized difference",
+      "direction": "lower",
+      "target": 0.0,
+      "aggregation_domain": "matched CPU/GPU diagnostic outputs for identical fixtures and sample points",
+      "missing_data_policy": "unmatched output is experiment failure",
+      "uncertainty_method": "precision- and conditioning-aware tolerance envelope"
+    },
+    {
+      "metric_id": "geometry.batch_isolation.max_difference",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless normalized difference",
+      "direction": "lower",
+      "target": 0.0,
+      "aggregation_domain": "same candidate executed alone versus in heterogeneous candidate batches",
+      "missing_data_policy": "missing isolation witness is experiment failure",
+      "uncertainty_method": "deterministic equality/tolerance test"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "geometry.condition_number.max",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless",
+      "direction": "descriptive",
+      "aggregation_domain": "all sampled metric tensors",
+      "missing_data_policy": "conditioning must be reported for every inversion path"
+    },
+    {
+      "metric_id": "geometry.runtime.seconds",
+      "semantic_version": "0.1.0",
+      "units": "seconds",
+      "direction": "lower",
+      "aggregation_domain": "whole fixture suite after correctness gates pass",
+      "missing_data_policy": "performance is non-authoritative when timing metadata is unavailable"
+    }
+  ],
+  "negative_controls": [
+    "flat polar coordinates must have nonzero Christoffel symbols but zero Riemann/Ricci/scalar curvature",
+    "permuting candidate batch order must not alter per-candidate results beyond the declared determinism class",
+    "a deliberately ill-conditioned metric fixture added later must produce an explicit conditioning failure or refinement event rather than a plausible-looking curvature result"
+  ],
+  "falsifiers": [
+    "flat Cartesian or flat polar fixtures produce statistically/numerically meaningful nonzero curvature outside tolerance",
+    "sphere or hyperbolic fixtures have the wrong curvature sign or scale after normalization",
+    "CPU and GPU implementations disagree outside the conditioning/precision tolerance envelope",
+    "a candidate's result changes materially when unrelated candidates are added to the same batch",
+    "the implementation silently substitutes a fallback capability while retaining the accelerated implementation identity"
+  ],
+  "split_policy": "not applicable; analytic verification suite, with later hidden regression fixtures allowed for implementation hardening",
+  "preprocessing": "none beyond deterministic coordinate sampling inside declared nonsingular domains",
+  "seeds": [
+    0
+  ],
+  "stopping_rule": "verification cannot pass until every primary correctness metric satisfies its versioned tolerance on every required fixture; performance comparison is evaluated only after correctness passes",
+  "multiple_comparison_policy": "not applicable to deterministic analytic verification; any later parameter sweep must report all attempted variants",
+  "expected_artifact_types": [
+    "geometry_diagnostics/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 2,
+    "memory_bytes": 2147483648,
+    "gpu_count": 1,
+    "vram_bytes": 2147483648,
+    "network": "none",
+    "max_seconds": 600
+  }
+}
