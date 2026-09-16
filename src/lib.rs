@@ -6,6 +6,7 @@
 //! authoritative for the canonical crate.
 
 pub mod feedback;
+pub mod modal;
 pub mod numerics;
 pub mod padic;
 pub mod sheaf;
