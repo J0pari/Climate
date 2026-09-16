@@ -30,6 +30,7 @@ SOURCE_LANGUAGES = {
 
 ROLE_SCIENTIFIC = "scientific"
 ROLE_REFERENCE = "reference"
+ROLE_PACKAGE = "package"
 ROLE_EXPERIMENT = "experiment"
 ROLE_ARCHITECTURE = "architecture"
 ROLE_TEST = "test"
@@ -38,7 +39,7 @@ ROLE_FIXTURE = "fixture"
 ROLE_EXCLUDED = "excluded"
 
 MODULE_TRACKED_ROLES = frozenset({ROLE_SCIENTIFIC, ROLE_REFERENCE})
-AUDITED_ROLES = frozenset({ROLE_SCIENTIFIC, ROLE_REFERENCE, ROLE_EXPERIMENT})
+AUDITED_ROLES = frozenset({ROLE_SCIENTIFIC, ROLE_REFERENCE, ROLE_PACKAGE, ROLE_EXPERIMENT})
 
 _EXCLUDED_PARTS = frozenset({
     ".git", ".github", "build", "target", ".venv", "venv", "__pycache__",
@@ -58,7 +59,8 @@ def classify_relative_path(relative: Path) -> str | None:
 
     Unknown source-bearing directories deliberately fall through to
     ``scientific``. Adding a new package directory must not create an escape
-    hatch from maturity/registration checks.
+    hatch from maturity/registration checks. Python package marker files remain
+    visible to source audits but are not scientific components by themselves.
     """
     if relative.suffix not in SOURCE_LANGUAGES:
         return None
@@ -76,14 +78,17 @@ def classify_relative_path(relative: Path) -> str | None:
         return ROLE_TEST
     if root == "contracts":
         return ROLE_CONTRACT
-    if root == "reference":
-        return ROLE_REFERENCE
     if root == "experiments":
         return ROLE_EXPERIMENT
     if root == "fixtures":
         return ROLE_FIXTURE
     if root in {"docs", "blueprints", "evidence"}:
         return ROLE_EXCLUDED
+
+    if relative.name == "__init__.py":
+        return ROLE_PACKAGE
+    if root == "reference":
+        return ROLE_REFERENCE
 
     return ROLE_SCIENTIFIC
 

@@ -21,6 +21,14 @@ class SourceSurfaceTests(unittest.TestCase):
             source_surface.ROLE_SCIENTIFIC,
         )
 
+    def test_python_package_marker_is_audited_but_not_module_tracked(self):
+        self.assertEqual(
+            source_surface.classify_relative_path(Path("reference/__init__.py")),
+            source_surface.ROLE_PACKAGE,
+        )
+        self.assertIn(source_surface.ROLE_PACKAGE, source_surface.AUDITED_ROLES)
+        self.assertNotIn(source_surface.ROLE_PACKAGE, source_surface.MODULE_TRACKED_ROLES)
+
     def test_known_roles_are_distinct(self):
         cases = {
             "reference/geometry.py": source_surface.ROLE_REFERENCE,
@@ -54,11 +62,13 @@ class SourceSurfaceTests(unittest.TestCase):
             (root / "physics" / "nested.rs").write_text("fn x() {}\n", encoding="utf-8")
             (root / "reference").mkdir()
             (root / "reference" / "oracle.py").write_text("pass\n", encoding="utf-8")
+            (root / "reference" / "__init__.py").write_text("\n", encoding="utf-8")
             (root / "architecture").mkdir()
             (root / "architecture" / "gate.py").write_text("pass\n", encoding="utf-8")
 
             paths = source_surface.module_tracked_paths(root)
             self.assertEqual(paths, {"physics/nested.rs", "reference/oracle.py"})
+            self.assertNotIn("reference/__init__.py", paths)
             self.assertNotIn("architecture/gate.py", paths)
 
 
