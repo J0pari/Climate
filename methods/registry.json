@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "methods": [
+    {
+      "method_id": "geometry.reference.cpu_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "planned",
+      "maturity": "concept",
+      "hypothesis_family": "geometry_verification_reference",
+      "input_contracts": ["analytic_metric_fixture/v1"],
+      "output_contracts": ["geometry_diagnostics/v1"],
+      "assumptions": [
+        "fixture metric and coordinate conventions are explicit",
+        "FP64 is the default reference precision",
+        "no climate interpretation is produced"
+      ],
+      "known_limitations": [
+        "implementation does not exist yet",
+        "intended for correctness/reference scale rather than climate-scale throughput"
+      ],
+      "resource": {
+        "cpu_cores": 2,
+        "memory_bytes": 2147483648,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 600
+      },
+      "reference_methods": []
+    },
+    {
+      "method_id": "geometry.candidate.gpu_batched_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "planned",
+      "maturity": "concept",
+      "hypothesis_family": "batched_geometry_acceleration",
+      "input_contracts": ["analytic_metric_fixture/v1", "geometry_candidate/v1"],
+      "output_contracts": ["geometry_diagnostics/v1"],
+      "assumptions": [
+        "single-GPU implementation before multi-GPU",
+        "candidate batching preserves candidate isolation",
+        "conditioning failures are surfaced rather than converted into results"
+      ],
+      "known_limitations": [
+        "implementation does not exist yet",
+        "precision/resource envelopes are provisional until profiling",
+        "not eligible for scientific evidence until differential verification passes"
+      ],
+      "resource": {
+        "cpu_cores": 2,
+        "memory_bytes": 2147483648,
+        "gpu_count": 1,
+        "vram_bytes": 2147483648,
+        "network": "none",
+        "max_seconds": 600
+      },
+      "accelerator": {
+        "implementation_id": "geometry.candidate.gpu_batched_v1",
+        "precision": {
+          "input": "FP64 reference phase; lower-precision candidates require separate implementation identity",
+          "accumulator": "FP64",
+          "output": "FP64",
+          "refinement": "none until conditioning-triggered refinement is specified"
+        },
+        "determinism": "D1",
+        "fallback_identity_required": true,
+        "resource": {
+          "cpu_cores": 2,
+          "memory_bytes": 2147483648,
+          "gpu_count": 1,
+          "vram_bytes": 2147483648,
+          "network": "none",
+          "max_seconds": 600
+        }
+      },
+      "reference_methods": ["geometry.reference.cpu_v1"]
+    }
+  ]
+}
