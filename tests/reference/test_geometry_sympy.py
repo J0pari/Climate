@@ -92,7 +92,8 @@ class GeometryReferenceTests(unittest.TestCase):
                             result.christoffel[contracted][deriv][j]
                             * result.metric[i, contracted]
                         )
-                    self.assertEqual(sp.simplify(covariant_derivative), 0)
+                    normalized = sp.simplify(sp.expand_trig(covariant_derivative))
+                    self.assertEqual(normalized, 0)
 
     def test_first_bianchi_identity_holds(self):
         result = compute_fixture(self.fixtures["sphere.radius2.2d"])
