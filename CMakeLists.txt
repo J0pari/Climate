@@ -27,6 +27,16 @@ target_include_directories(climate_spectral_reference PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Canonical deterministic explicit time integration. This is intentionally a
+# small ODE primitive; adaptive, split, semi-implicit, and climate-specific
+# stepping remain separate obligations rather than being implied here.
+add_library(climate_time_integration STATIC
+    src/fortran/time_integration.f90
+)
+target_include_directories(climate_time_integration PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 if(ENABLE_TESTING)
     enable_testing()
     add_executable(test_spectral_reference
@@ -34,6 +44,12 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_spectral_reference PRIVATE climate_spectral_reference)
     add_test(NAME spectral_reference COMMAND test_spectral_reference)
+
+    add_executable(test_time_integration
+        tests/fortran/test_time_integration.f90
+    )
+    target_link_libraries(test_time_integration PRIVATE climate_time_integration)
+    add_test(NAME time_integration COMMAND test_time_integration)
 endif()
 
 if(ENABLE_LEGACY_FORTRAN_PROBES)
@@ -85,6 +101,7 @@ endif()
 message(STATUS "")
 message(STATUS "Climate portable configuration:")
 message(STATUS "  Canonical spectral reference: ON")
+message(STATUS "  Canonical time integration:   ON")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")
 message(STATUS "  Legacy Fortran probes:        ${ENABLE_LEGACY_FORTRAN_PROBES}")
 message(STATUS "  MPI probe:                    ${ENABLE_MPI}")

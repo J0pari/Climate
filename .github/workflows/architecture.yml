@@ -95,10 +95,10 @@ jobs:
             -DENABLE_TESTING=ON \
             -DENABLE_BENCHMARKS=OFF \
             -DENABLE_EXPERIMENTAL_OPTIMIZER=OFF
-      - name: Build canonical spectral reference
-        run: cmake --build build-reference --target test_spectral_reference --parallel 2
-      - name: Run canonical spectral witnesses
-        run: ctest --test-dir build-reference --output-on-failure -R '^spectral_reference$'
+      - name: Build canonical Fortran references
+        run: cmake --build build-reference --target test_spectral_reference test_time_integration --parallel 2
+      - name: Run canonical Fortran witnesses
+        run: ctest --test-dir build-reference --output-on-failure -R '^(spectral_reference|time_integration)$'
 
   fortran-legacy-physics:
     runs-on: ubuntu-24.04
