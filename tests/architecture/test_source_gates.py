@@ -1,17 +1,41 @@
 """Negative witnesses for Climate static source gates.
 
 Each gate must prove that it rejects/catches the failure class it exists to
-prevent. These tests use tiny in-memory source maps; they do not assert that the
-current legacy repository is already clean.
+prevent. These tests use tiny in-memory source maps or temporary repository
+surfaces; they do not assert that the current legacy repository is already clean.
 """
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from architecture import source_gates as gates
 
 
 class SourceGateTests(unittest.TestCase):
+    def test_shared_surface_includes_nested_science_and_excludes_control(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            science = root / "future_package" / "solver.rs"
+            science.parent.mkdir(parents=True)
+            science.write_text("fn x() {}\n", encoding="utf-8")
+            reference = root / "reference" / "oracle.py"
+            reference.parent.mkdir(parents=True)
+            reference.write_text("pass\n", encoding="utf-8")
+            control = root / "architecture" / "gate.py"
+            control.parent.mkdir(parents=True)
+            control.write_text("pass\n", encoding="utf-8")
+            test = root / "tests" / "test_gate.py"
+            test.parent.mkdir(parents=True)
+            test.write_text("pass\n", encoding="utf-8")
+
+            observed = {
+                path.relative_to(root.resolve()).as_posix()
+                for path in gates.production_files(root)
+            }
+            self.assertEqual(observed, {"future_package/solver.rs", "reference/oracle.py"})
+
     def test_managed_memory_is_detected(self):
         findings = gates.gate_managed_memory({
             "gpu/example.cu": ["void* p; cudaMallocManaged(&p, 4096);"],

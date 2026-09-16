@@ -14,20 +14,16 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(ROOT))
 
-SOURCE_SUFFIXES = {
-    ".cu", ".cuh", ".cpp", ".cc", ".cxx", ".h", ".hpp",
-    ".rs", ".py", ".jl", ".f90", ".F90", ".hs",
-}
-EXCLUDED_DIRS = {
-    ".git", ".github", "architecture", "docs", "tests", "evidence",
-    "build", "target", ".venv", "venv", "__pycache__",
-}
+from architecture import source_surface
 
 
 @dataclass(frozen=True)
@@ -43,19 +39,17 @@ class Finding:
 
 
 def production_files(root: Path = ROOT) -> Iterable[Path]:
-    for path in sorted(root.rglob("*")):
-        if not path.is_file() or path.suffix not in SOURCE_SUFFIXES:
-            continue
-        rel = path.relative_to(root)
-        if any(part in EXCLUDED_DIRS or part.startswith(".") for part in rel.parts[:-1]):
-            continue
-        yield path
+    """Yield the shared scientific/reference/experiment audit surface."""
+    for item in source_surface.iter_source_files(
+        root, roles=source_surface.AUDITED_ROLES
+    ):
+        yield item.path
 
 
 def read_sources(root: Path = ROOT) -> dict[str, list[str]]:
     result: dict[str, list[str]] = {}
     for path in production_files(root):
-        rel = path.relative_to(root).as_posix()
+        rel = path.relative_to(root.resolve()).as_posix()
         try:
             result[rel] = path.read_text(encoding="utf-8", errors="replace").splitlines()
         except OSError:
