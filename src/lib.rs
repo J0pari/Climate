@@ -9,6 +9,3 @@ pub mod climate_scenario_logic;
 
 #[path = "../climate_feedback_validators.rs"]
 pub mod climate_feedback_validators;
-
-#[path = "../climate_safety_protocols.rs"]
-pub mod climate_safety_protocols;
