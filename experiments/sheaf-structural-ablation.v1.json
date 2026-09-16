@@ -1,0 +1,127 @@
+{
+  "experiment_id": "sheaf.structural_ablation.v1",
+  "semantic_version": "0.1.0",
+  "question": "On deterministic finite linear-network fixtures, does the restriction-aware spectral operator preserve the same local compatibility residual information as an independently computed local-residual baseline, reduce exactly to the scalar graph Laplacian when restrictions are rank-one identities, and remain invariant under representational changes that should not alter the mathematics?",
+  "hypothesis": "sheaf.real.spectral_v1 agrees exactly with sheaf.real.local_residual_v1 on compatibility energy, collapses to graph.scalar_laplacian_v1 under scalar identity restrictions, preserves residuals under known kernel translations, and preserves Laplacian/spectrum under edge-orientation reversal",
+  "candidate_methods": [
+    "sheaf.real.spectral_v1"
+  ],
+  "baseline_methods": [
+    "sheaf.real.local_residual_v1",
+    "graph.scalar_laplacian_v1"
+  ],
+  "datasets": [
+    {
+      "id": "sheaf.synthetic.linear.v1",
+      "digest": "sha256:f37c0322198c535bfa2bfc216f18b80cfd9809e2b4bc6f3a826840394a260f9c",
+      "source_family": "deterministic_finite_linear_sheaf_fixture",
+      "source_version": "1",
+      "variables": [
+        "vertex_stalk_dimensions",
+        "edge_stalk_dimensions",
+        "restriction_matrices",
+        "local_sections"
+      ],
+      "spatial_domain": "synthetic finite graphs only",
+      "grid": "declared vertices and edges; no geographic interpretation",
+      "units_metadata": {
+        "policy": "dimensionless structural fixtures"
+      },
+      "quality_control_policy": "fixture dimensions, finiteness, restriction shapes, expected energies, and expected nullities are executable test conditions",
+      "citation": "fixtures/sheaf/synthetic-linear-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "sheaf.local_energy.max_abs_difference",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless squared residual",
+      "direction": "target",
+      "target": 0.0,
+      "aggregation_domain": "all synthetic cases comparing assembled-coboundary energy to independently computed edge-local restriction residual energy",
+      "missing_data_policy": "any missing case or unavailable comparison is experiment failure",
+      "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance"
+    },
+    {
+      "metric_id": "sheaf.identity_graph.laplacian_max_abs_difference",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless matrix entry",
+      "direction": "target",
+      "target": 0.0,
+      "aggregation_domain": "rank-one identity-restriction fixtures compared with the ordinary scalar graph Laplacian",
+      "missing_data_policy": "absence of the identity-restriction collapse witness is experiment failure",
+      "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance"
+    },
+    {
+      "metric_id": "sheaf.orientation.laplacian_max_abs_difference",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless matrix entry",
+      "direction": "target",
+      "target": 0.0,
+      "aggregation_domain": "each fixture before and after reversing every edge orientation while swapping endpoint restriction maps",
+      "missing_data_policy": "any fixture without its orientation metamorphic witness is experiment failure",
+      "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance"
+    },
+    {
+      "metric_id": "sheaf.kernel_translation.residual_max_abs_difference",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless residual coordinate",
+      "direction": "target",
+      "target": 0.0,
+      "aggregation_domain": "declared fixture perturbations known analytically to lie in ker(D)",
+      "missing_data_policy": "missing or malformed kernel perturbation witness is experiment failure",
+      "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "sheaf.global_section_nullity",
+      "semantic_version": "0.1.0",
+      "units": "dimension",
+      "direction": "descriptive",
+      "aggregation_domain": "each declared finite fixture",
+      "missing_data_policy": "nullity must be reported for every structurally valid fixture"
+    },
+    {
+      "metric_id": "sheaf.smallest_positive_singular_value",
+      "semantic_version": "0.1.0",
+      "units": "operator scale",
+      "direction": "descriptive",
+      "aggregation_domain": "each fixture with nonzero coboundary rank",
+      "missing_data_policy": "absence is allowed only when the coboundary has zero numerical rank"
+    }
+  ],
+  "negative_controls": [
+    "the restriction-aware candidate must not beat the strong local-residual baseline by withholding restriction maps from that baseline; both receive identical endpoint maps",
+    "rank-one identity restrictions must collapse to the ordinary graph incidence/Laplacian construction rather than produce a distinct sheaf-only result",
+    "reversing edge orientation and swapping endpoint restriction maps must not change L0 or singular values",
+    "adding a vector known from the declared restriction map to lie in ker(D) must not change the compatibility residual",
+    "malformed dimensions and non-finite section/restriction values must fail closed rather than produce plausible diagnostics"
+  ],
+  "falsifiers": [
+    "assembled-coboundary compatibility energy disagrees with the independently computed local-residual energy outside the declared FP64 tolerance",
+    "the identity-restriction special case differs from the ordinary graph Laplacian outside tolerance",
+    "edge-orientation reversal changes L0, nullity, or singular values outside tolerance",
+    "a declared kernel translation changes the compatibility residual outside tolerance",
+    "the candidate is credited with incremental scientific detection value on the basis of this structural experiment alone"
+  ],
+  "split_policy": "not applicable; deterministic structural fixtures with additional hidden regression fixtures allowed only for implementation hardening",
+  "preprocessing": "none; matrices and sections are consumed exactly as declared in the fixture",
+  "seeds": [
+    0
+  ],
+  "stopping_rule": "the structural experiment passes only if every primary invariant holds for every required fixture; any later fault-localization or climate-data experiment must be separately preregistered and cannot inherit success from this experiment",
+  "multiple_comparison_policy": "not applicable to deterministic algebraic/metamorphic invariants; any later parameter sweep must report all attempted variants",
+  "expected_artifact_types": [
+    "sheaf_structural_diagnostics/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 2,
+    "memory_bytes": 1073741824,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 120
+  }
+}
