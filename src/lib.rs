@@ -7,6 +7,7 @@
 
 pub mod clifford;
 pub mod feedback;
+pub mod geometry;
 pub mod modal;
 pub mod numerics;
 pub mod padic;
