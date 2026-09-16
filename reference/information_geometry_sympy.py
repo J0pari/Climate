@@ -4,16 +4,21 @@ This module keeps the statistical model explicit. For one observation
 
     X ~ Normal(mu, sigma^2),  sigma > 0,
 
-it derives the score, expected Fisher information, negative expected Hessian,
-and coordinate transformation between `(mu, sigma)` and `(mu, rho=log sigma)`.
-No regularization is part of Fisher information itself; damping or Tikhonov
-terms belong to a separate numerical policy layer.
+it derives score functions, Fisher information, the negative expected Hessian,
+Amari-Chentsov cubic tensor, and Amari alpha-connections. Coordinate changes
+between `(mu, sigma)` and `(mu, rho=log sigma)` remain explicit.
+
+No regularization is part of Fisher information or an alpha-connection itself;
+damping or Tikhonov terms belong to a separate numerical policy layer.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable
 
 import sympy as sp
+
+Tensor3 = tuple[tuple[tuple[sp.Expr, ...], ...], ...]
 
 
 @dataclass(frozen=True)
@@ -39,6 +44,21 @@ class NormalInformationGeometry:
     def score_mu_rho_standardized(self) -> sp.Matrix:
         """Score in coordinates `(mu, rho=log sigma)`."""
         return sp.Matrix([self.z * sp.exp(-self.rho), self.z**2 - 1])
+
+    def hessian_mu_rho_standardized(self) -> sp.Matrix:
+        """Parameter Hessian of log p at fixed observation, then standardized.
+
+        `z=(X-mu)/exp(rho)` is substituted only after differentiating with
+        respect to the parameters at fixed X. Treating z as parameter-independent
+        during differentiation would give the wrong statistical connection.
+        """
+        z, rho = self.z, self.rho
+        return sp.Matrix(
+            [
+                [-sp.exp(-2 * rho), -2 * z * sp.exp(-rho)],
+                [-2 * z * sp.exp(-rho), -2 * z**2],
+            ]
+        )
 
     def fisher_mu_sigma(self) -> sp.Matrix:
         return sp.diag(self.sigma**-2, 2 * self.sigma**-2)
@@ -79,20 +99,73 @@ def expected_outer_product(score: sp.Matrix, z: sp.Symbol) -> sp.Matrix:
 
 
 def negative_expected_hessian_mu_rho(geometry: NormalInformationGeometry) -> sp.Matrix:
-    """Negative expected Hessian of log p in `(mu,rho)` coordinates.
-
-    The Hessian is expressed after standardizing `X=mu+exp(rho) z`, so the
-    expectation is exact through standard-normal moments rather than sampled
-    observations.
-    """
-    z, rho = geometry.z, geometry.rho
-    hessian = sp.Matrix(
-        [
-            [-sp.exp(-2 * rho), -2 * z * sp.exp(-rho)],
-            [-2 * z * sp.exp(-rho), -2 * z**2],
-        ]
+    """Negative expected Hessian of log p in `(mu,rho)` coordinates."""
+    return -geometry.hessian_mu_rho_standardized().applyfunc(
+        lambda expr: standard_normal_expectation(expr, geometry.z)
     )
-    return -hessian.applyfunc(lambda expr: standard_normal_expectation(expr, z))
+
+
+def _tensor3(dimension: int, fn: Callable[[int, int, int], sp.Expr]) -> Tensor3:
+    return tuple(
+        tuple(
+            tuple(sp.simplify(fn(i, j, k)) for k in range(dimension))
+            for j in range(dimension)
+        )
+        for i in range(dimension)
+    )
+
+
+def amari_chentsov_mu_rho(geometry: NormalInformationGeometry) -> Tensor3:
+    """Amari-Chentsov cubic tensor T_ijk = E[s_i s_j s_k]."""
+    score = geometry.score_mu_rho_standardized()
+    z = geometry.z
+    return _tensor3(
+        score.rows,
+        lambda i, j, k: standard_normal_expectation(score[i] * score[j] * score[k], z),
+    )
+
+
+def alpha_connection_lower_mu_rho(
+    geometry: NormalInformationGeometry,
+    alpha: sp.Expr,
+) -> Tensor3:
+    """Lowered Amari alpha-connection coefficients Γ^(α)_{ij,k}.
+
+    Convention:
+
+        Γ^(α)_{ij,k}
+          = E[(∂_i∂_j l + (1-α)/2 ∂_i l ∂_j l) ∂_k l]
+
+    for log likelihood `l`. The first two indices are therefore symmetric for
+    this torsion-free statistical connection.
+    """
+    score = geometry.score_mu_rho_standardized()
+    hessian = geometry.hessian_mu_rho_standardized()
+    z = geometry.z
+    factor = (1 - alpha) / 2
+    return _tensor3(
+        score.rows,
+        lambda i, j, k: standard_normal_expectation(
+            (hessian[i, j] + factor * score[i] * score[j]) * score[k],
+            z,
+        ),
+    )
+
+
+def levi_civita_lower(metric: sp.Matrix, coordinates: tuple[sp.Symbol, ...]) -> Tensor3:
+    """Lowered Levi-Civita coefficients Γ_{ij,k} from a metric."""
+    if metric.rows != metric.cols or metric.rows != len(coordinates):
+        raise ValueError("metric dimension must match coordinate dimension")
+    n = metric.rows
+    return _tensor3(
+        n,
+        lambda i, j, k: sp.Rational(1, 2)
+        * (
+            sp.diff(metric[j, k], coordinates[i])
+            + sp.diff(metric[i, k], coordinates[j])
+            - sp.diff(metric[i, j], coordinates[k])
+        ),
+    )
 
 
 def pullback_metric(metric: sp.Matrix, jacobian: sp.Matrix) -> sp.Matrix:
