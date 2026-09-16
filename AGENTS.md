@@ -16,6 +16,8 @@ This file is the binding contributor/agent contract. `README.md` is descriptive 
 8. **No architecture-by-prose.** Claimed paths, commands, interfaces, datasets, and generated artifacts must eventually be machine checked. Current structural drift is a known defect, not precedent.
 9. **Reproducibility is part of correctness.** Results intended as evidence must bind code revision, method/config versions, dataset identities, preprocessing, random seeds, environment, command, artifacts, and metric definitions.
 10. **Commons is a control/evidence boundary, not a scientific authority.** Commons may schedule, fingerprint, trace, and compare Climate experiments. It must not convert experimental Climate output into stronger evidence classes than Climate earned.
+11. **Performance is not scientific evidence by itself.** A faster GPU path does not strengthen a scientific claim unless it preserves the declared numerical semantics and passes the same validation contract.
+12. **Fallbacks are distinct implementations.** CPU, fake/compatibility MPI or NCCL, reduced precision, tensor-core fallbacks, approximate solvers, and alternate algorithms must not masquerade as the requested implementation in evidence-producing runs.
 
 ## 2. Claim maturity vocabulary
 
@@ -93,25 +95,64 @@ Numerical kernels should grow tests in roughly this order where applicable:
 
 Do not claim "machine precision" or exact conservation unless a test records the quantity, normalization, precision, horizon, tolerance, and platform sensitivity.
 
-## 7. Data rules
+## 7. GPU and accelerator contract
+
+All evidence-producing CUDA/accelerator work must follow `docs/GPU-ENGINEERING.md`.
+
+Before a new accelerated method is treated as more than an exploratory prototype, declare:
+
+- device-resident buffers and lifetimes;
+- expected transfer schedule;
+- precision/accumulator/refinement policy;
+- conditioning/failure behavior where linear algebra is involved;
+- determinism class (`D0`, `D1`, or `D2` as defined in the GPU spec);
+- RNG identity and seed derivation if stochastic;
+- resource envelope/VRAM estimate;
+- reference or differential witness;
+- whether setup/transfers are included in performance claims;
+- actual fallback identity if the preferred capability is absent.
+
+Host code owns scientific interpretation and claim/evidence state. Device kernels execute bounded numerical transformations; they do not promote outputs into physical probabilities, causal claims, or validated conclusions.
+
+Do not optimize away the reference implementation before the accelerated path has independent witnesses.
+
+## 8. Data rules
 
 Climate data artifacts should move toward CF-compliant metadata and explicit provenance. Never silently substitute missing observations with climatological/default values in a path used for validation. Missingness, imputation, regridding, temporal aggregation, unit conversion, detrending, anomaly baselines, and quality-control exclusions are part of the experiment definition.
 
-## 8. Current repository status
+## 9. Architecture/source audit discipline
+
+The repository now contains `architecture/source_gates.py` plus planted negative witnesses in `tests/architecture/`.
+
+During the current migration stage:
+
+```text
+python -m unittest discover -s tests/architecture -v
+python architecture/source_gates.py --summary
+```
+
+The first command is binding: the guards must prove that they detect their planted violations. The second command is currently an **audit**, not a cleanliness assertion, because legacy source intentionally contains known debt.
+
+`python architecture/source_gates.py --strict` becomes binding only as individual debt classes are retired under `docs/ROADMAP.md`. Do not make a broad allowlist permanent merely to turn CI green; either repair the source, narrow the gate to the intended semantic boundary, or record a temporary exception with rationale and expiry.
+
+## 10. Current repository status
 
 The current `main` tree is not a coherent build workspace. In particular, build metadata refers to a `CORE/` hierarchy and test/config paths that do not exist in the current flat tree. Do not "fix" that by fabricating empty directories or moving files before the target package/layout plan is agreed and migration tests exist.
 
 Several modules already label themselves unvalidated or contain explicit placeholders. Preserve those warnings until evidence justifies changing them.
 
-## 9. Commons-facing behavior
+## 11. Commons-facing behavior
 
 Until the gates in `docs/COMMONS-INTEGRATION.md` are satisfied, Climate should be treated by Commons as **experimental / observe-only**.
 
 The first integration milestone is read-only inspection and evidence capture. Execution comes later behind a sandbox. Write/PR authority comes after binding contracts, reproducible gates, and immutable receipts exist.
 
-## 10. Read before substantive changes
+For GPU work, Commons should eventually own cross-repository resource leases and run identity; Climate owns device-local numerical execution, streams, layouts, kernels, numerical checkpoint semantics, and hardware-specific correctness tests.
+
+## 12. Read before substantive changes
 
 - `docs/ARCHITECTURE.md`
+- `docs/GPU-ENGINEERING.md`
 - `docs/VALIDATION-AND-EVIDENCE.md`
 - `docs/META-EXPERIMENTATION.md`
 - `docs/COMMONS-INTEGRATION.md`
