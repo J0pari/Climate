@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "hazards": [
+    {
+      "hazard_id": "oscillation.plausible_output_prototype",
+      "path": "climate_oscillation_monitor.f90",
+      "class": "S4",
+      "status": "resolved",
+      "disposition": "stubbed",
+      "blocks_evidence": true,
+      "reason": "Legacy module mixed fake forecast-skill formulas, incomplete oscillation states, uninitialized-data execution, and authoritative oscillation labels.",
+      "blueprint": "blueprints/oscillation-monitor.md"
+    },
+    {
+      "hazard_id": "spectral.zero_or_empty_algorithms",
+      "path": "climate_spectral_analysis.f90",
+      "class": "S4",
+      "status": "resolved",
+      "disposition": "stubbed",
+      "blocks_evidence": true,
+      "reason": "Legacy omnibus module exposed real algorithm names while EEMD/SSA/CEEMDAN and other paths returned zeros, no result, or inconsistent code.",
+      "blueprint": "blueprints/spectral-analysis.md"
+    },
+    {
+      "hazard_id": "geometry.dual_derivative_placeholders",
+      "path": "climate_manifold.rs",
+      "class": "S4",
+      "status": "open",
+      "disposition": "replace_with_stub",
+      "blocks_evidence": true,
+      "reason": "Dual metric/Christoffel paths are incomplete while higher curvature and climate-risk interpretation depend on them.",
+      "blueprint": "docs/GEOMETRY-VERIFICATION.md"
+    },
+    {
+      "hazard_id": "geometry.heuristic_tipping_probability",
+      "path": "climate_manifold.rs",
+      "class": "S4",
+      "status": "open",
+      "disposition": "remove_or_retype",
+      "blocks_evidence": true,
+      "reason": "Curvature/eigenvalue thresholds are transformed into named tipping probabilities/timescales without a validated interpretation mapping.",
+      "blueprint": "docs/GEOMETRY-VERIFICATION.md"
+    },
+    {
+      "hazard_id": "guardrails.fabricated_conditioning_eigenvalues",
+      "path": "climate_safety_protocols.rs",
+      "class": "S4",
+      "status": "open",
+      "disposition": "fail_closed",
+      "blocks_evidence": true,
+      "reason": "Fallback max/min eigenvalues are hard-coded and can masquerade as numerical conditioning diagnostics."
+    },
+    {
+      "hazard_id": "state.synthetic_default_humidity",
+      "path": "climate_state.rs",
+      "class": "S3",
+      "status": "open",
+      "disposition": "remove_or_retype",
+      "blocks_evidence": true,
+      "reason": "Physical state initialization inserts fixed placeholder relative humidity under a physical field name."
+    },
+    {
+      "hazard_id": "physics.placeholder_solar_declination",
+      "path": "climate_physics_core.f90",
+      "class": "S3",
+      "status": "open",
+      "disposition": "remove_or_retype",
+      "blocks_evidence": true,
+      "reason": "General physical-core path includes a placeholder fixed solar-declination value and simplified constants/closures without sufficiently narrow semantics."
+    },
+    {
+      "hazard_id": "ffi.placeholder_backends",
+      "path": "climate_ffi_bridge.rs",
+      "class": "S3",
+      "status": "open",
+      "disposition": "fail_capability_discovery",
+      "blocks_evidence": true,
+      "reason": "Julia/Haskell or advanced array interoperability is described by an FFI bridge despite placeholder/absent backend implementation."
+    },
+    {
+      "hazard_id": "scheduler.placeholder_checkpoint_restart",
+      "path": "climate_scheduler.rs",
+      "class": "S3",
+      "status": "open",
+      "disposition": "remove_or_fail_closed",
+      "blocks_evidence": true,
+      "reason": "Checkpoint/restart is placeholder behavior inside a scheduler whose future global resource role should move to Commons."
+    },
+    {
+      "hazard_id": "sheaf.mislabeled_betti_numbers",
+      "path": "climate_multiscale_sheaf.hs",
+      "class": "S3",
+      "status": "open",
+      "disposition": "rename_or_remove",
+      "blocks_evidence": true,
+      "reason": "Threshold counts are labeled as Betti numbers without computing homology/cohomology ranks."
+    },
+    {
+      "hazard_id": "sheaf.stub_global_gluing",
+      "path": "climate_multiscale_sheaf.hs",
+      "class": "S4",
+      "status": "open",
+      "disposition": "fail_closed",
+      "blocks_evidence": true,
+      "reason": "Global gluing uses an arbitrary union while the interface implies a reconstructed global section."
+    },
+    {
+      "hazard_id": "numerics.fake_convergence_check",
+      "path": "climate_numerics.jl",
+      "class": "S3",
+      "status": "open",
+      "disposition": "remove_or_retype",
+      "blocks_evidence": true,
+      "reason": "A solver path explicitly labels its convergence test fake and does not check the actual residual."
+    },
+    {
+      "hazard_id": "information_geometry.synthetic_internal_observations",
+      "path": "climate_fisher_information.py",
+      "class": "S3",
+      "status": "open",
+      "disposition": "separate_fixture_from_method",
+      "blocks_evidence": true,
+      "reason": "Some Fisher/connection/tensor calculations use dummy or synthetic observations internally rather than a fully explicit statistical-model input."
+    },
+    {
+      "hazard_id": "cuda.compatibility_shims_identity",
+      "path": "climate_curvature_compute.cu",
+      "class": "S3",
+      "status": "open",
+      "disposition": "separate_implementation_identity",
+      "blocks_evidence": true,
+      "reason": "MPI/NCCL/WMMA compatibility shims must never retain the identity of the real accelerated capability in evidence-producing runs."
+    }
+  ]
+}
