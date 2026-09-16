@@ -61,7 +61,7 @@ jobs:
       - name: Compile and test canonical Rust surface
         run: cargo test --all-targets
 
-  fortran-portable:
+  fortran-reference:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -69,18 +69,39 @@ jobs:
         run: |
           gfortran --version | head -n 1
           cmake --version | head -n 1
-      - name: Configure CPU-only Fortran probes
+      - name: Configure canonical Fortran reference
         run: |
-          cmake -S . -B build-portable \
+          cmake -S . -B build-reference \
+            -DENABLE_LEGACY_FORTRAN_PROBES=OFF \
+            -DENABLE_CUDA=OFF \
+            -DENABLE_MPI=OFF \
+            -DENABLE_TESTING=ON \
+            -DENABLE_BENCHMARKS=OFF \
+            -DENABLE_EXPERIMENTAL_OPTIMIZER=OFF
+      - name: Build canonical spectral reference
+        run: cmake --build build-reference --target test_spectral_reference --parallel 2
+      - name: Run canonical spectral witnesses
+        run: ctest --test-dir build-reference --output-on-failure -R '^spectral_reference$'
+
+  fortran-legacy-physics:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record Fortran toolchain
+        run: |
+          gfortran --version | head -n 1
+          cmake --version | head -n 1
+      - name: Configure legacy physics compile probe
+        run: |
+          cmake -S . -B build-physics \
+            -DENABLE_LEGACY_FORTRAN_PROBES=ON \
             -DENABLE_CUDA=OFF \
             -DENABLE_MPI=OFF \
             -DENABLE_TESTING=OFF \
             -DENABLE_BENCHMARKS=OFF \
             -DENABLE_EXPERIMENTAL_OPTIMIZER=OFF
-      - name: Compile spectral probe
-        run: cmake --build build-portable --target climate_spectral_compile_probe --parallel 2
-      - name: Compile physics probe
-        run: cmake --build build-portable --target climate_physics_compile_probe --parallel 2
+      - name: Compile legacy physics source
+        run: cmake --build build-physics --target climate_physics_compile_probe --parallel 2
 
   reference-geometry:
     runs-on: ubuntu-latest
