@@ -98,6 +98,15 @@ target_link_libraries(climate_saturation_moisture PUBLIC
     climate_moist_vapor_algebra
 )
 
+# Coordinate-independent extensive flux-form mass and tracer update. Geometry,
+# face-state reconstruction, and limiter choice remain caller-owned.
+add_library(climate_conservative_transport STATIC
+    src/fortran/conservative_transport.f90
+)
+target_include_directories(climate_conservative_transport PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Climate-specific geometric-height finite-volume diffusion operator. Solver
 # choice is deliberately separate from operator construction.
 add_library(climate_vertical_diffusion STATIC
@@ -189,6 +198,12 @@ if(ENABLE_TESTING)
     )
     add_test(NAME saturation_moisture COMMAND test_saturation_moisture)
 
+    add_executable(test_conservative_transport
+        tests/fortran/test_conservative_transport.f90
+    )
+    target_link_libraries(test_conservative_transport PRIVATE climate_conservative_transport)
+    add_test(NAME conservative_transport COMMAND test_conservative_transport)
+
     add_executable(test_vertical_diffusion
         tests/fortran/test_vertical_diffusion.f90
     )
@@ -268,6 +283,7 @@ message(STATUS "  Pressure hydrostatics:        ON")
 message(STATUS "  Moist vapor algebra:          ON")
 message(STATUS "  Saturation vapor pressure:    ON")
 message(STATUS "  Saturation moisture:          ON")
+message(STATUS "  Conservative transport:       ON")
 message(STATUS "  Vertical diffusion operator:  ON")
 message(STATUS "  LAPACK tridiagonal backend:   ${ENABLE_LAPACK_BACKEND}")
 message(STATUS "  Canonical tests:              ${ENABLE_TESTING}")
