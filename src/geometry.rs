@@ -145,7 +145,7 @@ impl MetricJet {
 }
 
 fn validate_matrix(
-    component: &str,
+    component: &'static str,
     matrix: &DMatrix<f64>,
     n: usize,
     derivative: Option<(usize, Option<usize>)>,
@@ -241,7 +241,6 @@ pub fn levi_civita_from_jet(jet: &MetricJet) -> Result<GeometryAtPoint, Geometry
         .map(|dg| -(&inverse * dg * &inverse))
         .collect();
 
-    // d_christoffel[p,i,j,k] = ∂_p Γ^i_jk.
     let mut d_christoffel = vec![0.0; n * n * n * n];
     for deriv in 0..n {
         for upper in 0..n {
