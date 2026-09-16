@@ -67,6 +67,16 @@ target_include_directories(climate_pressure_coordinate_hydrostatics PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Pressure-coordinate continuity integration for omega from layer pressure-mean
+# horizontal divergence and an explicit lower-boundary omega. No geometric
+# vertical-velocity conversion or boundary closure policy is implied.
+add_library(climate_pressure_coordinate_continuity STATIC
+    src/fortran/pressure_coordinate_continuity.f90
+)
+target_include_directories(climate_pressure_coordinate_continuity PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Exact ideal-gas algebra for a dry-air/water-vapor mixture. Saturation-vapor-
 # pressure and condensed-phase models remain separate scientific providers.
 add_library(climate_moist_vapor_algebra STATIC
@@ -169,6 +179,14 @@ if(ENABLE_TESTING)
         climate_moist_vapor_algebra
     )
     add_test(NAME pressure_coordinate_hydrostatics COMMAND test_pressure_coordinate_hydrostatics)
+
+    add_executable(test_pressure_coordinate_continuity
+        tests/fortran/test_pressure_coordinate_continuity.f90
+    )
+    target_link_libraries(test_pressure_coordinate_continuity PRIVATE
+        climate_pressure_coordinate_continuity
+    )
+    add_test(NAME pressure_coordinate_continuity COMMAND test_pressure_coordinate_continuity)
 
     add_executable(test_moist_vapor_algebra
         tests/fortran/test_moist_vapor_algebra.f90
@@ -280,6 +298,7 @@ message(STATUS "  Canonical linear reference:   ON")
 message(STATUS "  Exact Coriolis rotation:      ON")
 message(STATUS "  Dry thermodynamics:           ON")
 message(STATUS "  Pressure hydrostatics:        ON")
+message(STATUS "  Pressure continuity/omega:    ON")
 message(STATUS "  Moist vapor algebra:          ON")
 message(STATUS "  Saturation vapor pressure:    ON")
 message(STATUS "  Saturation moisture:          ON")
