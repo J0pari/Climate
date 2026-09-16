@@ -25,8 +25,8 @@
       "language": "fortran",
       "maturity": "prototype",
       "evidence_eligible": false,
-      "intended_role": "oscillation indices and early-warning diagnostics",
-      "known_gaps": ["embedded test program is explicitly unvalidated/placeholder", "null-model and observational validation are not established"]
+      "intended_role": "explicit unavailable stub for the removed oscillation-monitor prototype; replacement design lives in blueprints/oscillation-monitor.md",
+      "known_gaps": ["scientific capability intentionally unavailable", "legacy plausible-output implementation removed under semantic sanitation policy", "requires narrow index/spectral/forecast-verification implementations before reintroduction"]
     },
     {
       "path": "climate_data_pipeline.py",
