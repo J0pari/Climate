@@ -81,22 +81,22 @@ Obligations: **8 realized / 7 open / 15 total**.
 
 | Layer | Realized | Open |
 | --- | ---: | ---: |
-| `R1` | 3 | 0 |
-| `R2` | 5 | 0 |
-| `R3` | 0 | 4 |
-| `R4` | 0 | 1 |
-| `R5` | 0 | 1 |
-| `R6` | 0 | 1 |
+| `SH1` | 3 | 0 |
+| `SH2` | 5 | 0 |
+| `SH3` | 0 | 4 |
+| `SH4` | 0 | 1 |
+| `SH5` | 0 | 1 |
+| `SH6` | 0 | 1 |
 
 Open obligations:
 
-- `station_cover_nerve` (`R3`): Station simplices are derived from a scientifically declared geographic coverage/intersection rule rather than arbitrary station tuples.
-- `climate_stalks_and_restrictions` (`R3`): A concrete climate-data stalk model and restriction maps are defined with units and missing-data semantics.
-- `restriction_functoriality` (`R3`): Identity and composition laws for the actual climate-data restrictions are executable invariants.
-- `data_sheaf_coboundary` (`R3`): The climate-data cochain differential is constructed from the declared restriction maps and independently satisfies d^2 = 0.
-- `global_section_and_gluing` (`R4`): Compatibility, existence, uniqueness, and any reconstruction semantics for climate-data global sections are implemented against the actual restrictions; incompatibility is not silently merged away.
-- `synthetic_fault_falsification` (`R5`): Known-topology, injected-fault, withheld-data, and negative-control experiments test whether the sheaf quantities detect what they claim to detect.
-- `baseline_and_real_data_incremental_value` (`R6`): Task-scoped real-data evaluation demonstrates incremental value, if any, over graph residual, QC, interpolation, and other declared baselines.
+- `station_cover_nerve` (`SH3`): Station simplices are derived from a scientifically declared geographic coverage/intersection rule rather than arbitrary station tuples.
+- `climate_stalks_and_restrictions` (`SH3`): A concrete climate-data stalk model and restriction maps are defined with units and missing-data semantics.
+- `restriction_functoriality` (`SH3`): Identity and composition laws for the actual climate-data restrictions are executable invariants.
+- `data_sheaf_coboundary` (`SH3`): The climate-data cochain differential is constructed from the declared restriction maps and independently satisfies d^2 = 0.
+- `global_section_and_gluing` (`SH4`): Compatibility, existence, uniqueness, and any reconstruction semantics for climate-data global sections are implemented against the actual restrictions; incompatibility is not silently merged away.
+- `synthetic_fault_falsification` (`SH5`): Known-topology, injected-fault, withheld-data, and negative-control experiments test whether the sheaf quantities detect what they claim to detect.
+- `baseline_and_real_data_incremental_value` (`SH6`): Task-scoped real-data evaluation demonstrates incremental value, if any, over graph residual, QC, interpolation, and other declared baselines.
 
 ## Interpretation boundary
 
