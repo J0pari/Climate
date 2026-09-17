@@ -4,6 +4,8 @@ module climate_pressure_coordinate_hydrostatics
     use climate_pressure_coordinate_grid, only: &
         validate_pressure_layer, PRESSURE_GRID_OK, PRESSURE_GRID_ERR_NONFINITE, &
         PRESSURE_GRID_ERR_PRESSURE, PRESSURE_GRID_ERR_ORDER
+    use climate_thermodynamic_reference_values, only: DRY_AIR_GAS_CONSTANT_J_KG_K
+    use climate_geophysical_reference_values, only: STANDARD_GRAVITY_M_S2
     implicit none
     private
 
@@ -19,8 +21,11 @@ module climate_pressure_coordinate_hydrostatics
     integer, parameter, public :: HYDRO_ERR_RESULT = 7
 
     type, public :: hydrostatic_parameters
-        real(dp) :: dry_air_gas_constant_j_kg_k = 287.05_dp
-        real(dp) :: gravity_m_s2 = 9.80665_dp
+        ! Narrow hydrostatic policy surface. Shared conventional defaults are
+        ! imported from reference-value authorities; callers may override this
+        ! record independently for model-specific gas constants or gravity.
+        real(dp) :: dry_air_gas_constant_j_kg_k = DRY_AIR_GAS_CONSTANT_J_KG_K
+        real(dp) :: gravity_m_s2 = STANDARD_GRAVITY_M_S2
     end type hydrostatic_parameters
 
     public :: compute_hydrostatic_layer
