@@ -11,6 +11,7 @@ from reference.two_layer_energy_balance import (
     equilibrium_state_k,
     flux_coordinates_w_m2,
     forcing_from_fixture,
+    heat_capacity_metric,
     initial_state_from_fixture,
     load_fixture,
     modal_coordinates,
@@ -20,6 +21,7 @@ from reference.two_layer_energy_balance import (
     reservoir_storage_fluxes_w_m2,
     state_from_flux_coordinates_k,
     state_from_modal_coordinates_k,
+    system_matrix,
     tendency_k_per_year,
     toa_imbalance_w_m2,
     trajectory_constant_forcing,
@@ -83,6 +85,35 @@ class TwoLayerEnergyBalanceReferenceTests(unittest.TestCase):
         recovered = state_from_flux_coordinates_k(flux, self.parameters, self.forcing)
         np.testing.assert_allclose(recovered, state, rtol=0.0, atol=2e-16)
 
+    def test_system_matrix_is_self_adjoint_in_heat_capacity_metric(self) -> None:
+        matrix = system_matrix(self.parameters)
+        metric = heat_capacity_metric(self.parameters)
+        np.testing.assert_allclose(
+            metric @ matrix,
+            matrix.T @ metric,
+            rtol=2e-14,
+            atol=2e-14,
+        )
+
+    def test_modal_basis_is_heat_capacity_orthonormal_and_diagonalizes_dynamics(self) -> None:
+        timescales, basis = mode_basis(self.parameters)
+        metric = heat_capacity_metric(self.parameters)
+        matrix = system_matrix(self.parameters)
+        decay_rates = -1.0 / timescales
+
+        np.testing.assert_allclose(
+            basis.T @ metric @ basis,
+            np.eye(2),
+            rtol=2e-13,
+            atol=2e-13,
+        )
+        np.testing.assert_allclose(
+            matrix @ basis,
+            basis @ np.diag(decay_rates),
+            rtol=2e-13,
+            atol=2e-13,
+        )
+
     def test_modal_representation_round_trip_and_timescale_order(self) -> None:
         state = np.array([0.37, 0.09])
         timescales, basis = mode_basis(self.parameters)
@@ -95,6 +126,15 @@ class TwoLayerEnergyBalanceReferenceTests(unittest.TestCase):
         self.assertTrue(np.all(timescales > 0.0))
         self.assertLess(timescales[0], timescales[1])
         np.testing.assert_allclose(recovered, state, rtol=0.0, atol=2e-15)
+
+    def test_modal_coordinates_are_heat_capacity_weighted_projection(self) -> None:
+        state = np.array([0.37, 0.09])
+        equilibrium = equilibrium_state_k(self.parameters, self.forcing)
+        _, basis = mode_basis(self.parameters)
+        metric = heat_capacity_metric(self.parameters)
+        coordinates = modal_coordinates(state, self.parameters, self.forcing)
+        expected = basis.T @ metric @ (state - equilibrium)
+        np.testing.assert_allclose(coordinates, expected, rtol=2e-14, atol=2e-14)
 
     def test_direct_trajectory_matches_exact_pointwise_advance(self) -> None:
         times = np.array([0.0, 1.0, 10.0, 100.0, 500.0])
