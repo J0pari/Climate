@@ -6,6 +6,7 @@ module climate_vertical_diffusion
 
     integer, parameter, public :: dp = real64
 
+    integer, parameter :: VBC_UNSPECIFIED = -1
     integer, parameter, public :: VBC_ZERO_FLUX = 0
     integer, parameter, public :: VBC_PRESCRIBED_FLUX = 1
     integer, parameter, public :: VBC_PRESCRIBED_VALUE = 2
@@ -20,11 +21,13 @@ module climate_vertical_diffusion
     integer, parameter, public :: VDIFF_ERR_OPERATOR = 7
 
     type, public :: height_diffusion_boundary
-        integer :: kind = VBC_ZERO_FLUX
+        ! Both components are required in a structure constructor. A boundary
+        ! condition is a physical choice and therefore has no implicit default.
+        integer :: kind
         ! For PRESCRIBED_VALUE, value has the same units as the transported
         ! scalar. For PRESCRIBED_FLUX, value is the physical upward flux
         ! q=-K d(phi)/dz and therefore has scalar_unit*m/s.
-        real(dp) :: value = 0.0_dp
+        real(dp) :: value
     end type height_diffusion_boundary
 
     type, public :: height_diffusion_diagnostics
@@ -71,8 +74,10 @@ contains
         if (allocated(operator%diagonal_s_inv)) deallocate(operator%diagonal_s_inv)
         if (allocated(operator%upper_s_inv)) deallocate(operator%upper_s_inv)
         if (allocated(operator%source_per_s)) deallocate(operator%source_per_s)
-        operator%bottom_boundary = height_diffusion_boundary()
-        operator%top_boundary = height_diffusion_boundary()
+        operator%bottom_boundary%kind = VBC_UNSPECIFIED
+        operator%bottom_boundary%value = 0.0_dp
+        operator%top_boundary%kind = VBC_UNSPECIFIED
+        operator%top_boundary%value = 0.0_dp
         operator%diagnostics = height_diffusion_diagnostics()
     end subroutine reset_operator
 
