@@ -8,16 +8,15 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 ## Planning summary
 
 - Active: 0
-- Ready: 13
+- Ready: 12
 - Blocked: 12
-- Done: 2
+- Done: 3
 - Dropped: 0
 
 ## Graph projection
 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
-| `architecture.layered_configuration` — Define layered runtime configuration contracts | `ready` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `ready` | `P0` | `R2_toolchain_ci` | — |
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `ready` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `sheaf.climate_data_semantics` — Realize station-cover sheaf semantics | `ready` | `P0` | `R2_toolchain_ci` | — |
@@ -42,6 +41,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `blocked` | `P2` | `R2_toolchain_ci` | `data.immutable_observational_projection` |
 | `gpu.justified_geometry_acceleration` — Prepare GPU differential execution only for a justified workload | `blocked` | `P2` | `R3_cuda_device` | `geometry.nonlinear_coordinate_witness`, `geometry.independent_derivative_route` |
 | `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `blocked` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
+| `architecture.layered_configuration` — Define layered runtime configuration contracts | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `architecture.legacy_source_depletion` — Deplete and delete legacy root monoliths | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `architecture.reference_values` — Focused atmospheric reference-value authority | `done` | `P0` | `R2_toolchain_ci` | — |
 
