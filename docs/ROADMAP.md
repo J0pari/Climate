@@ -2,7 +2,7 @@
 
 Status: **binding dependency and priority map**. This is not a serial phase plan.
 
-Climate is a heterogeneous research system: formal mathematics, portable numerical kernels, legacy scientific prototypes, statistical methods, GPU code, external climate data, and Commons integration do not share one global maturity level. Work should advance along independent obligation paths whenever their prerequisites and required resources are available.
+Climate is a heterogeneous research system: formal mathematics, portable numerical kernels, experimental scientific methods, statistical methods, GPU code, external climate data, and Commons integration do not share one global maturity level. Work should advance along independent obligation paths whenever their prerequisites and required resources are available.
 
 Objective repository state is generated from the live registries at [`docs/generated/STATUS.md`](generated/STATUS.md). Do not duplicate module counts, claim maturity tables, experiment lists, or sheaf-obligation counts here. `python architecture/render_status.py --check` makes that projection a drift-checked CI surface.
 
@@ -78,7 +78,7 @@ A weaker abstraction is retained only when it is independently the better tool f
 
 ### 3.2 Multirepresentation climate geometry
 
-The repository now has independent symbolic geometry, a canonical CPU Levi-Civita kernel over explicit metric jets, and canonical Fisher-information primitives for explicit Gaussian observation models. These should support a broader research question than selecting one hand-built climate metric.
+Independent symbolic geometry, a canonical CPU Levi-Civita kernel over explicit metric jets, and canonical Fisher-information primitives for explicit Gaussian observation models provide foundations for a broader research question than selecting one hand-built climate metric.
 
 The candidate unifying program is defined in `docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`:
 
@@ -90,9 +90,9 @@ The candidate unifying program is defined in `docs/MULTIREPRESENTATION-CLIMATE-M
 - treat curvature, geodesics, holonomy, topology, and intrinsic dimension as diagnostics rather than universal optimization objectives;
 - test whether candidate geometry preserves/reveals physical dynamics, identifiable information, balances, subsystem coupling, and useful predictive structure beyond simpler representations.
 
-This also changes the interpretation of several experimental mathematics families. Sheaf structure may help with local data/chart consistency, ultrametric methods may contribute an alternative relational geometry or kernel, Clifford structure may represent local oriented/multicomponent dynamics, and Noether/Hamiltonian structure may constrain physical evolution without each becoming a coordinate axis of one universal manifold.
+Within this program, sheaf structure may help with local data/chart consistency, ultrametric methods may contribute an alternative relational geometry or kernel, Clifford structure may represent local oriented/multicomponent dynamics, and Noether/Hamiltonian structure may constrain physical evolution without each becoming a coordinate axis of one universal manifold.
 
-Remaining numerical obligations still include:
+Numerical obligations include:
 
 - independent derivative-generation witnesses (analytic/AD/finite difference/complex step where applicable);
 - coordinate reparameterization, scale/unit, and permutation metamorphics on the canonical geometry implementation;
@@ -121,11 +121,11 @@ The next scientifically meaningful layer is not more abstract topology. It is a 
 
 The real-valued sheaf Laplacian/singular spectrum remains a candidate global aggregation mechanism. It must demonstrate incremental value over the same-restriction local residual baseline; withholding restriction information from the baseline is not allowed.
 
-### 3.4 Legacy physics decomposition
+### 3.4 Physical-kernel decomposition and coupled recomposition
 
-`climate_physics_core.f90` remains a failing compile probe and a major mixed-concern monolith. The repair strategy is **preserve → slice → type seams → recompose → verify**, not wholesale quarantine and not patch-until-green.
+The atmospheric physical core should be composed from scientifically coherent kernels with explicit interfaces rather than one mixed-concern state transition.
 
-Extract scientifically coherent kernels when their interfaces can be made explicit, for example:
+Required responsibility boundaries include:
 
 - thermodynamics/radiation;
 - transport/dynamics;
@@ -134,7 +134,9 @@ Extract scientifically coherent kernels when their interfaces can be made explic
 - land/ocean/ice coupling;
 - budgets/diagnostics.
 
-Each extracted kernel should gain units/state assumptions plus analytic/manufactured/budget witnesses before becoming canonical. Embedded demonstration programs and placeholder physical closures must not define the final package shape.
+Each kernel should carry explicit units, state assumptions, conservation/exchange semantics, and analytic/manufactured/budget witnesses before becoming canonical. Recomposition must preserve the physical transfers between kernels rather than validating each piece in isolation and assuming the coupled system closes automatically.
+
+The most important coupled obligations are continuity-consistent mass fluxes, pressure-gradient/pressure-work coupling, kinetic/internal/potential/latent energy exchange, conservative tracer transport, physically signed dissipation, and explicit boundary/surface/radiative exchanges.
 
 ### 3.5 Data and provenance spine
 
@@ -186,7 +188,7 @@ Do only on a real CUDA device:
 
 ### Integrated Commons (`R4`)
 
-Current Climate/Commons relationship remains experimental and observe-first. Prepare narrow repository-inspection, experiment, run, artifact, and evidence interfaces. Do not duplicate Commons scheduling or resource leasing inside Climate.
+Climate/Commons integration is experimental and observe-first. Prepare narrow repository-inspection, experiment, run, artifact, and evidence interfaces. Do not duplicate Commons scheduling or resource leasing inside Climate.
 
 The next meaningful integrated milestone is one real read-only/sandboxed Climate experiment with run/trace/causation/fingerprint lineage preserved end to end.
 
@@ -217,7 +219,7 @@ Subject to failures discovered by CI, the current high-leverage set is:
 1. define and run the first small multirepresentation reference experiment on a dynamical system with known latent factor/common structure, comparing concatenation, linear fusion, and established nonlinear common-manifold methods before inventing a custom learner;
 2. connect the canonical Fisher-information primitive and explicit-likelihood Amari reference to a candidate observation-induced metric, keeping state, parameter, and uncertainty geometry distinct;
 3. turn geometry reference/canonical agreement into derivative and coordinate metamorphic differential tests so candidate representation work rests on trustworthy geometry;
-4. continue decomposing the legacy Fortran physics core toward energy/momentum/continuity-consistent dynamics whose known structure can constrain and test manifold coordinates;
+4. define the next coupled atmospheric dynamics slice around energy/momentum/continuity-consistent interfaces rather than adding another isolated tendency kernel;
 5. progress the climate-data sheaf into explicit station cover/stalk/restriction semantics that can later participate in local chart/data-consistency experiments;
 6. prepare GPU differential fixtures only after a candidate manifold computation is useful enough that acceleration removes a demonstrated experiment bottleneck.
 
