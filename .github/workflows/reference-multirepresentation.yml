@@ -1,0 +1,48 @@
+name: reference-multirepresentation
+
+on:
+  push:
+    paths:
+      - 'reference/multirepresentation_common.py'
+      - 'tests/reference/test_multirepresentation_common.py'
+      - 'fixtures/multirepresentation/**'
+      - 'requirements/reference-multirepresentation.txt'
+      - '.github/workflows/reference-multirepresentation.yml'
+      - 'methods/registry.json'
+      - 'experiments/multirepresentation-common.v1.json'
+  pull_request:
+    paths:
+      - 'reference/multirepresentation_common.py'
+      - 'tests/reference/test_multirepresentation_common.py'
+      - 'fixtures/multirepresentation/**'
+      - 'requirements/reference-multirepresentation.txt'
+      - '.github/workflows/reference-multirepresentation.yml'
+      - 'methods/registry.json'
+      - 'experiments/multirepresentation-common.v1.json'
+  workflow_dispatch:
+
+jobs:
+  reference-multirepresentation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements/reference-multirepresentation.txt
+      - name: Install reference dependencies
+        run: python -m pip install -r requirements/reference-multirepresentation.txt
+      - name: Record resolved numerical environment
+        run: python -m pip freeze
+      - name: Run multirepresentation witnesses
+        run: python -m unittest tests.reference.test_multirepresentation_common -v
+      - name: Run registered reference experiment
+        run: python reference/multirepresentation_common.py --json | tee multirepresentation-result.json
+      - name: Upload experiment result
+        uses: actions/upload-artifact@v4
+        with:
+          name: multirepresentation-reference-result
+          path: multirepresentation-result.json
+          if-no-files-found: error
