@@ -104,17 +104,18 @@ Semantic-integrity priority is based on **contamination risk**, not ease of fixi
 
 A module containing an active S3/S4 path cannot be `verified`, `validated`, `replicated`, or `decision-eligible` for a claim that can reach that path.
 
-A run that activates an unrequested fallback cannot retain the preferred implementation identity.
+Execution identity is governed by `#ExecutionResolution` in `contracts/climate.cue`. An eligible execution resolves to exactly the identity that was requested. If a required capability is unavailable, the request is ineligible and carries a typed failure without a replacement resolved identity. A CPU path, alternate solver, lower-precision path, compatibility shim, or other implementation may run only when it is requested under its own execution identity; it is not a runtime fallback for a different request.
 
 An unavailable stub or blueprint may coexist with a `concept`/`prototype` method descriptor because it cannot manufacture supporting evidence.
 
-## 7. CI direction
+## 7. Enforcement requirements
 
-The semantic-integrity system should support:
+The semantic-integrity system requires:
 
 - a machine-readable hazard ledger with owner/action/status where that adds value;
-- negative witnesses proving guards catch plausible-output placeholders;
+- negative witnesses proving guards catch plausible-output placeholders and execution substitution;
 - source gates for known dangerous patterns;
+- contract checks that make eligible requested/resolved execution identity mismatch invalid;
 - module/method checks preventing maturity promotion while unresolved S3/S4 hazards are reachable;
 - explicit allowlists only for correctly named heuristics, never for fake implementations.
 
