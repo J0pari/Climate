@@ -110,7 +110,8 @@ Reproducibility, ablation, controls, and evidence capture support this work, but
 ## Key documents
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — target architecture and semantic boundaries.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — live scientific and engineering obligation graph.
+- [`architecture/planning_graph.json`](architecture/planning_graph.json) — sole authority for planned work, priorities, dependencies, blockers, and completion criteria.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — generated human-readable projection of the planning graph.
 - [`docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`](docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md) — integrated representation and geometry research program.
 - [`docs/FORTRAN-PHYSICS-FRONTIER.md`](docs/FORTRAN-PHYSICS-FRONTIER.md) — realized and open physical/numerical responsibilities.
 - [`docs/FORTRAN-TIME-INTEGRATION.md`](docs/FORTRAN-TIME-INTEGRATION.md) — integration semantics and external numerical-library boundaries.
@@ -118,7 +119,7 @@ Reproducibility, ablation, controls, and evidence capture support this work, but
 - [`docs/SHEAF-REALIZATION.md`](docs/SHEAF-REALIZATION.md) — sheaf/descent/cohomology realization program.
 - [`docs/META-EXPERIMENTATION.md`](docs/META-EXPERIMENTATION.md) — methodology for comparing competing scientific representations and methods.
 - [`docs/generated/STATUS.md`](docs/generated/STATUS.md) — generated repository status from machine authorities.
-- [`AGENTS.md`](AGENTS.md) — binding repository correctness and contribution rules.
+- [`AGENTS.md`](AGENTS.md) — binding repository correctness and contribution rules, including the rule that TODO/planning concerns have no parallel authority outside the planning graph.
 
 ## Scope
 
