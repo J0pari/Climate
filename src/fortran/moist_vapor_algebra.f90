@@ -1,6 +1,8 @@
 module climate_moist_vapor_algebra
     use, intrinsic :: iso_fortran_env, only: real64
     use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
+    use climate_thermodynamic_reference_values, only: &
+        DRY_AIR_GAS_CONSTANT_J_KG_K, WATER_VAPOR_GAS_CONSTANT_J_KG_K
     implicit none
     private
 
@@ -17,11 +19,11 @@ module climate_moist_vapor_algebra
     integer, parameter, public :: MOIST_ERR_RESULT = 8
 
     type, public :: moist_vapor_parameters
-        ! Conventional ideal-gas reference values in SI. The ratio Rd/Rv is
-        ! derived at runtime so callers may use a different declared parameter
-        ! set without hidden duplicate constants.
-        real(dp) :: dry_air_gas_constant_j_kg_k = 287.05_dp
-        real(dp) :: water_vapor_gas_constant_j_kg_k = 461.5_dp
+        ! Narrow vapor-algebra policy surface. Shared conventional defaults are
+        ! imported from the thermodynamic reference-value authority; callers
+        ! may override this record without mutating dry or hydrostatic kernels.
+        real(dp) :: dry_air_gas_constant_j_kg_k = DRY_AIR_GAS_CONSTANT_J_KG_K
+        real(dp) :: water_vapor_gas_constant_j_kg_k = WATER_VAPOR_GAS_CONSTANT_J_KG_K
     end type moist_vapor_parameters
 
     public :: compute_mixing_ratio_from_vapor_pressure
