@@ -1,6 +1,6 @@
 program test_vertical_diffusion
     use climate_vertical_diffusion, only: dp, VBC_ZERO_FLUX, VBC_PRESCRIBED_FLUX, &
-        VBC_PRESCRIBED_VALUE, VDIFF_OK, VDIFF_ERR_DIFFUSIVITY, &
+        VBC_PRESCRIBED_VALUE, VDIFF_OK, VDIFF_ERR_DIFFUSIVITY, VDIFF_ERR_BOUNDARY, &
         height_diffusion_boundary, height_diffusion_operator, &
         build_height_diffusion_operator, evaluate_height_diffusion
     implicit none
