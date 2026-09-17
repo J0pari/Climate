@@ -4,7 +4,7 @@ Status: **research-process specification**.
 
 Climate contains many choices that cannot be settled correctly by architecture review alone: metric construction, numerical schemes, representations, calibration methods, early-warning indicators, data products, interpolation/regridding choices, and experimental mathematical frameworks. The repository therefore needs infrastructure for experiments **about the methods themselves**, not only experiments using those methods.
 
-The goal is to make methodological choices testable, comparable, revisable, and difficult to overfit by narrative.
+The goal is to make methodological choices testable, comparable, revisable, and difficult to overfit by narrative. This document defines experiment design; `docs/ROADMAP.md` alone owns current cross-family priority ordering.
 
 ## 1. Unit of research: a contestable method choice
 
@@ -323,7 +323,7 @@ A candidate should be retired or narrowed when:
 - results fail independent confirmation;
 - it cannot distinguish real structure from negative controls.
 
-Keep the experiment and negative result. Do not erase rejected ideas from history; mark them superseded/rejected so they are not rediscovered without context.
+Keep rejected-result evidence in the experiment/evidence system where it remains relevant to preventing repeated work. Repository source history remains Git's responsibility; this document does not create a separate historical archive.
 
 ## 14. Experiment lineage and Commons
 
@@ -343,15 +343,15 @@ ResearchQuestion
 
 Commons can own run identity, scheduling, resources, causation/correlation, and durable cross-repository lineage. Climate owns the meaning of its methods, climate datasets, scientific metrics, and validation policy.
 
-## 15. First meta-experiments to implement
+## 15. Reference meta-experiment families
 
-Once infrastructure exists, prioritize experiments that simultaneously validate the research machinery and answer high-information questions:
+The following are useful experiment designs when their prerequisites are ready. Their ordering here is not priority; `docs/ROADMAP.md` determines current work selection.
 
-1. **Geometry correctness** — known-curvature manifolds plus coordinate/scaling invariance tests before climate interpretation.
-2. **Multirepresentation geometry** — synthetic coupled dynamical systems with known shared/product/fibered latent structure, observed through several nonlinear views; compare raw concatenation, linear multiview baselines, established common-manifold methods, and physically constrained factorizations before inventing a bespoke learner.
-3. **Early-warning discrimination** — conventional indicators versus geometric candidates over tipping/non-tipping synthetic controls.
-4. **Teleconnection representation** — p-adic/ultrametric candidates versus correlation/spectral/graph baselines on held-out teleconnection targets.
-5. **Station consistency** — actual sheaf/cohomology implementation versus ordinary QC/graph residual baselines with injected faults.
-6. **Information-geometry optimization** — natural gradient versus standard optimizers on a small, explicit climate likelihood with known synthetic parameters and held-out observations.
+- **Geometry correctness** — known-curvature manifolds plus coordinate/scaling invariance tests before climate interpretation.
+- **Multirepresentation geometry** — synthetic coupled dynamical systems with known shared/product/fibered latent structure, observed through several nonlinear views; compare raw concatenation, linear multiview baselines, established common-manifold methods, and physically constrained factorizations before inventing a bespoke learner.
+- **Early-warning discrimination** — conventional indicators versus geometric candidates over tipping/non-tipping synthetic controls.
+- **Teleconnection representation** — p-adic/ultrametric candidates versus correlation/spectral/graph baselines on held-out teleconnection targets.
+- **Station consistency** — actual sheaf/cohomology implementation versus ordinary QC/graph residual baselines with injected faults.
+- **Information-geometry optimization** — natural gradient versus standard optimizers on a small, explicit climate likelihood with known synthetic parameters and held-out observations.
 
-The local tests remain valuable because they isolate mathematical and numerical failure modes before broad integration. They are not a reason to keep scientifically related representations permanently isolated: once the constituent maps are trustworthy enough, integrated experiments should test whether their joint geometry captures climate dynamics, information, and physical structure that the separate views or simpler fusion baselines miss.
+Local tests isolate mathematical and numerical failure modes before broad integration. They are not a reason to keep scientifically related representations permanently isolated: once constituent maps are trustworthy enough, integrated experiments should test whether their joint geometry captures climate dynamics, information, and physical structure that separate views or simpler fusion baselines miss.
