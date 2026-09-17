@@ -74,6 +74,7 @@ question / hypothesis
 intervention or candidate method
 control / baseline methods
 dataset_refs
+configuration_refs
 split / withholding policy
 preprocessing
 seeds
@@ -88,6 +89,14 @@ expected artifacts
 ```
 
 The same specification should be executable locally and schedulable by Commons without changing scientific meaning.
+
+### Configuration records
+
+Runtime configuration is composed from small records with a single semantic owner rather than one flat mutable configuration object. `contracts/climate.cue` separates four configuration kinds: kernel parameters, numerical policy, data policy, and execution policy. Each record has its own identity, semantic version, owner, provenance, and owner-scoped settings.
+
+`ExperimentSpec.configuration` and `RunManifest.resolved_configuration` contain immutable `ConfigurationRef` records rather than copied settings. A reference binds the record path, content digest, kind, owner, version, and provenance. Repository integrity checks verify that the path remains inside the expected configuration layer, the file exists, its digest matches, and its identity metadata agrees with the reference.
+
+Shared thermodynamic and geophysical reference values are not runtime configuration. They remain in focused immutable scientific authorities, while kernel-local parameter records may use those authorities as defaults without mutating global state. Configuration provenance has no fallback state: unavailable inputs or capabilities remain explicit failures rather than selecting a lesser record or undeclared static value.
 
 ### `RunManifest`
 
@@ -288,6 +297,7 @@ Climate/
   AGENTS.md
   docs/
   contracts/                 # language-neutral records/schemas
+  configurations/            # owner-scoped runtime parameter/policy records
   data/                      # acquisition + preprocessing code, not large data
   physics/                   # physical kernels and coupled operators
   numerics/                  # grids, solvers, timestepping, remapping
