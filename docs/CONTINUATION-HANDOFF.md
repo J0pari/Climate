@@ -58,6 +58,8 @@ Formal Lean is a narrow independent mathematical authority. Checked-in proofs es
 
 Use Popperian discipline: every novel method must be testable, ablatable, composable, have declared falsifiers/baselines, and earn its scope. Mathematical correctness is not empirical climate evidence. Performance is not scientific validation.
 
+That discipline is **research scaffolding, not the distinctive scientific program**. Prioritize the actual climate objects, dynamics, representation choices, physical couplings, and mathematical structures being investigated. Reproducibility, falsifiers, and harness contracts exist to make those ideas inspectable; they should not displace them as the center of design discussion.
+
 ## Architecture rules
 
 Keep the thin semantic waist and explicit authority boundaries. Governance actors, repositories, components, methods, runs, artifacts, claims, and evidence are distinct identities.
@@ -72,6 +74,18 @@ Separate:
 Accelerators must be differentially verified against an independent reference/canonical path. Never let GPU speed become evidence for scientific validity.
 
 Generated documentation should only project facts already owned by machine-readable authorities. Human research priorities, interpretation, and scientific judgment remain manually curated. Do not build a documentation compiler for things that inherently require judgment.
+
+## Current integrative research direction
+
+`docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md` defines a candidate unifying research program, not an adopted physical ontology. The central hypothesis is that several scientifically grounded representations of the same climate state may admit useful shared, product, fibered, quotient, stratified/local-atlas, or otherwise coupled structure.
+
+Do **not** reduce this to concatenating every mathematical method into one feature vector. Keep explicit representation maps and preserve the native semantics of each view. Physical/thermodynamic state, subsystem summaries, spectral/Koopman coordinates, observations, parameter likelihoods, uncertainty distributions, teleconnection structures, sheaf-local data, ultrametric relations, and Clifford/oriented mode representations may participate differently. Some are possible coordinates; some are observation maps, factors, fibers, constraints, kernels, or comparison geometries.
+
+Information geometry is especially promising where an explicit likelihood supplies Fisher structure, but parameter geometry, state geometry, and distribution/uncertainty geometry remain distinct. Rank-deficient Fisher or observation pullbacks expose unidentifiable directions; do not regularize them into fictitious information merely to obtain an invertible metric.
+
+Physical-core work is not separate from this program. Conservation/balance laws, continuity, hydrostatics, Coriolis/skew structure, thermodynamic identities, transport consistency, dissipation, and eventually pressure-work/momentum coupling can constrain or falsify candidate coordinates and metrics. A representation that reconstructs snapshots while badly distorting known dynamics or physical exchange structure is not automatically useful.
+
+Legacy curvature-minimizing latent-dimension selection is not authoritative. Curvature, holonomy, geodesics, topology, and intrinsic dimension are quantities to investigate after declaring a representation; they are not universal objectives for choosing one.
 
 ## Library-versus-novelty rule
 
@@ -114,12 +128,13 @@ The conservative transport kernel deliberately owns only extensive budget algebr
 
 Choose from the live frontier rather than following this list mechanically. Good candidates are:
 
-1. **Fortran physical correctness:** add the next independently specifiable physical kernel rather than repairing the monolith. Continuity-consistent pressure velocity / vertical-coordinate dynamics and pressure-gradient/momentum structure are strong candidates because pressure hydrostatics and conservative budgets now provide adjacent contracts.
-2. **Transport production semantics:** define geometry/velocity-to-face-mass-flux construction, positivity/monotonicity and CFL policy, then benchmark high-order reconstruction choices instead of presuming the legacy named method is optimal.
-3. **Coupled integration:** once explicit/stiff/fast tendency partitions are physically declared, add a thin ARKODE adapter and differential/manufactured witnesses; do not hand-roll another adaptive IMEX stack.
-4. **Spectral production path:** add FFTW behind a thin adapter and differential tests against the direct-DFT oracle; cuFFT remains GPU/hardware-gated.
-5. **Legacy mathematical-name sweep:** continue identifying names stronger than realized contents. Preferred repair is constructive realization of useful mathematics, not demotion. Keep empirical climate relevance as a separate falsifiable obligation.
-6. **Sheaf R3:** actual station cover/nerve, units-bearing climate stalks/restrictions, restriction functoriality, and a real climate-data coboundary are the next structural steps before any empirical sheaf claim can mature.
+1. **Multirepresentation manifold reference experiment:** use a small dynamical system with known shared/product/fibered latent structure and several nonlinear observation views; compare raw concatenation, linear multiview baselines, and established common-manifold/factorized methods before inventing a bespoke learner. Test recovered dynamics and known physical/information structure, not only reconstruction error.
+2. **Fortran physical correctness:** add the next independently specifiable physical kernel rather than repairing the monolith. Continuity-consistent pressure velocity / vertical-coordinate dynamics and pressure-gradient/momentum structure are strong candidates because pressure hydrostatics and conservative budgets now provide adjacent contracts.
+3. **Transport production semantics:** define geometry/velocity-to-face-mass-flux construction, positivity/monotonicity and CFL policy, then benchmark high-order reconstruction choices instead of presuming the legacy named method is optimal.
+4. **Coupled integration:** once explicit/stiff/fast tendency partitions are physically declared, add a thin ARKODE adapter and differential/manufactured witnesses; do not hand-roll another adaptive IMEX stack.
+5. **Spectral production path:** add FFTW behind a thin adapter and differential tests against the direct-DFT oracle; cuFFT remains GPU/hardware-gated.
+6. **Legacy mathematical-name sweep:** continue identifying names stronger than realized contents. Preferred repair is constructive realization of useful mathematics, not demotion. Keep empirical climate relevance as a separate falsifiable obligation.
+7. **Sheaf R3:** actual station cover/nerve, units-bearing climate stalks/restrictions, restriction functoriality, and a real climate-data coboundary are the next structural steps before any empirical sheaf claim can mature.
 
 Do not broaden scope just because an idea is interesting. Every addition must earn its place through a clear responsibility, independent witness, ablation/baseline where relevant, and a composable interface.
 
