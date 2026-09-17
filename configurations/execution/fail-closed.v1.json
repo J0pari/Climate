@@ -1,0 +1,12 @@
+{
+  "configuration_id": "execution.fail_closed.v1",
+  "semantic_version": "1.0.0",
+  "kind": "execution_policy",
+  "owner": "execution",
+  "provenance": "explicit",
+  "settings": {
+    "unavailable_request": "ineligible",
+    "implementation_substitution": "forbidden",
+    "undeclared_default": "forbidden"
+  }
+}
