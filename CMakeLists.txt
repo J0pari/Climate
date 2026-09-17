@@ -58,6 +58,15 @@ target_include_directories(climate_dry_thermodynamics PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Shared pressure-coordinate domain semantics. This target owns only interface
+# pressure validity and orientation, not dynamics, geometry, or time stepping.
+add_library(climate_pressure_coordinate_grid STATIC
+    src/fortran/pressure_coordinate_grid.f90
+)
+target_include_directories(climate_pressure_coordinate_grid PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Hydrostatic mass/geopotential relationships on a declared pressure-coordinate
 # column. Pressure velocity and geometric vertical velocity remain separate.
 add_library(climate_pressure_coordinate_hydrostatics STATIC
@@ -65,6 +74,9 @@ add_library(climate_pressure_coordinate_hydrostatics STATIC
 )
 target_include_directories(climate_pressure_coordinate_hydrostatics PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_pressure_coordinate_hydrostatics PUBLIC
+    climate_pressure_coordinate_grid
 )
 
 # Pressure-coordinate continuity integration for omega from layer pressure-mean
@@ -75,6 +87,9 @@ add_library(climate_pressure_coordinate_continuity STATIC
 )
 target_include_directories(climate_pressure_coordinate_continuity PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_pressure_coordinate_continuity PUBLIC
+    climate_pressure_coordinate_grid
 )
 
 # Pressure-coordinate kinetic/enthalpy/geopotential exchange identity. Spatial
@@ -179,6 +194,14 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_dry_thermodynamics PRIVATE climate_dry_thermodynamics)
     add_test(NAME dry_thermodynamics COMMAND test_dry_thermodynamics)
+
+    add_executable(test_pressure_coordinate_grid
+        tests/fortran/test_pressure_coordinate_grid.f90
+    )
+    target_link_libraries(test_pressure_coordinate_grid PRIVATE
+        climate_pressure_coordinate_grid
+    )
+    add_test(NAME pressure_coordinate_grid COMMAND test_pressure_coordinate_grid)
 
     add_executable(test_pressure_coordinate_hydrostatics
         tests/fortran/test_pressure_coordinate_hydrostatics.f90
@@ -314,6 +337,7 @@ message(STATUS "  Canonical time integration:   ON")
 message(STATUS "  Canonical linear reference:   ON")
 message(STATUS "  Exact Coriolis rotation:      ON")
 message(STATUS "  Dry thermodynamics:           ON")
+message(STATUS "  Pressure coordinate contract: ON")
 message(STATUS "  Pressure hydrostatics:        ON")
 message(STATUS "  Pressure continuity/omega:    ON")
 message(STATUS "  Pressure energy exchange:     ON")
