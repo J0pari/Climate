@@ -72,6 +72,45 @@
       "purpose": "nonzero-Christoffel coordinate-invariance control"
     },
     {
+      "fixture_id": "flat.quadratic_shear.2d",
+      "dimension": 2,
+      "coordinates": [
+        "u",
+        "v"
+      ],
+      "domain": {
+        "u": [
+          -1.0,
+          1.0
+        ],
+        "v": [
+          -1.0,
+          1.0
+        ]
+      },
+      "metric": [
+        [
+          "1+u^2",
+          "u"
+        ],
+        [
+          "u",
+          "1"
+        ]
+      ],
+      "coordinate_map_to_flat_cartesian": {
+        "x": "u",
+        "y": "v+u^2/2"
+      },
+      "expected": {
+        "riemann": "zero",
+        "ricci": "zero",
+        "scalar_curvature": "0",
+        "christoffel": "Gamma^v_uu = 1; all other components zero"
+      },
+      "purpose": "nonlinear coordinate-transform control whose connection is entirely the inhomogeneous transformation term"
+    },
+    {
       "fixture_id": "sphere.radius2.2d",
       "dimension": 2,
       "coordinates": [
