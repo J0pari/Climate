@@ -8,7 +8,7 @@ from architecture import check_durable_text
 
 
 class DurableTextTests(unittest.TestCase):
-    def test_edit_history_markers_are_rejected(self):
+    def test_process_metadata_markers_are_rejected(self):
         examples = {
             "docs/example.md": "Recently added a new coupling layer.\n",
             "src/example.rs": "// Additive: helper introduced during cleanup\n",
@@ -16,6 +16,7 @@ class DurableTextTests(unittest.TestCase):
             "reference/example.py": "# replaces previously inlined logic\n",
             "README.md": "The repository now has a canonical solver.\n",
             "src/provisional.rs": "// Use timeout-based detection for now.\n",
+            "src/planning.rs": "// TODO: add the coupled budget witness\n",
         }
         observed = {
             finding.rule
@@ -31,14 +32,16 @@ class DurableTextTests(unittest.TestCase):
                 "recent_change_narration",
                 "repository_temporal_snapshot",
                 "provisional_for_now",
+                "parallel_planning_marker",
             },
         )
 
-    def test_scientific_additive_language_is_allowed(self):
+    def test_scientific_additive_and_limitation_language_is_allowed(self):
         text = (
             "The additive source is evaluated by the caller.\n"
             "A previous state may be used as an initial guess.\n"
             "The current implementation rejects singular metrics.\n"
+            "This kernel does not support condensed phases.\n"
         )
         self.assertEqual(
             check_durable_text.findings_for_text("src/example.f90", text),
@@ -64,7 +67,7 @@ class DurableTextTests(unittest.TestCase):
                 "The repository now has ten modules.\n", encoding="utf-8"
             )
             (root / "src" / "lib.rs").write_text(
-                "// Additive: helper\n", encoding="utf-8"
+                "// TODO: helper\n", encoding="utf-8"
             )
             (root / "reference" / "oracle.py").write_text(
                 "# stable mathematical oracle\n", encoding="utf-8"
@@ -75,7 +78,7 @@ class DurableTextTests(unittest.TestCase):
                 {(finding.path, finding.rule) for finding in findings},
                 {
                     ("docs/active.md", "recent_change_narration"),
-                    ("src/lib.rs", "edit_batch_annotation"),
+                    ("src/lib.rs", "parallel_planning_marker"),
                 },
             )
 
