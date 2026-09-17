@@ -25,7 +25,7 @@
     {
       "id": "architecture.layered_configuration",
       "title": "Define layered runtime configuration contracts",
-      "status": "ready",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
       "summary": "Keep immutable shared reference values, kernel parameters, experiment inputs, numerical policy, data-source configuration, and execution policy in separate focused ownership surfaces rather than duplicated literals or one flat global configuration object.",
@@ -35,6 +35,15 @@
         "Reference values are immutable defaults and are not runtime configuration.",
         "Kernel-local overrides do not mutate other components or global state.",
         "Experiment configuration composes focused component records and records provenance without duplicating their definitions."
+      ],
+      "evidence": [
+        "contracts/climate.cue",
+        "configurations/numerical/geometry-euclidean-sanity.v1.json",
+        "configurations/execution/fail-closed.v1.json",
+        "contracts/testdata/experiment.good.json",
+        "architecture/check_experiments.py",
+        "tests/architecture/test_experiments.py",
+        ".github/workflows/architecture.yml"
       ]
     },
     {
