@@ -198,14 +198,22 @@
       "status": "ready",
       "priority": "P1",
       "resource_class": "R5_large_data",
-      "summary": "Extend narrow feedback estimators beyond local numerical semantics only through reproducible observational or reanalysis definitions for ice-albedo, circulation, permafrost, cloud, vegetation, or other declared processes.",
+      "summary": "Build empirical feedback diagnostics only by adapting source-backed observed fields into narrow numerical primitives, with process definitions, aggregation, missingness, uncertainty, and radiative quantities remaining explicit.",
       "depends_on": [
         "data.immutable_observational_projection"
       ],
       "completion": [
         "Each feedback diagnostic declares measured variables, aggregation, units, time base, uncertainty, and missing-data handling.",
         "Process-specific thresholds are either empirically sourced with domain of applicability or typed as experiment policy rather than physical truth.",
-        "Benchmarks retain observational provenance and compare against simpler trend or regression diagnostics."
+        "Benchmarks retain observational provenance and compare against simpler trend or regression diagnostics.",
+        "Empirical adapters consume provenance-bearing observed fields with registered source identity and artifact digest; raw numeric samples are not an observational evidence boundary.",
+        "Radiative feedback conversion is unavailable unless a source-backed shortwave field is resolved with a definition, aggregation, spatial domain, and time base matched to the albedo diagnostic; no scalar forcing substitute is permitted.",
+        "Synthetic controls remain explicitly synthetic and cannot satisfy empirical benchmark completion criteria."
+      ],
+      "evidence": [
+        "src/albedo_temperature_sensitivity.rs",
+        "src/physical_state.rs",
+        "architecture/data_authorities.json"
       ]
     },
     {
