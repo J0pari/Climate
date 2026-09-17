@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Static architecture/scientific source audits for Climate.
 
-The current repository intentionally contains known implementation debt, so the
-default command is an audit: findings are printed but do not fail the process.
-`--strict` turns findings into a failing gate. The roadmap should only promote a
-rule to required CI after either the current debt is fixed or an explicit,
-reviewed allowlist with an expiry exists.
+The repository contains known implementation debt, so the default command is an
+audit: findings are printed but do not fail the process. `--strict` turns
+findings into a failing gate. A rule belongs in required CI only after the
+relevant source surface satisfies it or a reviewed temporary exception carries
+an explicit rationale and expiry.
 
 Every rule in this module must have a planted negative test. A source gate that
 has never demonstrated it can catch its target failure is not evidence.
@@ -133,7 +133,7 @@ FALLBACK_MARKERS = (
 
 
 def gate_silent_capability_fallback(files: dict[str, list[str]]) -> list[Finding]:
-    """Inventory capability fallbacks that must never masquerade as validated execution."""
+    """Inventory capability-substitution surfaces that require fail-closed review."""
     findings: list[Finding] = []
     for path, lines in files.items():
         for line_no, line in enumerate(lines, 1):
@@ -141,7 +141,7 @@ def gate_silent_capability_fallback(files: dict[str, list[str]]) -> list[Finding
             if any(marker in lower for marker in FALLBACK_MARKERS):
                 findings.append(Finding(
                     "capability_fallback", path, line_no,
-                    "capability fallback/shim must resolve to a distinct implementation identity in evidence runs",
+                    "requested execution must fail closed rather than substitute this capability; an alternate implementation requires its own explicit execution identity",
                     line,
                 ))
     return findings
