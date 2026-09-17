@@ -68,7 +68,7 @@
     {
       "id": "physics.authoritative_flux_recomposition",
       "title": "Recompose pressure-coordinate physics around authoritative fluxes",
-      "status": "ready",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
       "summary": "Compose mass continuity, conservative tracer transport, pressure work, and energy exchange around the same authoritative carrier-mass flux with explicit geometry, area, layer-pressure thickness, gravity, and sign conventions.",
@@ -77,6 +77,14 @@
         "One coupling contract binds mass, tracer, continuity-divergence, and energy transport to the same carrier-mass flux.",
         "Pressure-coordinate face-flux to divergence mapping has explicit dimensional and geometric inputs.",
         "Manufactured or exact witnesses demonstrate coupled mass/tracer/energy consistency without inventing a generic horizontal-grid framework."
+      ],
+      "evidence": [
+        "src/fortran/pressure_flux_coupling.f90",
+        "src/fortran/conservative_transport.f90",
+        "src/fortran/pressure_coordinate_continuity.f90",
+        "src/fortran/pressure_energy_exchange.f90",
+        "tests/fortran/test_pressure_flux_coupling.f90",
+        "CMakeLists.txt"
       ]
     },
     {
@@ -96,7 +104,7 @@
     {
       "id": "physics.parameterization_boundaries",
       "title": "Establish physical parameterization seams and library boundaries",
-      "status": "blocked",
+      "status": "ready",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
       "summary": "Keep climate-owned equations, coupling semantics, and diagnostics local while delegating commodity radiation, remapping, integration, transforms, optimization, and linear algebra to mature libraries.",
@@ -110,7 +118,7 @@
     {
       "id": "state.typed_physical_state",
       "title": "Define typed physical-state boundaries",
-      "status": "blocked",
+      "status": "ready",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
       "summary": "Represent prognostic physical state, derived diagnostics, and experimental representations as distinct contracts with explicit units, coordinates, missingness, and initialization semantics.",
