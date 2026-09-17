@@ -1,12 +1,12 @@
 # Climate target architecture
 
-Status: **architectural specification / migration target**. This document describes the shape that is justified before the repository has enough empirical evidence to settle every modeling choice. It is deliberately more stable than any one current implementation.
+Status: **architectural specification**. This document defines the stable system shape while leaving scientific modeling choices that require evidence explicitly unresolved.
 
 ## 1. Architectural objective
 
-Climate should become a research system in which conventional climate methods and unusual mathematical hypotheses can be implemented, verified, compared, falsified, and reproduced without confusing any of those steps with scientific validation.
+Climate is a research system in which conventional climate methods and unusual mathematical hypotheses can be implemented, verified, compared, falsified, and reproduced without confusing any of those steps with scientific validation.
 
-The architecture should optimize for four properties:
+The architecture optimizes for four properties:
 
 1. **scientific separability** — changing one hypothesis should not silently alter unrelated physics, data handling, or evaluation;
 2. **evidence traceability** — every result that matters can be reconstructed from immutable inputs, code, configuration, and environment;
@@ -17,7 +17,7 @@ This repository should not attempt to become a monolithic all-purpose Earth syst
 
 ## 2. The stable waist
 
-The core architecture should converge on a small set of language-neutral records. Exact serialization is not fixed here; CUE/JSON is a reasonable first contract layer, with generated language bindings later if useful.
+The core architecture converges on a small set of language-neutral records. Exact serialization is not fixed here; CUE/JSON is a reasonable contract layer, with generated language bindings where useful.
 
 ### `DatasetRef`
 
@@ -166,9 +166,9 @@ Preferred tools can remain Python/xarray/Dask/Zarr/NetCDF where they fit. Xarray
 
 Hard rule: **download/cache success is not data validity**. Schema checks, coordinate sanity, units, temporal coverage, missingness, and source-specific QC must be separate gates.
 
-### Layer B — reference physical and numerical kernels
+### Layer B — physical and numerical kernels
 
-This layer owns equations and discretizations intended to model physical climate dynamics.
+This layer owns equations, discrete operators, coupling laws, and numerical transformations intended to model physical climate dynamics.
 
 Examples:
 
@@ -178,12 +178,16 @@ Examples:
 - ocean/land/ice component kernels;
 - transport/advection/diffusion;
 - coupling/remapping;
-- spectral transforms;
+- spectral transforms used by the physical solver;
 - time integration.
 
 The target is not one giant mutable `ClimateState` object shared by all experimental code. Kernels should expose typed state/field contracts and pure or tightly bounded transitions where practical.
 
-Numerical schemes must declare conservation properties, stability/CFL assumptions, discretization order, grid requirements, and supported boundary conditions. Conservative remapping should use established methods/libraries when possible; ESMF's conservative regridding support is a relevant reference: https://earthsystemmodeling.org/docs/release/ESMF_8_9_0/ESMF_refdoc/node5.html
+Numerical schemes must declare conservation properties, stability/CFL assumptions, discretization order, grid requirements, supported boundary conditions, and the physical exchanges they own. Conservative remapping should use established methods/libraries when possible; ESMF's conservative regridding support is a relevant reference: https://earthsystemmodeling.org/docs/release/ESMF_8_9_0/ESMF_refdoc/node5.html
+
+The physical decomposition precedes solver choice. Conservative or reversible dynamics, dissipative processes, fast wave processes, external forcing, and inter-component exchange should be separated according to the equations and desired discrete structure before they are mapped onto explicit, implicit, split, or multirate integration machinery.
+
+Coupled correctness includes more than local tendency correctness. Continuity and mass fluxes, pressure-gradient work and thermodynamic/geopotential conversion, tracer transport and mass transport, phase change and latent/internal energy, dissipation, precipitation export, radiation, and surface/component exchange must close under explicit sign and budget conventions.
 
 ### Layer C — established diagnostics and inference
 
@@ -206,7 +210,7 @@ These methods still require local verification and validation. "Established" mea
 
 This is a first-class research layer, not a junk drawer.
 
-Current candidates include:
+Research families include:
 
 - Riemannian/geometric state-space methods;
 - multirepresentation state-space constructions built from explicit maps of the same physical climate state;
@@ -218,7 +222,7 @@ Current candidates include:
 - modal-logic scenario constraints;
 - learned latent manifold/dimension discovery.
 
-These candidates are not assumed to be unrelated endpoints or coordinates in one universal feature vector. A central research program is to determine whether several grounded representations of the same climate state can be related through common-manifold, product, fibered, quotient, stratified, or local-atlas structure, as described in `MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`. Information geometry may provide a statistically grounded local geometry where an explicit likelihood exists; physical dynamics and conservation/balance structure may constrain admissible representations; and non-Riemannian objects such as ultrametric or sheaf structure may participate through kernels, restrictions, compatibility maps, or comparison geometry rather than being flattened into Euclidean coordinates.
+These families are not assumed to be unrelated endpoints or coordinates in one universal feature vector. A central research program is to determine whether several grounded representations of the same climate state can be related through common-manifold, product, fibered, quotient, stratified, or local-atlas structure, as described in `MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`. Information geometry may provide a statistically grounded local geometry where an explicit likelihood exists; physical dynamics and conservation/balance structure may constrain admissible representations; and non-Riemannian objects such as ultrametric or sheaf structure may participate through kernels, restrictions, compatibility maps, or comparison geometry rather than being flattened into Euclidean coordinates.
 
 Every method in this layer should use the same `MethodDescriptor -> ExperimentSpec -> RunManifest -> EvidenceRecord` pipeline as conventional baselines.
 
@@ -260,9 +264,7 @@ Workspace-level scheduling, cross-repository dependencies, global GPU leases, ex
 
 ## 4. Physical state versus research artifacts
 
-A central architectural correction is to stop treating every mathematical representation as another field of one universal physical state.
-
-Use three categories:
+Physical state, derived diagnostics, and research representations are distinct architectural categories:
 
 1. **prognostic/diagnostic physical state** — quantities with explicit units, grids, equations, and physical meaning;
 2. **derived scientific diagnostics** — EOF coefficients, feedback parameters, spectra, estimated sensitivities, etc.;
@@ -282,7 +284,7 @@ Climate/
   docs/
   contracts/                 # language-neutral records/schemas
   data/                      # acquisition + preprocessing code, not large data
-  physics/                   # reference physical kernels
+  physics/                   # physical kernels and coupled operators
   numerics/                  # grids, solvers, timestepping, remapping
   diagnostics/               # established diagnostic/statistical methods
   methods/
@@ -306,7 +308,7 @@ Climate/
   fixtures/                  # tiny immutable test datasets
 ```
 
-Do not perform a bulk move into this shape until imports/builds/tests can protect the migration. The current stale `CORE/` references demonstrate why layout should be changed under executable checks.
+Layout changes must be protected by executable import/build/test checks. Do not perform bulk moves whose semantic and dependency effects cannot be checked incrementally.
 
 ## 6. Language policy
 
@@ -318,7 +320,7 @@ Language diversity is acceptable when each language has a clear reason to exist.
 - **Julia**: numerical/statistical experiments where Julia's ecosystem materially helps.
 - **Haskell**: only where strong algebraic/type abstractions are part of the research question; not as a mandatory runtime dependency for unrelated Climate workflows.
 
-No language should become authoritative merely because an early prototype was written there.
+No language is authoritative by chronology or provenance. Authority comes from the declared contract and evidence appropriate to it.
 
 ## 7. Interface principles
 
@@ -332,7 +334,7 @@ No language should become authoritative merely because an early prototype was wr
 - Domain-specific code never invents its own run identity when Commons supplies one.
 - Cross-language FFI stays narrow; complex climate arrays should use documented memory/layout contracts rather than ad-hoc pointer conventions.
 
-## 8. What remains deliberately unresolved
+## 8. Deliberately unresolved scientific questions
 
 These questions require experiments rather than architecture fiat:
 
@@ -351,7 +353,7 @@ The architecture's job is to make these questions cheap to test and hard to misr
 
 ## 9. Definition of architectural success
 
-The target architecture is doing its job when a new method can be added by:
+The architecture is doing its job when a new method can be added by:
 
 1. declaring a method contract;
 2. selecting immutable datasets;
