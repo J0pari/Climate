@@ -77,6 +77,15 @@ target_include_directories(climate_pressure_coordinate_continuity PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Pressure-coordinate kinetic/enthalpy/geopotential exchange identity. Spatial
+# derivatives, EOS construction, and time integration remain caller-owned.
+add_library(climate_pressure_energy_exchange STATIC
+    src/fortran/pressure_energy_exchange.f90
+)
+target_include_directories(climate_pressure_energy_exchange PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Exact ideal-gas algebra for a dry-air/water-vapor mixture. Saturation-vapor-
 # pressure and condensed-phase models remain separate scientific providers.
 add_library(climate_moist_vapor_algebra STATIC
@@ -187,6 +196,14 @@ if(ENABLE_TESTING)
         climate_pressure_coordinate_continuity
     )
     add_test(NAME pressure_coordinate_continuity COMMAND test_pressure_coordinate_continuity)
+
+    add_executable(test_pressure_energy_exchange
+        tests/fortran/test_pressure_energy_exchange.f90
+    )
+    target_link_libraries(test_pressure_energy_exchange PRIVATE
+        climate_pressure_energy_exchange
+    )
+    add_test(NAME pressure_energy_exchange COMMAND test_pressure_energy_exchange)
 
     add_executable(test_moist_vapor_algebra
         tests/fortran/test_moist_vapor_algebra.f90
@@ -299,6 +316,7 @@ message(STATUS "  Exact Coriolis rotation:      ON")
 message(STATUS "  Dry thermodynamics:           ON")
 message(STATUS "  Pressure hydrostatics:        ON")
 message(STATUS "  Pressure continuity/omega:    ON")
+message(STATUS "  Pressure energy exchange:     ON")
 message(STATUS "  Moist vapor algebra:          ON")
 message(STATUS "  Saturation vapor pressure:    ON")
 message(STATUS "  Saturation moisture:          ON")
