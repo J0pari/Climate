@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "modules": [
+    {
+      "path": "src/ebm_observation_geometry.rs",
+      "family": "two_layer_ebm_observation_geometry",
+      "language": "rust",
+      "maturity": "prototype",
+      "evidence_eligible": false,
+      "intended_role": "canonical climate-semantic adapter from surface-temperature, top-of-atmosphere-imbalance, and ocean-heat-uptake observations to the two-layer EBM state Fisher metric using the generic canonical Gaussian Fisher primitive",
+      "known_gaps": [
+        "canonical Rust witnesses have not yet executed for this module",
+        "observation standard deviations are caller-declared and this module does not claim a calibrated observing-system error model",
+        "the current observation maps are linear and specific to the standard two-layer EBM",
+        "local Fisher identifiability does not establish dynamical observability, forecast skill, or adequacy of the two-layer climate model"
+      ]
+    }
+  ]
+}
