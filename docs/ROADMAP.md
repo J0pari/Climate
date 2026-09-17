@@ -76,18 +76,33 @@ Current high-leverage edges:
 
 A weaker abstraction is retained only when it is independently the better tool for a real task, not because it is easier to implement.
 
-### 3.2 Geometry correctness → candidate evaluation
+### 3.2 Multirepresentation climate geometry
 
-The repository now has independent symbolic geometry and a canonical CPU Levi-Civita kernel over explicit metric jets. Remaining obligations include:
+The repository now has independent symbolic geometry, a canonical CPU Levi-Civita kernel over explicit metric jets, and canonical Fisher-information primitives for explicit Gaussian observation models. These should support a broader research question than selecting one hand-built climate metric.
+
+The candidate unifying program is defined in `docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`:
+
+- construct multiple scientifically interpretable representation maps of the same physical climate state rather than one concatenated feature vector;
+- evaluate whether their relationships are best described by common-manifold, product, fibered, quotient, local-atlas, or deliberately non-Riemannian structures;
+- use information geometry where an explicit observation/likelihood model supplies a statistically grounded local metric;
+- let dynamical, thermodynamic, subsystem, spectral/Koopman, observational, and uncertainty representations contribute according to their actual semantics;
+- measure cross-representation coupling instead of declaring weakly correlated views to be physically independent;
+- treat curvature, geodesics, holonomy, topology, and intrinsic dimension as diagnostics rather than universal optimization objectives;
+- test whether candidate geometry preserves/reveals physical dynamics, identifiable information, balances, subsystem coupling, and useful predictive structure beyond simpler representations.
+
+This also changes the interpretation of several experimental mathematics families. Sheaf structure may help with local data/chart consistency, ultrametric methods may contribute an alternative relational geometry or kernel, Clifford structure may represent local oriented/multicomponent dynamics, and Noether/Hamiltonian structure may constrain physical evolution without each becoming a coordinate axis of one universal manifold.
+
+Remaining numerical obligations still include:
 
 - independent derivative-generation witnesses (analytic/AD/finite difference/complex step where applicable);
-- coordinate reparameterization, scale/unit, and permutation metamorphics on the canonical implementation;
+- coordinate reparameterization, scale/unit, and permutation metamorphics on the canonical geometry implementation;
 - conditioning/refusal behavior across near-singular and indefinite metrics;
 - explicit candidate metric construction separated from generic tensor machinery;
-- synthetic regime-indicator experiments against conventional early-warning/state-space baselines;
+- reference experiments for common/product/fiber geometry on systems with known latent structure;
+- dynamical tests of candidate coordinates using known evolution laws before climate interpretation;
 - CPU/GPU stage-by-stage differential verification once an actual CUDA device is available.
 
-No curvature-to-tipping probability/timescale mapping is eligible merely because tensor calculations are correct.
+No curvature-to-tipping probability/timescale mapping is eligible merely because tensor calculations are correct, and reduced scalar curvature is not a sufficient criterion for accepting a representation or latent dimension.
 
 ### 3.3 Sheaf/descent/cohomology realization
 
@@ -140,7 +155,7 @@ Novel methods must compete against strong alternatives with the same information
 
 Priority comparison families include:
 
-- geometry vs conventional early-warning/Jacobian/state-space indicators;
+- multirepresentation geometry vs raw concatenation, PCA/CCA, standard latent encoders, diffusion/common-manifold methods, and conventional state-space/Jacobian indicators;
 - sheaf spectral/global diagnostics vs same-restriction local residuals, graph methods, QC, and interpolation;
 - p-adic/ultrametric encodings vs generic hierarchical, graph, spectral/coherence, Euclidean, and learned representations plus randomized controls;
 - Clifford representations vs complex spectra, Hilbert phase, wavelets, bispectra, DMD/Koopman;
@@ -199,11 +214,11 @@ Prefer adding another generated field only when there is an existing authoritati
 
 Subject to failures discovered by CI, the current high-leverage set is:
 
-1. finish the explicit-likelihood Amari α-connection reference and use it to pressure-test legacy Python/Julia information geometry;
-2. turn geometry reference/canonical agreement into derivative and coordinate metamorphic differential tests;
-3. decompose the legacy Fortran physics compile failure along durable physical interfaces rather than repairing the monolith in place;
-4. progress the climate-data sheaf from generic mathematics into explicit station cover/stalk/restriction semantics;
-5. strengthen experiment baselines/ablations so unusual methods can be rejected cleanly when they add no value;
-6. prepare GPU differential fixtures without consuming GPU/Codespace resources until hardware-specific execution is actually needed.
+1. define and run the first small multirepresentation reference experiment on a dynamical system with known latent factor/common structure, comparing concatenation, linear fusion, and established nonlinear common-manifold methods before inventing a custom learner;
+2. connect the canonical Fisher-information primitive and explicit-likelihood Amari reference to a candidate observation-induced metric, keeping state, parameter, and uncertainty geometry distinct;
+3. turn geometry reference/canonical agreement into derivative and coordinate metamorphic differential tests so candidate representation work rests on trustworthy geometry;
+4. continue decomposing the legacy Fortran physics core toward energy/momentum/continuity-consistent dynamics whose known structure can constrain and test manifold coordinates;
+5. progress the climate-data sheaf into explicit station cover/stalk/restriction semantics that can later participate in local chart/data-consistency experiments;
+6. prepare GPU differential fixtures only after a candidate manifold computation is useful enough that acceleration removes a demonstrated experiment bottleneck.
 
 This list is intentionally short and manually curated. It should change when evidence changes, while the generated status beneath it updates mechanically.
