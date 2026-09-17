@@ -40,6 +40,22 @@ target_include_directories(climate_linear_implicit PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Focused immutable reference-value namespaces. They are not runtime config
+# objects; domain kernels import only the conventional defaults they need.
+add_library(climate_thermodynamic_reference_values STATIC
+    src/fortran/thermodynamic_reference_values.f90
+)
+target_include_directories(climate_thermodynamic_reference_values PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
+add_library(climate_geophysical_reference_values STATIC
+    src/fortran/geophysical_reference_values.f90
+)
+target_include_directories(climate_geophysical_reference_values PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Exact constant-f Coriolis flow for the primitive-equation sign convention.
 # This is a domain-specific closed-form operator, not a generic solver stack.
 add_library(climate_coriolis_rotation STATIC
@@ -56,6 +72,10 @@ add_library(climate_dry_thermodynamics STATIC
 )
 target_include_directories(climate_dry_thermodynamics PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_dry_thermodynamics PUBLIC
+    climate_thermodynamic_reference_values
+    climate_geophysical_reference_values
 )
 
 # Shared pressure-coordinate domain semantics. This target owns only interface
@@ -77,6 +97,8 @@ target_include_directories(climate_pressure_coordinate_hydrostatics PUBLIC
 )
 target_link_libraries(climate_pressure_coordinate_hydrostatics PUBLIC
     climate_pressure_coordinate_grid
+    climate_thermodynamic_reference_values
+    climate_geophysical_reference_values
 )
 
 # Pressure-coordinate continuity integration for omega from layer pressure-mean
@@ -108,6 +130,9 @@ add_library(climate_moist_vapor_algebra STATIC
 )
 target_include_directories(climate_moist_vapor_algebra PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_moist_vapor_algebra PUBLIC
+    climate_thermodynamic_reference_values
 )
 
 # Published phase-explicit equilibrium vapor pressure. Phase selection remains
@@ -254,6 +279,8 @@ if(ENABLE_TESTING)
         tests/fortran/test_pressure_thermo_composition.f90
     )
     target_link_libraries(test_pressure_thermo_composition PRIVATE
+        climate_thermodynamic_reference_values
+        climate_geophysical_reference_values
         climate_dry_thermodynamics
         climate_moist_vapor_algebra
         climate_pressure_coordinate_hydrostatics
@@ -367,6 +394,8 @@ message(STATUS "Climate portable configuration:")
 message(STATUS "  Canonical spectral reference: ON")
 message(STATUS "  Canonical time integration:   ON")
 message(STATUS "  Canonical linear reference:   ON")
+message(STATUS "  Thermodynamic references:     ON")
+message(STATUS "  Geophysical references:       ON")
 message(STATUS "  Exact Coriolis rotation:      ON")
 message(STATUS "  Dry thermodynamics:           ON")
 message(STATUS "  Pressure coordinate contract: ON")
