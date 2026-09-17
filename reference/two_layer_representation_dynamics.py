@@ -174,6 +174,18 @@ def decay_timescales_years(eigenvalues: np.ndarray, dt_years: float) -> np.ndarr
     return np.sort(np.asarray(timescales, dtype=float))
 
 
+def _representation_structure(samples: np.ndarray) -> dict[str, int | float]:
+    x = np.asarray(samples, dtype=float)
+    rank = int(np.linalg.matrix_rank(x))
+    dimension = int(x.shape[1])
+    return {
+        "dimension": dimension,
+        "matrix_rank": rank,
+        "redundant_dimension_count": dimension - rank,
+        "condition_number": float(np.linalg.cond(x)),
+    }
+
+
 def analyze_representations(
     fixture: dict[str, Any], *, dt_years: float = 1.0
 ) -> dict[str, Any]:
@@ -208,8 +220,7 @@ def analyze_representations(
             np.max(np.abs(timescales - exact_timescales) / exact_timescales)
         )
         result["representations"][name] = {
-            "dimension": int(x.shape[1]),
-            "matrix_rank": int(np.linalg.matrix_rank(x)),
+            **_representation_structure(x),
             "dmd_timescales_years": timescales.tolist(),
             "max_relative_timescale_error": relative_timescale_error,
             "one_step_relative_error": prediction_error,
@@ -220,8 +231,7 @@ def analyze_representations(
         eigenvalues, prediction_error = _fit_dmd(x, y, rank=1)
         timescales = decay_timescales_years(eigenvalues, dt_years)
         result["representations"][name] = {
-            "dimension": 1,
-            "matrix_rank": int(np.linalg.matrix_rank(x)),
+            **_representation_structure(x),
             "dmd_timescales_years": timescales.tolist(),
             "one_step_relative_error": prediction_error,
             "resolved_mode_count": 1,
