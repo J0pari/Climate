@@ -66,12 +66,14 @@ contains
         real(real64), parameter :: area_m2 = 1.0e4_real64
         real(real64), parameter :: dt_s = 10.0_real64
         real(real64), parameter :: tracer_fraction = 0.2_real64
+        real(real64), parameter :: specific_energy_j_kg = 2.5e5_real64
         real(real64) :: pressure(2), face_flux(2), net_outward_flux(1)
         real(real64) :: layer_mass(1), divergence(1), tracer_mass(1)
-        real(real64) :: face_tracer_fraction(2), zero_source(1)
+        real(real64) :: face_tracer_fraction(2), face_energy_flux_w(2), zero_source(1)
         real(real64) :: next_mass(1), next_tracer(1)
         real(real64) :: interface_omega(2), column_divergence_pa_s
         real(real64) :: mass_tendency_kg_s, tracer_tendency_kg_s
+        real(real64) :: transported_energy_tendency_w
         type(transport_budget) :: budget
         type(pressure_energy_exchange) :: exchange
         integer :: coupling_ierr, transport_ierr, continuity_ierr, energy_ierr
@@ -104,6 +106,17 @@ contains
             2.0e-11_real64, 'transport continuity mass identity')
         call assert_near(tracer_tendency_kg_s, tracer_fraction * mass_tendency_kg_s, &
             2.0e-11_real64, 'tracer follows authoritative carrier flux')
+
+        ! For a uniform specific energy, conservative energy advection is the
+        ! same carrier-mass flux multiplied by that specific energy.  This
+        ! manufactured case checks the shared-flux contract without defining a
+        ! new reconstruction, limiter, or total-energy update scheme.
+        face_energy_flux_w = specific_energy_j_kg * face_flux
+        transported_energy_tendency_w = &
+            -(face_energy_flux_w(2) - face_energy_flux_w(1))
+        call assert_near(transported_energy_tendency_w, &
+            specific_energy_j_kg * mass_tendency_kg_s, 2.0e-11_real64, &
+            'energy transport follows authoritative carrier flux')
 
         call integrate_pressure_velocity( &
             pressure, divergence, 0.0_real64, interface_omega, &
