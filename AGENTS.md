@@ -27,6 +27,7 @@ This file is the binding contributor/agent contract. `README.md` is descriptive.
 19. **Do not weaken a useful mathematical contract merely because the implementation is weak.** If the stronger mathematical object is scientifically/computationally useful and tractable, implement it correctly. Rename/retype downward only when the narrower object is itself the superior reusable abstraction for a real task.
 20. **Generate objective status; curate judgment.** Facts already represented in registries should flow into `docs/generated/STATUS.md` through `architecture/render_status.py`. Scientific priority, interpretation, tradeoffs, and resource strategy remain human-maintained because pretending to infer them would hide judgment. Do not commit hand-authored continuation snapshots or one-time agent handoffs as repository documents; transient continuation context belongs in the conversation/system context that needs it.
 21. **Commit only to `main`.** Repository edits are made directly on `main` in small coherent commits. Do not create or stage work on feature branches, and do not rewrite or force-update history. Before each write, re-read the current `main` version of every file being edited so concurrent or newly learned design intent is preserved rather than overwritten.
+22. **Commit history owns change narration.** Durable documentation and source comments describe the current contract, rationale, assumptions, limitations, and invariants. Do not annotate repository text with edit batches, feature-addition notes, replacement history, or temporal status narration that belongs to version history. Put what changed and why in the commit message.
 
 ## 2. Claim maturity vocabulary
 
@@ -164,6 +165,7 @@ python architecture/render_status.py --check
 python architecture/check_hazards.py
 python architecture/check_experiments.py
 python architecture/check_sheaf_realization.py
+python architecture/check_durable_text.py
 python architecture/source_gates.py --summary
 python architecture/inspect_repository.py --json
 ```
