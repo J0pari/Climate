@@ -1,0 +1,299 @@
+{
+  "schema_version": 1,
+  "authority": "sole repository authority for planned work, priorities, dependencies, blockers, and completion criteria",
+  "nodes": [
+    {
+      "id": "architecture.reference_values",
+      "title": "Focused atmospheric reference-value authority",
+      "status": "done",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Shared conventional atmospheric defaults live in small immutable thermodynamic and geophysical authorities; domain kernels own narrow caller-overridable parameter records rather than duplicated literals or a global mutable configuration object.",
+      "depends_on": [],
+      "completion": [
+        "Thermodynamic and geophysical reference values have focused versioned authorities.",
+        "Dry thermodynamics, moist vapor algebra, and pressure hydrostatics source shared defaults from those authorities.",
+        "Cross-kernel witnesses prove default coherence and kernel-local override isolation.",
+        "Canonical source contains no second hardcoded authority for the shared Rd, cp, Rv, reference-pressure, or standard-gravity values."
+      ],
+      "evidence": [
+        "src/fortran/thermodynamic_reference_values.f90",
+        "src/fortran/geophysical_reference_values.f90",
+        "tests/fortran/test_pressure_thermo_composition.f90"
+      ]
+    },
+    {
+      "id": "architecture.legacy_source_depletion",
+      "title": "Deplete and delete legacy root monoliths",
+      "status": "active",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Mine useful domain semantics from non-authoritative root prototypes into canonical code, contracts, tests, or another planning node, then delete the depleted source. Git history is the archive; the working tree does not keep compatibility monoliths merely for historical reference.",
+      "depends_on": ["architecture.reference_values"],
+      "completion": [
+        "No root-level climate_* scientific prototype remains.",
+        "No legacy-only compile lane or module-registry entry remains.",
+        "Every still-useful unmet semantic from removed prototypes is represented by a canonical contract, executable witness, or this planning graph.",
+        "Repository policy defines auditable mining and deletion criteria for future legacy depletion."
+      ],
+      "evidence": [
+        "docs/LEGACY-DELETION.md"
+      ]
+    },
+    {
+      "id": "physics.authoritative_flux_recomposition",
+      "title": "Recompose pressure-coordinate physics around authoritative fluxes",
+      "status": "ready",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Compose mass continuity, conservative tracer transport, pressure work, and energy exchange around the same authoritative carrier-mass flux with explicit geometry, area, layer-pressure thickness, gravity, and sign conventions.",
+      "depends_on": ["architecture.reference_values"],
+      "completion": [
+        "One coupling contract binds mass, tracer, continuity-divergence, and energy transport to the same carrier-mass flux.",
+        "Pressure-coordinate face-flux to divergence mapping has explicit dimensional and geometric inputs.",
+        "Manufactured or exact witnesses demonstrate coupled mass/tracer/energy consistency without inventing a generic horizontal-grid framework."
+      ]
+    },
+    {
+      "id": "physics.parameterization_boundaries",
+      "title": "Establish physical parameterization seams and library boundaries",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Keep climate-owned equations, coupling semantics, and diagnostics local while delegating commodity radiation, remapping, integration, transforms, optimization, and linear algebra to mature libraries.",
+      "depends_on": ["physics.authoritative_flux_recomposition"],
+      "completion": [
+        "Radiation, remapping, time integration, and generic linear-algebra boundaries name maintained production libraries and independent reference witnesses.",
+        "Boundary-layer, convection, microphysics, and component-exchange interfaces carry explicit units and owned budget terms before implementation expansion.",
+        "No generic solver or transform stack is promoted from deleted legacy prototypes."
+      ]
+    },
+    {
+      "id": "state.typed_physical_state",
+      "title": "Define typed physical-state boundaries",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Represent prognostic physical state, derived diagnostics, and experimental representations as distinct contracts with explicit units, coordinates, missingness, and initialization semantics.",
+      "depends_on": ["physics.authoritative_flux_recomposition"],
+      "completion": [
+        "Physical fields cannot be silently initialized from synthetic observational defaults.",
+        "Experimental geometry or diagnostic artifacts do not inhabit authoritative prognostic state without an explicit adapter.",
+        "State-boundary fixtures cover missing, unavailable, and zero as distinct cases where scientifically relevant."
+      ]
+    },
+    {
+      "id": "diagnostics.spectral_oscillation_contracts",
+      "title": "Rebuild spectral and oscillation diagnostics from narrow contracts",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Define scientifically narrow spectra, coherence, wavelet, climate-index, and oscillation diagnostics around maintained transform/statistics libraries rather than omnibus placeholder algorithms.",
+      "depends_on": [],
+      "completion": [
+        "Each diagnostic names its input sampling, normalization, units, missing-data semantics, and independent benchmark.",
+        "FFT and standard transform machinery use maintained libraries in production paths.",
+        "Forecast-skill or named climate-index outputs cannot be synthesized by arbitrary fallback formulas."
+      ]
+    },
+    {
+      "id": "data.immutable_observational_projection",
+      "title": "Create one immutable observational or reanalysis projection",
+      "status": "ready",
+      "priority": "P0",
+      "resource_class": "R5_large_data",
+      "summary": "Build a narrow CF-aware data projection with explicit retrieval identity, QC, missingness, transformation lineage, coordinates, units, and content digests before expanding acquisition breadth.",
+      "depends_on": ["state.typed_physical_state"],
+      "completion": [
+        "One real dataset projection is reproducible from immutable source identity through preprocessing to experiment input.",
+        "Missing observations are never silently replaced by climatology or defaults in validation paths.",
+        "A compact network-free fixture exercises the same schema and transformation semantics in CI."
+      ]
+    },
+    {
+      "id": "adapters.versioned_array_ffi",
+      "title": "Define narrow versioned array FFI contracts",
+      "status": "ready",
+      "priority": "P2",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Cross-language adapters expose only implemented backends with explicit dtype, shape, layout, ownership, lifetime, error, and capability-discovery semantics.",
+      "depends_on": ["state.typed_physical_state"],
+      "completion": [
+        "FFI schemas make array ownership and memory layout unambiguous.",
+        "Unavailable language backends fail capability discovery instead of returning placeholder array descriptors.",
+        "Round-trip fixtures cover each advertised backend."
+      ]
+    },
+    {
+      "id": "orchestration.commons_read_execution",
+      "title": "Exercise read-only Commons execution lineage",
+      "status": "blocked",
+      "priority": "P1",
+      "resource_class": "R4_integrated_system",
+      "summary": "Run one sandboxed Climate experiment through Commons while preserving run, trace, causation, build, artifact, and evidence identity without creating a second scheduler in Climate.",
+      "depends_on": [],
+      "blockers": [
+        "Requires an available integrated Commons execution environment and authorization boundary."
+      ],
+      "completion": [
+        "One real read-only or sandboxed execution preserves Climate scientific semantics and end-to-end lineage.",
+        "Climate owns only local numerical scheduling and checkpoint semantics; global resource arbitration remains external."
+      ]
+    },
+    {
+      "id": "geometry.nonlinear_coordinate_witness",
+      "title": "Verify nonlinear coordinate covariance",
+      "status": "ready",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Extend independent geometry verification to a nonlinear coordinate transformation including the inhomogeneous Christoffel transformation term.",
+      "depends_on": [],
+      "completion": [
+        "A nonlinear analytic fixture has independently generated transformed metric and Christoffel quantities.",
+        "Canonical geometry agrees within scale-aware tolerances and detects an intentionally omitted inhomogeneous term."
+      ]
+    },
+    {
+      "id": "geometry.independent_derivative_route",
+      "title": "Add a second independent metric-derivative route",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Add an AD or complex-step derivative witness where supported, keeping derivative-estimation acceptance policy outside the mathematical MetricJet contract.",
+      "depends_on": [],
+      "completion": [
+        "At least two materially independent derivative-generation routes agree on shared analytic fixtures.",
+        "Conditioning and derivative-estimation failures remain explicit diagnostics rather than repaired tensors."
+      ]
+    },
+    {
+      "id": "information_geometry.recovery_validation",
+      "title": "Validate information-geometry primitives on explicit statistical models",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Use explicit likelihood families for Fisher, connection, identifiability, natural-gradient, and recovery experiments, with maintained optimization libraries and standard baselines.",
+      "depends_on": [],
+      "completion": [
+        "Synthetic observations are explicit experiment inputs rather than hidden inside method implementations.",
+        "Parameter-recovery and held-out likelihood tasks compare natural-gradient behavior against standard optimizers and equally informed preconditioners."
+      ]
+    },
+    {
+      "id": "sheaf.climate_data_semantics",
+      "title": "Realize station-cover sheaf semantics",
+      "status": "ready",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Define a climate-data cover, typed stalk contents, restrictions, identity/composition laws, coboundary, and compatibility semantics before interpreting cohomological diagnostics.",
+      "depends_on": [],
+      "completion": [
+        "Station or coverage rules generate a declared nerve and typed restriction maps.",
+        "Restriction identity and composition have executable witnesses.",
+        "Injected-fault and withheld-data fixtures compare sheaf quantities against same-information residual, QC, graph, and interpolation baselines."
+      ]
+    },
+    {
+      "id": "multirepresentation.cost_noise_authority",
+      "title": "Ground multirepresentation weighting in real cost and noise authority",
+      "status": "blocked",
+      "priority": "P1",
+      "resource_class": "R5_large_data",
+      "summary": "Move beyond equal-cost synthetic observation design only when real acquisition cost, noise, provenance, and missingness authorities exist; do not tune representation weights to downstream scores in their absence.",
+      "depends_on": ["data.immutable_observational_projection"],
+      "blockers": [
+        "Requires a real dataset with defensible observation-cost and noise metadata."
+      ],
+      "completion": [
+        "Observation-design objectives use externally grounded cost/noise data rather than arbitrary scalar weights.",
+        "Fast/slow modal information, Fisher rank, and acquisition cost remain separate reported objectives unless a decision policy explicitly combines them."
+      ]
+    },
+    {
+      "id": "experimental.teleconnection_encoding",
+      "title": "Test climate encodings for exact ultrametric primitives",
+      "status": "ready",
+      "priority": "P2",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Keep exact p-adic mathematics separate from the empirical hypothesis that a climate encoding improves teleconnection tasks, and compare against generic hierarchy, graph, spectral, Euclidean, learned, and randomized controls.",
+      "depends_on": [],
+      "completion": [
+        "Encoding choices are preregistered without target leakage.",
+        "Held-out tasks attribute any gain to the encoding rather than to unequal information access or arbitrary geographic weighting."
+      ]
+    },
+    {
+      "id": "experimental.clifford_task",
+      "title": "Give Clifford representations a falsifiable climate task",
+      "status": "ready",
+      "priority": "P2",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Evaluate canonical Clifford algebra representations on a declared multicomponent or oriented-dynamics task against complex spectra, Hilbert phase, wavelets, bispectra, and DMD/Koopman baselines.",
+      "depends_on": ["diagnostics.spectral_oscillation_contracts"],
+      "completion": [
+        "The Clifford representation is mathematically canonical for the declared signature and dimension.",
+        "Incremental task value is measured against simpler phase/spectral representations with matched information."
+      ]
+    },
+    {
+      "id": "experimental.scenario_feasibility_adapter",
+      "title": "Separate climate feasibility from modal truth",
+      "status": "ready",
+      "priority": "P2",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Construct climate-specific worlds, propositions, and accessibility relations through an explicit adapter while keeping canonical Kripke satisfaction semantics independent of heuristic plausibility scores.",
+      "depends_on": ["data.immutable_observational_projection"],
+      "completion": [
+        "Physical feasibility construction has explicit data/model provenance and no hidden probability interpretation.",
+        "Modal truth tests consume only the declared finite frame and valuation produced by the adapter."
+      ]
+    },
+    {
+      "id": "experimental.symmetry_diagnostics",
+      "title": "Separate approximate climate symmetry diagnostics from exact Noether structure",
+      "status": "ready",
+      "priority": "P2",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Use exact variational-symmetry references as mathematical authority and evaluate approximate climate symmetry indicators as diagnostics with explicit baselines rather than conservation-law claims.",
+      "depends_on": [],
+      "completion": [
+        "Exact conservation-law language is reserved for witnessed variational symmetries.",
+        "Approximate symmetry diagnostics have declared tasks, scales, uncertainty, and conventional comparison methods."
+      ]
+    },
+    {
+      "id": "optimization.climate_objective_contracts",
+      "title": "Isolate climate-specific optimization objectives",
+      "status": "ready",
+      "priority": "P2",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Retain only climate-specific objective, constraint, and provenance semantics locally; generic optimization, AD, eigensolvers, and linear algebra come from maintained libraries.",
+      "depends_on": ["information_geometry.recovery_validation"],
+      "completion": [
+        "Climate-owned objective/constraint contracts are independently testable without a local generic optimizer stack.",
+        "Benchmark and recovery experiments compare maintained optimizers under equivalent information and stopping rules."
+      ]
+    },
+    {
+      "id": "gpu.justified_geometry_acceleration",
+      "title": "Prepare GPU differential execution only for a justified workload",
+      "status": "blocked",
+      "priority": "P2",
+      "resource_class": "R3_cuda_device",
+      "summary": "Accelerate a geometry or representation workload only after profiling establishes a real bottleneck; generic device linear algebra and transforms use vendor libraries and execution identity remains fail closed.",
+      "depends_on": [
+        "geometry.nonlinear_coordinate_witness",
+        "geometry.independent_derivative_route"
+      ],
+      "blockers": [
+        "Requires a scientifically useful workload with a demonstrated CPU/reference bottleneck.",
+        "Hardware correctness and performance claims require an actual CUDA device."
+      ],
+      "completion": [
+        "CPU/reference fixtures and stage-level tolerances exist before device optimization.",
+        "Real-device tests cover execution identity, conditioning, determinism, transfers, VRAM, and differential agreement.",
+        "No compatibility shim can satisfy a requested CUDA/NCCL/tensor-core identity."
+      ]
+    }
+  ]
+}
