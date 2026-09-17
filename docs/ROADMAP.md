@@ -7,7 +7,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 ## Planning summary
 
-- Active: 0
+- Active: 1
 - Ready: 13
 - Blocked: 10
 - Done: 4
@@ -17,6 +17,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
+| `data.external_authority_audit` — Externalize hardcoded climate data and assumptions | `active` | `P0` | `R0_static` | — |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `ready` | `P0` | `R2_toolchain_ci` | — |
 | `sheaf.climate_data_semantics` — Realize station-cover sheaf semantics | `ready` | `P0` | `R2_toolchain_ci` | — |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |
@@ -30,7 +31,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` | — |
-| `data.immutable_observational_projection` — Create one immutable observational or reanalysis projection | `blocked` | `P0` | `R5_large_data` | `state.typed_physical_state` |
+| `data.immutable_observational_projection` — Create one immutable observational or reanalysis projection | `blocked` | `P0` | `R5_large_data` | `data.external_authority_audit`, `state.typed_physical_state` |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `blocked` | `P1` | `R4_integrated_system` | — |
