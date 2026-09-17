@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "fixture_id": "observations.two_layer_ebm.structural_noise.v1",
+  "description": "Synthetic observation-noise scales for structural Fisher-geometry tests of the two-layer energy-balance state. These values define a reproducible identifiability control and are not calibrated instrument, reanalysis, or observational uncertainties.",
+  "ebm_fixture_id": "physics.two_layer_ebm.geoffroy_mean.v1",
+  "channels": {
+    "surface_temperature": {
+      "observable": "T_surface",
+      "standard_deviation": 0.1,
+      "units": "K",
+      "noise_model": "independent Gaussian with state-independent standard deviation"
+    },
+    "toa_imbalance": {
+      "observable": "forcing - lambda*T_surface",
+      "standard_deviation": 0.2,
+      "units": "W m^-2",
+      "noise_model": "independent Gaussian with state-independent standard deviation"
+    },
+    "ocean_heat_uptake": {
+      "observable": "gamma*(T_surface - T_deep)",
+      "standard_deviation": 0.2,
+      "units": "W m^-2",
+      "noise_model": "independent Gaussian with state-independent standard deviation"
+    }
+  },
+  "provenance": {
+    "kind": "synthetic_structural_control",
+    "interpretation": "noise magnitudes are chosen only to expose rank, complementarity, and precision-weighting semantics; changing them defines a different observation-control experiment rather than a statement about real observing-system accuracy"
+  }
+}
