@@ -7,17 +7,16 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 ## Planning summary
 
-- Active: 1
+- Active: 0
 - Ready: 13
 - Blocked: 10
-- Done: 4
+- Done: 5
 - Dropped: 0
 
 ## Graph projection
 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
-| `data.external_authority_audit` — Externalize hardcoded climate data and assumptions | `active` | `P0` | `R0_static` | — |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `ready` | `P0` | `R2_toolchain_ci` | — |
 | `sheaf.climate_data_semantics` — Realize station-cover sheaf semantics | `ready` | `P0` | `R2_toolchain_ci` | — |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |
@@ -44,6 +43,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `architecture.layered_configuration` — Define layered runtime configuration contracts | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `architecture.legacy_source_depletion` — Deplete and delete legacy root monoliths | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `architecture.reference_values` — Focused atmospheric reference-value authority | `done` | `P0` | `R2_toolchain_ci` | — |
+| `data.external_authority_audit` — Externalize hardcoded climate data and assumptions | `done` | `P0` | `R1_portable_cpu` | — |
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 
 Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.
