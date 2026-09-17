@@ -95,6 +95,19 @@ class SourceGateTests(unittest.TestCase):
         })
         self.assertEqual(findings, [])
 
+    def test_change_narration_is_inventoried(self):
+        findings = gates.gate_change_narration({
+            "legacy/example.rs": ["// Batch2 additive: recovery path"],
+        })
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].gate, "change_narration")
+
+    def test_scientific_additive_language_is_not_change_narration(self):
+        findings = gates.gate_change_narration({
+            "physics/example.f90": ["! The additive source is caller-owned."],
+        })
+        self.assertEqual(findings, [])
+
     def test_combined_runner_preserves_multiple_failure_classes(self):
         findings = gates.run({
             "gpu/example.cu": [
@@ -102,6 +115,7 @@ class SourceGateTests(unittest.TestCase):
                 "cudaMallocManaged(&q, bytes);",
                 "// CPU fallback path",
                 "probability = score / 2.0;",
+                "// Additive: compatibility helper",
             ]
         })
         names = {f.gate for f in findings}
@@ -109,6 +123,7 @@ class SourceGateTests(unittest.TestCase):
         self.assertIn("managed_memory", names)
         self.assertIn("capability_fallback", names)
         self.assertIn("interpretive_probability", names)
+        self.assertIn("change_narration", names)
 
 
 if __name__ == "__main__":
