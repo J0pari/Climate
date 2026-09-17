@@ -84,6 +84,21 @@
       "update_semantics": "daily-updated reanalysis; retrieval request plus returned artifact digest define immutable experiment input"
     },
     {
+      "source_id": "ecmwf.era5.complete_model_levels",
+      "kind": "api_dataset",
+      "provider": "ECMWF Copernicus Climate Change Service",
+      "product": "ERA5 complete native/model-level archive",
+      "version": "ERA5 CY41R2; 137 hybrid sigma/pressure model levels",
+      "official_url": "https://confluence.ecmwf.int/pages/viewpage.action?pageId=321005296",
+      "access": "CDS API request to reanalysis-era5-complete using MARS syntax",
+      "access_url": "https://cds.climate.copernicus.eu/",
+      "time_coverage": "ERA5 period covered by the complete archive",
+      "variables": ["model-level fields", "surface pressure or logarithm of surface pressure", "hybrid a/b coefficients carried in GRIB model-level metadata"],
+      "units": ["GRIB parameter-specific units", "Pa for pressure terms"],
+      "license_or_access_constraints": "Copernicus/ECMWF access terms and CDS credentials apply",
+      "update_semantics": "model-level retrieval identity includes dataset, MARS request, IFS/ERA5 definition and artifact digest; a/b coefficients are read from source metadata rather than copied as local authority"
+    },
+    {
       "source_id": "ncei.ghcnd.v3",
       "kind": "api_dataset",
       "provider": "NOAA National Centers for Environmental Information",
@@ -259,7 +274,7 @@
       "anchor": "physics.vertical_coordinate_contract",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
-      "source_ids": ["ecmwf.era5.single_levels"],
+      "source_ids": ["ecmwf.era5.complete_model_levels"],
       "rationale": "ERA5/IFS hybrid a/b coefficients and surface pressure are source metadata; coefficients should be read from the retrieved GRIB/model-level authority or an explicitly pinned model definition, not copied into an unlabeled local table"
     },
     {
@@ -296,11 +311,11 @@
       "usage_id": "validation.ocean_heat_content",
       "scope": "planned",
       "path": "architecture/planning_graph.json",
-      "anchor": "multirepresentation.cost_noise_authority",
+      "anchor": "data.immutable_observational_projection",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
       "source_ids": ["ncei.global_ocean_heat_content"],
-      "rationale": "real ocean heat content/uptake weighting or validation requires a versioned observed product and its depth/time/uncertainty definition rather than arbitrary synthetic scales"
+      "rationale": "real ocean heat content/uptake validation requires a versioned observed product and its depth/time/uncertainty definition rather than arbitrary synthetic scales"
     }
   ]
 }
