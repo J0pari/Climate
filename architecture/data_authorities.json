@@ -388,7 +388,9 @@
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "the adapter binds provider response records to an explicit request URL and content digest; it does not synthesize station observations when retrieval data are absent"
+      "rationale": "the adapter binds provider response records to an explicit request URL and content digest; it does not synthesize station observations when retrieval data are absent",
+      "witness_path": "tests/reference/test_data_authority_adapters.py",
+      "witness_anchor": "test_live_fixture_preserves_exact_payload_identity"
     },
     {
       "usage_id": "data.nsidc_sea_ice_index_adapter_boundary",
@@ -401,7 +403,9 @@
       "source_ids": [
         "nsidc.sea_ice_index.v4"
       ],
-      "rationale": "the adapter parses an explicit provider artifact and preserves its source URL and content digest; no local extent series substitutes for the provider file"
+      "rationale": "the adapter parses an explicit provider artifact and preserves its source URL and content digest; no local extent series substitutes for the provider file",
+      "witness_path": "tests/reference/test_data_authority_adapters.py",
+      "witness_anchor": "test_live_fixture_preserves_exact_payload_identity_and_source_transition"
     },
     {
       "usage_id": "data.ncei_ghcnd_temperature_projection_boundary",
@@ -414,7 +418,9 @@
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "the CF-aware projection consumes an exact digested GHCN-Daily provider payload, preserves missing observations and provider attributes, and does not synthesize climatology or fallback station values"
+      "rationale": "the CF-aware projection consumes an exact digested GHCN-Daily provider payload, preserves missing observations and provider attributes, and does not synthesize climatology or fallback station values",
+      "witness_path": "tests/reference/test_ncei_ghcnd_projection.py",
+      "witness_anchor": "test_netcdf_roundtrip_preserves_projection_identity"
     }
   ]
 }

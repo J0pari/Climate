@@ -13,8 +13,13 @@ class DataAuthorityTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         root = Path(temporary.name)
         (root / "src").mkdir()
+        (root / "tests").mkdir()
         (root / "src" / "example.txt").write_text(
             "observed_temperature\nobservation_authority\nlocal_policy\n",
+            encoding="utf-8",
+        )
+        (root / "tests" / "authority_witness.py").write_text(
+            "def test_exact_authority_identity():\n    pass\n",
             encoding="utf-8",
         )
         registry = {
@@ -57,6 +62,8 @@ class DataAuthorityTests(unittest.TestCase):
                     "disposition": "externalize",
                     "source_ids": ["provider.dataset.v1"],
                     "authority_boundary": "observation_authority",
+                    "witness_path": "tests/authority_witness.py",
+                    "witness_anchor": "test_exact_authority_identity",
                     "rationale": "measured temperature belongs to the provider",
                 },
                 {
@@ -140,6 +147,20 @@ class DataAuthorityTests(unittest.TestCase):
             registry["usages"][0]["scope"] = "planned"
             codes = {item.code for item in check_data_authorities.check(root, registry)}
             self.assertIn("data_authority.planned_path", codes)
+
+    def test_current_external_usage_requires_repository_witness(self):
+        temporary, root, registry = self._root_and_registry()
+        with temporary:
+            del registry["usages"][0]["witness_path"]
+            codes = {item.code for item in check_data_authorities.check(root, registry)}
+            self.assertIn("data_authority.current_external_witness_missing", codes)
+
+    def test_current_external_usage_witness_anchor_must_exist(self):
+        temporary, root, registry = self._root_and_registry()
+        with temporary:
+            registry["usages"][0]["witness_anchor"] = "invented_witness"
+            codes = {item.code for item in check_data_authorities.check(root, registry)}
+            self.assertIn("data_authority.current_external_witness_anchor_missing", codes)
 
     def test_current_external_usage_requires_realized_authority_boundary(self):
         temporary, root, registry = self._root_and_registry()

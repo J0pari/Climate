@@ -331,6 +331,43 @@ def check(root: Path = ROOT, registry: dict | None = None) -> list[Finding]:
                         f"authority boundary {authority_boundary!r} is not present",
                     ))
 
+                witness_path = usage.get("witness_path")
+                witness_anchor = usage.get("witness_anchor")
+                if (
+                    not isinstance(witness_path, str)
+                    or not witness_path.startswith("tests/")
+                    or not isinstance(witness_anchor, str)
+                    or not witness_anchor.strip()
+                ):
+                    findings.append(_finding(
+                        "data_authority.current_external_witness_missing",
+                        path,
+                        "current externalized usage requires witness_path under tests/ and a non-empty witness_anchor",
+                    ))
+                else:
+                    witness = (root / witness_path).resolve()
+                    try:
+                        witness.relative_to(root)
+                    except ValueError:
+                        findings.append(_finding(
+                            "data_authority.current_external_witness_path",
+                            path,
+                            f"witness path escapes repository root: {witness_path}",
+                        ))
+                    else:
+                        if not witness.is_file():
+                            findings.append(_finding(
+                                "data_authority.current_external_witness_path",
+                                path,
+                                f"witness path does not exist: {witness_path}",
+                            ))
+                        elif witness_anchor not in witness.read_text(encoding="utf-8"):
+                            findings.append(_finding(
+                                "data_authority.current_external_witness_anchor_missing",
+                                witness_path,
+                                f"witness anchor {witness_anchor!r} is not present",
+                            ))
+
                 if candidate_text is not None:
                     for code, pattern in EXTERNAL_FALLBACK_PATTERNS:
                         if pattern.search(candidate_text):
