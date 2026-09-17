@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Reject edit-history narration from durable Climate text surfaces.
+"""Reject planning and edit-history metadata from durable Climate text.
 
-Git history owns change narration. Repository documentation and source comments
-should describe the current contract, rationale, assumptions, limitations, and
-invariants rather than recording how a line or feature was edited.
+Git history owns change narration. ``architecture/planning_graph.json`` owns
+planned work. Repository documentation and source comments describe current
+contracts, rationale, assumptions, limitations, and invariants rather than
+recording edits or maintaining parallel future-work queues.
 
-The binding surface deliberately covers active documentation plus canonical and
-reference source trees. Historical archives and generated status are excluded:
-archives may preserve historical wording, while generated status has its own
-machine authority and drift check. Legacy root-level source remains visible to
-``source_gates.py`` and can be sanitized incrementally without weakening this
-binding rule for canonical work.
+The binding surface covers active documentation plus canonical and reference
+source trees. Historical archives and generated status are excluded because
+archives may preserve historical wording and generated artifacts have their own
+machine authorities and drift checks.
 """
 from __future__ import annotations
 
@@ -27,8 +26,8 @@ TEXT_SUFFIXES = {
     ".h", ".hpp", ".f90", ".F90", ".jl", ".hs",
 }
 
-# These patterns target unmistakable edit-history annotations rather than
-# scientific uses of words such as "additive" or "previous state".
+# These patterns target unmistakable repository-process metadata rather than
+# scientific uses of words such as "additive", "previous state", or "future".
 HISTORY_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "edit_batch_annotation",
@@ -62,6 +61,10 @@ HISTORY_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         "provisional_for_now",
         re.compile(r"\bfor\s+now\b", re.IGNORECASE),
     ),
+    (
+        "parallel_planning_marker",
+        re.compile(r"\b(?:TODO|FIXME)\s*:", re.IGNORECASE),
+    ),
 )
 
 
@@ -73,9 +76,12 @@ class Finding:
     text: str
 
     def render(self) -> str:
+        if self.rule == "parallel_planning_marker":
+            message = "planned work belongs in architecture/planning_graph.json"
+        else:
+            message = "change narration belongs in commit history"
         return (
-            f"{self.rule}: {self.path}:{self.line}: durable text describes edit "
-            f"history; move change narration to the commit message\n"
+            f"{self.rule}: {self.path}:{self.line}: {message}\n"
             f"    {self.text.strip()}"
         )
 
