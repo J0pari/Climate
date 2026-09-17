@@ -1,155 +1,144 @@
 # Continuation handoff
 
-This is a compact handoff for the next agent working on `J0pari/Climate`. It is a snapshot, not a second status authority. **Before acting, fetch the current `main` head and reread the live authorities below. If `main` has advanced, do not reset or overwrite newer work.**
+This is the compact operational handoff for work on `J0pari/Climate`. It is not a second architecture or status authority. Before acting, fetch the current `main` head and reread the live authorities below. Never reset or overwrite newer work.
 
-Live authorities:
+## Live authorities
 
+- `AGENTS.md` — binding contributor and scientific-evidence rules.
+- `docs/ARCHITECTURE.md` — target system shape and semantic boundaries.
+- `docs/ROADMAP.md` — live scientific and engineering obligation graph.
+- `docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md` — candidate unifying representation/geometry research program.
+- `docs/FORTRAN-PHYSICS-FRONTIER.md` — realized and open atmospheric physical/numerical responsibilities.
+- `docs/FORTRAN-TIME-INTEGRATION.md` — integration semantics and generic-library boundary.
 - `docs/generated/STATUS.md` — generated module/claim/experiment/sheaf status; do not hand-edit.
-- `docs/FORTRAN-PHYSICS-FRONTIER.md` — current Fortran physical/numerical realization boundary.
-- `docs/ROADMAP.md` — manually curated research priorities and dependency graph.
-- `AGENTS.md` — binding contributor/scientific-evidence rules.
-- `architecture/modules/*.json`, `claims/registry.json`, `experiments/*.json`, `methods/sheaf-realization.v1.json` — machine authorities behind the projections.
+- `architecture/modules/*.json`, `claims/registry.json`, `experiments/*.json`, `methods/sheaf-realization.v1.json` — machine authorities behind generated status.
 
-## Snapshot at handoff
+## Working style
 
-Snapshot date: 2026-09-16.
+Commit directly to `main` in small coherent commits. Re-read the current `main` version of every file before writing it. Never force-update or rewrite history.
 
-Canonical branch: `main`.
+Edits must be granular and evidence-preserving. Do not broadly rewrite architecture to fit a simplified new plan; preserve valid learned constraints and change only surfaces that are stale, contradictory, or scientifically weaker than the intended design.
 
-Pre-handoff canonical head: `9c22b67ee2dcacb32b6aaeb33ba0bed22f12923a` (`Record conservative transport frontier`). This handoff file itself is committed on top of whatever `main` head GitHub accepted at creation time, so re-fetch `main` before using the SHA as anything other than a historical anchor.
+README and architecture documents are present/future-facing specifications, not changelogs. Repository history is the archive for superseded implementations and discarded ideas. Use this handoff only for compact operational state that materially affects continuation.
 
-At `9c22b67`, generated status reports:
+Do not build knowingly disposable surrogate abstractions when the stronger final-form contract is already knowable. Do not simplify scientifically meaningful semantics merely to make code easier.
 
-- 49 registered modules: 20 canonical, 24 legacy, 5 reference;
-- 23 runnable, 26 prototype;
-- all 5 scientific claims remain `concept` with zero supporting evidence records;
-- 2 registered experiments;
-- sheaf realization: 8/15 obligations reference-realized; all R3–R6 climate-data/empirical obligations remain open.
+## Scientific center of gravity
 
-Exact-head GitHub Actions run `35149951052` on `9c22b67` had these jobs green: architecture/CUE/status drift, Rust canonical + legacy compatibility, canonical Fortran, reference geometry, reference Noether, and reference sheaf cohomology. The only failing job was `fortran-legacy-physics`, the intentionally isolated legacy monolith compile probe. Therefore the workflow-level conclusion is red even when the canonical surface is healthy; inspect jobs rather than equating the aggregate conclusion with canonical failure.
+The repository has two coupled scientific programs.
 
-The generated-status checker now prints a unified diff when a projection is stale, and `tests/architecture/test_render_status.py` regression-tests that diagnostic. That test commit is already an ancestor of the current `main` history; do not re-port it.
+### Structure-preserving climate dynamics
 
-## Working style the user expects
+Physical kernels should expose the mathematical structure of the equations they implement rather than relying on post-hoc conservation checks. Important coupled contracts include:
 
-Act rather than repeatedly asking for permission. Use small coherent commits directly on `main`, verify exact heads in GitHub Actions, and never force-update or rewrite history. Do not assemble work on feature branches, and do not merge old draft PRs merely because they exist.
+- continuity-consistent mass and tracer fluxes;
+- pressure-gradient work paired with thermodynamic/geopotential conversion;
+- skew/no-work Coriolis structure;
+- energy exchange among kinetic, potential, internal, latent, radiative, and component reservoirs;
+- physically signed diffusion, drag, precipitation, radiation, and surface exchange;
+- compatible spatial operators whose balance and wave properties are appropriate to rotating geophysical flow.
 
-Edits should be granular and evidence-preserving. Do not broadly rewrite documents or architecture merely to make them conform to a simplified new plan; change the smallest stale or contradictory surface, preserve learned lessons that remain valid, and make disagreements inspectable through narrow commits.
+Noether/Hamiltonian/variational ideas apply selectively where conservative subdynamics actually possess those structures. Forced and dissipative climate dynamics require explicit balance-law and exchange semantics rather than decorative conservation language.
 
-The user strongly rejects temporary/band-aid implementations where the harder final-form abstraction is already knowable. Do the real thing rather than building a knowingly disposable surrogate.
+### Multirepresentation climate geometry
 
-Do **not** simplify semantics merely to make code easier. The repository may gain nuance, technical detail, and semantic structure; it should not smooth difficult distinctions away. Reuse useful legacy material through extraction/reshaping where appropriate, but legacy code is evidence of intended responsibilities, not an authority for architecture or algorithms.
+The candidate unifying construct is an atlas or structured family of scientifically grounded representations of the same climate state, not one giant feature vector.
 
-## Scientific and mathematical rules
+Representation maps may contribute as coordinates, factors, fibers, observation maps, constraints, kernels, quotient structures, or comparison geometries. Candidate relationships include common-manifold, product, fibered, quotient, stratified, and local-atlas structure.
 
-A strong mathematical name creates an implementation obligation. If the named structure is useful and tractable, realize it correctly and test its defining laws. Do not rename downward merely because the present implementation is weak. Use a weaker abstraction only when it is genuinely the superior scientific/computational tool for that responsibility.
+Information geometry has a central role where an explicit likelihood supplies Fisher structure, but parameter geometry, state geometry, and distribution/uncertainty geometry remain distinct. Rank-deficient Fisher or observation pullbacks expose unidentifiable directions and must not be regularized into fictitious information by default.
 
-Examples already applied:
+Sheaf methods may supply local-to-global compatibility structure; ultrametric/p-adic methods may supply alternative relational geometry; Clifford structure may represent oriented or multicomponent mode interactions; spectral/Koopman coordinates may provide dynamically coherent views. None is assumed to be a universal coordinate system.
 
-- real finite cellular-sheaf operators plus exact cohomology reference, rather than threshold counts called Betti numbers;
-- exact finite p-adic residue/ultrametric primitives, while climate-to-p-adic encoding remains an empirical hypothesis;
-- actual Kripke semantics with modal-law witnesses;
-- actual sparse Clifford algebra rather than decorative gamma-matrix language;
-- exact Noether/variational-symmetry reference, while open forced dissipative climate diagnostics use balance-law residuals where those are the better physical object;
-- explicit-likelihood Fisher information and Amari alpha-connections, with numerical regularization kept separate from the mathematical Fisher object;
-- canonical Levi-Civita geometry separated from any unvalidated climate metric or curvature-to-tipping interpretation.
-
-Formal Lean is a narrow independent mathematical authority. Checked-in proofs establish the scalar sheaf edge obligations O1–O3 and arbitrary-matrix Gram orientation invariance. Formal proof establishes consequences of the declared object; it does not validate climate stalks/restrictions or empirical usefulness.
-
-Use Popperian discipline: every novel method must be testable, ablatable, composable, have declared falsifiers/baselines, and earn its scope. Mathematical correctness is not empirical climate evidence. Performance is not scientific validation.
-
-That discipline is **research scaffolding, not the distinctive scientific program**. Prioritize the actual climate objects, dynamics, representation choices, physical couplings, and mathematical structures being investigated. Reproducibility, falsifiers, and harness contracts exist to make those ideas inspectable; they should not displace them as the center of design discussion.
-
-## Architecture rules
-
-Keep the thin semantic waist and explicit authority boundaries. Governance actors, repositories, components, methods, runs, artifacts, claims, and evidence are distinct identities.
-
-Separate:
-
-1. mathematical/reference authority;
-2. canonical portable executable implementation;
-3. accelerated/GPU implementation;
-4. empirical/scientific interpretation.
-
-Accelerators must be differentially verified against an independent reference/canonical path. Never let GPU speed become evidence for scientific validity.
-
-Generated documentation should only project facts already owned by machine-readable authorities. Human research priorities, interpretation, and scientific judgment remain manually curated. Do not build a documentation compiler for things that inherently require judgment.
-
-## Current integrative research direction
-
-`docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md` defines a candidate unifying research program, not an adopted physical ontology. The central hypothesis is that several scientifically grounded representations of the same climate state may admit useful shared, product, fibered, quotient, stratified/local-atlas, or otherwise coupled structure.
-
-Do **not** reduce this to concatenating every mathematical method into one feature vector. Keep explicit representation maps and preserve the native semantics of each view. Physical/thermodynamic state, subsystem summaries, spectral/Koopman coordinates, observations, parameter likelihoods, uncertainty distributions, teleconnection structures, sheaf-local data, ultrametric relations, and Clifford/oriented mode representations may participate differently. Some are possible coordinates; some are observation maps, factors, fibers, constraints, kernels, or comparison geometries.
-
-Information geometry is especially promising where an explicit likelihood supplies Fisher structure, but parameter geometry, state geometry, and distribution/uncertainty geometry remain distinct. Rank-deficient Fisher or observation pullbacks expose unidentifiable directions; do not regularize them into fictitious information merely to obtain an invertible metric.
-
-Physical-core work is not separate from this program. Conservation/balance laws, continuity, hydrostatics, Coriolis/skew structure, thermodynamic identities, transport consistency, dissipation, and eventually pressure-work/momentum coupling can constrain or falsify candidate coordinates and metrics. A representation that reconstructs snapshots while badly distorting known dynamics or physical exchange structure is not automatically useful.
-
-Legacy curvature-minimizing latent-dimension selection is not authoritative. Curvature, holonomy, geodesics, topology, and intrinsic dimension are quantities to investigate after declaring a representation; they are not universal objectives for choosing one.
+Curvature, geodesics, holonomy, topology, and intrinsic dimension are diagnostics of a declared representation, not universal optimization objectives.
 
 ## Library-versus-novelty rule
 
-Do not reinvent mature generic numerical infrastructure. Hand-written kernels are appropriate as transparent reference/differential oracles; production generic numerics should usually delegate to maintained libraries through thin semantic wrappers.
+Do not spend Climate's novelty budget reimplementing mature generic numerical infrastructure.
 
-Current intended boundaries:
+Use hand-written code when it is a small transparent mathematical/reference oracle or when Climate owns genuinely domain-specific semantics. Production generic numerics should normally delegate to maintained libraries through thin, testable adapters.
 
-- LAPACK `DGTTRF/DGTTRS` for production-oriented CPU tridiagonal solves; Thomas remains a transparent reference oracle.
-- SUNDIALS ARKODE is the preferred production trajectory for adaptive/implicit/IMEX/multirate integration unless a concrete requirement proves another choice better.
-- FFTW for future production CPU FFT and cuFFT for GPU; direct DFT remains the reference oracle.
-- evaluate RTE+RRTMGP or another established maintained package before implementing generic radiative-transfer/gas-optics/two-stream infrastructure locally.
-- PETSc becomes relevant if/when distributed state vectors, MPI domain decomposition, large sparse operators, and serious preconditioning actually justify it; do not add it speculatively.
+Current boundaries include:
 
-Climate-owned effort should concentrate on domain-specific variables, units, coordinate semantics, operator construction, conservation/balance laws, Jacobians/preconditioners with atmospheric structure, reproducibility, evidence, and scientifically meaningful experiments.
+- LAPACK `DGTTRF/DGTTRS` for production-oriented CPU tridiagonal solves; transparent Thomas remains a reference oracle.
+- SUNDIALS ARKODE as the default production trajectory for adaptive/implicit/IMEX/multirate integration unless a concrete requirement proves a better fit.
+- FFTW for production CPU FFT and cuFFT for GPU; direct DFT remains the small deterministic oracle.
+- RTE+RRTMGP or another maintained package should be evaluated before implementing generic gas-optics/two-stream radiative-transfer machinery locally.
+- PETSc becomes relevant only when distributed state vectors, MPI decomposition, large sparse operators, and serious preconditioning justify it.
 
-## Canonical Fortran state
+Climate-owned effort belongs in physical variables and units, coordinate semantics, discrete operators, balance/exchange laws, Jacobians and atmospheric preconditioning structure, representation maps, physical/statistical constraints, and scientifically meaningful experiments.
 
-The legacy `climate_physics_core.f90` remains intentionally non-authoritative and non-compiling. Do not make it green by inventing fields or patching parser errors without independently specifying the physical contract first. Its compile probe is a debt sensor.
+## Canonical physical/numerical foundation
 
-Canonical Fortran slices currently include:
+The canonical Fortran surface includes:
 
 - fixed-step RK4 reference integration;
-- transparent no-pivot tridiagonal/theta oracle;
+- transparent no-pivot tridiagonal/theta reference algebra;
 - LAPACK partial-pivoting tridiagonal backend;
-- exact constant-f Coriolis rotation;
+- exact constant-`f` Coriolis rotation;
 - nonuniform geometric-height finite-volume vertical diffusion;
 - dry ideal-gas thermodynamics;
-- exact moist vapor algebra;
-- Murphy–Koop phase-explicit saturation vapor pressure with explicit validity bounds;
-- saturation-moisture composition retaining phase/error provenance;
+- exact moist-vapor mixture algebra;
+- Murphy–Koop phase-explicit saturation vapor pressure;
+- saturation-moisture composition;
 - pressure-coordinate hydrostatic identities;
-- conservative extensive mass/tracer budget update;
-- direct-DFT/spectral reference primitives.
+- fixed-pressure-coordinate continuity with explicit interface `omega` integration and residual diagnostics;
+- conservative extensive mass/tracer budget updates;
+- direct-DFT/analytic-signal reference primitives.
 
-Read `docs/FORTRAN-PHYSICS-FRONTIER.md` for the exact realized/open boundary. Important open responsibilities at handoff include condensed-water/latent/phase-change thermodynamics, continuity-consistent pressure velocity and other vertical-coordinate dynamics, full momentum dynamics, face-flux construction/reconstruction and CFL/positivity policy, radiation, surface/land/ocean exchange, chemistry, and coupled integration/restart/replay semantics.
+Open physical responsibilities include condensed-water/latent thermodynamics, surface-pressure and moving-boundary vertical-coordinate dynamics, full momentum and pressure-gradient structure, continuity-consistent face-flux construction, radiation, surface/land/ocean exchange, chemistry, and coupled integration/restart/replay semantics.
 
-The conservative transport kernel deliberately owns only extensive budget algebra. Do not turn it into a bespoke high-order reconstruction framework by inertia; candidate WENO/PPM/other reconstructions should be compared for convergence, monotonicity, conservation, cost, and maintained-library options where practical.
+The next physical work should favor a coupled structure that closes mass, momentum, and energy exchanges over another isolated tendency kernel.
+
+## Mathematical and representation foundation
+
+Canonical/reference surfaces include:
+
+- Levi-Civita geometry from explicit metric data;
+- Gaussian-mean Fisher information with preserved rank deficiency;
+- symbolic information-geometry, Lie-bracket, and variational/Noether references;
+- exact finite p-adic/ultrametric primitives;
+- sparse Clifford algebra;
+- modal-logic semantics;
+- finite sheaf numerics plus exact cohomology reference;
+- narrow Lean authorities for stable algebraic identities.
+
+Mathematical correctness does not by itself establish climate usefulness. Strong mathematical names must satisfy their defining laws, while empirical interpretations remain separate obligations.
+
+## Repository status
+
+`docs/generated/STATUS.md` is authoritative for counts. At the current documentation handoff it reports:
+
+- 50 registered modules: 21 canonical, 24 noncanonical/compatibility-lifecycle, 5 reference;
+- 24 runnable and 26 prototype modules;
+- 5 registered scientific claims, all still at `concept` with zero supporting evidence records;
+- 2 registered experiment specifications;
+- sheaf realization at 8/15 obligations, with climate-data and empirical layers still open.
+
+The intentionally isolated noncanonical Fortran monolith compile probe may keep the aggregate architecture workflow red even when canonical and reference jobs are healthy. Inspect exact-head jobs rather than equating the workflow-level conclusion with canonical failure.
 
 ## Highest-leverage next work
 
-Choose from the live frontier rather than following this list mechanically. Good candidates are:
+Choose from the live roadmap rather than treating this list as a serial plan.
 
-1. **Multirepresentation manifold reference experiment:** use a small dynamical system with known shared/product/fibered latent structure and several nonlinear observation views; compare raw concatenation, linear multiview baselines, and established common-manifold/factorized methods before inventing a bespoke learner. Test recovered dynamics and known physical/information structure, not only reconstruction error.
-2. **Fortran physical correctness:** add the next independently specifiable physical kernel rather than repairing the monolith. Continuity-consistent pressure velocity / vertical-coordinate dynamics and pressure-gradient/momentum structure are strong candidates because pressure hydrostatics and conservative budgets now provide adjacent contracts.
-3. **Transport production semantics:** define geometry/velocity-to-face-mass-flux construction, positivity/monotonicity and CFL policy, then benchmark high-order reconstruction choices instead of presuming the legacy named method is optimal.
-4. **Coupled integration:** once explicit/stiff/fast tendency partitions are physically declared, add a thin ARKODE adapter and differential/manufactured witnesses; do not hand-roll another adaptive IMEX stack.
-5. **Spectral production path:** add FFTW behind a thin adapter and differential tests against the direct-DFT oracle; cuFFT remains GPU/hardware-gated.
-6. **Legacy mathematical-name sweep:** continue identifying names stronger than realized contents. Preferred repair is constructive realization of useful mathematics, not demotion. Keep empirical climate relevance as a separate falsifiable obligation.
-7. **Sheaf R3:** actual station cover/nerve, units-bearing climate stalks/restrictions, restriction functoriality, and a real climate-data coboundary are the next structural steps before any empirical sheaf claim can mature.
+1. Define the first multirepresentation reference experiment on a dynamical system with known shared/product/fibered structure and multiple nonlinear observation views. Compare raw concatenation, linear multiview methods, and established common-manifold/factorized methods before inventing a custom learner.
+2. Connect the Fisher-information and information-geometry references to an observation-induced metric while keeping parameter, state, and uncertainty geometry distinct.
+3. Advance the physical core through a coupled momentum/pressure-work/continuity/energy contract rather than another isolated tendency routine.
+4. Define continuity-consistent geometry/velocity-to-face-mass-flux semantics and then compare reconstruction/positivity strategies rather than assuming a bespoke scheme.
+5. Progress the climate-data sheaf through actual station-cover, stalk, restriction, and coboundary semantics.
+6. Add production FFT, adaptive integration, radiative transfer, or accelerator paths only behind maintained libraries and independent reference/differential witnesses.
 
-Do not broaden scope just because an idea is interesting. Every addition must earn its place through a clear responsibility, independent witness, ablation/baseline where relevant, and a composable interface.
+## Execution resources
 
-## Execution-resource policy
+Use GitHub Actions for portable builds, Rust/Fortran tests, symbolic references, architecture/status checks, and Lean kernel checks.
 
-Default to GitHub Actions for portable compilation, Rust/Fortran tests, symbolic references, CUE/architecture guards, and Lean kernel checks. This is cheaper, reproducible, and leaves an immutable execution trail.
+Use persistent interactive environments only when they materially improve toolchain or integration debugging. Reserve real CUDA hardware for CUDA truths: device execution, memory/transfer behavior, race/synchronization behavior, precision effects, deterministic reductions, and realistic performance/VRAM measurements.
 
-Use Codespace sparingly for high-leverage work CI cannot cheaply supply: interactive theorem-prover debugging, materially different toolchain/environment parity, integration exploration requiring a persistent shell, or other targeted probes. Always start a Codespace handoff with `git switch main && git pull --ff-only`; an earlier Work session stayed on the old `architecture-scientific-contract` branch and falsely appeared not to contain the newer sheaf implementation.
+## Before every change
 
-Reserve the user's physical gaming laptop primarily for GPU/hardware truths: CUDA execution, device-residency/transfer behavior, numerical CPU↔GPU differential tests, deterministic reductions, resource contention, and realistic performance/VRAM observations. Do not install CUDA in a CPU-only environment merely to claim execution.
-
-## Before making the next change
-
-1. Fetch current `main` and verify it has not advanced past the handoff.
-2. Read `docs/generated/STATUS.md`, `docs/FORTRAN-PHYSICS-FRONTIER.md`, `docs/ROADMAP.md`, and relevant module registry records.
-3. Inspect exact-head Actions jobs; remember that the expected legacy-physics failure makes the aggregate architecture workflow red.
-4. Commit directly to `main` in small coherent changes, preserve machine-authority/generated-status synchronization, and let CI falsify each exact head before moving on to dependent work.
-5. Never infer validation or evidence eligibility from successful compilation/tests alone.
+1. Fetch current `main`.
+2. Re-read the relevant live authority and exact file being changed.
+3. Check whether machine-readable authorities or generated status must change with it.
+4. Commit one coherent change directly to `main`.
+5. Inspect exact-head CI jobs before depending on that change.
+6. Never infer empirical validation from compilation, tests, or mathematical verification alone.
