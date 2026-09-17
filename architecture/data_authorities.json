@@ -376,6 +376,32 @@
         "ncei.global_ocean_heat_content"
       ],
       "rationale": "real ocean heat content/uptake validation requires a versioned observed product and its depth/time/uncertainty definition rather than arbitrary synthetic scales"
+    },
+    {
+      "usage_id": "data.ncei_ghcnd_adapter_boundary",
+      "scope": "current",
+      "path": "reference/ncei_ghcnd.py",
+      "anchor": "DailySummariesPayload",
+      "authority_boundary": "parse_daily_summaries",
+      "ownership_class": "external_api",
+      "disposition": "externalize",
+      "source_ids": [
+        "ncei.ghcnd.v3"
+      ],
+      "rationale": "the adapter binds provider response records to an explicit request URL and content digest; it does not synthesize station observations when retrieval data are absent"
+    },
+    {
+      "usage_id": "data.nsidc_sea_ice_index_adapter_boundary",
+      "scope": "current",
+      "path": "reference/nsidc_sea_ice_index.py",
+      "anchor": "MonthlyExtentPayload",
+      "authority_boundary": "parse_monthly_extent_csv",
+      "ownership_class": "external_dataset",
+      "disposition": "externalize",
+      "source_ids": [
+        "nsidc.sea_ice_index.v4"
+      ],
+      "rationale": "the adapter parses an explicit provider artifact and preserves its source URL and content digest; no local extent series substitutes for the provider file"
     }
   ]
 }
