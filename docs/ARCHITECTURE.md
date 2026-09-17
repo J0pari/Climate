@@ -209,6 +209,7 @@ This is a first-class research layer, not a junk drawer.
 Current candidates include:
 
 - Riemannian/geometric state-space methods;
+- multirepresentation state-space constructions built from explicit maps of the same physical climate state;
 - curvature-derived regime indicators;
 - p-adic/ultrametric teleconnection representations;
 - Clifford/geometric-algebra resonance representations;
@@ -216,6 +217,8 @@ Current candidates include:
 - symmetry/Noether-inspired diagnostics;
 - modal-logic scenario constraints;
 - learned latent manifold/dimension discovery.
+
+These candidates are not assumed to be unrelated endpoints or coordinates in one universal feature vector. A central research program is to determine whether several grounded representations of the same climate state can be related through common-manifold, product, fibered, quotient, stratified, or local-atlas structure, as described in `MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`. Information geometry may provide a statistically grounded local geometry where an explicit likelihood exists; physical dynamics and conservation/balance structure may constrain admissible representations; and non-Riemannian objects such as ultrametric or sheaf structure may participate through kernels, restrictions, compatibility maps, or comparison geometry rather than being flattened into Euclidean coordinates.
 
 Every method in this layer should use the same `MethodDescriptor -> ExperimentSpec -> RunManifest -> EvidenceRecord` pipeline as conventional baselines.
 
@@ -266,6 +269,8 @@ Use three categories:
 3. **research representations** — embeddings, curvature tensors, p-adic encodings, cohomology classes, Clifford multivectors, latent features.
 
 A research representation may influence a physical model only through an explicit, versioned adapter whose scientific interpretation is tested. This prevents an attractive mathematical object from silently becoming physics.
+
+State geometry, parameter geometry, and distribution/uncertainty geometry are also distinct objects even when they are coupled. For example, a Fisher metric on model parameters or predictive distributions may induce information about state-space distinguishability through an explicit observation map, but it must not silently become the physical state metric. The maps between these objects are part of the scientific hypothesis and must remain inspectable.
 
 ## 5. Package/layout target
 
@@ -331,7 +336,9 @@ No language should become authoritative merely because an early prototype was wr
 
 These questions require experiments rather than architecture fiat:
 
-- whether a geometric metric should be physically constructed, statistically learned, or both;
+- whether a useful joint climate geometry is best represented by a common manifold, product, fiber bundle, quotient, stratified/local-atlas construction, or a combination, and which physical/statistical representation maps should participate;
+- whether any local metric should be physically constructed, statistically induced (including Fisher/information geometry), learned, or combined under explicit constraints;
+- how strongly conservation laws, balance relations, known subsystem couplings, and evolution equations should constrain or reject candidate representations;
 - which geometric invariants, if any, predict regime transitions beyond standard baselines;
 - whether an ultrametric/p-adic representation improves teleconnection prediction;
 - whether Clifford representations add useful information over spectral/phase baselines;
@@ -353,3 +360,5 @@ The target architecture is doing its job when a new method can be added by:
 5. emitting reproducible artifacts and evidence;
 6. being compared without custom result semantics;
 7. remaining unable to overstate its scientific maturity merely because it executed successfully.
+
+For the multirepresentation program, success also means a representation can be composed with or rejected by other representations through explicit scientific maps and constraints, without forcing every mathematical object into one data type or letting experiment infrastructure dictate the climate semantics.
