@@ -15,6 +15,7 @@ class DurableTextTests(unittest.TestCase):
             "src/example.cu": "// Batch2 additive: occupancy diagnostic\n",
             "reference/example.py": "# replaces previously inlined logic\n",
             "README.md": "The repository now has a canonical solver.\n",
+            "src/provisional.rs": "// Use timeout-based detection for now.\n",
         }
         observed = {
             finding.rule
@@ -29,6 +30,7 @@ class DurableTextTests(unittest.TestCase):
                 "replacement_history",
                 "recent_change_narration",
                 "repository_temporal_snapshot",
+                "provisional_for_now",
             },
         )
 
