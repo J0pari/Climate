@@ -297,7 +297,7 @@ Every inversion/solve path used for evidence must record or bound:
 - regularization/jitter;
 - residual norm;
 - positive-definiteness test where required;
-- fallback/refinement behavior.
+- regularization/refinement behavior.
 
 No kernel may silently turn singularity into a zero tensor, identity matrix, clamped probability, or successful scientific result.
 
@@ -394,9 +394,11 @@ Wrappers should distinguish setup/resource errors from method output failures.
 
 A diagnostic mode should additionally support synchronization after selected phases to localize asynchronous failures without imposing that cost on every production run.
 
-## 17. No silent capability shims in evidence runs
+## 17. Fail-closed capability identity in evidence runs
 
-Compatibility shims may keep source parseable or permit explicitly labeled exploratory single-device builds, but an evidence-producing run must record the *actual* capability used.
+Compatibility shims may keep source parseable or support explicitly labeled exploratory builds, but they cannot satisfy a different requested execution identity. `#ExecutionResolution` in `contracts/climate.cue` owns the requested/resolved identity contract for evidence-producing execution.
+
+An accelerated execution is eligible only when the resolved method, implementation build, backend, precision, and resource class exactly match the requested identity. If a requested capability is unavailable, the execution is ineligible with a typed failure and no replacement resolved identity.
 
 Examples:
 
@@ -406,7 +408,7 @@ Examples:
 - CPU fallback is not a GPU result;
 - emulated precision is not native precision.
 
-When a requested capability is absent, an evidence run should fail closed or downgrade to a separately identified implementation whose descriptor states the fallback.
+An alternate implementation may execute only after it is explicitly requested under its own execution identity. Capability discovery may reject a request; it may not rewrite the request to something executable.
 
 Compile-time `REQUIRE_REAL_*` checks are useful, but runtime provenance must still record the resolved environment.
 
@@ -491,7 +493,7 @@ Initial targets:
 - no `cudaMallocManaged` in evidence-critical loops unless explicitly allowlisted by contract;
 - no ambient RNG in evidence-producing numerical source;
 - no anonymous live numerical tolerance/tunable at declared seams;
-- no silent capability fallback in validated/evidence mode;
+- no runtime capability substitution in validated/evidence mode;
 - no placeholder/stub marker in a method whose descriptor says `verified` or above;
 - no metric inversion/solve path without failure/conditioning handling;
 - no evidence-affecting reduction with undeclared reproducibility class;
