@@ -1,80 +1,139 @@
-# Geometric climate-state manifold blueprint
+# Geometric climate-state representation blueprint
 
-Status: **capability unavailable / legacy manifold implementation scheduled for removal**.
+Status: **research specification**.
 
-The legacy `climate_manifold.rs` combined several distinct questions into one authoritative-looking implementation:
+Riemannian geometry is one candidate language for representing climate state and its local structure. It is not assumed to be the unique geometry of the climate system, and geometric quantities do not acquire physical interpretation merely because they can be computed.
 
-- choice of climate-state coordinates;
-- hand-constructed Riemannian metric;
-- automatic/dual differentiation;
-- Christoffel/Riemann/Ricci calculations;
-- geodesics;
-- curvature-derived regime indicators;
-- mappings from eigenvalues/curvature to named tipping elements, probabilities, timescales, and reversibility;
-- an Einstein-equation-style analogy.
+This blueprint defines the Riemannian component of the broader multirepresentation program in `docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`.
 
-The dual-number metric/Christoffel paths were incomplete while higher derivatives depended on them, and the climate-risk mappings were heuristic. That makes the live implementation unsafe as a foundation for further work.
+## Capability layers
 
-## Replacement architecture
-
-Reintroduce as separate layers:
+Keep the following responsibilities separate:
 
 ```text
 geometry/reference
   generic metric -> connection -> curvature machinery
 
+geometry/representation_maps
+  physical/statistical state -> declared geometric representation
+
 geometry/metric_candidates
   explicit candidate metric constructions
 
-geometry/representation
-  climate variables, units, transforms, coordinate maps
-
 geometry/diagnostics
-  coordinate-invariant numerical quantities only
+  coordinate-invariant geometric and numerical quantities
+
+geometry/dynamics
+  pushforward/pullback of declared evolution and tangent structure
 
 geometry/meta_experiments
-  comparisons against conventional baselines
+  comparisons against simpler and established representations
 
 geometry/interpretation
-  optional mappings to climate statements, introduced only after separate validation
+  optional climate-facing mappings supported by separate empirical evidence
 ```
 
-The current verification contract is `docs/GEOMETRY-VERIFICATION.md`, with the preregistered experiment `experiments/geometry-correctness.v1.json` and analytic fixtures under `fixtures/geometry/`.
+A representation map and a metric are distinct scientific choices. A correct Levi-Civita implementation does not determine which climate variables belong in a chart, which directions should be identified or quotiented, or what notion of distance is scientifically useful.
 
 ## Metric candidates are hypotheses
 
-A metric must have an explicit `MethodDescriptor`/candidate identity. Candidate families may include:
+Each metric candidate must have an explicit identity, domain, assumptions, units/scaling semantics, and construction rule. Candidate families may include:
 
 - physically derived nondimensional metrics;
 - Fisher/information metrics from an explicit likelihood;
 - covariance/Mahalanobis metrics;
-- learned local metrics;
-- diffusion/graph-derived metrics;
-- carefully documented hand-designed metrics used only as experimental hypotheses.
+- diffusion or graph-induced local geometry;
+- learned local metrics with explicit constraints;
+- product metrics assembled from independently meaningful factors;
+- pullback metrics induced by observation or representation maps;
+- carefully documented hand-designed metrics used as experimental hypotheses.
 
-No one metric becomes canonical merely because the first implementation used it.
+No metric becomes authoritative because it is convenient, numerically smooth, or produces visually interesting curvature.
 
-## Reintroduction requirements
+## Representation-map semantics
 
-Before a climate-specific manifold implementation becomes executable again:
+For a representation map
 
-1. the generic reference geometry passes the analytic fixture battery;
+\[
+\phi : X \rightarrow M,
+\]
+
+where `X` is a declared physical, statistical, or latent state and `M` is a geometric representation, the implementation should make the following inspectable where applicable:
+
+- the coordinates and their units or nondimensionalization;
+- nuisance transformations or quotient symmetries;
+- the Jacobian `D phi` and its numerical conditioning;
+- pullback or pushforward operations;
+- null directions and information loss;
+- whether the map is local, global, many-to-one, or chart-dependent;
+- how the physical evolution field transforms under the map.
+
+When a Fisher or observation metric is pulled back to state coordinates, semidefinite null directions represent local non-identifiability and must not be silently regularized away.
+
+## Geometric diagnostics
+
+Useful geometric outputs may include:
+
+- metric conditioning and rank;
+- Christoffel symbols and covariant derivatives;
+- Riemann, Ricci, scalar, and sectional curvature;
+- geodesic distance and geodesic deviation;
+- parallel transport and holonomy;
+- volume elements;
+- local intrinsic dimension or tangent structure when well defined.
+
+These are descriptors of a declared geometry. Curvature, geodesic length, holonomy, or intrinsic dimension are not universal optimization objectives for selecting the representation.
+
+## Dynamics and physical structure
+
+A geometric representation should be evaluated against the dynamics it is meant to organize. For a state evolution
+
+\[
+\dot{x}=F(x),
+\]
+
+the representation induces
+
+\[
+\frac{d}{dt}\phi(x)=D\phi_x F(x).
+\]
+
+Candidate coordinates should therefore be tested for whether they preserve or clarify scientifically relevant structure such as:
+
+- slow/fast directions;
+- balanced and unbalanced modes;
+- conservative and dissipative subdynamics;
+- subsystem coupling;
+- identifiable and weakly observed directions;
+- invariant or approximately invariant sets;
+- trajectory neighborhoods and predictability.
+
+Physical balance laws and structure-preserving dynamical kernels may constrain admissible representations rather than merely serving as downstream diagnostics.
+
+## Verification requirements
+
+Before climate-facing interpretation, require:
+
+1. generic reference geometry passes analytic known-geometry fixtures;
 2. derivative mechanisms have independent witnesses;
-3. conditioning/positive-definiteness/refusal semantics are explicit;
-4. unit/coordinate/permutation metamorphic tests exist;
-5. the metric candidate has its own identity and assumptions;
-6. geometric outputs remain geometric outputs—no probability/tipping labels are emitted by the geometry layer;
-7. any GPU implementation passes CPU/reference differential tests on the same immutable fixtures;
-8. any climate-usefulness claim has a preregistered baseline comparison and protected evaluation data.
+3. conditioning, rank, positive-definiteness or semidefiniteness, and refusal semantics are explicit;
+4. unit, coordinate, and permutation metamorphic tests exist;
+5. representation-map and pullback/pushforward operations have analytic or differential witnesses;
+6. metric candidates have separate identities and assumptions;
+7. geometric outputs remain geometric outputs until a climate interpretation has separate support;
+8. optimized/GPU implementations pass CPU/reference differential tests on the same immutable fixtures;
+9. climate-usefulness experiments include strong simpler representations and protected evaluation data.
 
-## Removed interpretations
+The detailed numerical contract is `docs/GEOMETRY-VERIFICATION.md`.
 
-The following are not part of the replacement core unless independently validated later:
+## Interpretation boundary
 
-- curvature eigenvalue index -> named Earth-system tipping element;
-- sigmoid(curvature/eigenvalue) -> physical tipping probability;
-- inverse eigenvalue -> physical time-to-collapse;
-- arbitrary threshold -> reversibility;
-- Einstein-field-equation analogy -> physical climate dynamics.
+The geometry layer does not directly emit:
 
-These ideas may return only as explicitly named experimental hypotheses with evidence contracts, not as default model semantics.
+- named Earth-system tipping events from curvature alone;
+- physical tipping probabilities from arbitrary transforms of curvature or eigenvalues;
+- physical time-to-collapse from inverse geometric scales without a derived model;
+- irreversibility from an arbitrary geometric threshold;
+- gravitational or Einstein-equation analogies as physical climate dynamics.
+
+Any such mapping is a separate scientific hypothesis with its own model, assumptions, calibration, and evidence.
