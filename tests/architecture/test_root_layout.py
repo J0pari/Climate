@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 from architecture import check_root_layout
+
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class RootLayoutTests(unittest.TestCase):
@@ -36,6 +41,17 @@ class RootLayoutTests(unittest.TestCase):
             (root / "src").mkdir()
             (root / "src" / "solver.rs").write_text("fn solve() {}\n", encoding="utf-8")
             self.assertEqual(check_root_layout.check(root), [])
+
+    def test_documented_direct_script_entrypoint_works(self):
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "architecture" / "check_root_layout.py")],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        self.assertIn("root layout: clean", result.stdout)
 
 
 if __name__ == "__main__":
