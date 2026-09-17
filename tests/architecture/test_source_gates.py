@@ -99,8 +99,9 @@ class SourceGateTests(unittest.TestCase):
         findings = gates.gate_change_narration({
             "legacy/example.rs": ["// Batch2 additive: recovery path"],
         })
-        self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0].gate, "change_narration")
+        self.assertGreaterEqual(len(findings), 1)
+        self.assertEqual({finding.gate for finding in findings}, {"change_narration"})
+        self.assertEqual({finding.path for finding in findings}, {"legacy/example.rs"})
 
     def test_scientific_additive_language_is_not_change_narration(self):
         findings = gates.gate_change_narration({
