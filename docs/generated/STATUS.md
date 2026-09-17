@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **58**.
+Registered modules: **59**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 23 |
+| `canonical` | 24 |
 | `legacy` | 24 |
 | `reference` | 11 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 32 |
+| `runnable` | 33 |
 
 ### Canonical and reference modules
 
@@ -33,6 +33,7 @@ Registered modules: **58**.
 | `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
 | `canonical` | `src/fortran/moist_vapor_algebra.f90` | `moist_vapor_algebra` | `runnable` | no |
 | `canonical` | `src/fortran/pressure_coordinate_continuity.f90` | `pressure_coordinate_continuity` | `runnable` | no |
+| `canonical` | `src/fortran/pressure_coordinate_grid.f90` | `pressure_coordinate_grid_contract` | `runnable` | no |
 | `canonical` | `src/fortran/pressure_coordinate_hydrostatics.f90` | `pressure_coordinate_hydrostatics` | `runnable` | no |
 | `canonical` | `src/fortran/pressure_energy_exchange.f90` | `pressure_coordinate_energy_exchange` | `runnable` | no |
 | `canonical` | `src/fortran/saturation_moisture.f90` | `saturation_moisture_composition` | `runnable` | no |
