@@ -1,23 +1,19 @@
-# Semantic sanitation: remove plausible lies before adding capability
+# Semantic integrity: no plausible lies
 
 Status: **binding cross-cutting safety policy**.
 
-Climate currently contains a class of technical debt more dangerous than missing code: implementations that return plausible-looking values while being explicitly placeholder, arbitrary, simplified beyond their advertised semantics, or incapable of supporting the interpretation their types/names imply.
-
-These paths are treated as **semantic hazards**, not ordinary TODOs.
+Climate treats implementations that emit plausible-looking values without implementing their advertised semantics as **semantic hazards**, not ordinary TODOs.
 
 ## 1. Governing rule
 
 Prefer, in order:
 
-1. a correct implementation with evidence;
+1. a correct implementation with appropriate evidence;
 2. an explicit typed/unambiguous failure saying the capability is unavailable;
-3. an absent capability with an in-place blueprint/specification;
+3. an absent capability with an in-place specification or blueprint;
 4. **never** a plausible-output placeholder whose result can be consumed as though it were the intended feature.
 
 Compilation, API completeness, demos, or apparent end-to-end execution are not reasons to retain fake behavior.
-
-Git history is the archive for removed prototypes. The live tree is not required to preserve misleading executable sketches merely so future agents can see them.
 
 ## 2. Hazard classes
 
@@ -53,15 +49,15 @@ Examples:
 
 **S3 must be removed, renamed/retyped as an explicit heuristic, or converted to fail-closed behavior.**
 
-A weaker name or type is **not** a repair strategy for an implementation that failed to meet a stronger contract. Renaming/retyping is permitted only when the narrower operation is itself the scientifically or computationally preferable reusable abstraction for a real task, with a contract worth preserving independently of the broken stronger implementation. If the stronger capability is the right tool, its implementation must rise to that contract or remain unavailable/quarantined. Never choose a weaker API merely because it is easier to make compile, test, or return plausible output.
+A weaker name or type is **not** a repair strategy for an implementation that failed to meet a stronger contract. Renaming/retyping is permitted only when the narrower operation is itself the scientifically or computationally preferable reusable abstraction for a real task, with a contract worth preserving independently. If the stronger capability is the right tool, its implementation must rise to that contract or remain unavailable. Never choose a weaker API merely because it is easier to make compile, test, or return plausible output.
 
 ### S4 — fake/plausible-output placeholder
 
 The implementation is known not to implement the advertised capability and emits values likely to flow downstream as valid results.
 
-Examples include explicitly fake forecast skill, uninitialized-data diagnostics, stub scientific transforms that return numerically reasonable arrays, or fabricated calibration values.
+Examples include fake forecast skill, uninitialized-data diagnostics, stub scientific transforms that return numerically reasonable arrays, or fabricated calibration values.
 
-**S4 is merge-blocking for any touched path and is a high-priority legacy removal target.**
+**S4 is merge-blocking for any touched path.**
 
 ## 3. Fail-closed patterns
 
@@ -73,25 +69,25 @@ Preferred failure forms depend on language:
 - C/C++/CUDA: explicit status/error return before output buffers are presented as valid; poison/debug fills are acceptable only if the API also reports failure and evidence paths reject them.
 - Julia/Haskell: explicit error/`Either`-style unavailable result rather than a value inhabiting the successful scientific result type.
 
-A sentinel value such as `0`, `NaN`, `1000`, empty array, or identity matrix **is not sufficient by itself** when downstream code can ignore the reason and continue.
+A sentinel value such as `0`, `NaN`, `1000`, an empty array, or an identity matrix **is not sufficient by itself** when downstream code can ignore the reason and continue.
 
-## 4. Blueprint requirement for destructive removals
+## 4. Specification requirement for unavailable capabilities
 
-When removing a substantial prototype, leave a compact blueprint under `blueprints/` or the relevant method/architecture document containing:
+When a substantial capability is absent or intentionally unavailable, its specification or blueprint should contain only forward-looking information needed to implement it correctly:
 
 - intended scientific capability;
 - input/output semantics;
-- known conventional definitions/baselines;
-- what was removed and why it was unsafe;
-- minimum verification required before reintroduction;
+- mathematical or physical definition;
+- conventional definitions and strong baselines;
+- minimum verification required before activation;
 - likely implementation/resource partition;
 - links to claim/method/experiment IDs where applicable.
 
-Do not preserve the dangerous implementation inline merely as documentation. Git history already preserves it.
+Architecture documents should describe the capability and its obligations directly rather than preserving implementation archaeology.
 
 ## 5. Priority ordering
 
-Sanitation priority is based on **semantic contamination risk**, not ease of fixing.
+Semantic-integrity priority is based on **contamination risk**, not ease of fixing.
 
 1. fake values feeding authoritative or scientific-looking output;
 2. placeholder fallbacks hidden behind successful return paths;
@@ -99,35 +95,24 @@ Sanitation priority is based on **semantic contamination risk**, not ease of fix
 4. silent synthetic/default observations or state variables;
 5. stub transforms returning arrays/tensors under real algorithm names;
 6. fake compatibility layers retaining real capability identity;
-7. dead demos/tests that can be mistaken for validation;
+7. demos/tests that can be mistaken for validation;
 8. ordinary TODOs that already fail closed.
 
-## 6. Immediate legacy targets
+`architecture/source_gates.py` is an inventory aid; semantic review decides which findings are harmless notes versus S3/S4 hazards.
 
-Initial audit has identified at least these high-priority examples:
-
-- `climate_oscillation_monitor.f90`: arbitrary/fake forecast-skill formulas plus a placeholder test using uninitialized data; replace executable sketch with an unavailable stub and blueprint.
-- `climate_safety_protocols.rs`: hard-coded fallback eigenvalues used as conditioning diagnostics; remove fallback and fail when real eigen diagnostics are unavailable.
-- `climate_spectral_analysis.f90`: EEMD routine allocates zero IMFs and returns the input as residue; convert that path to explicit unavailable behavior until implemented and verified.
-- `climate_state.rs`: placeholder state fields such as fixed relative humidity must not masquerade as observational/physical initialization.
-- `climate_physics_core.f90`: placeholder solar declination and other simplified physical constants/closures must either be narrowly named as fixed idealized assumptions **when those narrower operations are independently useful**, or removed from general physical-model paths; semantic downgrading is not a compile-fix.
-- `climate_ffi_bridge.rs`: placeholder Julia/Haskell integration must fail capability discovery rather than present itself as implemented interoperability.
-
-This list is not exhaustive. `architecture/source_gates.py` remains an inventory aid; sanitation review decides which findings are harmless notes versus S3/S4 hazards.
-
-## 7. Interaction with maturity and evidence
+## 6. Interaction with maturity and evidence
 
 A module containing an active S3/S4 path cannot be `verified`, `validated`, `replicated`, or `decision-eligible` for a claim that can reach that path.
 
 A run that activates an unrequested fallback cannot retain the preferred implementation identity.
 
-A blueprint or unavailable stub is allowed to coexist with a `concept`/`prototype` method descriptor because it cannot manufacture supporting evidence.
+An unavailable stub or blueprint may coexist with a `concept`/`prototype` method descriptor because it cannot manufacture supporting evidence.
 
-## 8. CI direction
+## 7. CI direction
 
-The sanitation system should evolve toward:
+The semantic-integrity system should support:
 
-- a machine-readable hazard ledger with owner/action/status;
+- a machine-readable hazard ledger with owner/action/status where that adds value;
 - negative witnesses proving guards catch plausible-output placeholders;
 - source gates for known dangerous patterns;
 - module/method checks preventing maturity promotion while unresolved S3/S4 hazards are reachable;
@@ -135,9 +120,9 @@ The sanitation system should evolve toward:
 
 The goal is not zero TODO comments. The goal is zero successful-looking execution paths that lie about what computation occurred.
 
-## 9. Reintroduction rule
+## 8. Activation rule
 
-Removed capability may return when it has:
+A scientific capability may become executable when it has:
 
 1. a narrow contract;
 2. an independent reference or benchmark where applicable;
