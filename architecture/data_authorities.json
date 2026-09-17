@@ -330,15 +330,18 @@
     },
     {
       "usage_id": "sheaf.station_metadata_and_observations",
-      "scope": "planned",
-      "path": "architecture/planning_graph.json",
-      "anchor": "sheaf.climate_data_semantics",
+      "scope": "current",
+      "path": "reference/station_temperature_sheaf.py",
+      "anchor": "extract_station_snapshot",
       "ownership_class": "external_api",
       "disposition": "externalize",
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "station identifiers, locations, observation availability, quality/source flags and values must be discovered/retrieved from a maintained station authority rather than embedded station tuples"
+      "rationale": "provider-backed station identity, coordinates, daily TMAX/TMIN values, and quality flags are parsed from an exact digested NCEI GHCN-Daily response; the climate-data sheaf applies an explicit geographic support rule and preserves missingness without synthesizing unavailable observations",
+      "authority_boundary": "build_station_temperature_sheaf",
+      "witness_path": "tests/reference/test_station_temperature_sheaf.py",
+      "witness_anchor": "test_provider_fixture_identity_and_station_coordinates"
     },
     {
       "usage_id": "validation.surface_temperature",

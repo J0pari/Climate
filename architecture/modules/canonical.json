@@ -142,10 +142,10 @@
         "climate.sheaf.consistency"
       ],
       "known_gaps": [
-        "current canonical operator is degree-zero on finite graphs rather than higher-dimensional cellular complexes",
-        "scientifically defensible climate stalks, restrictions, and station-cover construction remain open",
+        "the canonical operator is degree-zero on finite graphs rather than a higher-dimensional climate-data cochain implementation",
+        "provider-backed station-cover, temperature-stalk, restriction-functoriality, and higher-cochain semantics are reference-realized in reference/station_temperature_sheaf.py",
         "spectral/nullity diagnostics have no empirical climate interpretation without preregistered benchmarks",
-        "sparse and GPU implementations remain future differential-verified accelerations"
+        "sparse and GPU implementations remain separate differential-verified implementation identities"
       ]
     },
     {

@@ -123,7 +123,7 @@
       ],
       "known_gaps": [
         "GF(2) reference stalks do not model continuous climate measurements",
-        "geographic station-cover and climate restriction semantics remain open",
+        "provider-backed geographic station-cover and continuous temperature-stalk semantics are owned by reference/station_temperature_sheaf.py rather than this exact GF(2) oracle",
         "mathematical correctness does not establish empirical fault-detection or reconstruction value"
       ]
     },

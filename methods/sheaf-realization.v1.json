@@ -9,98 +9,154 @@
       "layer": "SH1",
       "statement": "A finite simplicial complex and cochain groups over an explicit coefficient field are constructed from declared simplices.",
       "status": "reference_realized",
-      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
+      "witnesses": [
+        "reference/sheaf_cohomology.py",
+        "tests/reference/test_sheaf_cohomology.py"
+      ]
     },
     {
       "obligation_id": "linear_coboundary_and_d_squared_zero",
       "layer": "SH1",
       "statement": "Coboundary maps are linear over the coefficient field and satisfy d_(k+1) o d_k = 0 on the reference complex.",
       "status": "reference_realized",
-      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
+      "witnesses": [
+        "reference/sheaf_cohomology.py",
+        "tests/reference/test_sheaf_cohomology.py"
+      ]
     },
     {
       "obligation_id": "betti_as_cohomology_dimension",
       "layer": "SH1",
       "statement": "Betti numbers are computed as dimensions of cohomology groups and agree with known finite-complex fixtures.",
       "status": "reference_realized",
-      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
+      "witnesses": [
+        "reference/sheaf_cohomology.py",
+        "tests/reference/test_sheaf_cohomology.py"
+      ]
     },
     {
       "obligation_id": "finite_cover_nerve",
       "layer": "SH2",
       "statement": "For a declared finite cover of a discrete support set, nerve simplices are constructed exactly from non-empty common intersections.",
       "status": "reference_realized",
-      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
+      "witnesses": [
+        "reference/sheaf_cohomology.py",
+        "tests/reference/test_sheaf_cohomology.py"
+      ]
     },
     {
       "obligation_id": "generic_stalks_and_restrictions",
       "layer": "SH2",
       "statement": "A finite cellular sheaf can carry non-constant finite-dimensional stalks with explicit restriction maps whose composition is checked as a hard invariant.",
       "status": "reference_realized",
-      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
+      "witnesses": [
+        "reference/sheaf_cohomology.py",
+        "tests/reference/test_sheaf_cohomology.py"
+      ]
     },
     {
       "obligation_id": "generic_global_section_compatibility",
       "layer": "SH2",
       "statement": "For the finite cellular reference, local assignments are compatible exactly when they lie in ker(d^0), and the global-section-space dimension is computed from that kernel rather than from a merge heuristic.",
       "status": "reference_realized",
-      "witnesses": ["reference/sheaf_cohomology.py", "tests/reference/test_sheaf_cohomology.py"]
+      "witnesses": [
+        "reference/sheaf_cohomology.py",
+        "tests/reference/test_sheaf_cohomology.py"
+      ]
     },
     {
       "obligation_id": "real_degree0_sheaf_operator",
       "layer": "SH2",
       "statement": "A real-valued finite cellular sheaf on a graph constructs an explicit degree-zero coboundary from declared restriction matrices, computes compatibility residuals and L0=d0^T d0, and derives numerical nullity/gap diagnostics without interpretive thresholds.",
       "status": "reference_realized",
-      "witnesses": ["src/sheaf.rs", "tests/sheaf_fixture.rs", "fixtures/sheaf/synthetic-linear-v1.json"]
+      "witnesses": [
+        "src/sheaf.rs",
+        "tests/sheaf_fixture.rs",
+        "fixtures/sheaf/synthetic-linear-v1.json"
+      ]
     },
     {
       "obligation_id": "scalar_identity_restriction_kernel_proof",
       "layer": "SH2",
       "statement": "For one real rank-one identity-restriction edge, the compatibility energy expands to the scalar graph quadratic form, is invariant under edge-orientation reversal, and is zero if and only if the endpoint values agree; these statements are kernel-checked in Lean without project-authored axioms or proof escape hatches.",
       "status": "reference_realized",
-      "witnesses": ["formal/ClimateFormal/SheafScalar.lean", ".github/workflows/formal-lean.yml"]
+      "witnesses": [
+        "formal/ClimateFormal/SheafScalar.lean",
+        ".github/workflows/formal-lean.yml"
+      ]
     },
     {
       "obligation_id": "station_cover_nerve",
       "layer": "SH3",
       "statement": "Station simplices are derived from a scientifically declared geographic coverage/intersection rule rather than arbitrary station tuples.",
-      "status": "open",
-      "witnesses": []
+      "status": "reference_realized",
+      "witnesses": [
+        "reference/station_temperature_sheaf.py",
+        "tests/reference/test_station_temperature_sheaf.py",
+        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
+        ".github/workflows/reference-sheaf-climate.yml",
+        "reference/sheaf_cohomology.py"
+      ]
     },
     {
       "obligation_id": "climate_stalks_and_restrictions",
       "layer": "SH3",
       "statement": "A concrete climate-data stalk model and restriction maps are defined with units and missing-data semantics.",
-      "status": "open",
-      "witnesses": []
+      "status": "reference_realized",
+      "witnesses": [
+        "reference/station_temperature_sheaf.py",
+        "tests/reference/test_station_temperature_sheaf.py",
+        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
+        ".github/workflows/reference-sheaf-climate.yml"
+      ]
     },
     {
       "obligation_id": "restriction_functoriality",
       "layer": "SH3",
       "statement": "Identity and composition laws for the actual climate-data restrictions are executable invariants.",
-      "status": "open",
-      "witnesses": []
+      "status": "reference_realized",
+      "witnesses": [
+        "reference/station_temperature_sheaf.py",
+        "tests/reference/test_station_temperature_sheaf.py",
+        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
+        ".github/workflows/reference-sheaf-climate.yml"
+      ]
     },
     {
       "obligation_id": "data_sheaf_coboundary",
       "layer": "SH3",
       "statement": "The climate-data cochain differential is constructed from the declared restriction maps and independently satisfies d^2 = 0.",
-      "status": "open",
-      "witnesses": []
+      "status": "reference_realized",
+      "witnesses": [
+        "reference/station_temperature_sheaf.py",
+        "tests/reference/test_station_temperature_sheaf.py",
+        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
+        ".github/workflows/reference-sheaf-climate.yml"
+      ]
     },
     {
       "obligation_id": "global_section_and_gluing",
       "layer": "SH4",
       "statement": "Compatibility, existence, uniqueness, and any reconstruction semantics for climate-data global sections are implemented against the actual restrictions; incompatibility is not silently merged away.",
-      "status": "open",
-      "witnesses": []
+      "status": "reference_realized",
+      "witnesses": [
+        "reference/station_temperature_sheaf.py",
+        "tests/reference/test_station_temperature_sheaf.py",
+        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
+        ".github/workflows/reference-sheaf-climate.yml"
+      ]
     },
     {
       "obligation_id": "synthetic_fault_falsification",
       "layer": "SH5",
       "statement": "Known-topology, injected-fault, withheld-data, and negative-control experiments test whether the sheaf quantities detect what they claim to detect.",
-      "status": "open",
-      "witnesses": []
+      "status": "reference_realized",
+      "witnesses": [
+        "reference/station_temperature_sheaf.py",
+        "tests/reference/test_station_temperature_sheaf.py",
+        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
+        ".github/workflows/reference-sheaf-climate.yml"
+      ]
     },
     {
       "obligation_id": "baseline_and_real_data_incremental_value",

@@ -8,16 +8,15 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 ## Planning summary
 
 - Active: 0
-- Ready: 15
+- Ready: 14
 - Blocked: 5
-- Done: 8
+- Done: 9
 - Dropped: 0
 
 ## Graph projection
 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
-| `sheaf.climate_data_semantics` — Realize station-cover sheaf semantics | `ready` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `geometry.independent_derivative_route` — Add a second independent metric-derivative route | `ready` | `P1` | `R2_toolchain_ci` | — |
@@ -44,6 +43,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `data.immutable_observational_projection` — Create one immutable observational or reanalysis projection | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `state.typed_physical_state` |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `done` | `P0` | `R2_toolchain_ci` | — |
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
+| `sheaf.climate_data_semantics` — Realize station-cover sheaf semantics | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 
 Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.

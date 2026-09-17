@@ -383,7 +383,7 @@
     {
       "id": "sheaf.climate_data_semantics",
       "title": "Realize station-cover sheaf semantics",
-      "status": "ready",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
       "summary": "Realize a climate-data sheaf over provider-backed station identities, coordinates, observations, and explicit geographic coverage semantics, with typed stalks/restrictions and falsification against simpler same-information baselines.",
@@ -397,6 +397,14 @@
         "Injected-fault and withheld-data fixtures compare sheaf quantities against same-information residual, QC, graph, and interpolation baselines.",
         "Station identities, coordinates, and observations used by the climate-data sheaf come from registered external authorities with captured artifact identity; synthetic stations may be used only as explicitly synthetic controls.",
         "Injected-fault and withheld-data experiments alter or mask captured source-backed observations explicitly rather than replacing unavailable real data with synthetic defaults."
+      ],
+      "evidence": [
+        "reference/station_temperature_sheaf.py",
+        "tests/reference/test_station_temperature_sheaf.py",
+        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
+        ".github/workflows/reference-sheaf-climate.yml",
+        "methods/sheaf-realization.v1.json",
+        "architecture/data_authorities.json"
       ]
     },
     {
