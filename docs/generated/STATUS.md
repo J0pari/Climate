@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **56**.
+Registered modules: **57**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 22 |
 | `legacy` | 24 |
-| `reference` | 10 |
+| `reference` | 11 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 30 |
+| `runnable` | 31 |
 
 ### Canonical and reference modules
 
@@ -53,6 +53,7 @@ Registered modules: **56**.
 | `reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
 | `reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
 | `reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
+| `reference` | `reference/two_layer_observation_design.py` | `reference_two_layer_observation_design` | `runnable` | no |
 | `reference` | `reference/two_layer_observation_information.py` | `reference_two_layer_observation_information` | `runnable` | no |
 | `reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
 
