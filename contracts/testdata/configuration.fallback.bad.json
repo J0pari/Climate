@@ -1,0 +1,10 @@
+{
+  "configuration_id": "execution.invalid_fallback.v1",
+  "semantic_version": "1.0.0",
+  "kind": "execution_policy",
+  "owner": "execution",
+  "provenance": "fallback",
+  "settings": {
+    "unavailable_request": "use_cpu"
+  }
+}
