@@ -218,8 +218,8 @@ Prefer adding another generated field only when there is an existing authoritati
 
 Subject to failures discovered by CI, the current high-leverage set is:
 
-1. construct an observation-induced Fisher metric on the physically grounded two-layer energy-balance state using explicit noisy observation maps such as surface temperature, TOA imbalance, and ocean heat uptake; compare rank, conditioning, and distinguishable directions across sensor subsets without hiding null directions through regularization;
-2. compare that statistically grounded state metric with unweighted Euclidean representation geometry and exact thermal-mode coordinates, testing how observational precision changes local distance and dynamical observability while keeping state, parameter, and uncertainty geometry distinct;
+1. verify coordinate-covariant information distance for the physically grounded two-layer EBM across temperature-state, heat-flux, and exact thermal-mode charts, while using the same physical perturbations to demonstrate why unweighted Euclidean distance is representation- and unit-dependent;
+2. treat observation/representation weighting as a constrained information-design problem with explicit noise and cost semantics: compare identifiable rank, slow/fast modal information, conditioning, and cross-mode coupling rather than tuning arbitrary latent weights to a downstream score;
 3. turn geometry reference/canonical agreement into derivative and coordinate metamorphic differential tests so candidate representation work rests on trustworthy geometry;
 4. define the next coupled atmospheric dynamics slice around energy/momentum/continuity-consistent interfaces rather than adding another isolated tendency kernel;
 5. progress the climate-data sheaf into explicit station cover/stalk/restriction semantics that can later participate in local chart/data-consistency experiments;
