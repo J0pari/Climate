@@ -138,6 +138,15 @@ class StationTemperatureSheaf:
         residual = self.compatibility_residual()
         return float(residual @ residual)
 
+    def global_section_dimension(self) -> int:
+        d0 = self.coboundary_matrix(0)
+        rank = int(np.linalg.matrix_rank(d0))
+        return self.cochain_dimension(0) - rank
+
+    def observed_assignment_is_compatible(self) -> bool:
+        residual = self.compatibility_residual()
+        return bool(np.array_equal(residual, np.zeros_like(residual)))
+
     def graph_residual_baseline(self) -> np.ndarray:
         residual: list[float] = []
         for edge in self.base.simplices(1):

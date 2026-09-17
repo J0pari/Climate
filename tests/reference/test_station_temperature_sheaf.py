@@ -105,6 +105,8 @@ class StationTemperatureSheafTests(unittest.TestCase):
             sheaf.compatibility_residual(),
             sheaf.graph_residual_baseline(),
         )
+        self.assertEqual(sheaf.global_section_dimension(), 2)
+        self.assertFalse(sheaf.observed_assignment_is_compatible())
         self.assertEqual(sheaf.provider_quality_flag_count(), 0)
 
     def test_injected_fault_is_explicit_and_has_no_hidden_sheaf_advantage(self):
@@ -167,7 +169,8 @@ class StationTemperatureSheafTests(unittest.TestCase):
         prediction = source_sheaf.nearest_neighbor_prediction("USW00094789", "TMAX")
         actual = source.stations["USW00094789"].values["TMAX"]
         self.assertIsNotNone(actual)
-        self.assertGreaterEqual(abs(prediction - float(actual)), 0.0)
+        self.assertAlmostEqual(prediction, 6.1)
+        self.assertAlmostEqual(abs(prediction - float(actual)), 0.5)
         self.assertIsNone(withheld.stations["USW00094789"].values["TMAX"])
 
     def test_quality_flag_policy_is_explicit(self):
