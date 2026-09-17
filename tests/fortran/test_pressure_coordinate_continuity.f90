@@ -12,6 +12,7 @@ program test_pressure_coordinate_continuity
     call test_closed_column_constraint()
     call test_residual_detects_inconsistent_omega()
     call test_invalid_pressure_order()
+    call test_validation_contract_is_shared()
 
 contains
 
@@ -125,6 +126,31 @@ contains
         call assert_close(column_integral, 0.0_dp, 1.0e-13_dp, &
             'failed integration clears column diagnostic')
     end subroutine test_invalid_pressure_order
+
+
+    subroutine test_validation_contract_is_shared()
+        real(dp) :: pressure(3), divergence(2), omega(3)
+        real(dp) :: layer_residual(2), column_integral, column_residual
+        integer :: integrate_ierr, evaluate_ierr
+
+        pressure = [100000.0_dp, 80000.0_dp, 90000.0_dp]
+        divergence = [1.0e-5_dp, 1.0e-5_dp]
+        omega = 0.0_dp
+
+        call integrate_pressure_velocity(pressure, divergence, 0.0_dp, &
+            omega, column_integral, integrate_ierr)
+        call evaluate_pressure_continuity(pressure, divergence, omega, &
+            layer_residual, column_residual, evaluate_ierr)
+
+        call assert_int_equal(integrate_ierr, CONTINUITY_ERR_PRESSURE_ORDER, &
+            'integration rejects invalid pressure ordering')
+        call assert_int_equal(evaluate_ierr, integrate_ierr, &
+            'integration and residual evaluation share pressure-domain validation')
+        call assert_close(maxval(abs(layer_residual)), 0.0_dp, 1.0e-13_dp, &
+            'failed residual evaluation clears layer residuals')
+        call assert_close(column_residual, 0.0_dp, 1.0e-13_dp, &
+            'failed residual evaluation clears column residual')
+    end subroutine test_validation_contract_is_shared
 
 
     subroutine assert_int_equal(actual, expected, label)
