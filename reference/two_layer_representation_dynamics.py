@@ -13,7 +13,12 @@ import importlib.metadata
 import json
 import math
 from pathlib import Path
+import sys
 from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(ROOT))
 
 import numpy as np
 from pydmd import DMD
@@ -30,7 +35,6 @@ from reference.two_layer_energy_balance import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FIXTURE = ROOT / "fixtures" / "physics" / "two-layer-ebm-geoffroy-mean-v1.json"
 
 
