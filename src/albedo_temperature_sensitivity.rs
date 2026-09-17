@@ -25,8 +25,8 @@ pub struct AlbedoTemperatureSample {
     pub albedo_fraction: f64,
     /// Temperature in kelvin.
     pub temperature_k: f64,
-    /// Elapsed time since the preceding sample, in seconds.
-    pub step_duration_s: f64,
+    /// Sample time in seconds relative to a caller-declared origin.
+    pub time_s: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Error)]
@@ -37,8 +37,8 @@ pub enum AlbedoTemperatureInputError {
     AlbedoOutOfRange(f64),
     #[error("temperature_k must be positive, got {0}")]
     NonPositiveTemperature(f64),
-    #[error("step_duration_s must be positive, got {0}")]
-    NonPositiveStepDuration(f64),
+    #[error("sample time must increase strictly: previous={previous_s}, current={current_s}")]
+    NonIncreasingTime { previous_s: f64, current_s: f64 },
 }
 
 impl AlbedoTemperatureSample {
@@ -46,7 +46,7 @@ impl AlbedoTemperatureSample {
         for (field, value) in [
             ("albedo_fraction", self.albedo_fraction),
             ("temperature_k", self.temperature_k),
-            ("step_duration_s", self.step_duration_s),
+            ("time_s", self.time_s),
         ] {
             if !value.is_finite() {
                 return Err(AlbedoTemperatureInputError::NonFinite { field, value });
@@ -60,11 +60,6 @@ impl AlbedoTemperatureSample {
         if self.temperature_k <= 0.0 {
             return Err(AlbedoTemperatureInputError::NonPositiveTemperature(
                 self.temperature_k,
-            ));
-        }
-        if self.step_duration_s <= 0.0 {
-            return Err(AlbedoTemperatureInputError::NonPositiveStepDuration(
-                self.step_duration_s,
             ));
         }
         Ok(self)
@@ -160,6 +155,14 @@ impl AlbedoTemperatureTracker {
         sample: AlbedoTemperatureSample,
     ) -> Result<AlbedoTemperatureDiagnostics, AlbedoTemperatureInputError> {
         let sample = sample.validate()?;
+        if let Some(previous) = self.history.back() {
+            if sample.time_s <= previous.time_s {
+                return Err(AlbedoTemperatureInputError::NonIncreasingTime {
+                    previous_s: previous.time_s,
+                    current_s: sample.time_s,
+                });
+            }
+        }
         self.history.push_back(sample);
         while self.history.len() > SENSITIVITY_RATE_HISTORY {
             self.history.pop_front();
@@ -218,9 +221,13 @@ impl AlbedoTemperatureTracker {
             (
                 QuantityEstimate::Available { value: previous },
                 QuantityEstimate::Available { value: current },
-            ) => QuantityEstimate::Available {
-                value: (current - previous) / self.history[n - 1].step_duration_s,
-            },
+            ) => {
+                let midpoint_separation_s =
+                    0.5 * (self.history[n - 1].time_s - self.history[n - 3].time_s);
+                QuantityEstimate::Available {
+                    value: (current - previous) / midpoint_separation_s,
+                }
+            }
             (QuantityEstimate::Degenerate { reason }, _)
             | (_, QuantityEstimate::Degenerate { reason }) => {
                 QuantityEstimate::Degenerate { reason }
@@ -245,7 +252,7 @@ mod tests {
         AlbedoTemperatureSample {
             temperature_k: 273.0 + index as f64 * 0.5,
             albedo_fraction: 0.3 - index as f64 * 0.01,
-            step_duration_s: 86_400.0,
+            time_s: index as f64 * 86_400.0,
         }
     }
 
@@ -291,6 +298,36 @@ mod tests {
     }
 
     #[test]
+    fn irregular_time_spacing_uses_interval_midpoint_separation() {
+        let mut tracker = AlbedoTemperatureTracker::new(policy()).unwrap();
+        tracker
+            .observe(AlbedoTemperatureSample {
+                time_s: 0.0,
+                temperature_k: 273.0,
+                albedo_fraction: 0.30,
+            })
+            .unwrap();
+        tracker
+            .observe(AlbedoTemperatureSample {
+                time_s: 10.0,
+                temperature_k: 274.0,
+                albedo_fraction: 0.28,
+            })
+            .unwrap();
+        let diagnostics = tracker
+            .observe(AlbedoTemperatureSample {
+                time_s: 40.0,
+                temperature_k: 275.0,
+                albedo_fraction: 0.25,
+            })
+            .unwrap();
+
+        let rate = diagnostics.sensitivity_rate_per_k_per_s.value().unwrap();
+        // Slopes -0.02 and -0.03 live at t=5 s and t=25 s.
+        assert!((rate + 0.0005).abs() < 1.0e-15);
+    }
+
+    #[test]
     fn history_is_bounded_by_the_required_stencil() {
         let mut tracker = AlbedoTemperatureTracker::new(policy()).unwrap();
         for index in 0..20 {
@@ -331,11 +368,12 @@ mod tests {
             Err(AlbedoTemperatureInputError::AlbedoOutOfRange(_))
         ));
 
-        let mut bad = synthetic_sample(0);
-        bad.step_duration_s = 0.0;
+        tracker.observe(synthetic_sample(0)).unwrap();
+        let mut bad = synthetic_sample(1);
+        bad.time_s = synthetic_sample(0).time_s;
         assert!(matches!(
             tracker.observe(bad),
-            Err(AlbedoTemperatureInputError::NonPositiveStepDuration(_))
+            Err(AlbedoTemperatureInputError::NonIncreasingTime { .. })
         ));
     }
 }
