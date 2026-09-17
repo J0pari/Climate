@@ -29,6 +29,15 @@ jobs:
             --start-date 2024-01-01 \
             --end-date 2024-01-03 \
             --output live-data/ncei-ghcnd-USW00094728-2024-01-01-to-2024-01-03.json
+      - name: Retrieve fixed three-station NCEI GHCN-D subset
+        run: |
+          python -m reference.ncei_ghcnd \
+            --station USW00094728 \
+            --station USW00014732 \
+            --station USW00094789 \
+            --start-date 2024-01-01 \
+            --end-date 2024-01-03 \
+            --output live-data/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json
       - name: Download NSIDC September Sea Ice Index file
         run: |
           python -m reference.nsidc_sea_ice_index \
@@ -41,6 +50,10 @@ jobs:
           cat live-data/ncei-ghcnd-USW00094728-2024-01-01-to-2024-01-03.json
           echo
           echo '--- NCEI PAYLOAD END ---'
+          echo '--- NCEI THREE-STATION PAYLOAD BEGIN ---'
+          cat live-data/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json
+          echo
+          echo '--- NCEI THREE-STATION PAYLOAD END ---'
           echo '--- NSIDC PAYLOAD BEGIN ---'
           cat live-data/nsidc-G02135-v4-N-september.csv
           echo '--- NSIDC PAYLOAD END ---'
