@@ -189,6 +189,62 @@
       "reference_methods": []
     },
     {
+      "method_id": "physics.two_layer_ebm.exact_modes_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "5617ca2757e8422ee87731218ce1a6c6377f84ba+scipy-1.18.1",
+      "maturity": "runnable",
+      "hypothesis_family": "two_layer_thermal_mode_oracle",
+      "input_contracts": ["two_layer_ebm_fixture/v1"],
+      "output_contracts": ["thermal_decay_timescales/v1", "two_layer_energy_budget/v1"],
+      "assumptions": [
+        "the declared two-layer energy-balance model is linear and time invariant for fixed parameters",
+        "thermal modes are defined about the constant-forcing equilibrium",
+        "the exact generator and reservoir exchange laws are Climate-owned semantics while SciPy supplies generic eigensystem and matrix-exponential numerics"
+      ],
+      "known_limitations": [
+        "the oracle applies only to the declared linear two-reservoir model",
+        "literature-fixed CMIP5 multimodel-mean parameters are a reference fixture rather than an observational calibration",
+        "exact thermal modes in this control do not imply a two-mode description is adequate for the real climate system"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": []
+    },
+    {
+      "method_id": "dynamics.dmd.pydmd_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "44ffae471bb706f997efec2024205e1eb462f816+pydmd-2025.8.1",
+      "maturity": "runnable",
+      "hypothesis_family": "representation_dynamical_observability",
+      "input_contracts": ["paired_state_transition_samples/v1"],
+      "output_contracts": ["dmd_eigenvalues/v1", "thermal_decay_timescales/v1", "representation_conditioning/v1"],
+      "assumptions": [
+        "paired sample matrices contain the same physical realizations before and after one declared time interval",
+        "DMD rank is declared from the intended resolved state dimension rather than selected using the exact target timescales",
+        "the exact EBM modal oracle is withheld from fitting and used only for evaluation",
+        "PyDMD 2025.8.1 owns generic DMD implementation semantics while Climate owns the representation maps and physical interpretation"
+      ],
+      "known_limitations": [
+        "current witnesses use noiseless linear dynamics with deliberately sampled state pairs",
+        "a representation cannot recover more independent modes than its observable rank",
+        "redundant concatenation can preserve eigenvalues while producing severe rank deficiency and conditioning problems",
+        "DMD agreement with a reference generator is a dynamics witness, not evidence that the representation is scientifically sufficient for real climate data"
+      ],
+      "resource": {
+        "cpu_cores": 2,
+        "memory_bytes": 2147483648,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 600
+      },
+      "reference_methods": ["physics.two_layer_ebm.exact_modes_v1"]
+    },
+    {
       "method_id": "sheaf.real.spectral_v1",
       "semantic_version": "0.1.0",
       "implementation_build": "e0804c047114792ed84988ef2e2b0db2e529ff90",
