@@ -4,7 +4,7 @@
 The planning graph owns planned work, priority, dependency, blocker, and
 completion concerns. Other registries own realized repository facts; durable
 documentation owns current contracts and rationale. Keeping those authorities
-separate prevents stale TODO prose from becoming a second roadmap.
+separate prevents stale planning prose from becoming a second roadmap.
 """
 from __future__ import annotations
 
@@ -102,8 +102,6 @@ def check(root: Path, graph: dict[str, Any]) -> list[Finding]:
             findings.append(Finding("planning.completion_missing", "completion must contain explicit criteria", node_id=node_id))
 
         blockers = node.get("blockers")
-        if node.get("status") == "blocked" and not _nonempty_strings(blockers):
-            findings.append(Finding("planning.blockers_missing", "blocked nodes require explicit blockers", node_id=node_id))
         if blockers is not None and not _nonempty_strings(blockers):
             findings.append(Finding("planning.blockers_invalid", "blockers must be a non-empty string list when present", node_id=node_id))
 
@@ -127,6 +125,32 @@ def check(root: Path, graph: dict[str, Any]) -> list[Finding]:
                 findings.append(Finding("planning.self_dependency", "node depends on itself", node_id=node_id))
             elif dep not in indexed:
                 findings.append(Finding("planning.dependency_missing", "dependency does not resolve", node_id=node_id, reference=dep))
+
+    for node_id, node in indexed.items():
+        deps = node.get("depends_on", [])
+        if not isinstance(deps, list):
+            continue
+        unresolved = [
+            dep for dep in deps
+            if dep in indexed and indexed[dep].get("status") != "done"
+        ]
+        status = node.get("status")
+        blockers = node.get("blockers")
+        has_external_blocker = _nonempty_strings(blockers)
+
+        if status in {"ready", "active", "done"} and unresolved:
+            findings.append(Finding(
+                "planning.status_ignores_dependencies",
+                f"status {status!r} requires all dependencies to be done",
+                node_id=node_id,
+                reference=", ".join(unresolved),
+            ))
+        if status == "blocked" and not unresolved and not has_external_blocker:
+            findings.append(Finding(
+                "planning.blocked_without_cause",
+                "blocked node requires an unresolved dependency or explicit external blocker",
+                node_id=node_id,
+            ))
 
     visiting: set[str] = set()
     visited: set[str] = set()
