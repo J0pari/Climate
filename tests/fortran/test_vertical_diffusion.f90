@@ -8,6 +8,7 @@ program test_vertical_diffusion
     call test_nonuniform_zero_flux_conservation_and_dissipation()
     call test_prescribed_flux_budget_and_sign()
     call test_dirichlet_linear_steady_state()
+    call test_invalid_boundary_kind_fails_closed()
     call test_negative_diffusivity_fails_closed()
 
 contains
@@ -114,6 +115,23 @@ contains
         call require(maxval(abs(tendency)) < 1.0e-13_dp, &
                      'linear profile between fixed boundary values must be a discrete steady state')
     end subroutine test_dirichlet_linear_steady_state
+
+
+    subroutine test_invalid_boundary_kind_fails_closed()
+        real(dp) :: thickness(2), face_diffusivity(3)
+        type(height_diffusion_boundary) :: bottom, top
+        type(height_diffusion_operator) :: operator
+        integer :: ierr
+
+        thickness = [1.0_dp, 1.0_dp]
+        face_diffusivity = 0.0_dp
+        bottom = height_diffusion_boundary(99, 0.0_dp)
+        top = height_diffusion_boundary(VBC_ZERO_FLUX, 0.0_dp)
+
+        call build_height_diffusion_operator(thickness, face_diffusivity, bottom, top, operator, ierr)
+        call require(ierr == VDIFF_ERR_BOUNDARY, 'undeclared boundary kind must be rejected')
+        call require(operator%n == 0, 'invalid boundary must not emit a usable operator')
+    end subroutine test_invalid_boundary_kind_fails_closed
 
 
     subroutine test_negative_diffusivity_fails_closed()
