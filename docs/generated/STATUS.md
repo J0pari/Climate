@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **52**.
+Registered modules: **53**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 21 |
 | `legacy` | 24 |
-| `reference` | 7 |
+| `reference` | 8 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 26 |
+| `runnable` | 27 |
 
 ### Canonical and reference modules
 
@@ -51,6 +51,7 @@ Registered modules: **52**.
 | `reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
 | `reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
 | `reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
+| `reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
 
 ## Scientific claims
 
