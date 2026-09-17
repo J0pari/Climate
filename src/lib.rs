@@ -11,4 +11,5 @@ pub mod inference;
 pub mod modal;
 pub mod numerics;
 pub mod padic;
+pub mod physical_state;
 pub mod sheaf;
