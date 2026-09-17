@@ -1,0 +1,19 @@
+{
+  "requested": {
+    "method_id": "geometry.candidate.gpu_batched_v1",
+    "implementation_id": "geometry.candidate.gpu_batched_v1",
+    "implementation_build": "build-abc123",
+    "backend_id": "cuda.cusolver",
+    "precision": "fp64",
+    "resource_class": "R3_cuda_device"
+  },
+  "status": "eligible",
+  "resolved": {
+    "method_id": "geometry.candidate.gpu_batched_v1",
+    "implementation_id": "geometry.reference.cpu_v1",
+    "implementation_build": "build-cpu456",
+    "backend_id": "lapack",
+    "precision": "fp64",
+    "resource_class": "R1_portable_cpu"
+  }
+}
