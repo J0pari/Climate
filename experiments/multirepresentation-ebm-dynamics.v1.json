@@ -1,0 +1,128 @@
+{
+  "experiment_id": "multirepresentation.ebm_dynamics.v1",
+  "semantic_version": "0.1.0",
+  "question": "Which representations of the same two-layer climate energy-balance state preserve both physical thermal modes under data-driven dynamics identification, and what is lost through scalar projection or gained only redundantly through naive concatenation?",
+  "hypothesis": "On the declared two-layer EBM control, PyDMD recovers the exact fast and slow decay timescales from every rank-two temperature, heat-flux, or modal representation; scalar one-coordinate projections cannot resolve both modes; concatenating equivalent full-state views adds observed dimensions without adding dynamical rank and exposes severe conditioning rather than new physical information.",
+  "candidate_methods": [
+    "dynamics.dmd.pydmd_v1"
+  ],
+  "baseline_methods": [
+    "physics.two_layer_ebm.exact_modes_v1"
+  ],
+  "datasets": [
+    {
+      "id": "physics.two_layer_ebm.geoffroy_mean.v1",
+      "digest": "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9",
+      "source_family": "literature_parameterized_two_layer_energy_balance_reference",
+      "source_version": "1",
+      "variables": [
+        "surface_temperature_anomaly_k",
+        "deep_temperature_anomaly_k",
+        "toa_imbalance_w_m2",
+        "ocean_heat_uptake_w_m2",
+        "fast_thermal_mode",
+        "slow_thermal_mode"
+      ],
+      "spatial_domain": "global mean two-reservoir climate control",
+      "grid": "not spatially resolved; ten deterministic off-equilibrium paired state realizations",
+      "time_domain": "one-year exact state-transition pairs about a unit-step-forcing equilibrium",
+      "temporal_resolution": "1 year transition interval",
+      "units_metadata": {
+        "temperature": "K anomaly",
+        "heat_flux": "W m^-2",
+        "thermal_modes": "coordinates induced by the exact linear generator eigenbasis"
+      },
+      "quality_control_policy": "physical parameters must be finite and positive; representation maps are exact deterministic functions of the same paired physical states; non-finite samples or invalid decay spectra fail closed",
+      "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.full_rank.max_relative_timescale_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "lower",
+      "target": 2e-11,
+      "aggregation_domain": "maximum relative error against the exact fast and slow EBM timescales across temperature-state, heat-flux, thermal-mode, temperature-plus-flux, and all-full-rank-view representations",
+      "missing_data_policy": "both recovered modes are required for every rank-two representation condition",
+      "uncertainty_method": "deterministic noiseless structural control; no sampling interval claimed"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.full_rank.resolved_mode_count_min",
+      "semantic_version": "0.1.0",
+      "units": "mode count",
+      "direction": "target",
+      "target": 2,
+      "aggregation_domain": "minimum DMD mode count across all declared rank-two representation conditions",
+      "missing_data_policy": "each representation must return two finite real decay modes",
+      "uncertainty_method": "exact structural count"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.scalar.resolved_mode_count_max",
+      "semantic_version": "0.1.0",
+      "units": "mode count",
+      "direction": "target",
+      "target": 1,
+      "aggregation_domain": "maximum resolved mode count over surface-temperature-only and TOA-imbalance-only scalar projections",
+      "missing_data_policy": "both scalar controls must execute"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.scalar.one_step_relative_error_min",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "higher",
+      "target": 0.05,
+      "aggregation_domain": "minimum one-step reconstruction error across the two scalar projection controls",
+      "missing_data_policy": "both scalar controls must report finite prediction error"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.concat.redundant_dimension_count_min",
+      "semantic_version": "0.1.0",
+      "units": "coordinate count",
+      "direction": "higher",
+      "target": 2,
+      "aggregation_domain": "minimum observed dimension minus matrix rank across temperature-plus-flux and all-full-rank-view concatenations",
+      "missing_data_policy": "dimension and numerical matrix rank are required for both concatenated controls"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.concat.condition_number",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless",
+      "direction": "descriptive",
+      "aggregation_domain": "sample-matrix condition number reported separately for each redundant concatenated representation",
+      "missing_data_policy": "finite or infinite condition number is reported explicitly; it is not silently regularized"
+    }
+  ],
+  "negative_controls": [
+    "project the two-reservoir state to surface temperature alone and require the unaugmented rank-one representation to expose that it cannot resolve two independent thermal modes",
+    "project the same state to TOA imbalance alone as a second rank-one observability control",
+    "concatenate temperature and heat-flux views even though both are invertible maps of the same two-dimensional state and report the resulting redundant dimensions and conditioning",
+    "concatenate temperature, heat-flux, and exact modal views and verify that six observed coordinates still span only the original two-dimensional dynamical state"
+  ],
+  "falsifiers": [
+    "any declared rank-two representation fails to recover both exact thermal decay timescales within 2e-11 relative error",
+    "a scalar unaugmented representation is reported as resolving two independent modes despite having matrix rank one",
+    "temperature-plus-flux or all-view concatenation is treated as adding dynamical degrees of freedom when its matrix rank remains two",
+    "the DMD implementation is silently replaced or given exact target timescales during fitting",
+    "representation samples no longer refer to identical paired physical EBM states across views"
+  ],
+  "split_policy": "not applicable to this deterministic structural control; noisy, learned, or observational follow-on experiments require distinct estimation and confirmation data",
+  "preprocessing": "no learned preprocessing or target-informed scaling; each representation is an explicit deterministic map of the same exact EBM state pairs and DMD rank is fixed to the intended observable rank",
+  "seeds": [],
+  "stopping_rule": "the reference experiment is retained only if every rank-two view recovers both exact modes, both scalar controls expose one-mode observability, and both concatenated controls expose redundant dimensions without being credited as additional physical state",
+  "multiple_comparison_policy": "all declared representation conditions and controls are reported; no condition is selected after inspecting recovery error",
+  "expected_artifact_types": [
+    "ebm_representation_dynamics/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 2,
+    "memory_bytes": 2147483648,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 600
+  }
+}
