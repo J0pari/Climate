@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **38**.
+Registered modules: **40**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 27 |
-| `reference` | 11 |
+| `reference` | 13 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 36 |
+| `runnable` | 38 |
 
 ### Canonical and reference modules
 
@@ -53,7 +53,9 @@ Registered modules: **38**.
 | `reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
 | `reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
 | `reference` | `reference/multirepresentation_common.py` | `reference_multirepresentation_common_manifold` | `runnable` | no |
+| `reference` | `reference/ncei_ghcnd.py` | `reference_ncei_ghcnd_access` | `runnable` | no |
 | `reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
+| `reference` | `reference/nsidc_sea_ice_index.py` | `reference_nsidc_sea_ice_index_access` | `runnable` | no |
 | `reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
 | `reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
 | `reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
@@ -93,7 +95,7 @@ Experiment specifications: **4**.
 Obligations: **8 realized / 7 open / 15 total**.
 
 | Layer | Realized | Open |
-| --- | ---: | ---: |
+| --- | ---: |
 | `SH1` | 3 | 0 |
 | `SH2` | 5 | 0 |
 | `SH3` | 0 | 4 |
