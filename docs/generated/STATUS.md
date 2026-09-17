@@ -6,17 +6,16 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **61**.
+Registered modules: **37**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 26 |
-| `legacy` | 24 |
 | `reference` | 11 |
 
 | Declared maturity | Count |
 | --- | ---: |
-| `prototype` | 26 |
+| `prototype` | 2 |
 | `runnable` | 35 |
 
 ### Canonical and reference modules

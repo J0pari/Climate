@@ -18,6 +18,8 @@ jobs:
         run: python architecture/check_claims.py
       - name: Module inventory integrity
         run: python architecture/check_modules.py
+      - name: Planning graph integrity
+        run: python architecture/check_planning.py
       - name: Generated repository status is current
         run: python architecture/render_status.py --check
       - name: Semantic hazard freshness and resolution integrity
@@ -28,7 +30,9 @@ jobs:
         run: python architecture/check_sheaf_realization.py
       - name: Durable documentation and comment semantics
         run: python architecture/check_durable_text.py
-      - name: Legacy source audit
+      - name: Repository root layout
+        run: python architecture/check_root_layout.py
+      - name: Source audit
         run: python architecture/source_gates.py --summary
       - name: Static repository inspection
         run: python architecture/inspect_repository.py --json | tee repository-inspection.json
@@ -93,8 +97,6 @@ jobs:
           cargo --version
       - name: Test canonical Rust surface
         run: cargo test --all-targets
-      - name: Compile legacy Rust compatibility surface
-        run: cargo check --all-targets --features legacy-rust
 
   fortran-reference:
     runs-on: ubuntu-24.04
@@ -111,38 +113,12 @@ jobs:
       - name: Configure canonical Fortran reference
         run: |
           cmake -S . -B build-reference \
-            -DENABLE_LEGACY_FORTRAN_PROBES=OFF \
             -DENABLE_LAPACK_BACKEND=ON \
-            -DENABLE_CUDA=OFF \
-            -DENABLE_MPI=OFF \
-            -DENABLE_TESTING=ON \
-            -DENABLE_BENCHMARKS=OFF \
-            -DENABLE_EXPERIMENTAL_OPTIMIZER=OFF
+            -DENABLE_TESTING=ON
       - name: Build canonical Fortran references and backends
         run: cmake --build build-reference --parallel 2
       - name: Run canonical Fortran witnesses
         run: ctest --test-dir build-reference --output-on-failure -L canonical
-
-  fortran-legacy-physics:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Record Fortran toolchain
-        run: |
-          gfortran --version | head -n 1
-          cmake --version | head -n 1
-      - name: Configure legacy physics compile probe
-        run: |
-          cmake -S . -B build-physics \
-            -DENABLE_LEGACY_FORTRAN_PROBES=ON \
-            -DENABLE_LAPACK_BACKEND=OFF \
-            -DENABLE_CUDA=OFF \
-            -DENABLE_MPI=OFF \
-            -DENABLE_TESTING=OFF \
-            -DENABLE_BENCHMARKS=OFF \
-            -DENABLE_EXPERIMENTAL_OPTIMIZER=OFF
-      - name: Compile legacy physics source
-        run: cmake --build build-physics --target climate_physics_compile_probe --parallel 2
 
   reference-geometry:
     runs-on: ubuntu-latest
