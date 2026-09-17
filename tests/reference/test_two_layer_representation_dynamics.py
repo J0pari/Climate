@@ -4,6 +4,7 @@ import unittest
 
 import numpy as np
 
+from reference.two_layer_dynamic_observability import two_layer_observability_report
 from reference.two_layer_energy_balance import load_fixture
 from reference.two_layer_representation_dynamics import (
     analyze_representations,
@@ -64,6 +65,20 @@ class TwoLayerRepresentationDynamicsTests(unittest.TestCase):
             self.assertEqual(diagnostics["redundant_dimension_count"], 0, msg=name)
             self.assertEqual(diagnostics["resolved_mode_count"], 1, msg=name)
             self.assertEqual(len(diagnostics["dmd_timescales_years"]), 1, msg=name)
+
+    def test_scalar_markov_closure_is_not_dynamic_unobservability(self) -> None:
+        cases = (
+            ("surface_temperature_scalar", ("surface_temperature",)),
+            ("toa_imbalance_scalar", ("toa_imbalance",)),
+        )
+        for representation_name, channels in cases:
+            dmd = self.result["representations"][representation_name]
+            observability = two_layer_observability_report(self.fixture, channels)
+
+            self.assertEqual(dmd["dimension"], 1, msg=representation_name)
+            self.assertEqual(dmd["resolved_mode_count"], 1, msg=representation_name)
+            self.assertEqual(observability["rank"], 2, msg=representation_name)
+            self.assertEqual(observability["nullity"], 0, msg=representation_name)
 
     def test_paired_view_samples_share_identical_physical_realizations(self) -> None:
         pairs = representation_pairs(self.fixture, dt_years=1.0)
