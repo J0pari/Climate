@@ -62,7 +62,7 @@
           "refinement": "none until conditioning-triggered refinement is specified"
         },
         "determinism": "D1",
-        "fallback_identity_required": true,
+        "alternate_identity_required": true,
         "resource": {
           "cpu_cores": 2,
           "memory_bytes": 2147483648,
