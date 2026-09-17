@@ -67,11 +67,11 @@ These are independent fronts, not a global sequence.
 
 Continue sweeping places where the mathematical name outruns the realized structure. The default repair is constructive: if the stronger mathematical object is useful and tractable, implement it correctly rather than renaming downward.
 
-Current high-leverage edges:
+High-leverage edges:
 
-- the explicit normal-family Fisher/Amari reference now realizes α-connections, duality, and cubic-tensor structure; remaining work is differential migration of legacy information-geometry implementations only where those implementations still earn a role;
+- use the explicit normal-family Fisher/Amari reference for α-connections, duality, and cubic-tensor structure, and migrate legacy information-geometry implementations only where those implementations still earn a role;
 - use the exact Lie-bracket and Noether references to separate infinitesimal/variational structure from useful but different black-box diagnostics;
-- extend symbolic/canonical geometry agreement from the realized constant-linear coordinate and finite-difference jet witnesses to nonlinear coordinate changes and additional independent derivative backends;
+- extend symbolic/canonical geometry agreement beyond constant-linear coordinate and finite-difference jet witnesses to nonlinear coordinate changes and additional independent derivative backends;
 - formalize additional small immutable algebraic invariants in Lean only when the statement is stable and the proof reduces ambiguity.
 
 A weaker abstraction is retained only when it is independently the better tool for a real task, not because it is easier to implement.
@@ -92,7 +92,7 @@ The candidate unifying program is defined in `docs/MULTIREPRESENTATION-CLIMATE-M
 
 Within this program, sheaf structure may help with local data/chart consistency, ultrametric methods may contribute an alternative relational geometry or kernel, Clifford structure may represent local oriented/multicomponent dynamics, and Noether/Hamiltonian structure may constrain physical evolution without each becoming a coordinate axis of one universal manifold.
 
-Realized structural controls now include:
+Structural controls available to this program include:
 
 - coordinate-covariant Fisher squared length for the two-layer EBM across temperature-state, heat-flux, exact thermal-mode, and unit-rescaled charts, with raw Euclidean distance retained as an explicit representation/unit-dependent negative control;
 - exact separation between one-coordinate unaugmented DMD Markov closure and dynamical observability of the same known two-state system;
@@ -100,7 +100,7 @@ Realized structural controls now include:
 - constant-linear coordinate metamorphics for the canonical Levi-Civita kernel, including permutation and anisotropic scaling, plus an independent finite-difference metric-jet witness on a known conformal metric;
 - `MetricJet` rejection of derivative data that violate metric-index symmetry or mixed-partial commutation at scale-derived floating-point roundoff.
 
-Numerical obligations still include:
+Numerical obligations include:
 
 - nonlinear coordinate-change witnesses, including the inhomogeneous Christoffel transformation term;
 - additional independent derivative-generation witnesses such as AD or complex-step where the metric construction supports them;
@@ -200,7 +200,7 @@ Do only on a real CUDA device:
 
 Climate/Commons integration is experimental and observe-first. Prepare narrow repository-inspection, experiment, run, artifact, and evidence interfaces. Do not duplicate Commons scheduling or resource leasing inside Climate.
 
-The next meaningful integrated milestone is one real read-only/sandboxed Climate experiment with run/trace/causation/fingerprint lineage preserved end to end.
+The meaningful integrated milestone is one real read-only/sandboxed Climate experiment with run/trace/causation/fingerprint lineage preserved end to end.
 
 ### Large data (`R5`)
 
@@ -210,7 +210,7 @@ Real-data claims require immutable projections, protected confirmation splits, d
 
 Documentation has two deliberately different maintenance modes.
 
-**Generated / drift-checked:** objective facts already present in registries, such as module lifecycle/maturity, claim maturity, experiment registration, and realization-ledger status. Update the source authority, run:
+**Generated / drift-checked:** objective facts present in registries, such as module lifecycle/maturity, claim maturity, experiment registration, and realization-ledger status. Change the source authority, run:
 
 ```bash
 python architecture/render_status.py --write
@@ -218,21 +218,19 @@ python architecture/render_status.py --write
 
 and let CI enforce that the generated projection matches. On mismatch the checker emits a unified diff so projection drift is diagnosable rather than a generic stale-file failure.
 
-**Human-maintained:** priority judgments, scientific rationale, interpretation boundaries, architecture tradeoffs, and resource strategy. These should be updated after meaningful changes in capability or evidence; attempting to infer them automatically would hide judgment rather than remove maintenance.
+**Human-maintained:** priority judgments, scientific rationale, interpretation boundaries, architecture tradeoffs, and resource strategy. These documents state durable intent and obligations, not a narrative of which update introduced them. Historical change descriptions belong in commit messages and repository history.
 
 Prefer adding another generated field only when there is an existing authoritative machine source. Do not create a registry merely so prose can be generated.
 
 ## 6. Near-term high-leverage edges
 
-Subject to failures discovered by CI, the current high-leverage set is:
+Subject to failures discovered by CI, the high-leverage set is:
 
 1. extend geometry differential verification to nonlinear coordinate changes and a second independent derivative-generation route, while keeping derivative-estimation acceptance policy outside the mathematical `MetricJet` contract;
-2. define the next coupled atmospheric dynamics slice around pressure-gradient/pressure-work, kinetic/internal/potential-energy exchange, and continuity-consistent interfaces rather than adding another isolated tendency kernel;
+2. connect atmospheric mass, continuity, pressure-gradient/pressure-work, and kinetic/internal/potential-energy interfaces around shared authoritative fluxes rather than adding another isolated tendency kernel;
 3. progress the climate-data sheaf into explicit station cover/stalk/restriction semantics that can later participate in local chart/data-consistency experiments;
 4. establish one narrow immutable observational/reanalysis data projection with CF-aware coordinates/units, explicit QC/missingness, transformation lineage, and digests before expanding the data surface;
 5. move beyond the equal-cost synthetic observation-design control only when a real cost/noise/provenance authority exists; do not tune representation weights to downstream scores in its absence;
 6. prepare GPU differential fixtures only after a candidate manifold computation is useful enough that acceleration removes a demonstrated experiment bottleneck.
 
-Recently retired from this list because their structural controls now execute are coordinate-covariant two-layer EBM Fisher distance, the DMD-versus-observability semantic separation, and equal-cost Pareto observation design. These remain structural controls rather than empirical observing-system or climate-manifold validation.
-
-This list is intentionally short and manually curated. It should change when evidence changes, while the generated status beneath it updates mechanically.
+This list is intentionally short and manually curated. It changes when evidence or architectural obligations change, while objective realization state remains generated mechanically.
