@@ -1,0 +1,109 @@
+{
+  "experiment_id": "multirepresentation.common_coordinate.v1",
+  "semantic_version": "0.1.0",
+  "question": "Can a nonlinear multiview method recover a known coordinate shared across two heterogeneous views while rejecting view-specific nuisance more effectively than concatenated PCA, linear CCA, and concatenated spectral embedding?",
+  "hypothesis": "On the declared synthetic paired-view fixture, datafold jointly smooth functions recover the known nonlinear common coordinate with low nuisance alignment, outperform the strongest declared baseline, and lose that recovery when cross-view correspondence is shuffled.",
+  "candidate_methods": [
+    "multirepresentation.jsf.datafold_v1"
+  ],
+  "baseline_methods": [
+    "multirepresentation.concat_pca.sklearn_v1",
+    "multirepresentation.linear_cca.sklearn_v1",
+    "multirepresentation.concat_spectral.sklearn_v1"
+  ],
+  "datasets": [
+    {
+      "id": "multirepresentation.shared-effective-coordinate.v1",
+      "digest": "sha256:0dd35c7ec25f0144ccf38b78b36ff3a5dba329180df860feae9323777b646db8",
+      "source_family": "deterministic_synthetic_multirepresentation_fixture",
+      "source_version": "1",
+      "variables": [
+        "resolved_subsystem_state",
+        "nonlinear_observation",
+        "common_coordinate",
+        "observation_nuisance"
+      ],
+      "spatial_domain": "synthetic latent state space",
+      "grid": "600 deterministic paired samples generated from the fixture seed",
+      "units_metadata": {
+        "policy": "dimensionless synthetic coordinates"
+      },
+      "quality_control_policy": "generation is deterministic, finite-valued, shape-checked, and algebraically checks the declared common coordinate",
+      "citation": "fixtures/multirepresentation/shared-effective-coordinate-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "multirepresentation.shared_coordinate.abs_spearman",
+      "semantic_version": "0.1.0",
+      "units": "absolute rank correlation",
+      "direction": "higher",
+      "target": 0.9,
+      "aggregation_domain": "candidate coordinate versus known common coordinate over all 600 paired samples",
+      "missing_data_policy": "any non-finite or missing candidate coordinate is experiment failure",
+      "uncertainty_method": "deterministic synthetic fixture; no sampling interval claimed"
+    },
+    {
+      "metric_id": "multirepresentation.jsf.advantage_over_best_baseline",
+      "semantic_version": "0.1.0",
+      "units": "absolute rank-correlation difference",
+      "direction": "higher",
+      "target": 0.15,
+      "aggregation_domain": "candidate shared-coordinate absolute Spearman minus the maximum of the three declared baseline scores",
+      "missing_data_policy": "all candidate and baseline scores are required",
+      "uncertainty_method": "deterministic synthetic fixture; no sampling interval claimed"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "multirepresentation.jsf.nuisance_abs_spearman",
+      "semantic_version": "0.1.0",
+      "units": "absolute rank correlation",
+      "direction": "lower",
+      "target": 0.2,
+      "aggregation_domain": "candidate coordinate versus known observation-specific nuisance over all samples",
+      "missing_data_policy": "candidate and nuisance values are required"
+    },
+    {
+      "metric_id": "multirepresentation.shuffle.shared_abs_spearman",
+      "semantic_version": "0.1.0",
+      "units": "absolute rank correlation",
+      "direction": "lower",
+      "target": 0.5,
+      "aggregation_domain": "jointly smooth coordinate after deterministic permutation of view-B correspondence versus the original known common coordinate",
+      "missing_data_policy": "shuffled-correspondence control must execute successfully"
+    }
+  ],
+  "negative_controls": [
+    "deterministically shuffle the row correspondence of the nonlinear-observation view while keeping both marginal view distributions unchanged",
+    "measure alignment with the declared observation-specific nuisance rather than only measuring recovery of the desired coordinate",
+    "compare against a nonlinear spectral method on standardized concatenated views so nonlinearity alone is not credited as multiview structure"
+  ],
+  "falsifiers": [
+    "jointly smooth functions recover the common coordinate with absolute Spearman below 0.9",
+    "the candidate remains aligned with observation-specific nuisance above absolute Spearman 0.2",
+    "the candidate fails to exceed the strongest declared baseline by at least 0.15 absolute Spearman",
+    "shuffling cross-view correspondence retains common-coordinate absolute Spearman above 0.5",
+    "a missing datafold capability silently substitutes another algorithm under the same method identity"
+  ],
+  "split_policy": "not applicable to this deterministic synthetic structural fixture; later learned or climate-facing experiments require separate discovery/confirmation splits",
+  "preprocessing": "each observed view is standardized independently; no target coordinate or nuisance variable is supplied to candidate or baseline fitting",
+  "seeds": [
+    42617,
+    9876
+  ],
+  "stopping_rule": "the reference experiment passes only when all four predeclared candidate, nuisance, baseline-advantage, and shuffled-correspondence guards pass in the pinned environment",
+  "multiple_comparison_policy": "the four method identities and four guard metrics are fixed by this experiment version; all are reported",
+  "expected_artifact_types": [
+    "multirepresentation_reference_result/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 2,
+    "memory_bytes": 2147483648,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 600
+  }
+}
