@@ -42,11 +42,26 @@ class TwoLayerRepresentationDynamicsTests(unittest.TestCase):
                 diagnostics["one_step_relative_error"], 2e-12, msg=name
             )
 
+    def test_redundant_concatenations_add_dimensions_but_not_dynamical_rank(self) -> None:
+        temperature_flux = self.result["representations"]["temperature_plus_flux"]
+        all_views = self.result["representations"]["all_full_rank_views"]
+
+        self.assertEqual(temperature_flux["dimension"], 4)
+        self.assertEqual(temperature_flux["matrix_rank"], 2)
+        self.assertEqual(temperature_flux["redundant_dimension_count"], 2)
+        self.assertGreater(temperature_flux["condition_number"], 1e12)
+
+        self.assertEqual(all_views["dimension"], 6)
+        self.assertEqual(all_views["matrix_rank"], 2)
+        self.assertEqual(all_views["redundant_dimension_count"], 4)
+        self.assertGreater(all_views["condition_number"], 1e12)
+
     def test_scalar_views_are_structurally_unable_to_resolve_two_modes(self) -> None:
         for name in ("surface_temperature_scalar", "toa_imbalance_scalar"):
             diagnostics = self.result["representations"][name]
             self.assertEqual(diagnostics["dimension"], 1, msg=name)
             self.assertEqual(diagnostics["matrix_rank"], 1, msg=name)
+            self.assertEqual(diagnostics["redundant_dimension_count"], 0, msg=name)
             self.assertEqual(diagnostics["resolved_mode_count"], 1, msg=name)
             self.assertEqual(len(diagnostics["dmd_timescales_years"]), 1, msg=name)
 
