@@ -46,8 +46,14 @@
       "access": "HTTPS CSV/GeoTIFF archive",
       "access_url": "https://noaadata.apps.nsidc.org/NOAA/G02135/",
       "time_coverage": "1978-10-26 to present",
-      "variables": ["sea ice extent", "sea ice concentration"],
-      "units": ["10^6 km^2", "fraction or percent depending on product"],
+      "variables": [
+        "sea ice extent",
+        "sea ice concentration"
+      ],
+      "units": [
+        "10^6 km^2",
+        "fraction or percent depending on product"
+      ],
       "license_or_access_constraints": "public NOAA@NSIDC distribution; dataset citation required",
       "update_semantics": "daily/monthly products are revised as the maintained dataset is updated; immutable experiment inputs require an accessed artifact digest and access date"
     },
@@ -62,8 +68,17 @@
       "access": "netCDF via NASA ASDC/Earthdata ordering, OPeNDAP or supported cloud access",
       "access_url": "https://ceres-tool.larc.nasa.gov/ord-tool/",
       "time_coverage": "2000-03 to present product coverage",
-      "variables": ["TOA incoming solar", "TOA shortwave flux", "TOA longwave flux", "TOA net flux", "surface shortwave fluxes", "surface longwave fluxes"],
-      "units": ["W m^-2"],
+      "variables": [
+        "TOA incoming solar",
+        "TOA shortwave flux",
+        "TOA longwave flux",
+        "TOA net flux",
+        "surface shortwave fluxes",
+        "surface longwave fluxes"
+      ],
+      "units": [
+        "W m^-2"
+      ],
       "license_or_access_constraints": "NASA public Earth science data; some ASDC direct/cloud access paths require Earthdata authentication",
       "update_semantics": "ongoing climate data record; edition and downloaded artifact digest are part of experiment identity"
     },
@@ -78,8 +93,14 @@
       "access": "Copernicus Climate Data Store API and analysis-ready Zarr where available",
       "access_url": "https://cds.climate.copernicus.eu/",
       "time_coverage": "1940 to present",
-      "variables": ["2 m temperature", "surface pressure", "surface and TOA radiative fields among the declared catalogue variables"],
-      "units": ["CF/GRIB variable-specific SI-compatible units"],
+      "variables": [
+        "2 m temperature",
+        "surface pressure",
+        "surface and TOA radiative fields among the declared catalogue variables"
+      ],
+      "units": [
+        "CF/GRIB variable-specific SI-compatible units"
+      ],
       "license_or_access_constraints": "CC-BY; CDS terms must be accepted and API access requires CDS credentials",
       "update_semantics": "daily-updated reanalysis; retrieval request plus returned artifact digest define immutable experiment input"
     },
@@ -93,8 +114,15 @@
       "access": "CDS API request to reanalysis-era5-complete using MARS syntax",
       "access_url": "https://cds.climate.copernicus.eu/",
       "time_coverage": "ERA5 period covered by the complete archive",
-      "variables": ["model-level fields", "surface pressure or logarithm of surface pressure", "hybrid a/b coefficients carried in GRIB model-level metadata"],
-      "units": ["GRIB parameter-specific units", "Pa for pressure terms"],
+      "variables": [
+        "model-level fields",
+        "surface pressure or logarithm of surface pressure",
+        "hybrid a/b coefficients carried in GRIB model-level metadata"
+      ],
+      "units": [
+        "GRIB parameter-specific units",
+        "Pa for pressure terms"
+      ],
       "license_or_access_constraints": "Copernicus/ECMWF access terms and CDS credentials apply",
       "update_semantics": "model-level retrieval identity includes dataset, MARS request, IFS/ERA5 definition and artifact digest; a/b coefficients are read from source metadata rather than copied as local authority"
     },
@@ -109,8 +137,17 @@
       "access": "NCEI HTTPS archive and Common Access Data/Search Service REST APIs",
       "access_url": "https://www.ncei.noaa.gov/access/services/data/v1",
       "time_coverage": "station-dependent historical records through present updates",
-      "variables": ["station identifiers and metadata", "daily temperature", "precipitation", "snowfall", "snow depth", "quality/source flags"],
-      "units": ["dataset-element-specific units with metadata and flags"],
+      "variables": [
+        "station identifiers and metadata",
+        "daily temperature",
+        "precipitation",
+        "snowfall",
+        "snow depth",
+        "quality/source flags"
+      ],
+      "units": [
+        "dataset-element-specific units with metadata and flags"
+      ],
       "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",
       "update_semantics": "daily updates plus periodic reconstruction; NCEI assigns unique daily versions and values/flags can be revised, so responses used as evidence must be captured and digested"
     },
@@ -124,8 +161,13 @@
       "access": "versioned CSV and NetCDF downloads",
       "access_url": "https://www.metoffice.gov.uk/hadobs/hadcrut5/data/HadCRUT.5.1.0.0/download.html",
       "time_coverage": "1850 to present release coverage",
-      "variables": ["near-surface temperature anomalies", "ensemble uncertainty components"],
-      "units": ["degree C anomaly relative to declared reference period"],
+      "variables": [
+        "near-surface temperature anomalies",
+        "ensemble uncertainty components"
+      ],
+      "units": [
+        "degree C anomaly relative to declared reference period"
+      ],
       "license_or_access_constraints": "use under provider terms and cite HadCRUT5",
       "update_semantics": "versioned releases; experiments pin release plus artifact digest rather than following latest implicitly"
     },
@@ -140,8 +182,13 @@
       "access": "download, THREDDS and cloud distributions",
       "access_url": "https://www.ncei.noaa.gov/access/global-ocean-heat-content/",
       "time_coverage": "depth/product dependent; monthly 0-2000 m fields from 2005 to present are available",
-      "variables": ["ocean heat content anomaly", "ocean heat content analyzed fields"],
-      "units": ["product-specific heat-content units including 10^18 J fields"],
+      "variables": [
+        "ocean heat content anomaly",
+        "ocean heat content analyzed fields"
+      ],
+      "units": [
+        "product-specific heat-content units including 10^18 J fields"
+      ],
       "license_or_access_constraints": "NOAA public data; dataset citation required",
       "update_semantics": "maintained climate data record; pin product selection, time/depth subset and downloaded artifact digest"
     }
@@ -154,7 +201,9 @@
       "anchor": "STANDARD_GRAVITY_M_S2",
       "ownership_class": "reference_constant",
       "disposition": "retain_local",
-      "source_ids": ["bipm.standard_gravity"],
+      "source_ids": [
+        "bipm.standard_gravity"
+      ],
       "rationale": "standard gravity is a conventional reference value, not a location-specific gravity observation; kernels that need spatial gravity must receive it explicitly"
     },
     {
@@ -174,7 +223,9 @@
       "anchor": "Murphy & Koop (2005)",
       "ownership_class": "published_parameterization",
       "disposition": "retain_local",
-      "source_ids": ["murphy_koop.saturation_vapor_pressure.2005"],
+      "source_ids": [
+        "murphy_koop.saturation_vapor_pressure.2005"
+      ],
       "rationale": "the numeric coefficients are the published scientific formula itself; replacing them with a live data feed would change the method rather than improve provenance"
     },
     {
@@ -184,7 +235,9 @@
       "anchor": "literature_fixed",
       "ownership_class": "literature_reference_fixture",
       "disposition": "retain_local",
-      "source_ids": ["geoffroy.two_layer_ebm.2013"],
+      "source_ids": [
+        "geoffroy.two_layer_ebm.2013"
+      ],
       "rationale": "these are pinned CMIP5 multimodel-mean reference parameters for a controlled two-layer model, not a claim to current observational calibration"
     },
     {
@@ -228,44 +281,40 @@
       "rationale": "history length, minimum samples and numerical degeneracy tolerance are estimator policy, not measured climate data"
     },
     {
-      "usage_id": "feedback.ice_albedo_policy_thresholds",
-      "scope": "current",
-      "path": "src/feedback.rs",
-      "anchor": "IceAlbedoPolicy",
-      "ownership_class": "experiment_policy",
-      "disposition": "retain_local",
-      "source_ids": [],
-      "rationale": "legacy stable/active/excessive bands are explicit policy only and must never be promoted as empirical tipping thresholds without a separate observational calibration experiment"
-    },
-    {
       "usage_id": "feedback.ice_extent_observation",
-      "scope": "current",
-      "path": "src/feedback.rs",
-      "anchor": "ice_extent_million_km2",
+      "scope": "planned",
+      "path": "architecture/planning_graph.json",
+      "anchor": "diagnostics.feedback_observation_benchmarks",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
-      "source_ids": ["nsidc.sea_ice_index.v4"],
-      "rationale": "empirical ice extent must enter through a versioned observation product with missing/source flags, access date and artifact digest rather than caller-invented defaults"
+      "source_ids": [
+        "nsidc.sea_ice_index.v4"
+      ],
+      "rationale": "empirical ice extent belongs to a versioned observation product with missing/source flags, access identity and artifact digest; the numerical sensitivity kernel does not supply or default this observation"
     },
     {
       "usage_id": "feedback.albedo_shortwave_observation",
-      "scope": "current",
-      "path": "src/feedback.rs",
-      "anchor": "absorbed_shortwave_reference_w_m2",
+      "scope": "planned",
+      "path": "architecture/planning_graph.json",
+      "anchor": "diagnostics.feedback_observation_benchmarks",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
-      "source_ids": ["nasa.ceres.ebaf.4.2.1"],
-      "rationale": "the fixed 340 W m^-2 legacy multiplier is acceptable only as an explicitly named reference experiment; empirical ice-albedo feedback must use radiative quantities matched to the declared albedo level/definition, such as CERES TOA or surface shortwave fields, without mixing TOA and surface semantics"
+      "source_ids": [
+        "nasa.ceres.ebaf.4.2.1"
+      ],
+      "rationale": "radiative conversion of albedo sensitivity requires a retrieved radiative field matched to the declared albedo level and definition, with explicit provenance; no local scalar forcing is an empirical substitute"
     },
     {
       "usage_id": "feedback.temperature_observation",
-      "scope": "current",
-      "path": "src/feedback.rs",
-      "anchor": "temperature_k",
+      "scope": "planned",
+      "path": "architecture/planning_graph.json",
+      "anchor": "diagnostics.feedback_observation_benchmarks",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
-      "source_ids": ["ecmwf.era5.single_levels"],
-      "rationale": "empirical regional temperature series paired to sea-ice/radiation data must come from a declared gridded observation/reanalysis retrieval with coordinate/time aggregation and missingness recorded"
+      "source_ids": [
+        "ecmwf.era5.single_levels"
+      ],
+      "rationale": "empirical regional temperature paired to sea-ice and radiation data must come from a declared gridded observation or reanalysis projection with coordinate/time aggregation, uncertainty and missingness recorded"
     },
     {
       "usage_id": "physics.hybrid_vertical_coefficients",
@@ -274,7 +323,9 @@
       "anchor": "physics.vertical_coordinate_contract",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
-      "source_ids": ["ecmwf.era5.complete_model_levels"],
+      "source_ids": [
+        "ecmwf.era5.complete_model_levels"
+      ],
       "rationale": "ERA5/IFS hybrid a/b coefficients and surface pressure are source metadata; coefficients should be read from the retrieved GRIB/model-level authority or an explicitly pinned model definition, not copied into an unlabeled local table"
     },
     {
@@ -284,7 +335,9 @@
       "anchor": "sheaf.climate_data_semantics",
       "ownership_class": "external_api",
       "disposition": "externalize",
-      "source_ids": ["ncei.ghcnd.v3"],
+      "source_ids": [
+        "ncei.ghcnd.v3"
+      ],
       "rationale": "station identifiers, locations, observation availability, quality/source flags and values must be discovered/retrieved from a maintained station authority rather than embedded station tuples"
     },
     {
@@ -294,7 +347,10 @@
       "anchor": "data.immutable_observational_projection",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
-      "source_ids": ["metoffice.hadcrut5.5.1.0.0", "ecmwf.era5.single_levels"],
+      "source_ids": [
+        "metoffice.hadcrut5.5.1.0.0",
+        "ecmwf.era5.single_levels"
+      ],
       "rationale": "global anomaly validation and regional gridded temperature use different appropriate authorities; the projection must name which product and uncertainty/missingness semantics it uses"
     },
     {
@@ -304,7 +360,9 @@
       "anchor": "diagnostics.feedback_observation_benchmarks",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
-      "source_ids": ["nasa.ceres.ebaf.4.2.1"],
+      "source_ids": [
+        "nasa.ceres.ebaf.4.2.1"
+      ],
       "rationale": "TOA radiative imbalance and shortwave/longwave terms are observation-product quantities and must not be synthesized from arbitrary fixed forcing constants in empirical validation"
     },
     {
@@ -314,7 +372,9 @@
       "anchor": "data.immutable_observational_projection",
       "ownership_class": "external_dataset",
       "disposition": "externalize",
-      "source_ids": ["ncei.global_ocean_heat_content"],
+      "source_ids": [
+        "ncei.global_ocean_heat_content"
+      ],
       "rationale": "real ocean heat content/uptake validation requires a versioned observed product and its depth/time/uncertainty definition rather than arbitrary synthetic scales"
     }
   ]
