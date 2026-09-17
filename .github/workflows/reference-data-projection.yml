@@ -47,10 +47,3 @@ jobs:
             --test=cf:1.11 \
             --criteria normal \
             projection-artifact/ncei-ghcnd-USW00094728-temperature-v1.nc
-      - name: Upload projected observation artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ncei-ghcnd-cf-projection
-          path: projection-artifact/ncei-ghcnd-USW00094728-temperature-v1.nc
-          if-no-files-found: error
-          retention-days: 30
