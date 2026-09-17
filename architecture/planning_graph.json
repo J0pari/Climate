@@ -23,6 +23,21 @@
       ]
     },
     {
+      "id": "architecture.layered_configuration",
+      "title": "Define layered runtime configuration contracts",
+      "status": "ready",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Keep immutable shared reference values, kernel parameters, experiment inputs, numerical policy, data-source configuration, and execution policy in separate focused ownership surfaces rather than duplicated literals or one flat global configuration object.",
+      "depends_on": ["architecture.reference_values"],
+      "completion": [
+        "Configuration schemas are grouped by semantic owner rather than one cross-system God object.",
+        "Reference values are immutable defaults and are not runtime configuration.",
+        "Kernel-local overrides do not mutate other components or global state.",
+        "Experiment configuration composes focused component records and records provenance without duplicating their definitions."
+      ]
+    },
+    {
       "id": "architecture.legacy_source_depletion",
       "title": "Deplete and delete legacy root monoliths",
       "status": "active",
@@ -37,7 +52,8 @@
         "Repository policy defines auditable mining and deletion criteria for future legacy depletion."
       ],
       "evidence": [
-        "docs/LEGACY-DELETION.md"
+        "docs/LEGACY-DELETION.md",
+        "architecture/check_root_layout.py"
       ]
     },
     {
@@ -55,9 +71,23 @@
       ]
     },
     {
+      "id": "physics.vertical_coordinate_contract",
+      "title": "Define pressure, sigma, and hybrid vertical-coordinate semantics",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Extend the pressure-coordinate foundation with explicit sigma or hybrid-coordinate mapping only through declared coefficients, surface-pressure dependence, layer mass, orientation, and metric terms; old coefficient tables are not authority by themselves.",
+      "depends_on": ["architecture.reference_values"],
+      "completion": [
+        "Each supported vertical coordinate has explicit interface, unit, orientation, and layer-mass semantics.",
+        "Hybrid coefficients are supplied by a named dataset/model contract rather than copied from an unlabeled legacy table.",
+        "Mappings reduce to independently checkable pressure-coordinate cases where appropriate."
+      ]
+    },
+    {
       "id": "physics.parameterization_boundaries",
       "title": "Establish physical parameterization seams and library boundaries",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
       "summary": "Keep climate-owned equations, coupling semantics, and diagnostics local while delegating commodity radiation, remapping, integration, transforms, optimization, and linear algebra to mature libraries.",
@@ -71,7 +101,7 @@
     {
       "id": "state.typed_physical_state",
       "title": "Define typed physical-state boundaries",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
       "summary": "Represent prognostic physical state, derived diagnostics, and experimental representations as distinct contracts with explicit units, coordinates, missingness, and initialization semantics.",
@@ -80,6 +110,37 @@
         "Physical fields cannot be silently initialized from synthetic observational defaults.",
         "Experimental geometry or diagnostic artifacts do not inhabit authoritative prognostic state without an explicit adapter.",
         "State-boundary fixtures cover missing, unavailable, and zero as distinct cases where scientifically relevant."
+      ]
+    },
+    {
+      "id": "simulation.reproducible_restart",
+      "title": "Define reproducible integration and restart state",
+      "status": "blocked",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Specify the minimum climate-owned state required to reproduce an integration across restart boundaries while solver implementation, global scheduling, and resource arbitration remain external concerns.",
+      "depends_on": [
+        "physics.authoritative_flux_recomposition",
+        "state.typed_physical_state"
+      ],
+      "completion": [
+        "Restart identity binds physical state, time, focused configuration, solver identity, stochastic state, and required provenance.",
+        "A split-run witness agrees with an uninterrupted run within the declared numerical semantics.",
+        "Checkpoint format does not embed a second scheduler or generic integration framework."
+      ]
+    },
+    {
+      "id": "numerics.conditioning_guardrails",
+      "title": "Define library-backed numerical conditioning guardrails",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Separate numerical conditioning, refusal, and recovery diagnostics from scientific tipping interpretation, using maintained linear-algebra routines rather than project-local power iteration or fabricated fallback eigenvalues.",
+      "depends_on": [],
+      "completion": [
+        "Condition estimates and factorization failures come from declared maintained numerical backends or independent small reference oracles.",
+        "Unavailable or failed conditioning diagnostics remain unavailable or failed rather than receiving plausible fallback values.",
+        "Numerical guardrail thresholds are typed separately from empirical or policy thresholds."
       ]
     },
     {
@@ -97,9 +158,37 @@
       ]
     },
     {
+      "id": "diagnostics.feedback_observation_benchmarks",
+      "title": "Ground feedback diagnostics in explicit observations and process definitions",
+      "status": "blocked",
+      "priority": "P1",
+      "resource_class": "R5_large_data",
+      "summary": "Extend narrow feedback estimators beyond local numerical semantics only through reproducible observational or reanalysis definitions for ice-albedo, circulation, permafrost, cloud, vegetation, or other declared processes.",
+      "depends_on": ["data.immutable_observational_projection"],
+      "completion": [
+        "Each feedback diagnostic declares measured variables, aggregation, units, time base, uncertainty, and missing-data handling.",
+        "Process-specific thresholds are either empirically sourced with domain of applicability or typed as experiment policy rather than physical truth.",
+        "Benchmarks retain observational provenance and compare against simpler trend or regression diagnostics."
+      ]
+    },
+    {
+      "id": "statistics.model_selection_dependence",
+      "title": "Verify model-selection criteria under climate dependence",
+      "status": "ready",
+      "priority": "P2",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Use maintained statistical implementations or transparent formula references to test information criteria and model comparisons under autocorrelation, spatial dependence, effective sample size, and held-out climate tasks.",
+      "depends_on": [],
+      "completion": [
+        "Criterion formulas have fixture-based reference witnesses.",
+        "Dependence assumptions and effective-sample-size treatment are explicit in every climate use.",
+        "Model comparison is separated from downstream physical interpretation."
+      ]
+    },
+    {
       "id": "data.immutable_observational_projection",
       "title": "Create one immutable observational or reanalysis projection",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P0",
       "resource_class": "R5_large_data",
       "summary": "Build a narrow CF-aware data projection with explicit retrieval identity, QC, missingness, transformation lineage, coordinates, units, and content digests before expanding acquisition breadth.",
@@ -113,7 +202,7 @@
     {
       "id": "adapters.versioned_array_ffi",
       "title": "Define narrow versioned array FFI contracts",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P2",
       "resource_class": "R2_toolchain_ci",
       "summary": "Cross-language adapters expose only implemented backends with explicit dtype, shape, layout, ownership, lifetime, error, and capability-discovery semantics.",
@@ -164,6 +253,20 @@
       "completion": [
         "At least two materially independent derivative-generation routes agree on shared analytic fixtures.",
         "Conditioning and derivative-estimation failures remain explicit diagnostics rather than repaired tensors."
+      ]
+    },
+    {
+      "id": "multirepresentation.structure_baselines",
+      "title": "Test multirepresentation structure against simpler baselines",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Evaluate common-manifold, product, fibered, quotient, local-atlas, graph, and deliberately non-Riemannian relationships on systems with known latent structure before climate interpretation.",
+      "depends_on": [],
+      "completion": [
+        "Synthetic systems distinguish shared, private, coupled, and non-manifold latent structure with known ground truth.",
+        "Candidate geometry is compared against raw concatenation, PCA/CCA, graph, state-space, and standard latent-representation baselines with matched information.",
+        "Dimension selection and topology claims use maintained linear algebra/statistics and mathematically exact invariants rather than local power iteration or heuristic thresholds."
       ]
     },
     {
@@ -225,7 +328,7 @@
     {
       "id": "experimental.clifford_task",
       "title": "Give Clifford representations a falsifiable climate task",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P2",
       "resource_class": "R2_toolchain_ci",
       "summary": "Evaluate canonical Clifford algebra representations on a declared multicomponent or oriented-dynamics task against complex spectra, Hilbert phase, wavelets, bispectra, and DMD/Koopman baselines.",
@@ -238,7 +341,7 @@
     {
       "id": "experimental.scenario_feasibility_adapter",
       "title": "Separate climate feasibility from modal truth",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P2",
       "resource_class": "R2_toolchain_ci",
       "summary": "Construct climate-specific worlds, propositions, and accessibility relations through an explicit adapter while keeping canonical Kripke satisfaction semantics independent of heuristic plausibility scores.",
@@ -264,7 +367,7 @@
     {
       "id": "optimization.climate_objective_contracts",
       "title": "Isolate climate-specific optimization objectives",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P2",
       "resource_class": "R2_toolchain_ci",
       "summary": "Retain only climate-specific objective, constraint, and provenance semantics locally; generic optimization, AD, eigensolvers, and linear algebra come from maintained libraries.",
