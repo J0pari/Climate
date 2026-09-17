@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "fixture_id": "observations.two_layer_ebm.equal_cost_design.v1",
+  "description": "Synthetic equal-cost observation-design control for the two-layer EBM. Every declared channel costs one arbitrary design unit so Pareto behavior can be tested without encoding a preferred observing system.",
+  "observation_fixture_id": "observations.two_layer_ebm.structural_noise.v1",
+  "channel_costs": {
+    "surface_temperature": 1.0,
+    "toa_imbalance": 1.0,
+    "ocean_heat_uptake": 1.0
+  },
+  "cost_units": "synthetic equal-cost design units",
+  "provenance": {
+    "kind": "synthetic_structural_control",
+    "interpretation": "costs test constrained information-design and Pareto semantics only; they are not monetary, logistical, instrumental, or scientific estimates of a real observing system"
+  }
+}
