@@ -17,6 +17,8 @@ package climate
 #NetworkPolicy: "none" | "restricted" | "required"
 #ClaimType: "software" | "numerical" | "physical" | "statistical" | "predictive" | "causal" | "interpretive" | "performance" | "resource" | "interoperability"
 #ParameterProvenance: "placeholder" | "fallback" | "heuristic" | "calibrated" | "literature_fixed" | "learned"
+#ExecutionClass: "R0_static" | "R1_portable_cpu" | "R2_toolchain_ci" | "R3_cuda_device" | "R4_integrated_system" | "R5_large_data"
+#ExecutionFailureClass: "capability_unavailable" | "required_input_missing" | "configuration_invalid" | "implementation_unavailable" | "implementation_substituted" | "backend_mismatch" | "precision_mismatch" | "resource_mismatch" | "dataset_mismatch" | "undeclared_default"
 
 #ResourceEnvelope: {
 	cpu_cores?:      number & >0
@@ -26,6 +28,30 @@ package climate
 	compute_capability?: string
 	network:         #NetworkPolicy
 	max_seconds?:    int & >0
+}
+
+#ExecutionIdentity: {
+	method_id:            #Id
+	implementation_id:    string & !=""
+	implementation_build: string & !=""
+	backend_id:           string & !=""
+	precision:            string & !=""
+	resource_class:       #ExecutionClass
+}
+
+#ExecutionResolution: {
+	requested: #ExecutionIdentity
+	status: "eligible" | "ineligible"
+
+	if status == "eligible" {
+		resolved: requested
+		failure?: _|_
+	}
+
+	if status == "ineligible" {
+		resolved?: _|_
+		failure: #ExecutionFailureClass
+	}
 }
 
 #AcceleratorContract: {
@@ -41,7 +67,9 @@ package climate
 		algorithm: string & !=""
 		seed_policy: string & !=""
 	}
-	fallback_identity_required: bool
+	// Alternate implementations require distinct identities; this is not
+	// permission for runtime substitution of an unavailable requested capability.
+	fallback_identity_required: true
 	resource: #ResourceEnvelope
 }
 
@@ -164,6 +192,8 @@ package climate
 	producer_build:      string & !=""
 	contract_fingerprint?: #Fingerprint
 	method_builds:       [string]: string
+	execution:           #ExecutionResolution
+	scientific_output_eligible: bool
 	resolved_dataset_digests: [...#Sha256]
 	resolved_configuration: {...}
 	seeds:               [...int]
@@ -181,6 +211,18 @@ package climate
 		precision: string & !=""
 		determinism: #DeterminismClass
 		direct_execution: bool
+	}
+
+	if scientific_output_eligible {
+		execution: {
+			status: "eligible"
+		}
+		exit_code: 0
+	}
+
+	if execution.status == "ineligible" {
+		scientific_output_eligible: false
+		exit_code: int & !=0
 	}
 }
 
