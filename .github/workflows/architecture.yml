@@ -22,6 +22,8 @@ jobs:
         run: python architecture/check_planning.py
       - name: Climate data authority integrity
         run: python architecture/check_data_authorities.py
+      - name: Configuration provenance integrity
+        run: python architecture/check_configurations.py
       - name: Semantic input default integrity
         run: python architecture/check_semantic_defaults.py
       - name: Workflow artifact persistence integrity
@@ -67,6 +69,14 @@ jobs:
         run: |
           if "$(go env GOPATH)/bin/cue" vet -d '#ConfigurationRecord' contracts/climate.cue contracts/testdata/configuration.fallback.bad.json; then
             echo 'fallback configuration provenance was accepted' >&2
+            exit 1
+          fi
+      - name: Vet bound nonlocal configuration provenance
+        run: '"$(go env GOPATH)/bin/cue" vet -d "#ConfigurationRecord" contracts/climate.cue contracts/testdata/configuration.literature-bound.good.json'
+      - name: Reject unbound nonlocal configuration provenance
+        run: |
+          if "$(go env GOPATH)/bin/cue" vet -d '#ConfigurationRecord' contracts/climate.cue contracts/testdata/configuration.literature-unbound.bad.json; then
+            echo 'unbound nonlocal configuration provenance was accepted' >&2
             exit 1
           fi
       - name: Vet eligible execution identity
