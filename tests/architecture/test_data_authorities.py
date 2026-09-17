@@ -134,6 +134,13 @@ class DataAuthorityTests(unittest.TestCase):
             self.assertIn("data_authority.external_disposition", codes)
 
 
+    def test_planned_usage_cannot_point_at_implementation_source(self):
+        temporary, root, registry = self._root_and_registry()
+        with temporary:
+            registry["usages"][0]["scope"] = "planned"
+            codes = {item.code for item in check_data_authorities.check(root, registry)}
+            self.assertIn("data_authority.planned_path", codes)
+
     def test_current_external_usage_requires_realized_authority_boundary(self):
         temporary, root, registry = self._root_and_registry()
         with temporary:
