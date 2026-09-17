@@ -14,7 +14,7 @@ class DataAuthorityTests(unittest.TestCase):
         root = Path(temporary.name)
         (root / "src").mkdir()
         (root / "src" / "example.txt").write_text(
-            "observed_temperature\nlocal_policy\n",
+            "observed_temperature\nobservation_authority\nlocal_policy\n",
             encoding="utf-8",
         )
         registry = {
@@ -56,6 +56,7 @@ class DataAuthorityTests(unittest.TestCase):
                     "ownership_class": "external_api",
                     "disposition": "externalize",
                     "source_ids": ["provider.dataset.v1"],
+                    "authority_boundary": "observation_authority",
                     "rationale": "measured temperature belongs to the provider",
                 },
                 {
@@ -131,6 +132,27 @@ class DataAuthorityTests(unittest.TestCase):
             registry["usages"][0]["disposition"] = "retain_local"
             codes = {item.code for item in check_data_authorities.check(root, registry)}
             self.assertIn("data_authority.external_disposition", codes)
+
+
+    def test_current_external_usage_requires_realized_authority_boundary(self):
+        temporary, root, registry = self._root_and_registry()
+        with temporary:
+            del registry["usages"][0]["authority_boundary"]
+            codes = {item.code for item in check_data_authorities.check(root, registry)}
+            self.assertIn("data_authority.current_external_boundary_missing", codes)
+
+    def test_current_external_usage_rejects_default_or_fallback_constructors(self):
+        temporary, root, registry = self._root_and_registry()
+        with temporary:
+            (root / "src" / "example.txt").write_text(
+                "observed_temperature\nobservation_authority\n"
+                "impl Default for EmpiricalInput {}\n"
+                "pub fn legacy_reference() {}\n",
+                encoding="utf-8",
+            )
+            codes = {item.code for item in check_data_authorities.check(root, registry)}
+            self.assertIn("data_authority.external_default_impl", codes)
+            self.assertIn("data_authority.external_fallback_constructor", codes)
 
     def test_real_registry_is_current(self):
         findings = check_data_authorities.check()
