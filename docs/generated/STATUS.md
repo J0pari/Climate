@@ -71,12 +71,13 @@ Registered claims: **5**.
 
 ## Registered experiments
 
-Experiment specifications: **3**.
+Experiment specifications: **4**.
 
 | Experiment | File |
 | --- | --- |
 | `geometry.correctness.v1` | `experiments/geometry-correctness.v1.json` |
 | `multirepresentation.common_coordinate.v1` | `experiments/multirepresentation-common.v1.json` |
+| `multirepresentation.ebm_dynamics.v1` | `experiments/multirepresentation-ebm-dynamics.v1.json` |
 | `sheaf.structural_ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
 
 ## Sheaf realization frontier
