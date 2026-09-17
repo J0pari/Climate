@@ -6,7 +6,7 @@ The reference keeps three responsibilities separate:
 * the two-layer EBM owns the physical state, fluxes, and exact thermal modes;
 * the observation-control fixture owns declared synthetic noise scales;
 * NumPy supplies generic matrix algebra for an independent reference
-  implementation of the Gaussian-mean Fisher pullback.
+  implementation of Gaussian-mean Fisher pullbacks and coordinate changes.
 
 The synthetic noise magnitudes are structural controls, not calibrated observing
 system uncertainties.
@@ -51,6 +51,15 @@ OBSERVATION_SUBSETS: dict[str, tuple[str, ...]] = {
         "ocean_heat_uptake",
     ),
 }
+
+COORDINATE_PROBES = np.array(
+    [
+        [0.10, -0.05],
+        [0.00, 0.10],
+        [0.08, 0.03],
+    ],
+    dtype=float,
+)
 
 
 def load_observation_fixture(path: Path = DEFAULT_OBSERVATION_FIXTURE) -> dict[str, Any]:
@@ -101,6 +110,24 @@ def observation_jacobian(
     if not np.isfinite(rows).all():
         raise RuntimeError("observation Jacobian became non-finite")
     return rows
+
+
+def flux_coordinate_jacobian(ebm_fixture: dict[str, Any]) -> np.ndarray:
+    """Jacobian from temperature perturbations to `(TOA imbalance, ocean uptake)`."""
+    parameters = parameters_from_fixture(ebm_fixture)
+    matrix = np.array(
+        [
+            [-parameters.climate_feedback_w_m2_k, 0.0],
+            [
+                parameters.ocean_heat_exchange_w_m2_k,
+                -parameters.ocean_heat_exchange_w_m2_k,
+            ],
+        ],
+        dtype=float,
+    )
+    if not np.isfinite(matrix).all() or abs(float(np.linalg.det(matrix))) <= 1e-14:
+        raise RuntimeError("two-layer flux coordinate map is singular or non-finite")
+    return matrix
 
 
 def observation_noise_stddev(
@@ -161,8 +188,43 @@ def gaussian_mean_fisher_reference(
     }
 
 
+def metric_in_coordinates(
+    state_metric: np.ndarray,
+    state_from_coordinate_jacobian: np.ndarray,
+) -> np.ndarray:
+    """Express a state-space bilinear form in another local coordinate chart.
+
+    If `delta_x = A delta_y`, then `G_y = A^T G_x A`.
+    """
+    metric = np.asarray(state_metric, dtype=float)
+    jacobian = np.asarray(state_from_coordinate_jacobian, dtype=float)
+    if metric.ndim != 2 or metric.shape[0] != metric.shape[1]:
+        raise ValueError("state_metric must be square")
+    if jacobian.ndim != 2 or jacobian.shape[0] != metric.shape[0]:
+        raise ValueError("coordinate Jacobian must map into the state dimension")
+    if not np.isfinite(metric).all() or not np.isfinite(jacobian).all():
+        raise ValueError("metric and coordinate Jacobian must be finite")
+    transformed = jacobian.T @ metric @ jacobian
+    if not np.isfinite(transformed).all():
+        raise RuntimeError("coordinate-transformed metric became non-finite")
+    return transformed
+
+
+def squared_metric_length(vector: np.ndarray, metric: np.ndarray) -> float:
+    displacement = np.asarray(vector, dtype=float)
+    bilinear = np.asarray(metric, dtype=float)
+    if displacement.ndim != 1 or bilinear.shape != (displacement.size, displacement.size):
+        raise ValueError("metric length dimensions do not agree")
+    if not np.isfinite(displacement).all() or not np.isfinite(bilinear).all():
+        raise ValueError("metric length inputs must be finite")
+    value = float(displacement @ bilinear @ displacement)
+    if value < -1e-12:
+        raise ValueError("squared metric length must be nonnegative")
+    return max(value, 0.0)
+
+
 def _modal_diagnostics(fisher_state: np.ndarray, modal_basis: np.ndarray) -> dict[str, Any]:
-    modal = modal_basis.T @ fisher_state @ modal_basis
+    modal = metric_in_coordinates(fisher_state, modal_basis)
     diagonal = np.diag(modal)
     if np.any(diagonal < -1e-12):
         raise RuntimeError("modal Fisher diagonal must be nonnegative")
@@ -175,6 +237,84 @@ def _modal_diagnostics(fisher_state: np.ndarray, modal_basis: np.ndarray) -> dic
         "fast_mode_information": fast_information,
         "slow_mode_information": slow_information,
         "normalized_cross_mode_coupling": coupling,
+    }
+
+
+def coordinate_covariance_diagnostics(
+    ebm_fixture: dict[str, Any],
+    state_metric: np.ndarray,
+) -> dict[str, Any]:
+    parameters = parameters_from_fixture(ebm_fixture)
+    _, modal_basis = mode_basis(parameters)
+    state_to_flux = flux_coordinate_jacobian(ebm_fixture)
+    flux_to_state = np.linalg.inv(state_to_flux)
+    modal_to_state = modal_basis
+    state_to_modal = np.linalg.inv(modal_basis)
+
+    flux_metric = metric_in_coordinates(state_metric, flux_to_state)
+    modal_metric = metric_in_coordinates(state_metric, modal_to_state)
+
+    probes = []
+    max_fisher_disagreement = 0.0
+    euclidean_changes = []
+    for state_delta in COORDINATE_PROBES:
+        flux_delta = state_to_flux @ state_delta
+        modal_delta = state_to_modal @ state_delta
+        fisher_lengths = {
+            "temperature_state": squared_metric_length(state_delta, state_metric),
+            "heat_flux": squared_metric_length(flux_delta, flux_metric),
+            "thermal_modes": squared_metric_length(modal_delta, modal_metric),
+        }
+        values = np.asarray(list(fisher_lengths.values()), dtype=float)
+        disagreement = float(values.max() - values.min())
+        max_fisher_disagreement = max(max_fisher_disagreement, disagreement)
+
+        raw_euclidean = {
+            "temperature_state": float(state_delta @ state_delta),
+            "heat_flux": float(flux_delta @ flux_delta),
+            "thermal_modes": float(modal_delta @ modal_delta),
+        }
+        euclidean_values = np.asarray(list(raw_euclidean.values()), dtype=float)
+        euclidean_changes.append(float(euclidean_values.max() - euclidean_values.min()))
+        probes.append(
+            {
+                "temperature_delta": state_delta.tolist(),
+                "heat_flux_delta": flux_delta.tolist(),
+                "thermal_mode_delta": modal_delta.tolist(),
+                "fisher_squared_length": fisher_lengths,
+                "raw_coordinate_euclidean_squared_norm": raw_euclidean,
+                "fisher_max_absolute_disagreement": disagreement,
+            }
+        )
+
+    millikelvin_from_kelvin = np.diag([1000.0, 1000.0])
+    millikelvin_to_kelvin = np.linalg.inv(millikelvin_from_kelvin)
+    millikelvin_metric = metric_in_coordinates(state_metric, millikelvin_to_kelvin)
+    unit_probe_kelvin = COORDINATE_PROBES[0]
+    unit_probe_millikelvin = millikelvin_from_kelvin @ unit_probe_kelvin
+    unit_fisher_kelvin = squared_metric_length(unit_probe_kelvin, state_metric)
+    unit_fisher_millikelvin = squared_metric_length(
+        unit_probe_millikelvin, millikelvin_metric
+    )
+
+    return {
+        "flux_coordinate_jacobian": state_to_flux.tolist(),
+        "flux_fisher": flux_metric.tolist(),
+        "modal_fisher": modal_metric.tolist(),
+        "probes": probes,
+        "max_fisher_squared_length_disagreement": max_fisher_disagreement,
+        "min_raw_euclidean_squared_norm_spread": min(euclidean_changes),
+        "unit_rescaling": {
+            "kelvin_to_millikelvin_scale": 1000.0,
+            "fisher_squared_length_kelvin": unit_fisher_kelvin,
+            "fisher_squared_length_millikelvin": unit_fisher_millikelvin,
+            "raw_euclidean_squared_norm_kelvin": float(
+                unit_probe_kelvin @ unit_probe_kelvin
+            ),
+            "raw_euclidean_squared_norm_millikelvin": float(
+                unit_probe_millikelvin @ unit_probe_millikelvin
+            ),
+        },
     }
 
 
@@ -213,6 +353,7 @@ def analyze_observation_geometry(
             ],
         }
 
+    all_channel_metric = np.asarray(subsets["all_channels"]["state_fisher"], dtype=float)
     return {
         "ebm_fixture_id": ebm_fixture["fixture_id"],
         "observation_fixture_id": observation_fixture["fixture_id"],
@@ -220,6 +361,10 @@ def analyze_observation_geometry(
         "thermal_timescales_years": timescales.tolist(),
         "modal_basis": basis.tolist(),
         "subsets": subsets,
+        "coordinate_covariance": coordinate_covariance_diagnostics(
+            ebm_fixture,
+            all_channel_metric,
+        ),
     }
 
 
@@ -243,6 +388,7 @@ def main() -> int:
     else:
         for name, diagnostics in result["subsets"].items():
             print(f"{name}: {diagnostics}")
+        print(f"coordinate_covariance: {result['coordinate_covariance']}")
     return 0
 
 
