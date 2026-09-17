@@ -41,6 +41,22 @@ jobs:
         run: go install cuelang.org/go/cmd/cue@v0.17.1
       - name: Vet research contract package
         run: '"$(go env GOPATH)/bin/cue" vet ./contracts'
+      - name: Vet eligible execution identity
+        run: '"$(go env GOPATH)/bin/cue" vet -d "#ExecutionResolution" contracts/climate.cue contracts/testdata/execution.good.json'
+      - name: Vet fail-closed execution identity
+        run: '"$(go env GOPATH)/bin/cue" vet -d "#ExecutionResolution" contracts/climate.cue contracts/testdata/execution.ineligible.good.json'
+      - name: Reject execution implementation substitution
+        run: |
+          if "$(go env GOPATH)/bin/cue" vet -d '#ExecutionResolution' contracts/climate.cue contracts/testdata/execution.substitution.bad.json; then
+            echo 'execution implementation substitution was accepted' >&2
+            exit 1
+          fi
+      - name: Reject replacement identity on ineligible execution
+        run: |
+          if "$(go env GOPATH)/bin/cue" vet -d '#ExecutionResolution' contracts/climate.cue contracts/testdata/execution.ineligible-substitution.bad.json; then
+            echo 'ineligible execution resolved to a replacement identity' >&2
+            exit 1
+          fi
       - name: Vet valid experiment fixture
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ExperimentSpec" contracts/climate.cue contracts/testdata/experiment.good.json'
       - name: Reject invalid experiment fixture
