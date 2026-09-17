@@ -10,23 +10,23 @@ The central hypothesis is:
 
 The point is not to put every mathematical idea in the repository on equal footing. Some representations may form the primary geometry; others may contribute a local metric, a constraint, a kernel, a tangent-space decomposition, or an alternative geometry to compare and reject.
 
-## 1. Why this is different from the legacy manifold idea
+## 1. Scientific premise and guardrails
 
-The legacy `climate_manifold.rs` and `climate_manifold_network.rs` contain useful intuitions but conflate too many choices:
+Several choices that can appear under the single label “climate manifold” are scientifically distinct and must remain independently inspectable:
 
 - climate-state variable selection;
-- data-source fusion;
+- data-source and observation fusion;
 - dimensionality discovery;
 - metric construction;
-- connection/curvature calculation;
-- cross-scale transport;
-- prediction;
+- connection and curvature calculation;
+- cross-scale transport and coupling;
+- dynamical closure and prediction;
 - topology;
-- and physical interpretation of geometric quantities.
+- physical interpretation of geometric quantities.
 
-In particular, the legacy dimension-discovery path treats **reduced scalar curvature** as a reason to accept a latent dimension. That is not a scientifically grounded model-selection law. Curvature is a property of a chosen representation and metric; a representation can flatten a geometry without preserving the climate dynamics or information we care about.
+No single geometric scalar determines which representation is scientifically useful. In particular, reduced scalar curvature is not a model-selection law for accepting a latent dimension. A representation can flatten a geometry while discarding climate dynamics, identifiable information, physical balances, or useful subsystem structure.
 
-The replacement program therefore treats curvature, geodesics, holonomy, topology, and related geometric quantities as **consequences to measure**, not universal optimization targets.
+Curvature, geodesics, holonomy, topology, intrinsic dimension, and related geometric quantities are therefore **consequences to measure**, not universal optimization targets.
 
 ## 2. The object being sought
 
@@ -161,7 +161,7 @@ For a parameterized observational or predictive model
 p(y | theta)
 ```
 
-the Fisher information defines local distinguishability of parameter perturbations. Climate already has a canonical Gaussian-mean Fisher primitive that preserves null directions instead of hiding them with a regularized inverse.
+the Fisher information defines local distinguishability of parameter perturbations. The canonical Gaussian-mean Fisher primitive preserves null directions instead of hiding them with a regularized inverse.
 
 There are at least three distinct uses:
 
@@ -211,7 +211,7 @@ A learned manifold should not become the authoritative physical time integrator 
 
 ## 8. Relationship to the structure-preserving physical core
 
-The canonical physical kernels and the multirepresentation manifold program should reinforce one another without collapsing into one layer.
+The physical kernels and the multirepresentation manifold program should reinforce one another without collapsing into one layer.
 
 The physical core supplies hard structure such as:
 
@@ -221,7 +221,7 @@ The physical core supplies hard structure such as:
 - no-work Coriolis rotation;
 - dissipative diffusion;
 - thermodynamic identities;
-- future energy, momentum, phase-change, and coupling balances.
+- energy, momentum, phase-change, and coupling balances.
 
 Those structures can constrain or evaluate a candidate representation. Examples:
 
