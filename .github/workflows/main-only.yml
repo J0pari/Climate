@@ -1,0 +1,101 @@
+name: Enforce main-only repository
+
+on:
+  push:
+    branches:
+      - main
+  create:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: main-only-branch-enforcement
+  cancel-in-progress: false
+
+jobs:
+  enforce-main-only:
+    if: github.event_name != 'create' || github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out canonical main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Audit branch ancestry before deletion
+        id: audit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+
+          mapfile -t branches < <(
+            git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin \
+              | grep -v '^HEAD$' \
+              | grep -v '^main$' \
+              | sort
+          )
+
+          if (( ${#branches[@]} == 0 )); then
+            echo 'No non-main branches exist.'
+            exit 0
+          fi
+
+          unsafe=()
+          for branch in "${branches[@]}"; do
+            if git merge-base --is-ancestor "refs/remotes/origin/$branch" refs/remotes/origin/main; then
+              echo "contained: $branch"
+            else
+              echo "UNIQUE COMMITS: $branch"
+              unsafe+=("$branch")
+            fi
+          done
+
+          if (( ${#unsafe[@]} > 0 )); then
+            printf 'Refusing all branch deletion because these branches contain commits not reachable from main:\n' >&2
+            printf '  %s\n' "${unsafe[@]}" >&2
+            exit 1
+          fi
+
+          printf '%s\n' "${branches[@]}" > "$RUNNER_TEMP/main-only-delete-list"
+
+      - name: Delete audited non-main branches
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          list="$RUNNER_TEMP/main-only-delete-list"
+          if [[ ! -s "$list" ]]; then
+            echo 'Nothing to delete.'
+            exit 0
+          fi
+
+          while IFS= read -r branch; do
+            [[ -n "$branch" ]] || continue
+            echo "Deleting fully-contained branch: $branch"
+            git push origin --delete "$branch"
+          done < "$list"
+
+      - name: Verify only main remains
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          mapfile -t remaining < <(
+            git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin \
+              | grep -v '^HEAD$' \
+              | sort
+          )
+
+          printf 'Remaining remote branches:\n'
+          printf '  %s\n' "${remaining[@]}"
+
+          if (( ${#remaining[@]} != 1 )) || [[ "${remaining[0]}" != 'main' ]]; then
+            echo 'main-only invariant not satisfied.' >&2
+            exit 1
+          fi
