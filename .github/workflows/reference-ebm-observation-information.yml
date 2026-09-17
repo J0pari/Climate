@@ -1,0 +1,35 @@
+name: reference-ebm-observation-information
+
+on:
+  push:
+    paths:
+      - 'reference/two_layer_observation_information.py'
+      - 'reference/two_layer_energy_balance.py'
+      - 'tests/reference/test_two_layer_observation_information.py'
+      - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
+      - 'fixtures/physics/two-layer-ebm-observation-control-v1.json'
+      - 'requirements/reference-two-layer-ebm.txt'
+      - '.github/workflows/reference-ebm-observation-information.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reference-ebm-observation-information:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements/reference-two-layer-ebm.txt
+      - name: Install reference dependencies
+        run: python -m pip install -r requirements/reference-two-layer-ebm.txt
+      - name: Record resolved numerical environment
+        run: python -m pip freeze
+      - name: Run observation-information witnesses
+        run: python -m unittest tests.reference.test_two_layer_observation_information -v
+      - name: Emit observation-information summary
+        run: python reference/two_layer_observation_information.py --json
