@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -35,6 +36,16 @@ OWNERSHIP_CLASSES = {
 }
 EXTERNAL_OWNERSHIP_CLASSES = {"external_dataset", "external_api"}
 DISPOSITIONS = {"retain_local", "externalize"}
+EXTERNAL_FALLBACK_PATTERNS = (
+    ("data_authority.external_default_impl", re.compile(r"\bimpl\s+Default\s+for\b")),
+    (
+        "data_authority.external_fallback_constructor",
+        re.compile(
+            r"\b(?:pub\s+)?(?:const\s+)?fn\s+"
+            r"(?:legacy_reference|default_reference|fallback)\s*\("
+        ),
+    ),
+)
 
 
 @dataclass(frozen=True)
@@ -207,6 +218,7 @@ def check(root: Path = ROOT, registry: dict | None = None) -> list[Finding]:
 
         relative_path = usage.get("path")
         anchor = usage.get("anchor")
+        candidate_text: str | None = None
         if not isinstance(relative_path, str) or not relative_path:
             findings.append(_finding("data_authority.usage_path", path, "path must be a non-empty repository-relative path"))
         else:
@@ -232,12 +244,14 @@ def check(root: Path = ROOT, registry: dict | None = None) -> list[Finding]:
                         path,
                         "anchor must be a non-empty string",
                     ))
-                elif anchor not in candidate.read_text(encoding="utf-8"):
-                    findings.append(_finding(
-                        "data_authority.anchor_missing",
-                        relative_path,
-                        f"review anchor {anchor!r} is no longer present",
-                    ))
+                else:
+                    candidate_text = candidate.read_text(encoding="utf-8")
+                    if anchor not in candidate_text:
+                        findings.append(_finding(
+                            "data_authority.anchor_missing",
+                            relative_path,
+                            f"review anchor {anchor!r} is no longer present",
+                        ))
 
         source_ids = usage.get("source_ids")
         if not isinstance(source_ids, list) or not all(isinstance(item, str) and item for item in source_ids):
@@ -287,6 +301,30 @@ def check(root: Path = ROOT, registry: dict | None = None) -> list[Finding]:
                     path,
                     f"externalized usage resolves to non-data authorities: {non_data}",
                 ))
+
+            if scope == "current":
+                authority_boundary = usage.get("authority_boundary")
+                if not isinstance(authority_boundary, str) or not authority_boundary.strip():
+                    findings.append(_finding(
+                        "data_authority.current_external_boundary_missing",
+                        path,
+                        "current externalized usage requires a non-empty authority_boundary anchor",
+                    ))
+                elif candidate_text is not None and authority_boundary not in candidate_text:
+                    findings.append(_finding(
+                        "data_authority.current_external_boundary_missing",
+                        relative_path if isinstance(relative_path, str) else path,
+                        f"authority boundary {authority_boundary!r} is not present",
+                    ))
+
+                if candidate_text is not None:
+                    for code, pattern in EXTERNAL_FALLBACK_PATTERNS:
+                        if pattern.search(candidate_text):
+                            findings.append(_finding(
+                                code,
+                                relative_path if isinstance(relative_path, str) else path,
+                                "current externalized inputs must not share a canonical source file with an implicit or fallback constructor",
+                            ))
         if ownership == "external_api" and resolved_sources and not any(
             source.get("kind") == "api_dataset" for source in resolved_sources
         ):
