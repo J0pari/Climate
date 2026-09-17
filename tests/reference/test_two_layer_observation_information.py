@@ -119,6 +119,33 @@ class TwoLayerObservationInformationTests(unittest.TestCase):
                 msg=name,
             )
 
+    def test_information_distance_is_coordinate_covariant(self) -> None:
+        covariance = self.result["coordinate_covariance"]
+        self.assertLess(
+            covariance["max_fisher_squared_length_disagreement"],
+            2e-14,
+        )
+        for probe in covariance["probes"]:
+            values = list(probe["fisher_squared_length"].values())
+            self.assertAlmostEqual(values[0], values[1], places=12)
+            self.assertAlmostEqual(values[0], values[2], places=12)
+
+    def test_raw_euclidean_distance_is_not_a_shared_representation_metric(self) -> None:
+        covariance = self.result["coordinate_covariance"]
+        self.assertGreater(covariance["min_raw_euclidean_squared_norm_spread"], 1e-4)
+
+        unit = covariance["unit_rescaling"]
+        self.assertAlmostEqual(
+            unit["fisher_squared_length_kelvin"],
+            unit["fisher_squared_length_millikelvin"],
+            places=12,
+        )
+        ratio = (
+            unit["raw_euclidean_squared_norm_millikelvin"]
+            / unit["raw_euclidean_squared_norm_kelvin"]
+        )
+        self.assertAlmostEqual(ratio, 1_000_000.0, places=6)
+
     def test_uniform_noise_scaling_changes_information_not_geometry_rank_or_angles(self) -> None:
         base = self.result
         doubled = analyze_observation_geometry(
