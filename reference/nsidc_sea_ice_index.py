@@ -1,7 +1,7 @@
 """Narrow reference adapter for NOAA@NSIDC Sea Ice Index monthly CSV files.
 
 The provider publishes one extent/area CSV per hemisphere and month. This
-adapter preserves that file as the retrieval artifact, validates its declared
+adapter preserves that file as the retrieval artifact, validates its Version 4
 schema, and records a content digest. It does not infer missing months, smooth
 the time series, or reinterpret sea-ice extent as concentration or area.
 """
@@ -17,14 +17,14 @@ from pathlib import Path
 
 SOURCE_ID = "nsidc.sea_ice_index.v4"
 BASE_URL = "https://noaadata.apps.nsidc.org/NOAA/G02135"
-EXPECTED_COLUMNS = ("year", "mo", "data_type", "region", "extent", "area")
+EXPECTED_COLUMNS = ("year", "mo", "source_dataset", "region", "extent", "area")
 
 
 @dataclass(frozen=True)
 class MonthlyExtentRecord:
     year: int
     month: int
-    data_type: str
+    source_dataset: str
     region: str
     extent_million_km2: float
     area_million_km2: float
@@ -83,7 +83,7 @@ def parse_monthly_extent_csv(payload: bytes, *, source_url: str) -> MonthlyExten
         records.append(MonthlyExtentRecord(
             year=year,
             month=month,
-            data_type=row["data_type"],
+            source_dataset=row["source_dataset"],
             region=region,
             extent_million_km2=extent,
             area_million_km2=area,
