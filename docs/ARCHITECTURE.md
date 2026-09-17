@@ -262,6 +262,8 @@ Responsibilities include:
 
 Climate should learn from tools such as ESMValTool without reimplementing an entire evaluation ecosystem. ESMValTool's recipe-based model/observation comparisons and provenance approach are useful external reference points: https://docs.esmvaltool.org/en/latest/
 
+Externally owned climate data use a separate authority chain. `architecture/data_authorities.json` declares provider/product identity, access/update semantics, and whether a repository usage remains local or must be externalized. A realized externalized usage names both a concrete implementation boundary and an executable repository witness; a planned usage remains attached to the planning authority rather than implementation source. Values become observation-bearing inputs only through provenance-preserving boundaries such as `ObservedField` or a dataset reference that retains source identity, artifact digest, missingness, units, coordinates, and transformation semantics. Registry membership by itself does not make an arbitrary numeric value observational evidence.
+
 ### Layer F — orchestration and provenance
 
 Climate should expose work; it should not become its own distributed control plane if Commons owns that role.
