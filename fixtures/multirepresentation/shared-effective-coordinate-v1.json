@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "fixture_id": "multirepresentation.shared-effective-coordinate.v1",
+  "description": "Synthetic paired views with a known nonlinear common coordinate and view-specific nuisance. Intended as a positive/negative control for common-manifold methods, not as a climate model.",
+  "sample_count": 600,
+  "seed": 42617,
+  "latent_domain": {
+    "background": [
+      -0.5,
+      0.5
+    ],
+    "coupling": [
+      -0.5,
+      0.5
+    ],
+    "observation_nuisance": [
+      -0.5,
+      0.5
+    ]
+  },
+  "common_coordinate": "background + coupling^2",
+  "view_a": {
+    "name": "resolved_subsystem_state",
+    "variables": [
+      "background",
+      "coupling"
+    ]
+  },
+  "view_b": {
+    "name": "nonlinear_observation",
+    "variables": [
+      "sensor_x",
+      "sensor_y"
+    ],
+    "construction": {
+      "radius": "(observation_nuisance + common_coordinate/2 + 2/3)/2",
+      "angle": "2*pi*observation_nuisance",
+      "sensor_x": "radius*cos(angle)",
+      "sensor_y": "radius*sin(angle)"
+    }
+  },
+  "methods": {
+    "jsf_kernel": {
+      "family": "continuous_knn",
+      "k_neighbor": 40,
+      "delta": 1.0,
+      "n_kernel_eigenvectors": 30,
+      "n_jointly_smooth_functions": 6,
+      "kernel_eigenvalue_cut_off": 1e-08,
+      "eigenvector_tolerance": 1e-10
+    },
+    "spectral_baseline": {
+      "n_neighbors": 30,
+      "random_state": 0
+    },
+    "shuffle_control_seed": 9876
+  },
+  "evaluation": {
+    "shared_coordinate_metric": "absolute Spearman rank correlation with known common_coordinate",
+    "nuisance_metric": "absolute Spearman rank correlation with observation_nuisance",
+    "candidate_coordinate": "first nonconstant jointly smooth function (column 1)",
+    "acceptance_guards": {
+      "jsf_shared_abs_spearman_min": 0.9,
+      "jsf_nuisance_abs_spearman_max": 0.2,
+      "jsf_advantage_over_best_baseline_min": 0.15,
+      "shuffled_correspondence_shared_abs_spearman_max": 0.5
+    }
+  }
+}
