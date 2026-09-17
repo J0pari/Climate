@@ -5,11 +5,14 @@ on:
     paths:
       - 'reference/two_layer_observation_information.py'
       - 'reference/two_layer_dynamic_observability.py'
+      - 'reference/two_layer_observation_design.py'
       - 'reference/two_layer_energy_balance.py'
       - 'tests/reference/test_two_layer_observation_information.py'
       - 'tests/reference/test_two_layer_dynamic_observability.py'
+      - 'tests/reference/test_two_layer_observation_design.py'
       - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
       - 'fixtures/physics/two-layer-ebm-observation-control-v1.json'
+      - 'fixtures/physics/two-layer-ebm-observation-design-control-v1.json'
       - 'requirements/reference-two-layer-ebm.txt'
       - '.github/workflows/reference-ebm-observation-information.yml'
   workflow_dispatch:
@@ -35,7 +38,11 @@ jobs:
         run: python -m unittest tests.reference.test_two_layer_observation_information -v
       - name: Run dynamic-observability witnesses
         run: python -m unittest tests.reference.test_two_layer_dynamic_observability -v
+      - name: Run observation-design witnesses
+        run: python -m unittest tests.reference.test_two_layer_observation_design -v
       - name: Emit observation-information summary
         run: python reference/two_layer_observation_information.py --json
       - name: Emit dynamic-observability summary
         run: python reference/two_layer_dynamic_observability.py --json
+      - name: Emit observation-design summary
+        run: python reference/two_layer_observation_design.py --json
