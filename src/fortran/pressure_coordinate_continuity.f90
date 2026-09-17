@@ -18,6 +18,37 @@ module climate_pressure_coordinate_continuity
 
 contains
 
+    subroutine validate_pressure_inputs(interface_pressure_pa, &
+                                        layer_pressure_mean_horizontal_divergence_s1, ierr)
+        real(dp), intent(in) :: interface_pressure_pa(:)
+        real(dp), intent(in) :: layer_pressure_mean_horizontal_divergence_s1(:)
+        integer, intent(out) :: ierr
+
+        integer :: n_layers
+
+        ierr = CONTINUITY_OK
+        n_layers = size(layer_pressure_mean_horizontal_divergence_s1)
+
+        if (n_layers < 1 .or. size(interface_pressure_pa) /= n_layers + 1) then
+            ierr = CONTINUITY_ERR_SIZE
+            return
+        end if
+        if (.not. all(ieee_is_finite(interface_pressure_pa)) .or. &
+            .not. all(ieee_is_finite(layer_pressure_mean_horizontal_divergence_s1))) then
+            ierr = CONTINUITY_ERR_NONFINITE
+            return
+        end if
+        if (any(interface_pressure_pa <= 0.0_dp)) then
+            ierr = CONTINUITY_ERR_PRESSURE
+            return
+        end if
+        if (any(interface_pressure_pa(1:n_layers) <= &
+                interface_pressure_pa(2:n_layers + 1))) then
+            ierr = CONTINUITY_ERR_PRESSURE_ORDER
+        end if
+    end subroutine validate_pressure_inputs
+
+
     subroutine integrate_pressure_velocity(interface_pressure_pa, &
                                            layer_pressure_mean_horizontal_divergence_s1, &
                                            lower_boundary_omega_pa_s, interface_omega_pa_s, &
@@ -37,26 +68,17 @@ contains
         ierr = CONTINUITY_OK
 
         n_layers = size(layer_pressure_mean_horizontal_divergence_s1)
-        if (n_layers < 1 .or. &
-            size(interface_pressure_pa) /= n_layers + 1 .or. &
-            size(interface_omega_pa_s) /= n_layers + 1) then
+        if (size(interface_omega_pa_s) /= n_layers + 1) then
             ierr = CONTINUITY_ERR_SIZE
             return
         end if
 
-        if (.not. all(ieee_is_finite(interface_pressure_pa)) .or. &
-            .not. all(ieee_is_finite(layer_pressure_mean_horizontal_divergence_s1)) .or. &
-            .not. ieee_is_finite(lower_boundary_omega_pa_s)) then
+        call validate_pressure_inputs(interface_pressure_pa, &
+            layer_pressure_mean_horizontal_divergence_s1, ierr)
+        if (ierr /= CONTINUITY_OK) return
+
+        if (.not. ieee_is_finite(lower_boundary_omega_pa_s)) then
             ierr = CONTINUITY_ERR_NONFINITE
-            return
-        end if
-        if (any(interface_pressure_pa <= 0.0_dp)) then
-            ierr = CONTINUITY_ERR_PRESSURE
-            return
-        end if
-        if (any(interface_pressure_pa(1:n_layers) <= &
-                interface_pressure_pa(2:n_layers + 1))) then
-            ierr = CONTINUITY_ERR_PRESSURE_ORDER
             return
         end if
 
@@ -97,27 +119,18 @@ contains
         ierr = CONTINUITY_OK
 
         n_layers = size(layer_pressure_mean_horizontal_divergence_s1)
-        if (n_layers < 1 .or. &
-            size(interface_pressure_pa) /= n_layers + 1 .or. &
-            size(interface_omega_pa_s) /= n_layers + 1 .or. &
+        if (size(interface_omega_pa_s) /= n_layers + 1 .or. &
             size(layer_residual_pa_s) /= n_layers) then
             ierr = CONTINUITY_ERR_SIZE
             return
         end if
 
-        if (.not. all(ieee_is_finite(interface_pressure_pa)) .or. &
-            .not. all(ieee_is_finite(layer_pressure_mean_horizontal_divergence_s1)) .or. &
-            .not. all(ieee_is_finite(interface_omega_pa_s))) then
+        call validate_pressure_inputs(interface_pressure_pa, &
+            layer_pressure_mean_horizontal_divergence_s1, ierr)
+        if (ierr /= CONTINUITY_OK) return
+
+        if (.not. all(ieee_is_finite(interface_omega_pa_s))) then
             ierr = CONTINUITY_ERR_NONFINITE
-            return
-        end if
-        if (any(interface_pressure_pa <= 0.0_dp)) then
-            ierr = CONTINUITY_ERR_PRESSURE
-            return
-        end if
-        if (any(interface_pressure_pa(1:n_layers) <= &
-                interface_pressure_pa(2:n_layers + 1))) then
-            ierr = CONTINUITY_ERR_PRESSURE_ORDER
             return
         end if
 
