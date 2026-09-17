@@ -1,59 +1,82 @@
-# Oscillation monitor blueprint
+# Oscillation and mode diagnostics blueprint
 
-Status: **capability unavailable / legacy executable prototype removed**.
+Status: **research specification**.
 
-The previous `climate_oscillation_monitor.f90` attempted to cover ENSO, PDO, AMO/AMV, NAO, IOD, MJO, wavelet/spectral diagnostics, and forecast skill in one executable module. It mixed useful domain notes with arbitrary/fake skill formulas, unvalidated constants, incomplete numerical transforms, and a test program that consumed uninitialized arrays and was explicitly documented as meaningless/crashing.
+Climate oscillations and recurrent modes should be represented by small, independently testable diagnostics rather than by one omnibus monitor. Index definitions, spectral transforms, phase representations, mode extraction, and forecast verification are distinct responsibilities and may mature independently.
 
-That implementation was removed from the live execution path rather than preserved as a successful-looking prototype.
-
-## Intended capability
-
-A future oscillation subsystem should provide small independently testable diagnostics rather than one omnibus monitor.
-
-Suggested partitions:
+## Capability partitions
 
 ```text
 oscillation/data_contracts
   SST/SLP/wind/OLR input identities, coordinates, masks, anomaly baselines
 
 oscillation/indices
-  narrowly defined observational indices (Niño3.4, DMI, etc.)
+  narrowly defined observational indices such as Niño3.4 or DMI
 
 oscillation/spectral
-  spectra, coherence, phase, wavelet transforms with independent references
+  spectra, coherence, phase, and time-frequency transforms with independent references
 
 oscillation/modes
-  EOF/complex-EOF/state-space representations
+  EOF/complex-EOF/state-space/Koopman representations
+
+oscillation/coupling
+  cross-mode phase, amplitude, resonance, and directional-coupling diagnostics
 
 oscillation/forecast_evaluation
   hindcast-only skill metrics from actual forecast/observation pairs
 ```
 
+## Representation role
+
+Oscillation products may participate in the multirepresentation climate program as observation maps, reduced coordinates, local charts, or relational features. Their role must be declared rather than assuming that an index or spectral coefficient is automatically a physical state coordinate.
+
+Useful questions include:
+
+- whether established climate indices align with dynamically coherent directions;
+- whether spectral or Koopman coordinates provide useful slow/oscillatory factors;
+- whether phase-amplitude structure adds information beyond ordinary spectra;
+- whether oriented or multicomponent mode interactions justify Clifford/geometric-algebra representations;
+- whether mode relationships are stable across datasets, epochs, and spatial resolutions;
+- whether integrating oscillatory representations with thermodynamic, dynamical, or information-geometric views improves trajectory or regime representation.
+
 ## Non-negotiable semantics
 
-- No forecast skill is computed from hand-chosen decay curves and returned under a real skill metric name.
 - Observational index definitions must identify source region, anomaly baseline, temporal filtering, standardization, and data product.
-- Spectral/wavelet methods require synthetic known-frequency fixtures and red-noise/null controls.
-- Any MJO/ENSO/PDO/etc. classifier must separate index computation from physical interpretation.
-- Missing required data produces an explicit unavailable/error result, not a climatological/default substitute unless the experiment explicitly studies that imputation.
+- Spectral and time-frequency methods require synthetic known-frequency fixtures and explicit null models.
+- Phase and coherence quantities must declare sign, lag, unwrap, smoothing, and endpoint conventions.
+- ENSO/PDO/AMV/NAO/IOD/MJO classifications must separate index computation from physical interpretation.
+- Missing required data produces an explicit unavailable/error result unless the experiment explicitly studies an imputation rule.
 - Forecast skill requires actual hindcast/prediction/observation pairs and a declared verification metric.
+- A mode decomposition must state whether it targets variance, predictability, dynamical closure, oscillatory coherence, or another objective; those are not interchangeable.
 
-## Minimum reintroduction tests
+## Minimum verification
 
-Before an implementation replaces the unavailable stub:
+Before a diagnostic is treated as more than a prototype, require as applicable:
 
-1. tiny deterministic index fixtures with analytically checkable regional averages;
-2. sinusoid + multi-frequency + AR(1) spectral fixtures;
-3. phase/coherence fixtures with known lag;
-4. missing-data and irregular-time tests;
-5. comparison against a trusted external implementation for selected metrics;
-6. hindcast skill metrics tested on planted prediction/observation arrays where expected RMSE/correlation/Brier quantities are known;
-7. no S3/S4 semantic hazards under `docs/SEMANTIC-SANITATION.md`.
+1. deterministic index fixtures with analytically checkable regional averages;
+2. sinusoid, multi-frequency, chirp, and AR(1) spectral fixtures;
+3. phase/coherence fixtures with known lag and amplitude relation;
+4. missing-data, irregular-time, and calendar tests;
+5. comparison against trusted external implementations for selected established metrics;
+6. mode-reconstruction and orthogonality/biorthogonality witnesses appropriate to the method;
+7. hindcast skill metrics tested on planted prediction/observation arrays where expected RMSE, correlation, Brier, or proper-score quantities are known;
+8. explicit refusal of unsupported interpretations under `docs/SEMANTIC-SANITATION.md`.
+
+## Scientific comparison
+
+No single oscillation representation is presumed canonical for every task. Compare candidates against simpler alternatives with matched information access:
+
+- standard climate indices;
+- Fourier/Welch/multitaper spectra;
+- Hilbert or wavelet phase;
+- EOF/complex EOF;
+- state-space models;
+- DMD/Koopman methods;
+- graph or coherence networks;
+- learned latent sequence representations.
+
+Clifford, ultrametric, geometric, or other unusual representations should be evaluated on the specific structure they claim to expose rather than on generic reconstruction alone.
 
 ## Resource shape
 
-Most reference/index/spectral verification should be `R1_portable_cpu`. GPU acceleration is optional and justified only after profiling shows a real bottleneck. Large observational/hindcast evaluation is `R5_large_data`. Commons integration should consume experiment/run/artifact records rather than a special oscillation scheduler.
-
-## Legacy recovery
-
-The removed prototype remains available in Git history before the semantic-sanitation commits. It should be consulted as a source of ideas/data-source notes only, not copied back wholesale.
+Reference index, spectral, and mode verification should remain portable CPU work wherever practical. GPU acceleration is justified only when profiling demonstrates a real high-volume bottleneck and must preserve the same declared semantics. Large observational or hindcast evaluation belongs to the large-data execution class. Commons integration should consume standard experiment/run/artifact records rather than requiring a special oscillation scheduler.
