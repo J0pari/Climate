@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **55**.
+Registered modules: **56**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 22 |
 | `legacy` | 24 |
-| `reference` | 9 |
+| `reference` | 10 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 29 |
+| `runnable` | 30 |
 
 ### Canonical and reference modules
 
@@ -51,6 +51,7 @@ Registered modules: **55**.
 | `reference` | `reference/multirepresentation_common.py` | `reference_multirepresentation_common_manifold` | `runnable` | no |
 | `reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
 | `reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
+| `reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
 | `reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
 | `reference` | `reference/two_layer_observation_information.py` | `reference_two_layer_observation_information` | `runnable` | no |
 | `reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
