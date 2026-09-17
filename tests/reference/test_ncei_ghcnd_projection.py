@@ -40,6 +40,7 @@ class NceiGhcndProjectionTests(unittest.TestCase):
         self.assertEqual(dataset.attrs["Conventions"], CF_CONVENTIONS)
         self.assertEqual(dataset.attrs["featureType"], "timeSeries")
         self.assertEqual(dataset.attrs["projection_id"], PROJECTION_ID)
+        self.assertTrue(dataset.attrs["history"])
         self.assertEqual(dataset.attrs["source_id"], "ncei.ghcnd.v3")
         self.assertEqual(dataset.attrs["source_artifact_sha256"], SOURCE_DIGEST)
         self.assertEqual(dataset.attrs["source_artifact_bytes"], 2324)
@@ -54,6 +55,7 @@ class NceiGhcndProjectionTests(unittest.TestCase):
         self.assertEqual(dataset["latitude"].attrs["units"], "degrees_north")
         self.assertEqual(dataset["longitude"].attrs["units"], "degrees_east")
         self.assertEqual(dataset["station_altitude"].attrs["units"], "m")
+        self.assertEqual(dataset["time"].attrs["units_metadata"], "leap_seconds: unknown")
 
         np.testing.assert_allclose(
             dataset["daily_maximum_air_temperature"].values,
@@ -70,6 +72,14 @@ class NceiGhcndProjectionTests(unittest.TestCase):
         self.assertEqual(
             dataset["daily_maximum_air_temperature"].attrs["units"],
             "degree_Celsius",
+        )
+        self.assertEqual(
+            dataset["daily_maximum_air_temperature"].attrs["units_metadata"],
+            "temperature: on_scale",
+        )
+        self.assertEqual(
+            dataset["daily_minimum_air_temperature"].attrs["units_metadata"],
+            "temperature: on_scale",
         )
         self.assertEqual(
             dataset["daily_maximum_air_temperature"].attrs["ancillary_variables"],
@@ -115,10 +125,16 @@ class NceiGhcndProjectionTests(unittest.TestCase):
             self.assertEqual(reopened.attrs["projection_id"], PROJECTION_ID)
             self.assertEqual(reopened.attrs["source_artifact_sha256"], SOURCE_DIGEST)
             self.assertEqual(reopened.attrs["featureType"], "timeSeries")
+            self.assertTrue(reopened.attrs["history"])
             np.testing.assert_allclose(
                 reopened["daily_maximum_air_temperature"].values,
                 np.asarray([8.3, 5.6, 6.1]),
             )
+            self.assertEqual(
+                reopened["daily_maximum_air_temperature"].attrs["units_metadata"],
+                "temperature: on_scale",
+            )
+            self.assertEqual(reopened["time"].attrs["units_metadata"], "leap_seconds: unknown")
             self.assertEqual(reopened["station_id"].item(), "USW00094728")
 
     def test_projection_rejects_duplicate_dates(self) -> None:
