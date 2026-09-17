@@ -1,0 +1,16 @@
+{
+  "configuration_id": "physics.bound_literature_fixture.v1",
+  "semantic_version": "1.0.0",
+  "kind": "kernel_parameters",
+  "owner": "physics.fixture",
+  "provenance": "literature_fixed",
+  "authority_refs": [
+    {
+      "source_id": "geoffroy.two_layer_ebm.2013",
+      "identity": "10.1175/JCLI-D-12-00195.1"
+    }
+  ],
+  "settings": {
+    "fixture_role": "schema_witness"
+  }
+}
