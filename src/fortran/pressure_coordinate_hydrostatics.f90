@@ -1,6 +1,9 @@
 module climate_pressure_coordinate_hydrostatics
     use, intrinsic :: iso_fortran_env, only: real64
     use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
+    use climate_pressure_coordinate_grid, only: &
+        validate_pressure_layer, PRESSURE_GRID_OK, PRESSURE_GRID_ERR_NONFINITE, &
+        PRESSURE_GRID_ERR_PRESSURE, PRESSURE_GRID_ERR_ORDER
     implicit none
     private
 
@@ -36,6 +39,24 @@ contains
     end function valid_parameters
 
 
+    integer function map_pressure_grid_error(grid_ierr) result(ierr)
+        integer, intent(in) :: grid_ierr
+
+        select case (grid_ierr)
+        case (PRESSURE_GRID_OK)
+            ierr = HYDRO_OK
+        case (PRESSURE_GRID_ERR_NONFINITE)
+            ierr = HYDRO_ERR_NONFINITE
+        case (PRESSURE_GRID_ERR_PRESSURE)
+            ierr = HYDRO_ERR_PRESSURE
+        case (PRESSURE_GRID_ERR_ORDER)
+            ierr = HYDRO_ERR_PRESSURE_ORDER
+        case default
+            ierr = HYDRO_ERR_RESULT
+        end select
+    end function map_pressure_grid_error
+
+
     subroutine compute_hydrostatic_layer(lower_pressure_pa, upper_pressure_pa, &
                                          mean_virtual_temperature_k, parameters, &
                                          mass_per_area_kg_m2, geopotential_thickness_m2_s2, &
@@ -48,6 +69,8 @@ contains
         real(dp), intent(out) :: geometric_thickness_m
         integer, intent(out) :: ierr
 
+        integer :: grid_ierr
+
         mass_per_area_kg_m2 = 0.0_dp
         geopotential_thickness_m2_s2 = 0.0_dp
         geometric_thickness_m = 0.0_dp
@@ -57,20 +80,15 @@ contains
             ierr = HYDRO_ERR_PARAMETERS
             return
         end if
-        if (.not. ieee_is_finite(lower_pressure_pa) .or. &
-            .not. ieee_is_finite(upper_pressure_pa) .or. &
-            .not. ieee_is_finite(mean_virtual_temperature_k)) then
+        if (.not. ieee_is_finite(mean_virtual_temperature_k)) then
             ierr = HYDRO_ERR_NONFINITE
             return
         end if
-        if (lower_pressure_pa <= 0.0_dp .or. upper_pressure_pa <= 0.0_dp) then
-            ierr = HYDRO_ERR_PRESSURE
-            return
-        end if
-        if (lower_pressure_pa <= upper_pressure_pa) then
-            ierr = HYDRO_ERR_PRESSURE_ORDER
-            return
-        end if
+
+        call validate_pressure_layer(lower_pressure_pa, upper_pressure_pa, grid_ierr)
+        ierr = map_pressure_grid_error(grid_ierr)
+        if (ierr /= HYDRO_OK) return
+
         if (mean_virtual_temperature_k <= 0.0_dp) then
             ierr = HYDRO_ERR_TEMPERATURE
             return
