@@ -6,6 +6,7 @@
 //! authoritative for the canonical crate.
 
 pub mod clifford;
+pub mod ebm_observation_geometry;
 pub mod feedback;
 pub mod geometry;
 pub mod inference;
