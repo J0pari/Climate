@@ -1,8 +1,8 @@
 # Fortran physics realization frontier
 
-This document maps responsibilities found in the legacy Fortran monolith to canonical kernels, external-library boundaries, or explicit open obligations. It is a semantic inventory, not a global implementation sequence.
+This document maps atmospheric physical and numerical responsibilities to canonical kernels, external-library boundaries, and explicit open obligations. It is a semantic inventory, not a global implementation sequence.
 
-The legacy source is evidence about intended responsibilities. It is not authoritative for APIs, algorithms, state layout, numerical method, or scientific validity when those choices are internally inconsistent or better handled by maintained libraries.
+Canonical APIs, algorithms, state layouts, numerical methods, and scientific interpretations must be justified by their physical and numerical contracts rather than inherited from any particular source layout.
 
 ## Realized canonical slices
 
@@ -29,11 +29,28 @@ The following remain explicit obligations rather than being inferred from the pr
 - **condensed-water thermodynamics:** liquid/ice condensate loading, latent heats, phase transitions, mixed-phase partition, and supersaturation/adjustment policy beyond the equilibrium-pressure provider and saturation-state composition;
 - **vertical-coordinate dynamics:** surface-pressure evolution and moving lower boundaries, any derived geometric vertical velocity, boundary-condition/closure policy, and extensions to hybrid/sigma/mass coordinates beyond the fixed-pressure-coordinate continuity and hydrostatic kernels;
 - **momentum dynamics:** pressure-gradient force, advection, metric terms, vertical momentum/diagnostic-omega semantics, diffusion/friction, and their conservation properties;
-- **mass and tracer flux construction:** coordinate metrics, face-area and density/velocity coupling, continuity-consistent face mass fluxes, high-order face-state reconstruction, monotonicity/positivity strategy, timestep/CFL policy, and benchmarked accuracy remain open even though the extensive budget update is now canonical;
+- **mass and tracer flux construction:** coordinate metrics, face-area and density/velocity coupling, continuity-consistent face mass fluxes, high-order face-state reconstruction, monotonicity/positivity strategy, timestep/CFL policy, and benchmarked accuracy remain open even though the extensive budget update is canonical;
 - **radiative transfer:** spectroscopy, gas optics, cloud/aerosol optical properties, and solver semantics;
 - **surface/land/ocean exchange:** state contracts, flux sign conventions, conservation, and coupling cadence;
 - **chemistry:** species inventory, reaction mechanism authority, solver choice, stiffness handling, and mass-element budgets;
 - **coupled integration:** tendency partition, operator splitting or IMEX/multirate method, error tolerances, conservation monitors, and restart/replay semantics.
+
+## Coupled physical closure
+
+Local correctness of individual kernels is necessary but insufficient. The coupled dynamics must make transfers between reservoirs and equations explicit.
+
+High-priority coupled contracts include:
+
+- horizontal divergence and face mass fluxes that agree with continuity;
+- pressure-gradient work paired consistently with thermodynamic/geopotential energy conversion;
+- Coriolis terms that remain skew/no-work under the chosen spatial discretization;
+- tracer, moisture, and energy transport constructed from compatible mass fluxes;
+- latent/internal-energy exchange for phase change;
+- precipitation mass and energy export;
+- kinetic-energy loss through drag/diffusion with an explicit decision about dissipative heating;
+- surface, radiative, and component fluxes represented as exchanges or external sources with declared signs and budgets.
+
+The intended dynamical core should therefore be judged on coupled mass, momentum, energy, balance, and wave behavior rather than by accumulating independently correct tendency routines.
 
 ## Library boundaries
 
@@ -41,16 +58,16 @@ Generic numerical or domain-standard machinery should be delegated when a mainta
 
 - Production adaptive/IMEX/multirate time integration should target SUNDIALS ARKODE unless a concrete requirement demonstrates a better fit.
 - CPU tridiagonal factorization/solve uses LAPACK; the hand-written Thomas path remains a reference oracle.
-- A future production CPU FFT should use FFTW (and a GPU path cuFFT) while the direct DFT remains the transparent differential oracle.
+- A production CPU FFT should use FFTW, with cuFFT for a GPU path, while the direct DFT remains the transparent differential oracle.
 - Radiative-transfer work should evaluate established maintained packages such as RTE+RRTMGP before implementing generic gas-optics or two-stream machinery locally. Climate-owned code should focus on scientifically explicit inputs, adapters, diagnostics, validation, and evidence.
-- Saturation vapor pressure currently uses the Murphy–Koop (2005) liquid-water and hexagonal-ice parameterizations. Phase selection and validity bounds are explicit; vapor-mixture algebra does not silently select a phase.
-- The conservative transport kernel owns only extensive budget algebra. A production face reconstruction should not become bespoke infrastructure merely because the legacy configuration names WENO/limiters; candidate high-order methods must earn adoption through convergence, monotonicity, conservation, cost, and benchmark comparisons against maintained implementations where practical.
+- Saturation vapor pressure uses the Murphy–Koop (2005) liquid-water and hexagonal-ice parameterizations. Phase selection and validity bounds are explicit; vapor-mixture algebra does not silently select a phase.
+- The conservative transport kernel owns only extensive budget algebra. Production face reconstruction should not become bespoke infrastructure by default; candidate high-order methods must earn adoption through convergence, monotonicity, conservation, cost, and benchmark comparisons against maintained implementations where practical.
 
 Selecting an external package or published parameterization does not by itself validate a scientific process. Version, configuration, implementation identity, numerical diagnostics, input provenance, and differential/benchmark evidence remain required.
 
-## Current extraction rule
+## Canonicalization rule
 
-A legacy responsibility becomes canonical only when all of the following are true:
+A physical or numerical responsibility becomes canonical only when all of the following are true:
 
 1. its physical variables, units, coordinates, signs, and validity domain are explicit;
 2. invalid or unavailable states fail closed rather than silently clamping or switching implementation identity;
@@ -58,5 +75,3 @@ A legacy responsibility becomes canonical only when all of the following are tru
 4. the module is registered with honest maturity and known gaps;
 5. generic machinery is delegated to a maintained library when that reduces bespoke numerical risk;
 6. the new slice does not imply that unresolved neighboring physics has been implemented.
-
-The legacy compile probe remains useful as a debt sensor while extraction proceeds. Its failure is not a reason to mutate canonical state types until the underlying physical contract is independently specified.
