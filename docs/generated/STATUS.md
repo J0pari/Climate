@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **40**.
+Registered modules: **41**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 27 |
+| `canonical` | 28 |
 | `reference` | 13 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 38 |
+| `runnable` | 39 |
 
 ### Canonical and reference modules
 
@@ -48,6 +48,7 @@ Registered modules: **40**.
 | `canonical` | `src/modal.rs` | `modal_logic_reference` | `runnable` | no |
 | `canonical` | `src/numerics.rs` | `numerics` | `prototype` | no |
 | `canonical` | `src/padic.rs` | `ultrametric_reference` | `runnable` | no |
+| `canonical` | `src/physical_state.rs` | `typed_physical_state_boundary` | `runnable` | no |
 | `canonical` | `src/sheaf.rs` | `sheaf_numerics` | `runnable` | no |
 | `reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |
 | `reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
