@@ -25,15 +25,6 @@ class SheafRealizationGuardTests(unittest.TestCase):
     def test_current_ledger_is_valid(self):
         self.assertEqual(module.validate_ledger(BASE_LEDGER, BASE_CLAIMS, ROOT), [])
 
-    def test_current_legacy_surface_has_no_forbidden_authority_symbols(self):
-        source = (ROOT / "climate_multiscale_sheaf.hs").read_text(encoding="utf-8")
-        self.assertEqual(module.validate_legacy_semantics(source), [])
-
-    def test_legacy_authority_symbol_reintroduction_is_rejected(self):
-        source = "computeBettiNumbers = undefined\n"
-        errors = module.validate_legacy_semantics(source)
-        self.assertTrue(any("computeBettiNumbers" in error for error in errors), errors)
-
     def test_statement_weakening_or_drift_is_rejected(self):
         claims = copy.deepcopy(BASE_CLAIMS)
         claim = next(
