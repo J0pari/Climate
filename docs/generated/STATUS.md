@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **50**.
+Registered modules: **51**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 21 |
 | `legacy` | 24 |
-| `reference` | 5 |
+| `reference` | 6 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 24 |
+| `runnable` | 25 |
 
 ### Canonical and reference modules
 
@@ -47,6 +47,7 @@ Registered modules: **50**.
 | `reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |
 | `reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
 | `reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
+| `reference` | `reference/multirepresentation_common.py` | `reference_multirepresentation_common_manifold` | `runnable` | no |
 | `reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
 | `reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
 
@@ -68,11 +69,12 @@ Registered claims: **5**.
 
 ## Registered experiments
 
-Experiment specifications: **2**.
+Experiment specifications: **3**.
 
 | Experiment | File |
 | --- | --- |
 | `geometry.correctness.v1` | `experiments/geometry-correctness.v1.json` |
+| `multirepresentation.common_coordinate.v1` | `experiments/multirepresentation-common.v1.json` |
 | `sheaf.structural_ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
 
 ## Sheaf realization frontier
