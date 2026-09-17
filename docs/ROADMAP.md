@@ -218,8 +218,8 @@ Prefer adding another generated field only when there is an existing authoritati
 
 Subject to failures discovered by CI, the current high-leverage set is:
 
-1. use the physically grounded two-layer energy-balance reference as the next multirepresentation dynamics control: compare temperature-state, heat-flux, and fast/slow modal views; test whether candidate common/product coordinates preserve the known thermal timescales and global heat budget; keep established methods as baselines before inventing a custom learner;
-2. connect the canonical Fisher-information primitive and explicit-likelihood Amari reference to a candidate observation-induced metric, keeping state, parameter, and uncertainty geometry distinct;
+1. construct an observation-induced Fisher metric on the physically grounded two-layer energy-balance state using explicit noisy observation maps such as surface temperature, TOA imbalance, and ocean heat uptake; compare rank, conditioning, and distinguishable directions across sensor subsets without hiding null directions through regularization;
+2. compare that statistically grounded state metric with unweighted Euclidean representation geometry and exact thermal-mode coordinates, testing how observational precision changes local distance and dynamical observability while keeping state, parameter, and uncertainty geometry distinct;
 3. turn geometry reference/canonical agreement into derivative and coordinate metamorphic differential tests so candidate representation work rests on trustworthy geometry;
 4. define the next coupled atmospheric dynamics slice around energy/momentum/continuity-consistent interfaces rather than adding another isolated tendency kernel;
 5. progress the climate-data sheaf into explicit station cover/stalk/restriction semantics that can later participate in local chart/data-consistency experiments;
