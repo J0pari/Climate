@@ -40,9 +40,3 @@ jobs:
         run: python -m unittest tests.reference.test_multirepresentation_common -v
       - name: Run registered reference experiment
         run: python reference/multirepresentation_common.py --json | tee multirepresentation-result.json
-      - name: Upload experiment result
-        uses: actions/upload-artifact@v4
-        with:
-          name: multirepresentation-reference-result
-          path: multirepresentation-result.json
-          if-no-files-found: error
