@@ -189,6 +189,21 @@ This test is particularly important for legacy Climate metrics combining transfo
 
 Permute coordinate ordering and verify tensors transform consistently. This catches hard-coded "index 2 means ocean" assumptions inside generic geometric code.
 
+### 11.4 Representation maps, pullbacks, and composition
+
+The multirepresentation program introduces maps `phi_a: X -> M_a` between a declared physical/latent state and representation spaces. Those maps need independent mathematical witnesses before their induced geometry is interpreted.
+
+For small analytic fixtures verify, where applicable:
+
+- a pullback metric agrees with `D phi^T g D phi` under the pinned coordinate convention;
+- composition of known maps gives the same pullback as the corresponding staged composition;
+- a declared product geometry reduces to the expected block structure when cross terms are absent;
+- explicitly declared cross-representation terms transform consistently rather than depending on coordinate ordering;
+- two observation views of a known shared latent system recover the expected common directions without inventing information in null directions;
+- nuisance transformations declared as quotiented symmetries do not change the intended intrinsic quantities.
+
+Do not call statistically uncorrelated, low-covariance, or low-mutual-information views "orthogonal" unless the exact notion of orthogonality is declared. Metric orthogonality, Fisher orthogonality, covariance decorrelation, dynamical decoupling, and information complementarity are different statements.
+
 ## 12. Positive-definiteness and conditioning
 
 A Riemannian metric must be positive definite in the domain where that interpretation is claimed.
@@ -214,6 +229,8 @@ Required behavior:
 - ill-conditioned metric -> diagnostic + declared refinement/regularization behavior;
 - no silent replacement by identity/zeros;
 - no physical probability emitted from a failed geometry calculation.
+
+This requirement is scoped to objects claimed to be Riemannian metrics. Fisher information and observation-induced pullbacks may be positive **semidefinite** when parameters or state directions are locally unidentifiable. Such null directions are scientific/statistical information and must not be silently regularized into a fictitious positive-definite geometry. If a later algorithm requires a nonsingular metric, the restriction, quotient, prior, or regularization that makes it nonsingular is a separate declared operation.
 
 ## 13. Precision ladder
 
@@ -318,9 +335,15 @@ Until the relevant mathematical, numerical, and empirical programs are satisfied
 
 when they are derived only from curvature/eigenvalue thresholds or analogous heuristic transforms.
 
-## 19. First climate-facing meta-experiment after numerical verification
+Curvature, geodesic length, holonomy, topology, and intrinsic dimension are also not universal optimization objectives. A representation can make one of those quantities smaller or simpler while discarding dynamics, information, or physical meaning. Their role is as properties/diagnostics of a declared representation unless a separate task-specific objective is justified.
 
-Evaluate whether geometry adds information on synthetic dynamical systems with known labels before named Earth-system tipping interpretation:
+## 19. First climate-facing meta-experiments after numerical verification
+
+Before named Earth-system tipping interpretation, use synthetic dynamical systems whose latent geometry and dynamics are deliberately known.
+
+The first multirepresentation experiment should expose the same latent dynamics through several nonlinear views with known shared, product, nuisance, or fibered structure. Compare raw concatenation, linear multiview baselines, established common-manifold methods, and explicitly factorized candidate geometry. Test whether the recovered representation preserves known latent neighborhoods, dynamical evolution, identifiable/null directions, and declared physical invariants. This experiment evaluates representation construction; it does not require a tipping-point story.
+
+A separate regime-indicator experiment should evaluate whether geometry adds information on synthetic dynamical systems with known labels:
 
 - systems approaching a known bifurcation;
 - systems with no bifurcation but changing variance/noise;
@@ -336,7 +359,7 @@ Baselines:
 - simple state-space/Jacobian indicators;
 - learned classifier only as a secondary high-capacity comparator.
 
-Primary question:
+Primary regime-indicator question:
 
 ```text
 Does a verified geometric candidate improve held-out discrimination or calibrated forecasting beyond strong conventional baselines without exploiting coordinate/scaling artifacts?
@@ -354,6 +377,7 @@ A geometric implementation may progress to `verified` only when its declared sco
 - derivative witnesses;
 - conditioning/refusal behavior;
 - coordinate/scaling metamorphic tests;
+- representation-map/pullback witnesses when those operations are in scope;
 - precision characterization;
 - independent implementation agreement where applicable;
 - absence of placeholders on the verified computation path.
