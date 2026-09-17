@@ -1,6 +1,10 @@
 module climate_dry_thermodynamics
     use, intrinsic :: iso_fortran_env, only: real64
     use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
+    use climate_thermodynamic_reference_values, only: &
+        REFERENCE_PRESSURE_PA, DRY_AIR_GAS_CONSTANT_J_KG_K, &
+        DRY_AIR_HEAT_CAPACITY_CP_J_KG_K
+    use climate_geophysical_reference_values, only: STANDARD_GRAVITY_M_S2
     implicit none
     private
 
@@ -15,13 +19,13 @@ module climate_dry_thermodynamics
     integer, parameter, public :: THERMO_ERR_RESULT = 6
 
     type, public :: dry_thermo_parameters
-        ! Conventional dry-air reference values in SI. They are defaults, not
-        ! hidden universal constants: callers may supply a different parameter
-        ! set, and every public operation validates the supplied set.
-        real(dp) :: reference_pressure_pa = 100000.0_dp
-        real(dp) :: gas_constant_j_kg_k = 287.05_dp
-        real(dp) :: heat_capacity_cp_j_kg_k = 1004.0_dp
-        real(dp) :: gravity_m_s2 = 9.80665_dp
+        ! Narrow dry-thermodynamic policy surface. Defaults come from the
+        ! repository reference-value authorities; callers may override this
+        ! parameter record without affecting other kernels.
+        real(dp) :: reference_pressure_pa = REFERENCE_PRESSURE_PA
+        real(dp) :: gas_constant_j_kg_k = DRY_AIR_GAS_CONSTANT_J_KG_K
+        real(dp) :: heat_capacity_cp_j_kg_k = DRY_AIR_HEAT_CAPACITY_CP_J_KG_K
+        real(dp) :: gravity_m_s2 = STANDARD_GRAVITY_M_S2
     end type dry_thermo_parameters
 
     public :: compute_exner
