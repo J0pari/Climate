@@ -450,6 +450,68 @@ mod tests {
     }
 
     #[test]
+    fn nonlinear_coordinate_map_requires_inhomogeneous_connection_term() {
+        let u = 0.4_f64;
+        let metric = DMatrix::from_row_slice(2, 2, &[1.0 + u * u, u, u, 1.0]);
+        let dg_u = DMatrix::from_row_slice(2, 2, &[2.0 * u, 1.0, 1.0, 0.0]);
+        let ddg_uu = DMatrix::from_row_slice(2, 2, &[2.0, 0.0, 0.0, 0.0]);
+        let scale = matrix_scale(&metric)
+            .max(matrix_scale(&dg_u))
+            .max(matrix_scale(&ddg_uu));
+        let tolerance = 128.0 * f64::EPSILON * scale.max(1.0);
+        let jet = MetricJet::new(
+            metric,
+            vec![dg_u, zeros(2)],
+            vec![vec![ddg_uu, zeros(2)], vec![zeros(2), zeros(2)]],
+        )
+        .unwrap();
+        let geometry = levi_civita_from_jet(&jet).unwrap();
+
+        for upper in 0..2 {
+            for lower_a in 0..2 {
+                for lower_b in 0..2 {
+                    let expected = if (upper, lower_a, lower_b) == (1, 0, 0) {
+                        1.0
+                    } else {
+                        0.0
+                    };
+                    assert_close(
+                        geometry.christoffel(upper, lower_a, lower_b),
+                        expected,
+                        tolerance,
+                    );
+                }
+            }
+        }
+
+        let homogeneous_only_prediction = 0.0_f64;
+        assert!(
+            (geometry.christoffel(1, 0, 0) - homogeneous_only_prediction).abs()
+                > 1_000_000.0 * tolerance,
+            "omitting the inhomogeneous connection term was not detected"
+        );
+        for upper in 0..2 {
+            for lower in 0..2 {
+                for deriv_a in 0..2 {
+                    for deriv_b in 0..2 {
+                        assert_close(
+                            geometry.riemann(upper, lower, deriv_a, deriv_b),
+                            0.0,
+                            tolerance,
+                        );
+                    }
+                }
+            }
+        }
+        for i in 0..2 {
+            for j in 0..2 {
+                assert_close(geometry.ricci[(i, j)], 0.0, tolerance);
+            }
+        }
+        assert_close(geometry.scalar_curvature, 0.0, tolerance);
+    }
+
+    #[test]
     fn radius_two_sphere_has_known_curvature_and_structural_identities() {
         let radius = 2.0;
         let theta = PI / 3.0;
