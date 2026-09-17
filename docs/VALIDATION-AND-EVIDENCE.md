@@ -134,13 +134,13 @@ interoperability
 
 Scientific prose that asserts or materially strengthens a registered claim should be consistent with the claim's recorded maturity and evidence. If the required evidence is absent, documentation must use hypothesis/prototype language rather than established-fact language.
 
-## 3. Placeholder and heuristic controls
+## 3. Placeholder, fallback-provenance, and heuristic controls
 
 Important implementation paths and parameters must distinguish:
 
 ```text
 placeholder      = intentionally incomplete implementation
-fallback         = alternate behavior used when preferred data/method unavailable
+fallback         = explicitly declared alternate data/parameter provenance when the preferred source is unavailable
 heuristic        = deliberately approximate rule without derived/estimated guarantee
 calibrated       = parameter estimated against named data/procedure
 literature_fixed = value adopted from a cited source under a declared interpretation
@@ -149,14 +149,17 @@ learned          = fit by a recorded training/calibration procedure
 
 Important parameters should carry provenance of this sort whenever their origin affects scientific interpretation or reproducibility.
 
+Execution-time substitution is a different concern from fallback provenance. `#ExecutionResolution` in `contracts/climate.cue` makes an execution eligible only when the resolved method/implementation/build/backend/precision/resource-class identity is exactly the requested identity. If a requested capability is unavailable, execution is ineligible with a typed failure; CPU, alternate solver, reduced precision, compatibility shims, or other implementations must be requested separately rather than activated as runtime substitutes.
+
 CI and evidence tooling should be able to answer:
 
 - Does a decision-eligible path contain a placeholder?
-- Did a fallback activate during a validation run?
+- Did an execution become ineligible because a requested capability could not be satisfied?
+- Did explicitly declared fallback data/parameter provenance enter a validation path?
 - Are default values standing in for missing observations?
 - Did an allegedly calibrated result actually use the declared calibration artifact?
 
-Fallback activation must be visible in run evidence.
+Fallback data/parameter provenance must remain explicit in experiment and run evidence. Execution substitution is invalid rather than merely something to record after the fact.
 
 ## 4. Units, dimensions, coordinates, and calendars
 
