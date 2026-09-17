@@ -109,6 +109,19 @@ target_link_libraries(climate_pressure_coordinate_continuity PUBLIC
     climate_pressure_coordinate_grid
 )
 
+# Climate-semantic adapter from caller-oriented horizontal face carrier-mass
+# flux to pressure-layer mass and pressure-mean horizontal divergence. Mesh
+# topology and velocity-to-flux construction remain caller-owned.
+add_library(climate_pressure_flux_coupling STATIC
+    src/fortran/pressure_flux_coupling.f90
+)
+target_include_directories(climate_pressure_flux_coupling PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_pressure_flux_coupling PUBLIC
+    climate_pressure_coordinate_grid
+)
+
 # Pressure-coordinate kinetic/enthalpy/geopotential exchange identity. Spatial
 # derivatives, EOS construction, and time integration remain caller-owned.
 add_library(climate_pressure_energy_exchange STATIC
@@ -313,6 +326,18 @@ if(ENABLE_TESTING)
     target_link_libraries(test_conservative_transport PRIVATE climate_conservative_transport)
     climate_add_canonical_test(conservative_transport test_conservative_transport)
 
+    add_executable(test_pressure_flux_coupling
+        tests/fortran/test_pressure_flux_coupling.f90
+    )
+    target_link_libraries(test_pressure_flux_coupling PRIVATE
+        climate_pressure_flux_coupling
+        climate_geophysical_reference_values
+        climate_conservative_transport
+        climate_pressure_coordinate_continuity
+        climate_pressure_energy_exchange
+    )
+    climate_add_canonical_test(pressure_flux_coupling test_pressure_flux_coupling)
+
     add_executable(test_vertical_diffusion
         tests/fortran/test_vertical_diffusion.f90
     )
@@ -355,6 +380,7 @@ message(STATUS "  Dry thermodynamics:           ON")
 message(STATUS "  Pressure coordinate contract: ON")
 message(STATUS "  Pressure hydrostatics:        ON")
 message(STATUS "  Pressure continuity/omega:    ON")
+message(STATUS "  Pressure flux coupling:       ON")
 message(STATUS "  Pressure energy exchange:     ON")
 message(STATUS "  Moist vapor algebra:          ON")
 message(STATUS "  Saturation vapor pressure:    ON")
