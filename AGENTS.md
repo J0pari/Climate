@@ -2,7 +2,7 @@
 
 This repository is an **experimental climate-methods research workspace**. It contains conventional climate-science components, incomplete numerical infrastructure, and deliberately unusual mathematical hypotheses. The repository must preserve that distinction rather than presenting all code as one validated climate model.
 
-This file is the binding contributor/agent contract. `README.md` is descriptive. `docs/ARCHITECTURE.md` and method-specific specifications define intended semantic structure; `docs/ROADMAP.md` defines curated priorities and dependency obligations; `docs/generated/STATUS.md` projects objective present-state facts from machine-readable authorities. Non-binding surveys and research notes do not override those documents. Implementation may be incomplete relative to intended architecture without changing the intended contract.
+This file is the binding contributor/agent contract. `README.md` is descriptive. `docs/ARCHITECTURE.md` and method-specific specifications define intended semantic structure; `architecture/planning_graph.json` is the sole authority for planned work, priorities, dependencies, blockers, and completion criteria; `docs/ROADMAP.md` is its generated human-readable projection; `docs/generated/STATUS.md` projects objective present-state facts from machine-readable realization authorities. Non-binding surveys and research notes do not override those documents. Implementation may be incomplete relative to intended architecture without changing the intended contract.
 
 ## 1. Non-negotiable rules
 
@@ -21,13 +21,14 @@ This file is the binding contributor/agent contract. `README.md` is descriptive.
 13. **Unavailable resources remain explicit gates.** Compile success, static inspection, mocks, shims, or prose must not stand in for execution on a resource that the claim actually depends on. CUDA correctness needs a CUDA device; integrated scheduling needs the integrated system; real-data generalization needs the declared data.
 14. **Preserve semantic information, not incidental syntax.** Refactors may substantially change layout, control flow, abstractions, or language boundaries when that increases technical accuracy, composability, falsifiability, or scientific meaning. Do not preserve brittle structure merely because it is old.
 15. **No semantic smoothing.** A migration may simplify syntax, but it must not collapse scientifically meaningful distinctions such as missing vs zero, undefined vs stable, unavailable vs failed, heuristic vs measured, proposal vs evidence, or policy threshold vs physical tipping claim. If compatibility code conflates states, canonical code should split them and document the compatibility difference where that difference remains operationally relevant.
-16. **Noncanonical code is a source reservoir, not automatic authority.** Prefer preserve -> slice -> type the seams -> recompose -> verify. Quarantine only code that is unsafe to invoke or semantically fraudulent; otherwise retain useful formulas, kernels, fixtures, algorithms, and thresholds with provenance. Canonical tests may reject known-broken compatibility expectations while compatibility checks keep useful source material inspectable where practical.
+16. **Noncanonical source is temporary mining material, not a permanent architecture tier.** Mine unique domain semantics into canonical code, contracts, references, tests, or planning obligations. Do not migrate generic machinery that belongs in maintained libraries. Once useful semantics are represented elsewhere and no live dependency remains, delete the depleted source; Git history is the archive. `docs/LEGACY-DELETION.md` defines the binding depletion criteria.
 17. **Abstraction must buy epistemic or engineering leverage.** Do not add wrapper types, indirection, or framework ceremony solely for stylistic purity. Use meaningfully different constructs—typed states, algebraic variants, declarative registries, generated views, staged pipelines, independent references, or property tests—when they make invalid states harder to represent, expose uncertainty, deepen the model, or enable stronger witnesses.
 18. **Incomplete mathematics must expose obligations, not borrow finished names.** It is acceptable for an experimental method to have open realization obligations analogous to proof `sorry`s. The statement and definitions must still be correct. Promotion terms such as cohomology, Betti number, adjunction, exact conservation law, or verified solver require the defining laws to have executable witnesses. Pin the intended claim so progress cannot be faked by weakening the statement; reduce the open obligations over time instead.
 19. **Do not weaken a useful mathematical contract merely because the implementation is weak.** If the stronger mathematical object is scientifically/computationally useful and tractable, implement it correctly. Rename/retype downward only when the narrower object is itself the superior reusable abstraction for a real task.
-20. **Generate objective status; curate judgment.** Facts already represented in registries should flow into `docs/generated/STATUS.md` through `architecture/render_status.py`. Scientific priority, interpretation, tradeoffs, and resource strategy remain human-maintained because pretending to infer them would hide judgment. Do not commit hand-authored continuation snapshots or one-time agent handoffs as repository documents; transient continuation context belongs in the conversation/system context that needs it.
+20. **Separate realized-state authority from planning authority.** Facts represented in module/claim/experiment/hazard/realization registries flow into generated status. Human planning judgment is explicit data in `architecture/planning_graph.json`, not an inferred status field or a parallel prose backlog. Do not commit hand-authored continuation snapshots or one-time agent handoffs as repository documents; transient continuation context belongs in the conversation/system context that needs it.
 21. **Commit only to `main`.** Repository edits are made directly on `main` in small coherent commits. Do not create or stage work on feature branches, and do not rewrite or force-update history. Before each write, re-read the current `main` version of every file being edited so concurrent or newly learned design intent is preserved rather than overwritten.
 22. **Commit history owns change narration.** Durable documentation and source comments describe the current contract, rationale, assumptions, limitations, and invariants. Do not annotate repository text with edit batches, feature-addition notes, replacement history, or temporal status narration that belongs to version history. Put what changed and why in the commit message.
+23. **The planning graph owns TODO concerns.** Durable source and documentation must not maintain TODO/FIXME action queues, priority lists, future-work checklists, or dependency plans. Explain a current limitation at the point where it matters, and represent the work needed to remove that limitation in `architecture/planning_graph.json`. Generated roadmap prose may project graph facts but must not add planning content of its own.
 
 ## 2. Claim maturity vocabulary
 
@@ -132,9 +133,7 @@ Climate data artifacts should move toward CF-compliant metadata and explicit pro
 
 ## 9. Resource-aware execution planning
 
-`docs/EXECUTION-TOPOLOGY.md` is binding for work selection.
-
-`docs/ROADMAP.md` describes a dependency/priority graph; it is **not** a requirement to finish one global phase before beginning independent work elsewhere.
+`docs/EXECUTION-TOPOLOGY.md` defines the binding resource classes. `architecture/planning_graph.json` owns the dependency/priority graph and completion criteria; `docs/ROADMAP.md` is generated from it and is not an independent planning surface.
 
 Use the execution classes defined in the topology document:
 
@@ -147,9 +146,9 @@ R4_integrated_system
 R5_large_data
 ```
 
-Prefer ready work that removes substantial uncertainty, creates a reusable boundary, or manufactures an executable question for a currently unavailable resource.
+A planning node is executable when its semantic prerequisites are satisfied, its required resource is available, and the work can produce a falsifiable result, reusable correctness boundary, or explicit failure. Prefer graph-ready work that removes false authority or semantic hazards, creates reusable independent witnesses, establishes canonical semantic seams, supplies fair baselines, depletes monoliths, or prepares a precise resource-gated experiment.
 
-Do not simulate evidence for a missing resource. Instead preregister the experiment, create independent reference outputs, define tolerances/failure semantics, and leave the resource-dependent edge explicitly unsatisfied.
+Do not simulate evidence for a missing resource. Instead preregister the experiment, create independent reference outputs, define tolerances/failure semantics, and leave the resource-dependent graph node explicitly blocked.
 
 ## 10. Architecture/source audit discipline
 
@@ -161,24 +160,28 @@ Binding architecture checks are executable repository interfaces rather than pro
 python -m unittest discover -s tests/architecture -v
 python architecture/check_claims.py
 python architecture/check_modules.py
+python architecture/check_planning.py
+python architecture/render_roadmap.py --check
 python architecture/render_status.py --check
 python architecture/check_hazards.py
 python architecture/check_experiments.py
 python architecture/check_sheaf_realization.py
 python architecture/check_durable_text.py
+python architecture/check_root_layout.py
 python architecture/source_gates.py --summary
 python architecture/inspect_repository.py --json
 ```
 
 The integrity checks are binding. A source-gate summary may be used as an audit surface without implying that every compatibility/source-debt class is clean. `python architecture/source_gates.py --strict` becomes binding only for defect classes explicitly adopted into the strict policy. Do not make a broad allowlist permanent merely to turn CI green; either repair the source, narrow the gate to the intended semantic boundary, or record a temporary exception with rationale and expiry.
 
-Objective status derived from module/claim/experiment/realization registries belongs in `docs/generated/STATUS.md`. When those authorities change, update the generated projection with:
+Objective status derived from module/claim/experiment/realization registries belongs in `docs/generated/STATUS.md`. Planning projection belongs in `docs/ROADMAP.md`. When their authorities change, update the generated projections with:
 
 ```text
 python architecture/render_status.py --write
+python architecture/render_roadmap.py --write
 ```
 
-Do not hand-edit the generated file.
+Do not hand-edit either generated projection.
 
 ## 11. Repository-status authority
 
@@ -186,7 +189,7 @@ Do not hand-edit the generated file.
 
 Objective repository facts that are already represented by machine-readable authorities belong in `docs/generated/STATUS.md`, not in hand-maintained snapshots elsewhere. Fast-changing execution facts such as exact-head CI outcomes remain execution evidence in GitHub Actions rather than committed status prose.
 
-Architecture documents may describe intended contracts that are not yet fully realized. Generated status and executable checks report what is realized now; they do not silently redefine the intended architecture. When implementation state and intended design disagree, preserve the distinction and repair the appropriate layer rather than collapsing one into the other.
+Architecture documents may describe intended contracts that are not yet fully realized. The planning graph reports intended work; generated status and executable checks report realized structure. None silently redefines another authority. When implementation state and intended design disagree, repair the appropriate layer rather than collapsing one into the other.
 
 ## 12. Commons-facing behavior
 
