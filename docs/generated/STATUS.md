@@ -6,24 +6,25 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **53**.
+Registered modules: **54**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 21 |
+| `canonical` | 22 |
 | `legacy` | 24 |
 | `reference` | 8 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 27 |
+| `runnable` | 28 |
 
 ### Canonical and reference modules
 
 | Lifecycle | Path | Family | Maturity | Evidence eligible |
 | --- | --- | --- | --- | --- |
 | `canonical` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
+| `canonical` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
 | `canonical` | `src/feedback.rs` | `feedback_diagnostics` | `prototype` | no |
 | `canonical` | `src/fortran/conservative_transport.f90` | `conservative_mass_tracer_transport` | `runnable` | no |
 | `canonical` | `src/fortran/coriolis_rotation.f90` | `coriolis_rotation_operator` | `runnable` | no |
@@ -85,7 +86,7 @@ Experiment specifications: **4**.
 Obligations: **8 realized / 7 open / 15 total**.
 
 | Layer | Realized | Open |
-| --- | ---: | ---: |
+| --- | ---: |
 | `SH1` | 3 | 0 |
 | `SH2` | 5 | 0 |
 | `SH3` | 0 | 4 |
