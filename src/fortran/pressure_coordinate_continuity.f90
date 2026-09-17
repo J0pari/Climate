@@ -1,6 +1,10 @@
 module climate_pressure_coordinate_continuity
     use, intrinsic :: iso_fortran_env, only: real64
     use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
+    use climate_pressure_coordinate_grid, only: &
+        validate_pressure_interfaces, PRESSURE_GRID_OK, PRESSURE_GRID_ERR_SIZE, &
+        PRESSURE_GRID_ERR_NONFINITE, PRESSURE_GRID_ERR_PRESSURE, &
+        PRESSURE_GRID_ERR_ORDER
     implicit none
     private
 
@@ -18,13 +22,33 @@ module climate_pressure_coordinate_continuity
 
 contains
 
+    integer function map_pressure_grid_error(grid_ierr) result(ierr)
+        integer, intent(in) :: grid_ierr
+
+        select case (grid_ierr)
+        case (PRESSURE_GRID_OK)
+            ierr = CONTINUITY_OK
+        case (PRESSURE_GRID_ERR_SIZE)
+            ierr = CONTINUITY_ERR_SIZE
+        case (PRESSURE_GRID_ERR_NONFINITE)
+            ierr = CONTINUITY_ERR_NONFINITE
+        case (PRESSURE_GRID_ERR_PRESSURE)
+            ierr = CONTINUITY_ERR_PRESSURE
+        case (PRESSURE_GRID_ERR_ORDER)
+            ierr = CONTINUITY_ERR_PRESSURE_ORDER
+        case default
+            ierr = CONTINUITY_ERR_RESULT
+        end select
+    end function map_pressure_grid_error
+
+
     subroutine validate_pressure_inputs(interface_pressure_pa, &
                                         layer_pressure_mean_horizontal_divergence_s1, ierr)
         real(dp), intent(in) :: interface_pressure_pa(:)
         real(dp), intent(in) :: layer_pressure_mean_horizontal_divergence_s1(:)
         integer, intent(out) :: ierr
 
-        integer :: n_layers
+        integer :: n_layers, grid_ierr
 
         ierr = CONTINUITY_OK
         n_layers = size(layer_pressure_mean_horizontal_divergence_s1)
@@ -33,19 +57,13 @@ contains
             ierr = CONTINUITY_ERR_SIZE
             return
         end if
-        if (.not. all(ieee_is_finite(interface_pressure_pa)) .or. &
-            .not. all(ieee_is_finite(layer_pressure_mean_horizontal_divergence_s1))) then
+        if (.not. all(ieee_is_finite(layer_pressure_mean_horizontal_divergence_s1))) then
             ierr = CONTINUITY_ERR_NONFINITE
             return
         end if
-        if (any(interface_pressure_pa <= 0.0_dp)) then
-            ierr = CONTINUITY_ERR_PRESSURE
-            return
-        end if
-        if (any(interface_pressure_pa(1:n_layers) <= &
-                interface_pressure_pa(2:n_layers + 1))) then
-            ierr = CONTINUITY_ERR_PRESSURE_ORDER
-        end if
+
+        call validate_pressure_interfaces(interface_pressure_pa, grid_ierr)
+        ierr = map_pressure_grid_error(grid_ierr)
     end subroutine validate_pressure_inputs
 
 
