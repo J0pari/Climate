@@ -165,35 +165,42 @@ endif()
 if(ENABLE_TESTING)
     enable_testing()
 
+    # CTest owns the canonical witness group. CI consumes the label instead of
+    # maintaining a second list of test names.
+    function(climate_add_canonical_test test_name target_name)
+        add_test(NAME ${test_name} COMMAND ${target_name})
+        set_tests_properties(${test_name} PROPERTIES LABELS "canonical")
+    endfunction()
+
     add_executable(test_spectral_reference
         tests/fortran/test_spectral_reference.f90
     )
     target_link_libraries(test_spectral_reference PRIVATE climate_spectral_reference)
-    add_test(NAME spectral_reference COMMAND test_spectral_reference)
+    climate_add_canonical_test(spectral_reference test_spectral_reference)
 
     add_executable(test_time_integration
         tests/fortran/test_time_integration.f90
     )
     target_link_libraries(test_time_integration PRIVATE climate_time_integration)
-    add_test(NAME time_integration COMMAND test_time_integration)
+    climate_add_canonical_test(time_integration test_time_integration)
 
     add_executable(test_linear_implicit
         tests/fortran/test_linear_implicit.f90
     )
     target_link_libraries(test_linear_implicit PRIVATE climate_linear_implicit)
-    add_test(NAME linear_implicit COMMAND test_linear_implicit)
+    climate_add_canonical_test(linear_implicit test_linear_implicit)
 
     add_executable(test_coriolis_rotation
         tests/fortran/test_coriolis_rotation.f90
     )
     target_link_libraries(test_coriolis_rotation PRIVATE climate_coriolis_rotation)
-    add_test(NAME coriolis_rotation COMMAND test_coriolis_rotation)
+    climate_add_canonical_test(coriolis_rotation test_coriolis_rotation)
 
     add_executable(test_dry_thermodynamics
         tests/fortran/test_dry_thermodynamics.f90
     )
     target_link_libraries(test_dry_thermodynamics PRIVATE climate_dry_thermodynamics)
-    add_test(NAME dry_thermodynamics COMMAND test_dry_thermodynamics)
+    climate_add_canonical_test(dry_thermodynamics test_dry_thermodynamics)
 
     add_executable(test_pressure_coordinate_grid
         tests/fortran/test_pressure_coordinate_grid.f90
@@ -201,7 +208,7 @@ if(ENABLE_TESTING)
     target_link_libraries(test_pressure_coordinate_grid PRIVATE
         climate_pressure_coordinate_grid
     )
-    add_test(NAME pressure_coordinate_grid COMMAND test_pressure_coordinate_grid)
+    climate_add_canonical_test(pressure_coordinate_grid test_pressure_coordinate_grid)
 
     add_executable(test_pressure_coordinate_hydrostatics
         tests/fortran/test_pressure_coordinate_hydrostatics.f90
@@ -210,7 +217,10 @@ if(ENABLE_TESTING)
         climate_pressure_coordinate_hydrostatics
         climate_moist_vapor_algebra
     )
-    add_test(NAME pressure_coordinate_hydrostatics COMMAND test_pressure_coordinate_hydrostatics)
+    climate_add_canonical_test(
+        pressure_coordinate_hydrostatics
+        test_pressure_coordinate_hydrostatics
+    )
 
     add_executable(test_pressure_coordinate_continuity
         tests/fortran/test_pressure_coordinate_continuity.f90
@@ -218,7 +228,10 @@ if(ENABLE_TESTING)
     target_link_libraries(test_pressure_coordinate_continuity PRIVATE
         climate_pressure_coordinate_continuity
     )
-    add_test(NAME pressure_coordinate_continuity COMMAND test_pressure_coordinate_continuity)
+    climate_add_canonical_test(
+        pressure_coordinate_continuity
+        test_pressure_coordinate_continuity
+    )
 
     add_executable(test_pressure_energy_exchange
         tests/fortran/test_pressure_energy_exchange.f90
@@ -226,7 +239,7 @@ if(ENABLE_TESTING)
     target_link_libraries(test_pressure_energy_exchange PRIVATE
         climate_pressure_energy_exchange
     )
-    add_test(NAME pressure_energy_exchange COMMAND test_pressure_energy_exchange)
+    climate_add_canonical_test(pressure_energy_exchange test_pressure_energy_exchange)
 
     add_executable(test_moist_vapor_algebra
         tests/fortran/test_moist_vapor_algebra.f90
@@ -235,7 +248,7 @@ if(ENABLE_TESTING)
         climate_moist_vapor_algebra
         climate_dry_thermodynamics
     )
-    add_test(NAME moist_vapor_algebra COMMAND test_moist_vapor_algebra)
+    climate_add_canonical_test(moist_vapor_algebra test_moist_vapor_algebra)
 
     add_executable(test_saturation_vapor_pressure
         tests/fortran/test_saturation_vapor_pressure.f90
@@ -244,7 +257,10 @@ if(ENABLE_TESTING)
         climate_saturation_vapor_pressure
         climate_moist_vapor_algebra
     )
-    add_test(NAME saturation_vapor_pressure COMMAND test_saturation_vapor_pressure)
+    climate_add_canonical_test(
+        saturation_vapor_pressure
+        test_saturation_vapor_pressure
+    )
 
     add_executable(test_saturation_moisture
         tests/fortran/test_saturation_moisture.f90
@@ -254,19 +270,19 @@ if(ENABLE_TESTING)
         climate_saturation_vapor_pressure
         climate_moist_vapor_algebra
     )
-    add_test(NAME saturation_moisture COMMAND test_saturation_moisture)
+    climate_add_canonical_test(saturation_moisture test_saturation_moisture)
 
     add_executable(test_conservative_transport
         tests/fortran/test_conservative_transport.f90
     )
     target_link_libraries(test_conservative_transport PRIVATE climate_conservative_transport)
-    add_test(NAME conservative_transport COMMAND test_conservative_transport)
+    climate_add_canonical_test(conservative_transport test_conservative_transport)
 
     add_executable(test_vertical_diffusion
         tests/fortran/test_vertical_diffusion.f90
     )
     target_link_libraries(test_vertical_diffusion PRIVATE climate_vertical_diffusion)
-    add_test(NAME vertical_diffusion COMMAND test_vertical_diffusion)
+    climate_add_canonical_test(vertical_diffusion test_vertical_diffusion)
 
     if(ENABLE_LAPACK_BACKEND)
         add_executable(test_lapack_tridiagonal
@@ -276,7 +292,7 @@ if(ENABLE_TESTING)
             climate_lapack_tridiagonal
             climate_linear_implicit
         )
-        add_test(NAME lapack_tridiagonal COMMAND test_lapack_tridiagonal)
+        climate_add_canonical_test(lapack_tridiagonal test_lapack_tridiagonal)
 
         add_executable(test_vertical_diffusion_lapack
             tests/fortran/test_vertical_diffusion_lapack.f90
@@ -285,7 +301,10 @@ if(ENABLE_TESTING)
             climate_vertical_diffusion
             climate_lapack_tridiagonal
         )
-        add_test(NAME vertical_diffusion_lapack COMMAND test_vertical_diffusion_lapack)
+        climate_add_canonical_test(
+            vertical_diffusion_lapack
+            test_vertical_diffusion_lapack
+        )
     endif()
 endif()
 
