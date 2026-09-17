@@ -86,7 +86,7 @@ Experiment specifications: **4**.
 Obligations: **8 realized / 7 open / 15 total**.
 
 | Layer | Realized | Open |
-| --- | ---: |
+| --- | ---: | ---: |
 | `SH1` | 3 | 0 |
 | `SH2` | 5 | 0 |
 | `SH3` | 0 | 4 |
