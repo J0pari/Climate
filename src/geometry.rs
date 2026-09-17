@@ -44,6 +44,27 @@ pub enum GeometryError {
         right: f64,
         tolerance: f64,
     },
+    #[error("{order} metric derivative ({coordinate_a},{coordinate_b:?}) is not symmetric at ({row},{col}): {left} vs {right} (tolerance {tolerance})")]
+    NonSymmetricDerivative {
+        order: &'static str,
+        coordinate_a: usize,
+        coordinate_b: Option<usize>,
+        row: usize,
+        col: usize,
+        left: f64,
+        right: f64,
+        tolerance: f64,
+    },
+    #[error("mixed second metric derivatives do not commute for coordinates ({coordinate_a},{coordinate_b}) at ({row},{col}): {forward} vs {reverse} (tolerance {tolerance})")]
+    NonCommutingMixedDerivative {
+        coordinate_a: usize,
+        coordinate_b: usize,
+        row: usize,
+        col: usize,
+        forward: f64,
+        reverse: f64,
+        tolerance: f64,
+    },
     #[error("metric is singular or numerically non-invertible")]
     SingularMetric,
 }
@@ -55,6 +76,43 @@ pub struct MetricJet {
     first: Vec<DMatrix<f64>>,
     /// `second[k][l][(i,j)] = ∂_k ∂_l g_ij`.
     second: Vec<Vec<DMatrix<f64>>>,
+}
+
+fn structural_tolerance(scale: f64, n: usize) -> f64 {
+    f64::EPSILON * n as f64 * scale.max(1.0)
+}
+
+fn matrix_scale(matrix: &DMatrix<f64>) -> f64 {
+    matrix.iter().fold(0.0_f64, |acc, value| acc.max(value.abs()))
+}
+
+fn validate_symmetric_derivative(
+    order: &'static str,
+    coordinate_a: usize,
+    coordinate_b: Option<usize>,
+    derivative: &DMatrix<f64>,
+) -> Result<(), GeometryError> {
+    let n = derivative.nrows();
+    let tolerance = structural_tolerance(matrix_scale(derivative), n);
+    for row in 0..n {
+        for col in (row + 1)..n {
+            let left = derivative[(row, col)];
+            let right = derivative[(col, row)];
+            if (left - right).abs() > tolerance {
+                return Err(GeometryError::NonSymmetricDerivative {
+                    order,
+                    coordinate_a,
+                    coordinate_b,
+                    row,
+                    col,
+                    left,
+                    right,
+                    tolerance,
+                });
+            }
+        }
+    }
+    Ok(())
 }
 
 impl MetricJet {
@@ -75,8 +133,7 @@ impl MetricJet {
         }
         validate_matrix("metric", &metric, n, None)?;
 
-        let scale = metric.iter().fold(0.0_f64, |acc, x| acc.max(x.abs()));
-        let symmetry_tolerance = f64::EPSILON * n as f64 * scale.max(1.0);
+        let symmetry_tolerance = structural_tolerance(matrix_scale(&metric), n);
         for i in 0..n {
             for j in (i + 1)..n {
                 let left = metric[(i, j)];
@@ -102,6 +159,7 @@ impl MetricJet {
         }
         for (k, derivative) in first.iter().enumerate() {
             validate_matrix("first derivative", derivative, n, Some((k, None)))?;
+            validate_symmetric_derivative("first", k, None, derivative)?;
         }
 
         if second.len() != n {
@@ -121,6 +179,33 @@ impl MetricJet {
             }
             for (l, derivative) in row.iter().enumerate() {
                 validate_matrix("second derivative", derivative, n, Some((k, Some(l))))?;
+                validate_symmetric_derivative("second", k, Some(l), derivative)?;
+            }
+        }
+
+        for coordinate_a in 0..n {
+            for coordinate_b in (coordinate_a + 1)..n {
+                let forward = &second[coordinate_a][coordinate_b];
+                let reverse = &second[coordinate_b][coordinate_a];
+                let scale = matrix_scale(forward).max(matrix_scale(reverse));
+                let tolerance = structural_tolerance(scale, n);
+                for row in 0..n {
+                    for col in 0..n {
+                        let forward_value = forward[(row, col)];
+                        let reverse_value = reverse[(row, col)];
+                        if (forward_value - reverse_value).abs() > tolerance {
+                            return Err(GeometryError::NonCommutingMixedDerivative {
+                                coordinate_a,
+                                coordinate_b,
+                                row,
+                                col,
+                                forward: forward_value,
+                                reverse: reverse_value,
+                                tolerance,
+                            });
+                        }
+                    }
+                }
             }
         }
 
@@ -454,6 +539,45 @@ mod tests {
         assert!(matches!(
             levi_civita_from_jet(&singular),
             Err(GeometryError::SingularMetric)
+        ));
+    }
+
+    #[test]
+    fn impossible_metric_derivative_jets_fail_closed() {
+        let asymmetric_first = DMatrix::from_row_slice(2, 2, &[0.0, 1.0, 0.0, 0.0]);
+        assert!(matches!(
+            MetricJet::new(
+                DMatrix::identity(2, 2),
+                vec![asymmetric_first, zeros(2)],
+                vec![vec![zeros(2), zeros(2)], vec![zeros(2), zeros(2)]],
+            ),
+            Err(GeometryError::NonSymmetricDerivative { order: "first", .. })
+        ));
+
+        let asymmetric_second = DMatrix::from_row_slice(2, 2, &[0.0, 2.0, 0.0, 0.0]);
+        assert!(matches!(
+            MetricJet::new(
+                DMatrix::identity(2, 2),
+                vec![zeros(2), zeros(2)],
+                vec![
+                    vec![asymmetric_second, zeros(2)],
+                    vec![zeros(2), zeros(2)],
+                ],
+            ),
+            Err(GeometryError::NonSymmetricDerivative { order: "second", .. })
+        ));
+
+        let mixed_forward = DMatrix::from_diagonal_element(2, 2, 1.0);
+        assert!(matches!(
+            MetricJet::new(
+                DMatrix::identity(2, 2),
+                vec![zeros(2), zeros(2)],
+                vec![
+                    vec![zeros(2), mixed_forward],
+                    vec![zeros(2), zeros(2)],
+                ],
+            ),
+            Err(GeometryError::NonCommutingMixedDerivative { .. })
         ));
     }
 }
