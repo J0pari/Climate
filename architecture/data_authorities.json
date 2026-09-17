@@ -271,14 +271,14 @@
       "rationale": "latent ranges, method settings and acceptance guards are fixture/method policy for a known-ground-truth synthetic experiment"
     },
     {
-      "usage_id": "feedback.ice_albedo_numerical_policy",
+      "usage_id": "numerics.albedo_temperature_degeneracy_policy",
       "scope": "current",
-      "path": "src/feedback.rs",
+      "path": "src/albedo_temperature_sensitivity.rs",
       "anchor": "temperature_increment_tolerance_k",
       "ownership_class": "numerical_policy",
       "disposition": "retain_local",
       "source_ids": [],
-      "rationale": "history length, minimum samples and numerical degeneracy tolerance are estimator policy, not measured climate data"
+      "rationale": "the positive temperature-increment degeneracy tolerance is numerical finite-difference policy; no history threshold, observation, radiative forcing, or physical feedback threshold is supplied locally"
     },
     {
       "usage_id": "feedback.ice_extent_observation",

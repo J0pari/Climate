@@ -28,18 +28,18 @@
       ]
     },
     {
-      "path": "src/feedback.rs",
-      "family": "feedback_diagnostics",
+      "path": "src/albedo_temperature_sensitivity.rs",
+      "family": "albedo_temperature_sensitivity_numerics",
       "language": "rust",
       "maturity": "prototype",
       "evidence_eligible": false,
-      "intended_role": "canonical numerical ice-albedo sensitivity primitive that estimates d(albedo)/dT and its stepwise change from explicit numeric samples while leaving observational provenance, radiative forcing, empirical calibration, and interpretation to separate adapters",
+      "intended_role": "canonical provenance-neutral finite-difference primitive for local d(albedo)/dT and its time rate from explicit SI-timed numeric samples, without observational, forcing, calibration, threshold, or feedback interpretation",
       "known_gaps": [
-        "the finite-difference estimator uses only adjacent albedo/temperature samples and does not establish a statistically robust climate feedback estimate",
-        "ice extent is retained as context but is not used by the numerical sensitivity calculation",
-        "empirical use requires a separate provenance-preserving observation adapter for sea ice, albedo/radiation, and temperature",
-        "conversion from albedo sensitivity to radiative feedback requires an explicitly sourced radiative field matched to the albedo level and definition; this module supplies no forcing default",
-        "policy thresholds and tipping interpretations are outside this numerical primitive"
+        "the adjacent-sample finite difference is a numerical quantity, not a statistically robust or empirical climate feedback estimate",
+        "the kernel accepts no observational provenance; empirical adapters must bind source-backed values through the canonical observed-field provenance boundary before constructing numerical samples",
+        "the kernel owns no sea-ice extent, radiative forcing, process threshold, calibration, or uncertainty model",
+        "radiative feedback conversion requires a separately sourced radiative field matched to the declared albedo level, definition, aggregation, and time base",
+        "the temperature-increment degeneracy tolerance is explicit numerical policy rather than an empirical threshold"
       ]
     },
     {

@@ -24,7 +24,7 @@ Registered modules: **42**.
 | --- | --- | --- | --- | --- |
 | `canonical` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
 | `canonical` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
-| `canonical` | `src/feedback.rs` | `feedback_diagnostics` | `prototype` | no |
+| `canonical` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_sensitivity_numerics` | `prototype` | no |
 | `canonical` | `src/fortran/conservative_transport.f90` | `conservative_mass_tracer_transport` | `runnable` | no |
 | `canonical` | `src/fortran/coriolis_rotation.f90` | `coriolis_rotation_operator` | `runnable` | no |
 | `canonical` | `src/fortran/dry_thermodynamics.f90` | `dry_thermodynamics` | `runnable` | no |

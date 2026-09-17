@@ -5,7 +5,7 @@
 
 pub mod clifford;
 pub mod ebm_observation_geometry;
-pub mod feedback;
+pub mod albedo_temperature_sensitivity;
 pub mod geometry;
 pub mod inference;
 pub mod modal;
