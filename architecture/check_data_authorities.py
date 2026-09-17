@@ -41,8 +41,9 @@ EXTERNAL_FALLBACK_PATTERNS = (
     (
         "data_authority.external_fallback_constructor",
         re.compile(
-            r"\b(?:pub\s+)?(?:const\s+)?fn\s+"
-            r"(?:legacy_reference|default_reference|fallback)\s*\("
+            r"\b(?:(?:pub\s+)?(?:const\s+)?fn|def|subroutine|function)\s+"
+            r"(?:legacy_reference|default_reference|fallback)\s*\(",
+            re.IGNORECASE,
         ),
     ),
 )
