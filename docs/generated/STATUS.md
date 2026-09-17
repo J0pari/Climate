@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **37**.
+Registered modules: **38**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 26 |
+| `canonical` | 27 |
 | `reference` | 11 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 35 |
+| `runnable` | 36 |
 
 ### Canonical and reference modules
 
@@ -36,6 +36,7 @@ Registered modules: **37**.
 | `canonical` | `src/fortran/pressure_coordinate_grid.f90` | `pressure_coordinate_grid_contract` | `runnable` | no |
 | `canonical` | `src/fortran/pressure_coordinate_hydrostatics.f90` | `pressure_coordinate_hydrostatics` | `runnable` | no |
 | `canonical` | `src/fortran/pressure_energy_exchange.f90` | `pressure_coordinate_energy_exchange` | `runnable` | no |
+| `canonical` | `src/fortran/pressure_flux_coupling.f90` | `pressure_coordinate_mass_flux_coupling` | `runnable` | no |
 | `canonical` | `src/fortran/saturation_moisture.f90` | `saturation_moisture_composition` | `runnable` | no |
 | `canonical` | `src/fortran/saturation_vapor_pressure.f90` | `saturation_vapor_pressure` | `runnable` | no |
 | `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
