@@ -218,7 +218,7 @@ Prefer adding another generated field only when there is an existing authoritati
 
 Subject to failures discovered by CI, the current high-leverage set is:
 
-1. define and run the first small multirepresentation reference experiment on a dynamical system with known latent factor/common structure, comparing concatenation, linear fusion, and established nonlinear common-manifold methods before inventing a custom learner;
+1. use the physically grounded two-layer energy-balance reference as the next multirepresentation dynamics control: compare temperature-state, heat-flux, and fast/slow modal views; test whether candidate common/product coordinates preserve the known thermal timescales and global heat budget; keep established methods as baselines before inventing a custom learner;
 2. connect the canonical Fisher-information primitive and explicit-likelihood Amari reference to a candidate observation-induced metric, keeping state, parameter, and uncertainty geometry distinct;
 3. turn geometry reference/canonical agreement into derivative and coordinate metamorphic differential tests so candidate representation work rests on trustworthy geometry;
 4. define the next coupled atmospheric dynamics slice around energy/momentum/continuity-consistent interfaces rather than adding another isolated tendency kernel;
