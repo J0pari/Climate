@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+"""Observation-induced state and modal Fisher geometry for the two-layer EBM.
+
+The reference keeps three responsibilities separate:
+
+* the two-layer EBM owns the physical state, fluxes, and exact thermal modes;
+* the observation-control fixture owns declared synthetic noise scales;
+* NumPy supplies generic matrix algebra for an independent reference
+  implementation of the Gaussian-mean Fisher pullback.
+
+The synthetic noise magnitudes are structural controls, not calibrated observing
+system uncertainties.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import math
+from pathlib import Path
+import sys
+from typing import Any, Iterable
+
+ROOT = Path(__file__).resolve().parents[1]
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(ROOT))
+
+import numpy as np
+
+from reference.two_layer_energy_balance import (
+    DEFAULT_FIXTURE as DEFAULT_EBM_FIXTURE,
+    load_fixture as load_ebm_fixture,
+    mode_basis,
+    parameters_from_fixture,
+)
+
+
+DEFAULT_OBSERVATION_FIXTURE = (
+    ROOT / "fixtures" / "physics" / "two-layer-ebm-observation-control-v1.json"
+)
+
+OBSERVATION_SUBSETS: dict[str, tuple[str, ...]] = {
+    "surface_only": ("surface_temperature",),
+    "toa_only": ("toa_imbalance",),
+    "ocean_only": ("ocean_heat_uptake",),
+    "surface_plus_toa": ("surface_temperature", "toa_imbalance"),
+    "surface_plus_ocean": ("surface_temperature", "ocean_heat_uptake"),
+    "toa_plus_ocean": ("toa_imbalance", "ocean_heat_uptake"),
+    "all_channels": (
+        "surface_temperature",
+        "toa_imbalance",
+        "ocean_heat_uptake",
+    ),
+}
+
+
+def load_observation_fixture(path: Path = DEFAULT_OBSERVATION_FIXTURE) -> dict[str, Any]:
+    with Path(path).open(encoding="utf-8") as handle:
+        fixture = json.load(handle)
+    if fixture.get("schema_version") != 1:
+        raise ValueError("unsupported observation-control fixture schema_version")
+    if fixture.get("provenance", {}).get("kind") != "synthetic_structural_control":
+        raise ValueError("observation-control fixture must declare synthetic structural provenance")
+    channels = fixture.get("channels")
+    if not isinstance(channels, dict) or not channels:
+        raise ValueError("observation-control fixture must declare channels")
+    return fixture
+
+
+def _observation_row(
+    channel_id: str,
+    climate_feedback: float,
+    ocean_heat_exchange: float,
+) -> np.ndarray:
+    if channel_id == "surface_temperature":
+        return np.array([1.0, 0.0], dtype=float)
+    if channel_id == "toa_imbalance":
+        return np.array([-climate_feedback, 0.0], dtype=float)
+    if channel_id == "ocean_heat_uptake":
+        return np.array([ocean_heat_exchange, -ocean_heat_exchange], dtype=float)
+    raise ValueError(f"unknown two-layer observation channel: {channel_id}")
+
+
+def observation_jacobian(
+    ebm_fixture: dict[str, Any],
+    channel_ids: Iterable[str],
+) -> np.ndarray:
+    parameters = parameters_from_fixture(ebm_fixture)
+    ids = tuple(channel_ids)
+    if not ids:
+        raise ValueError("at least one observation channel is required")
+    rows = np.vstack(
+        [
+            _observation_row(
+                channel_id,
+                parameters.climate_feedback_w_m2_k,
+                parameters.ocean_heat_exchange_w_m2_k,
+            )
+            for channel_id in ids
+        ]
+    )
+    if not np.isfinite(rows).all():
+        raise RuntimeError("observation Jacobian became non-finite")
+    return rows
+
+
+def observation_noise_stddev(
+    observation_fixture: dict[str, Any],
+    channel_ids: Iterable[str],
+    *,
+    noise_multiplier: float = 1.0,
+) -> np.ndarray:
+    multiplier = float(noise_multiplier)
+    if not math.isfinite(multiplier) or multiplier <= 0.0:
+        raise ValueError("noise_multiplier must be finite and positive")
+    channels = observation_fixture["channels"]
+    values: list[float] = []
+    for channel_id in channel_ids:
+        if channel_id not in channels:
+            raise ValueError(f"missing observation-control channel: {channel_id}")
+        sigma = float(channels[channel_id]["standard_deviation"])
+        if not math.isfinite(sigma) or sigma <= 0.0:
+            raise ValueError(f"invalid standard deviation for channel {channel_id}")
+        values.append(multiplier * sigma)
+    return np.asarray(values, dtype=float)
+
+
+def gaussian_mean_fisher_reference(
+    mean_jacobian: np.ndarray,
+    observation_stddev: np.ndarray,
+) -> dict[str, Any]:
+    jacobian = np.asarray(mean_jacobian, dtype=float)
+    noise = np.asarray(observation_stddev, dtype=float)
+    if jacobian.ndim != 2 or jacobian.shape[0] == 0 or jacobian.shape[1] == 0:
+        raise ValueError("mean_jacobian must be a nonempty matrix")
+    if noise.shape != (jacobian.shape[0],):
+        raise ValueError("observation_stddev must match Jacobian rows")
+    if not np.isfinite(jacobian).all():
+        raise ValueError("mean_jacobian must be finite")
+    if not np.isfinite(noise).all() or np.any(noise <= 0.0):
+        raise ValueError("observation standard deviations must be finite and positive")
+
+    whitened = jacobian / noise[:, None]
+    fisher = whitened.T @ whitened
+    singular_values = np.linalg.svd(whitened, compute_uv=False)
+    tolerance = (
+        np.finfo(float).eps
+        * max(whitened.shape)
+        * float(singular_values[0])
+        if singular_values.size
+        else 0.0
+    )
+    rank = int(np.count_nonzero(singular_values > tolerance))
+    nullity = int(jacobian.shape[1] - rank)
+    condition_number = math.inf if nullity else float(np.linalg.cond(fisher))
+    return {
+        "fisher": fisher,
+        "whitened_jacobian": whitened,
+        "rank": rank,
+        "nullity": nullity,
+        "condition_number_2": condition_number,
+    }
+
+
+def _modal_diagnostics(fisher_state: np.ndarray, modal_basis: np.ndarray) -> dict[str, Any]:
+    modal = modal_basis.T @ fisher_state @ modal_basis
+    diagonal = np.diag(modal)
+    if np.any(diagonal < -1e-12):
+        raise RuntimeError("modal Fisher diagonal must be nonnegative")
+    fast_information = float(max(diagonal[0], 0.0))
+    slow_information = float(max(diagonal[1], 0.0))
+    denominator = math.sqrt(fast_information * slow_information)
+    coupling = 0.0 if denominator == 0.0 else float(modal[0, 1] / denominator)
+    return {
+        "fisher": modal,
+        "fast_mode_information": fast_information,
+        "slow_mode_information": slow_information,
+        "normalized_cross_mode_coupling": coupling,
+    }
+
+
+def analyze_observation_geometry(
+    ebm_fixture: dict[str, Any],
+    observation_fixture: dict[str, Any],
+    *,
+    noise_multiplier: float = 1.0,
+) -> dict[str, Any]:
+    if observation_fixture.get("ebm_fixture_id") != ebm_fixture.get("fixture_id"):
+        raise ValueError("observation-control fixture references a different EBM fixture")
+    parameters = parameters_from_fixture(ebm_fixture)
+    timescales, basis = mode_basis(parameters)
+    subsets: dict[str, Any] = {}
+
+    for subset_name, channel_ids in OBSERVATION_SUBSETS.items():
+        jacobian = observation_jacobian(ebm_fixture, channel_ids)
+        noise = observation_noise_stddev(
+            observation_fixture,
+            channel_ids,
+            noise_multiplier=noise_multiplier,
+        )
+        state = gaussian_mean_fisher_reference(jacobian, noise)
+        modal = _modal_diagnostics(state["fisher"], basis)
+        subsets[subset_name] = {
+            "channels": list(channel_ids),
+            "state_fisher": state["fisher"].tolist(),
+            "state_rank": state["rank"],
+            "state_nullity": state["nullity"],
+            "state_condition_number_2": state["condition_number_2"],
+            "modal_fisher": modal["fisher"].tolist(),
+            "fast_mode_information": modal["fast_mode_information"],
+            "slow_mode_information": modal["slow_mode_information"],
+            "normalized_cross_mode_coupling": modal[
+                "normalized_cross_mode_coupling"
+            ],
+        }
+
+    return {
+        "ebm_fixture_id": ebm_fixture["fixture_id"],
+        "observation_fixture_id": observation_fixture["fixture_id"],
+        "noise_multiplier": float(noise_multiplier),
+        "thermal_timescales_years": timescales.tolist(),
+        "modal_basis": basis.tolist(),
+        "subsets": subsets,
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ebm-fixture", type=Path, default=DEFAULT_EBM_FIXTURE)
+    parser.add_argument(
+        "--observation-fixture", type=Path, default=DEFAULT_OBSERVATION_FIXTURE
+    )
+    parser.add_argument("--noise-multiplier", type=float, default=1.0)
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+
+    result = analyze_observation_geometry(
+        load_ebm_fixture(args.ebm_fixture),
+        load_observation_fixture(args.observation_fixture),
+        noise_multiplier=args.noise_multiplier,
+    )
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    else:
+        for name, diagnostics in result["subsets"].items():
+            print(f"{name}: {diagnostics}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
