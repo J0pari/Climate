@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -46,6 +47,34 @@ def experiment(*, candidate="candidate", baseline="baseline", digest=None, citat
             "network": "none",
         },
     }
+
+
+def write_numerical_configuration(root: Path) -> tuple[dict, str]:
+    record = {
+        "configuration_id": "fixture.numerical.v1",
+        "semantic_version": "1.0.0",
+        "kind": "numerical_policy",
+        "owner": "fixture",
+        "provenance": "experiment_policy",
+        "settings": {"missing_result": "fail"},
+    }
+    path = root / "configurations" / "numerical" / "fixture.v1.json"
+    path.parent.mkdir(parents=True)
+    content = (json.dumps(record, indent=2) + "\n").encode()
+    path.write_bytes(content)
+    digest = "sha256:" + hashlib.sha256(content).hexdigest()
+    reference = {
+        **{key: record[key] for key in (
+            "configuration_id",
+            "semantic_version",
+            "kind",
+            "owner",
+            "provenance",
+        )},
+        "record_path": "configurations/numerical/fixture.v1.json",
+        "digest": digest,
+    }
+    return reference, digest
 
 
 class ExperimentIntegrityTests(unittest.TestCase):
@@ -130,6 +159,53 @@ class ExperimentIntegrityTests(unittest.TestCase):
                 {"experiments/x.json": spec},
             )
             self.assertEqual(findings, [])
+
+    def test_matching_configuration_reference_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reference, _ = write_numerical_configuration(root)
+            spec = experiment()
+            spec["configuration"] = {"numerical_policies": [reference]}
+            findings = check_experiments.check(
+                root,
+                self.registry(method("candidate"), method("baseline")),
+                {"experiments/x.json": spec},
+            )
+            self.assertEqual(findings, [])
+
+    def test_configuration_digest_mismatch_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reference, _ = write_numerical_configuration(root)
+            reference["digest"] = "sha256:" + "0" * 64
+            spec = experiment()
+            spec["configuration"] = {"numerical_policies": [reference]}
+            findings = check_experiments.check(
+                root,
+                self.registry(method("candidate"), method("baseline")),
+                {"experiments/x.json": spec},
+            )
+            self.assertIn(
+                "experiments.configuration_digest_mismatch",
+                {finding.code for finding in findings},
+            )
+
+    def test_configuration_identity_mismatch_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reference, _ = write_numerical_configuration(root)
+            reference["owner"] = "other.owner"
+            spec = experiment()
+            spec["configuration"] = {"numerical_policies": [reference]}
+            findings = check_experiments.check(
+                root,
+                self.registry(method("candidate"), method("baseline")),
+                {"experiments/x.json": spec},
+            )
+            self.assertIn(
+                "experiments.configuration_identity_mismatch",
+                {finding.code for finding in findings},
+            )
 
 
 if __name__ == "__main__":
