@@ -35,6 +35,20 @@ Candidates:
   hybrid physically constrained learned metric
 ```
 
+```text
+Question: How should multiple grounded climate representations be integrated?
+Candidates:
+  standardized raw concatenation
+  linear multiview fusion / CCA-family baseline
+  shared/common-manifold construction
+  product geometry with explicit factor metrics
+  state-dependent fibered geometry
+  graph/kernel fusion preserving non-Euclidean views
+  learned joint representation constrained by physical and information-geometric structure
+```
+
+The last question is not equivalent to choosing one winning representation. Different views may remain useful as factors, charts, fibers, observation maps, constraints, or comparison geometries. Experiments should therefore test both *which representation is useful* and *which relationship among representations is scientifically warranted*.
+
 Architecture may define the interface and admissibility constraints; experiment evidence chooses among alternatives for a declared task/domain.
 
 ## 2. `ExperimentSpec` principles
@@ -122,6 +136,7 @@ PCA/EOF
 DMD
 Fisher method
 geometric metric
+multirepresentation geometry
 ultrametric
 sheaf method
 ...
@@ -160,6 +175,21 @@ Compare:
 - random positive-definite metric matched for scale.
 
 If curvature signals disappear under small arbitrary rescalings, that is evidence against robust interpretation.
+
+### multirepresentation climate state
+
+Compare:
+
+- the full set of declared representation maps;
+- each representation alone;
+- leave-one-representation-out variants;
+- raw concatenation with matched total dimension;
+- linear shared-subspace baselines;
+- product geometry with cross terms removed;
+- shuffled or mismatched cross-view correspondences;
+- the same learner with physical/information-geometric constraints removed.
+
+A gain that survives only because one high-capacity view dominates does not establish that the joint manifold structure is useful. Cross-representation terms should earn their place by improving dynamics, information preservation, physical consistency, or another declared scientific objective.
 
 ### sheaf consistency
 
@@ -201,6 +231,7 @@ Examples:
 - known bifurcation with critical slowing down;
 - known hierarchical dependency graph;
 - manifold with known curvature;
+- multiview dynamical system with known shared, product, or fibered latent structure;
 - station network with injected overlap inconsistency;
 - oscillator system with controlled resonance;
 - parameterized model with known Fisher information/identifiability.
@@ -317,9 +348,10 @@ Commons can own run identity, scheduling, resources, causation/correlation, and 
 Once infrastructure exists, prioritize experiments that simultaneously validate the research machinery and answer high-information questions:
 
 1. **Geometry correctness** — known-curvature manifolds plus coordinate/scaling invariance tests before climate interpretation.
-2. **Early-warning discrimination** — conventional indicators versus geometric candidates over tipping/non-tipping synthetic controls.
-3. **Teleconnection representation** — p-adic/ultrametric candidates versus correlation/spectral/graph baselines on held-out teleconnection targets.
-4. **Station consistency** — actual sheaf/cohomology implementation versus ordinary QC/graph residual baselines with injected faults.
-5. **Information-geometry optimization** — natural gradient versus standard optimizers on a small, explicit climate likelihood with known synthetic parameters and held-out observations.
+2. **Multirepresentation geometry** — synthetic coupled dynamical systems with known shared/product/fibered latent structure, observed through several nonlinear views; compare raw concatenation, linear multiview baselines, established common-manifold methods, and physically constrained factorizations before inventing a bespoke learner.
+3. **Early-warning discrimination** — conventional indicators versus geometric candidates over tipping/non-tipping synthetic controls.
+4. **Teleconnection representation** — p-adic/ultrametric candidates versus correlation/spectral/graph baselines on held-out teleconnection targets.
+5. **Station consistency** — actual sheaf/cohomology implementation versus ordinary QC/graph residual baselines with injected faults.
+6. **Information-geometry optimization** — natural gradient versus standard optimizers on a small, explicit climate likelihood with known synthetic parameters and held-out observations.
 
-These are preferable to immediately coupling every experimental method into one large simulation because they provide clean falsification and localize errors.
+The local tests remain valuable because they isolate mathematical and numerical failure modes before broad integration. They are not a reason to keep scientifically related representations permanently isolated: once the constituent maps are trustworthy enough, integrated experiments should test whether their joint geometry captures climate dynamics, information, and physical structure that the separate views or simpler fusion baselines miss.
