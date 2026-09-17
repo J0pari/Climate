@@ -6,7 +6,7 @@ Climate is a heterogeneous research system: formal mathematics, portable numeric
 
 Objective repository state is generated from the live registries at [`docs/generated/STATUS.md`](generated/STATUS.md). Do not duplicate module counts, claim maturity tables, experiment lists, or sheaf-obligation counts here. `python architecture/render_status.py --check` makes that projection a drift-checked CI surface.
 
-`docs/EXECUTION-TOPOLOGY.md` defines resource classes. `AGENTS.md` defines binding correctness and evidence rules. If narrative planning conflicts with executable checks or machine-readable authorities, the executable/machine-readable state wins and this document must be updated.
+`docs/EXECUTION-TOPOLOGY.md` defines resource classes. `AGENTS.md` defines binding correctness and evidence rules. Machine-readable authorities and executable checks are authoritative for the objective present-state facts they own; architectural intent, scientific interpretation, and priority remain curated in their designated documents. A mismatch across those scopes is a defect to reconcile, not permission for one class of authority to silently overwrite another.
 
 ## 1. Work-selection rule
 
@@ -100,7 +100,7 @@ Numerical obligations include:
 - explicit candidate metric construction separated from generic tensor machinery;
 - reference experiments for common/product/fiber geometry on systems with known latent structure;
 - dynamical tests of candidate coordinates using known evolution laws before climate interpretation;
-- CPU/GPU stage-by-stage differential verification once an actual CUDA device is available.
+- CPU/GPU stage-by-stage differential verification once an actual CUDA device is available and an accelerated geometry workload has been justified.
 
 No curvature-to-tipping probability/timescale mapping is eligible merely because tensor calculations are correct, and reduced scalar curvature is not a sufficient criterion for accepting a representation or latent dimension.
 
@@ -169,12 +169,14 @@ Every experiment needs positive controls, negative controls, ablations, a primar
 
 ### CUDA / accelerator (`R3`)
 
-Do now in CPU/CI:
+Do not select an accelerator subsystem merely because a method is mathematically elaborate. First establish a scientifically useful workload and a demonstrated computational bottleneck.
+
+Once an accelerated workload is justified, prepare on CPU/CI:
 
 - immutable fixtures and reference outputs;
 - explicit layouts/precision/determinism contracts;
 - stage-level differential tolerances;
-- candidate-batch isolation tests;
+- isolation tests for batching or shared workspaces where those semantics exist;
 - resource-envelope hypotheses clearly labeled as estimates.
 
 Do only on a real CUDA device:
