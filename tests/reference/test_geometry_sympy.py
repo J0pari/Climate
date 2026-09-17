@@ -35,6 +35,57 @@ class GeometryReferenceTests(unittest.TestCase):
         self.assertTrue(all_components_zero(result.ricci))
         self.assertEqual(sp.simplify(result.scalar_curvature), 0)
 
+    def test_nonlinear_flat_map_requires_inhomogeneous_connection_term(self):
+        fixture = self.fixtures["flat.quadratic_shear.2d"]
+        result = compute_fixture(fixture)
+        u, v = result.coordinates
+
+        old_coordinates = sp.Matrix([u, v + sp.Rational(1, 2) * u**2])
+        jacobian_old_from_new = old_coordinates.jacobian((u, v))
+        transformed_metric = sp.simplify(
+            jacobian_old_from_new.T * sp.eye(2) * jacobian_old_from_new
+        )
+        self.assertTrue(all_components_zero(transformed_metric - result.metric))
+
+        jacobian_new_from_old = sp.simplify(jacobian_old_from_new.inv())
+        transformed_connection = [
+            [[sp.S.Zero for _ in range(2)] for _ in range(2)]
+            for _ in range(2)
+        ]
+        for upper in range(2):
+            for lower_a in range(2):
+                for lower_b in range(2):
+                    value = sp.S.Zero
+                    for old_coordinate in range(2):
+                        value += (
+                            jacobian_new_from_old[upper, old_coordinate]
+                            * sp.diff(
+                                old_coordinates[old_coordinate],
+                                (u, v)[lower_a],
+                                (u, v)[lower_b],
+                            )
+                        )
+                    transformed_connection[upper][lower_a][lower_b] = sp.simplify(value)
+                    self.assertEqual(
+                        sp.simplify(
+                            result.christoffel[upper][lower_a][lower_b] - value
+                        ),
+                        0,
+                    )
+
+        self.assertEqual(transformed_connection[1][0][0], 1)
+        # The homogeneous tensor-like part is exactly zero because the source
+        # Cartesian connection is zero.  Omitting the inhomogeneous second-
+        # derivative term therefore predicts zero and is an exact negative control.
+        homogeneous_only_v_uu = sp.S.Zero
+        self.assertNotEqual(
+            sp.simplify(result.christoffel[1][0][0] - homogeneous_only_v_uu),
+            0,
+        )
+        self.assertTrue(all_components_zero(result.riemann))
+        self.assertTrue(all_components_zero(result.ricci))
+        self.assertEqual(sp.simplify(result.scalar_curvature), 0)
+
     def test_radius_two_sphere_has_expected_positive_curvature(self):
         result = compute_fixture(self.fixtures["sphere.radius2.2d"])
         self.assertEqual(sp.simplify(result.scalar_curvature), sp.Rational(1, 2))
