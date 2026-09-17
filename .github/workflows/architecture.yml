@@ -26,6 +26,8 @@ jobs:
         run: python architecture/check_experiments.py
       - name: Sheaf realization integrity
         run: python architecture/check_sheaf_realization.py
+      - name: Durable documentation and comment semantics
+        run: python architecture/check_durable_text.py
       - name: Legacy source audit
         run: python architecture/source_gates.py --summary
       - name: Static repository inspection
