@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "fixture_id": "physics.two_layer_ebm.geoffroy_mean.v1",
+  "description": "Standard linear two-layer global-mean energy-balance model using CMIP5 multimodel-mean thermal parameters reported from Geoffroy et al. (2013). This is a physically grounded reference system, not a calibrated prediction for the real climate trajectory.",
+  "model": {
+    "surface_equation": "C_surface*dT_surface/dt = forcing - lambda*T_surface - gamma*(T_surface - T_deep)",
+    "deep_equation": "C_deep*dT_deep/dt = gamma*(T_surface - T_deep)",
+    "toa_imbalance": "forcing - lambda*T_surface",
+    "ocean_heat_uptake": "gamma*(T_surface - T_deep)",
+    "total_heat_content": "C_surface*T_surface + C_deep*T_deep"
+  },
+  "parameters": {
+    "surface_heat_capacity_w_yr_m2_k": 7.3,
+    "deep_heat_capacity_w_yr_m2_k": 106.0,
+    "ocean_heat_exchange_w_m2_k": 0.73,
+    "climate_feedback_w_m2_k": 1.13
+  },
+  "parameter_provenance": {
+    "kind": "literature_fixed",
+    "interpretation": "CMIP5 multimodel-mean parameters for a standard two-layer EBM; values are used as a reference fixture rather than re-estimated here",
+    "citation": "Geoffroy et al. (2013), Journal of Climate 26, 1841-1857, doi:10.1175/JCLI-D-12-00195.1"
+  },
+  "forcing": {
+    "type": "unit_step",
+    "magnitude_w_m2": 1.0,
+    "interpretation": "unit-response normalization; not identified with a particular historical or greenhouse-gas forcing"
+  },
+  "initial_state": {
+    "surface_temperature_anomaly_k": 0.0,
+    "deep_temperature_anomaly_k": 0.0
+  }
+}
