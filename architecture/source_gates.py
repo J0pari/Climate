@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if __package__ in {None, ""}:
     sys.path.insert(0, str(ROOT))
 
-from architecture import source_surface
+from architecture import check_durable_text, source_surface
 
 
 @dataclass(frozen=True)
@@ -220,6 +220,27 @@ def gate_interpretive_probability(files: dict[str, list[str]]) -> list[Finding]:
     return findings
 
 
+def gate_change_narration(files: dict[str, list[str]]) -> list[Finding]:
+    """Inventory source comments/text that narrate edits instead of semantics.
+
+    The pattern authority is shared with the binding durable-text checker. This
+    audit extends visibility to legacy scientific source without making known
+    legacy debt block every unrelated change.
+    """
+    findings: list[Finding] = []
+    for path, lines in files.items():
+        text = "\n".join(lines)
+        for durable_finding in check_durable_text.findings_for_text(path, text):
+            findings.append(Finding(
+                "change_narration",
+                path,
+                durable_finding.line,
+                "edit/change narration belongs in commit history rather than durable source text",
+                durable_finding.text,
+            ))
+    return findings
+
+
 Gate = Callable[[dict[str, list[str]]], list[Finding]]
 GATES: tuple[Gate, ...] = (
     gate_managed_memory,
@@ -228,6 +249,7 @@ GATES: tuple[Gate, ...] = (
     gate_placeholder_inventory,
     gate_ambient_rng,
     gate_interpretive_probability,
+    gate_change_narration,
 )
 
 
