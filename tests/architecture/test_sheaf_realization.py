@@ -53,14 +53,23 @@ class SheafRealizationGuardTests(unittest.TestCase):
         self.assertTrue(any("does not exist" in error for error in errors), errors)
 
     def test_open_structural_obligation_blocks_verified_claim_maturity(self):
+        ledger = copy.deepcopy(BASE_LEDGER)
+        obligation = next(
+            item
+            for item in ledger["obligations"]
+            if item["obligation_id"] in module.STRUCTURAL_OBLIGATIONS
+        )
+        obligation["status"] = "open"
+        obligation["witnesses"] = []
+
         claims = copy.deepcopy(BASE_CLAIMS)
         claim = next(
             item
             for item in claims["claims"]
-            if item["claim_id"] == BASE_LEDGER["method_id"]
+            if item["claim_id"] == ledger["method_id"]
         )
         claim["maturity"] = "verified"
-        errors = module.validate_ledger(BASE_LEDGER, claims, ROOT)
+        errors = module.validate_ledger(ledger, claims, ROOT)
         self.assertTrue(any("maturity exceeds" in error for error in errors), errors)
 
 
