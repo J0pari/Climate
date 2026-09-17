@@ -1,5 +1,11 @@
 program test_pressure_thermo_composition
     use, intrinsic :: iso_fortran_env, only: real64, error_unit
+    use climate_thermodynamic_reference_values, only: &
+        REFERENCE_PRESSURE_PA, DRY_AIR_GAS_CONSTANT_J_KG_K, &
+        DRY_AIR_HEAT_CAPACITY_CP_J_KG_K, WATER_VAPOR_GAS_CONSTANT_J_KG_K, &
+        THERMODYNAMIC_REFERENCE_SET_ID
+    use climate_geophysical_reference_values, only: &
+        STANDARD_GRAVITY_M_S2, GEOPHYSICAL_REFERENCE_SET_ID
     use climate_dry_thermodynamics, only: &
         dry_thermo_parameters, compute_dry_air_density, &
         compute_isothermal_hydrostatic_thickness, THERMO_OK
@@ -13,6 +19,7 @@ program test_pressure_thermo_composition
     integer, parameter :: dp = real64
 
     call test_default_parameter_authority_is_composable()
+    call test_parameter_overrides_are_kernel_local()
     call test_zero_vapor_density_matches_dry_density()
     call test_isothermal_hydrostatic_thickness_matches_pressure_kernel()
 
@@ -27,15 +34,56 @@ contains
         moist = moist_vapor_parameters()
         hydro = hydrostatic_parameters()
 
-        call assert_close(dry%gas_constant_j_kg_k, &
-            moist%dry_air_gas_constant_j_kg_k, 0.0_dp, &
-            'dry-air gas constant agrees across default parameter sets')
-        call assert_close(dry%gas_constant_j_kg_k, &
-            hydro%dry_air_gas_constant_j_kg_k, 0.0_dp, &
-            'hydrostatic gas constant agrees with dry thermodynamics')
-        call assert_close(dry%gravity_m_s2, hydro%gravity_m_s2, 0.0_dp, &
-            'gravity agrees across default parameter sets')
+        if (len_trim(THERMODYNAMIC_REFERENCE_SET_ID) == 0 .or. &
+            len_trim(GEOPHYSICAL_REFERENCE_SET_ID) == 0) then
+            write(error_unit, '(A)') 'reference-value authorities require stable identifiers'
+            error stop 1
+        end if
+
+        call assert_close(dry%reference_pressure_pa, REFERENCE_PRESSURE_PA, 0.0_dp, &
+            'dry reference pressure comes from thermodynamic authority')
+        call assert_close(dry%gas_constant_j_kg_k, DRY_AIR_GAS_CONSTANT_J_KG_K, 0.0_dp, &
+            'dry gas constant comes from thermodynamic authority')
+        call assert_close(dry%heat_capacity_cp_j_kg_k, &
+            DRY_AIR_HEAT_CAPACITY_CP_J_KG_K, 0.0_dp, &
+            'dry heat capacity comes from thermodynamic authority')
+        call assert_close(moist%dry_air_gas_constant_j_kg_k, &
+            DRY_AIR_GAS_CONSTANT_J_KG_K, 0.0_dp, &
+            'moist dry-air gas constant comes from thermodynamic authority')
+        call assert_close(moist%water_vapor_gas_constant_j_kg_k, &
+            WATER_VAPOR_GAS_CONSTANT_J_KG_K, 0.0_dp, &
+            'water-vapor gas constant comes from thermodynamic authority')
+        call assert_close(hydro%dry_air_gas_constant_j_kg_k, &
+            DRY_AIR_GAS_CONSTANT_J_KG_K, 0.0_dp, &
+            'hydrostatic gas constant comes from thermodynamic authority')
+        call assert_close(dry%gravity_m_s2, STANDARD_GRAVITY_M_S2, 0.0_dp, &
+            'dry gravity comes from geophysical authority')
+        call assert_close(hydro%gravity_m_s2, STANDARD_GRAVITY_M_S2, 0.0_dp, &
+            'hydrostatic gravity comes from geophysical authority')
     end subroutine test_default_parameter_authority_is_composable
+
+
+    subroutine test_parameter_overrides_are_kernel_local()
+        type(dry_thermo_parameters) :: dry
+        type(moist_vapor_parameters) :: moist
+        type(hydrostatic_parameters) :: hydro
+
+        dry = dry_thermo_parameters()
+        moist = moist_vapor_parameters()
+        hydro = hydrostatic_parameters()
+
+        dry%gas_constant_j_kg_k = 300.0_dp
+        hydro%gravity_m_s2 = 9.7_dp
+
+        call assert_close(moist%dry_air_gas_constant_j_kg_k, &
+            DRY_AIR_GAS_CONSTANT_J_KG_K, 0.0_dp, &
+            'dry override does not mutate moist parameters')
+        call assert_close(hydro%dry_air_gas_constant_j_kg_k, &
+            DRY_AIR_GAS_CONSTANT_J_KG_K, 0.0_dp, &
+            'dry override does not mutate hydrostatic parameters')
+        call assert_close(dry%gravity_m_s2, STANDARD_GRAVITY_M_S2, 0.0_dp, &
+            'hydrostatic override does not mutate dry parameters')
+    end subroutine test_parameter_overrides_are_kernel_local
 
 
     subroutine test_zero_vapor_density_matches_dry_density()
