@@ -18,6 +18,13 @@ package climate
 #ClaimType: "software" | "numerical" | "physical" | "statistical" | "predictive" | "causal" | "interpretive" | "performance" | "resource" | "interoperability"
 #ConfigurationKind: "kernel_parameters" | "numerical_policy" | "data_policy" | "execution_policy"
 #ConfigurationProvenance: "explicit" | "literature_fixed" | "calibrated" | "learned" | "experiment_policy"
+
+#ConfigurationAuthorityRef: {
+	source_id: #Id
+	// Stable provider, publication, calibration-artifact, or model identity.
+	identity: string & !=""
+	digest?: #Sha256
+}
 #ExecutionClass: "R0_static" | "R1_portable_cpu" | "R2_toolchain_ci" | "R3_cuda_device" | "R4_integrated_system" | "R5_large_data"
 #ExecutionFailureClass: "capability_unavailable" | "required_input_missing" | "configuration_invalid" | "implementation_unavailable" | "implementation_substituted" | "backend_mismatch" | "precision_mismatch" | "resource_mismatch" | "dataset_mismatch" | "undeclared_default"
 
@@ -40,7 +47,18 @@ package climate
 	kind:              #ConfigurationKind
 	owner:             #Id
 	provenance:        #ConfigurationProvenance
+	authority_refs?:   [...#ConfigurationAuthorityRef]
 	settings:          {...}
+
+	if provenance == "literature_fixed" {
+		authority_refs: [_, ...]
+	}
+	if provenance == "calibrated" {
+		authority_refs: [_, ...]
+	}
+	if provenance == "learned" {
+		authority_refs: [_, ...]
+	}
 }
 
 #ConfigurationRef: {
