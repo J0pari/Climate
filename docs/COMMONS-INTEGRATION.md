@@ -1,6 +1,6 @@
 # Commons integration contract
 
-Status: **interface specification**. Climate is currently expected to be registered by Commons as `experimental` and `observe` only.
+Status: **interface specification**. The default integration posture is `observe` only until the gates in this document are satisfied.
 
 The purpose of this interface is to let Commons coordinate Climate without owning Climate's scientific semantics or silently upgrading the strength of its evidence.
 
@@ -56,16 +56,17 @@ No repository writes, remote pushes, secret access, or unrestricted network acce
 
 ### `write`
 
-Commons may create controlled branches/commits/PRs only after:
+Commons may alter the repository only after:
 
 - the repository has a binding contract;
 - the relevant execution gates are reproducible;
 - receipts/artifacts are immutable and attributable;
 - write scope is explicit;
 - protected paths/actions are defined;
-- rollback/recovery policy exists.
+- rollback/recovery policy exists;
+- the write path conforms to `AGENTS.md`, including the direct-`main`, small-coherent-commit, no-history-rewrite policy.
 
-Direct writes to the default branch should not be the initial mode.
+Climate does not use feature branches or PR staging as its repository-write mechanism. If Commons cannot satisfy the direct-`main` policy safely and explicitly, it remains at `read` rather than introducing a conflicting branch workflow.
 
 ## 3. Required Climate-facing descriptors
 
@@ -293,10 +294,11 @@ The first implemented entrypoint should likely be `inspect`: report repository/b
 
 ### Gate E — write capable
 
-- branch/PR write policy exists;
-- write operations are causally linked to a work order/experiment/issue;
+- direct-`main` write policy and authorization are explicit;
+- every write is a small coherent commit causally linked to a work order/experiment/issue;
+- the target file is re-read from current `main` immediately before writing;
 - post-write gates run and are receipted;
-- rollback is possible;
+- rollback uses new commits rather than history rewriting;
 - write authority is least-privilege.
 
 ## 12. What Commons must not do
