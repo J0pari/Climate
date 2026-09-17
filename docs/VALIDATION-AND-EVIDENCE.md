@@ -134,32 +134,33 @@ interoperability
 
 Scientific prose that asserts or materially strengthens a registered claim should be consistent with the claim's recorded maturity and evidence. If the required evidence is absent, documentation must use hypothesis/prototype language rather than established-fact language.
 
-## 3. Placeholder, fallback-provenance, and heuristic controls
+## 3. Placeholder, provenance, and substitution controls
 
 Important implementation paths and parameters must distinguish:
 
 ```text
 placeholder      = intentionally incomplete implementation
-fallback         = explicitly declared alternate data/parameter provenance when the preferred source is unavailable
 heuristic        = deliberately approximate rule without derived/estimated guarantee
 calibrated       = parameter estimated against named data/procedure
 literature_fixed = value adopted from a cited source under a declared interpretation
 learned          = fit by a recorded training/calibration procedure
+experiment_policy = caller-declared policy used for a particular experiment
 ```
 
-Important parameters should carry provenance of this sort whenever their origin affects scientific interpretation or reproducibility.
+Important parameters carry provenance whenever their origin affects scientific interpretation or reproducibility. A nonlocal provenance label such as `literature_fixed`, `calibrated`, or `learned` is incomplete without a resolvable authority identity.
 
-Execution-time substitution is a different concern from fallback provenance. `#ExecutionResolution` in `contracts/climate.cue` makes an execution eligible only when the resolved method/implementation/build/backend/precision/resource-class identity is exactly the requested identity. If a requested capability is unavailable, execution is ineligible with a typed failure; CPU, alternate solver, reduced precision, compatibility shims, or other implementations must be requested separately rather than activated as runtime substitutes.
+Required data, parameters, and execution capabilities fail closed when unavailable. An alternate dataset, calibration, parameter set, solver, backend, or precision is a separately declared input or execution identity, not a runtime fallback. `#ExecutionResolution` in `contracts/climate.cue` makes an execution eligible only when the resolved method/implementation/build/backend/precision/resource-class identity is exactly the requested identity.
 
 CI and evidence tooling should be able to answer:
 
 - Does a decision-eligible path contain a placeholder?
 - Did an execution become ineligible because a requested capability could not be satisfied?
-- Did explicitly declared fallback data/parameter provenance enter a validation path?
-- Are default values standing in for missing observations?
-- Did an allegedly calibrated result actually use the declared calibration artifact?
+- Did required external data or parameters become unavailable, and did the path fail closed?
+- Did any alternate dataset, calibration, or parameter set enter without a separately declared identity?
+- Are default values standing in for missing observations or omitted physical choices?
+- Did an allegedly calibrated result actually resolve the declared calibration authority?
 
-Fallback data/parameter provenance must remain explicit in experiment and run evidence. Execution substitution is invalid rather than merely something to record after the fact.
+Sensitivity studies may deliberately compare alternate data or parameter authorities, but each alternative is an explicit experiment input with its own provenance and immutable identity. Missing required authority is not evidence and is not replaced by a plausible local value.
 
 ## 4. Units, dimensions, coordinates, and calendars
 
