@@ -15,6 +15,30 @@
       "quality_control_policy": "exact_generated_fixture"
     }
   ],
+  "configuration": {
+    "numerical_policies": [
+      {
+        "configuration_id": "geometry.euclidean_sanity.numerical.v1",
+        "semantic_version": "1.0.0",
+        "kind": "numerical_policy",
+        "owner": "geometry.euclidean_sanity",
+        "provenance": "experiment_policy",
+        "record_path": "configurations/numerical/geometry-euclidean-sanity.v1.json",
+        "digest": "sha256:a4165ce3cfe1bdc4fc29a8c4f452d3d0f7f1af848211eba05eccf76b2a21f645"
+      }
+    ],
+    "execution_policies": [
+      {
+        "configuration_id": "execution.fail_closed.v1",
+        "semantic_version": "1.0.0",
+        "kind": "execution_policy",
+        "owner": "execution",
+        "provenance": "explicit",
+        "record_path": "configurations/execution/fail-closed.v1.json",
+        "digest": "sha256:fae1d35182d4023875b7c540f078127a322532a863bdb94b0c05673515652e55"
+      }
+    ]
+  },
   "primary_metrics": [
     {
       "metric_id": "geometry.scalar_curvature_abs_max",
