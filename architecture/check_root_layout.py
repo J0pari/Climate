@@ -9,12 +9,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from architecture import source_surface
-
 ROOT = Path(__file__).resolve().parents[1]
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(ROOT))
+
+from architecture import source_surface
 
 
 @dataclass(frozen=True)
