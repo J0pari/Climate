@@ -41,12 +41,7 @@ jobs:
       - name: Source audit
         run: python architecture/source_gates.py --summary
       - name: Static repository inspection
-        run: python architecture/inspect_repository.py --json | tee repository-inspection.json
-      - name: Upload repository inspection
-        uses: actions/upload-artifact@v4
-        with:
-          name: repository-inspection
-          path: repository-inspection.json
+        run: python architecture/inspect_repository.py --json
       - name: Install CUE
         run: go install cuelang.org/go/cmd/cue@v0.17.1
       - name: Vet research contract package
