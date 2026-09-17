@@ -22,6 +22,8 @@ jobs:
         run: python architecture/check_planning.py
       - name: Climate data authority integrity
         run: python architecture/check_data_authorities.py
+      - name: Workflow artifact persistence integrity
+        run: python architecture/check_workflow_artifacts.py
       - name: Offline climate data adapter fixtures
         run: python -m unittest discover -s tests/reference -p 'test_data_authority_adapters.py' -v
       - name: Generated planning roadmap is current
