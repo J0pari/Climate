@@ -1,0 +1,29 @@
+name: reference climate station sheaf
+
+on:
+  push:
+    paths:
+      - 'reference/station_temperature_sheaf.py'
+      - 'reference/ncei_ghcnd.py'
+      - 'reference/sheaf_cohomology.py'
+      - 'tests/reference/test_station_temperature_sheaf.py'
+      - 'fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json'
+      - 'requirements/reference-sheaf-climate.txt'
+      - '.github/workflows/reference-sheaf-climate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reference-station-sheaf:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install maintained numerical and geospatial libraries
+        run: python -m pip install --disable-pip-version-check -r requirements/reference-sheaf-climate.txt
+      - name: Run provider-backed station sheaf witnesses
+        run: python -m unittest tests.reference.test_station_temperature_sheaf -v
