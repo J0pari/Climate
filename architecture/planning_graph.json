@@ -386,12 +386,17 @@
       "status": "ready",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Define a climate-data cover, typed stalk contents, restrictions, identity/composition laws, coboundary, and compatibility semantics before interpreting cohomological diagnostics.",
-      "depends_on": [],
+      "summary": "Realize a climate-data sheaf over provider-backed station identities, coordinates, observations, and explicit geographic coverage semantics, with typed stalks/restrictions and falsification against simpler same-information baselines.",
+      "depends_on": [
+        "data.external_authority_audit",
+        "data.immutable_observational_projection"
+      ],
       "completion": [
         "Station or coverage rules generate a declared nerve and typed restriction maps.",
         "Restriction identity and composition have executable witnesses.",
-        "Injected-fault and withheld-data fixtures compare sheaf quantities against same-information residual, QC, graph, and interpolation baselines."
+        "Injected-fault and withheld-data fixtures compare sheaf quantities against same-information residual, QC, graph, and interpolation baselines.",
+        "Station identities, coordinates, and observations used by the climate-data sheaf come from registered external authorities with captured artifact identity; synthetic stations may be used only as explicitly synthetic controls.",
+        "Injected-fault and withheld-data experiments alter or mask captured source-backed observations explicitly rather than replacing unavailable real data with synthetic defaults."
       ]
     },
     {
