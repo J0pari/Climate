@@ -58,6 +58,10 @@ HISTORY_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
             re.IGNORECASE,
         ),
     ),
+    (
+        "provisional_for_now",
+        re.compile(r"\bfor\s+now\b", re.IGNORECASE),
+    ),
 )
 
 
