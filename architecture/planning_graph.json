@@ -243,7 +243,7 @@
         "Each externally owned item is bound to a primary authoritative dataset or API, or explicitly rejected with rationale; retrieval identity, version or time coverage, units, licensing or access constraints, and update semantics are recorded.",
         "At least one downloaded immutable dataset path and one live or versioned API path are exercised through provenance-preserving adapters with network-free CI fixtures.",
         "Values that remain local are justified as mathematical or reference constants, numerical policy, experiment policy, or caller-owned model parameters rather than silently acting as observational truth.",
-        "A usage marked current and externalized names a concrete implementation authority boundary and cannot coexist with implicit Default/fallback constructors on that canonical surface.",
+        "A usage marked current and externalized names a concrete implementation authority boundary, names an executable repository witness for that boundary, and cannot coexist with implicit Default/fallback constructors on that surface.",
         "Configuration records claiming literature-fixed, calibrated, or learned provenance resolve their authority references to the registered source authority rather than relying on provenance labels alone."
       ],
       "evidence": [
@@ -260,7 +260,8 @@
         "architecture/check_semantic_defaults.py",
         "tests/architecture/test_semantic_defaults.py",
         "architecture/check_configurations.py",
-        "tests/architecture/test_configurations.py"
+        "tests/architecture/test_configurations.py",
+        "tests/reference/test_ncei_ghcnd_projection.py"
       ]
     },
     {
