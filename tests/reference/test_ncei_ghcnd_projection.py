@@ -120,6 +120,12 @@ class NceiGhcndProjectionTests(unittest.TestCase):
         encoded_once = netcdf_bytes(dataset)
         encoded_twice = netcdf_bytes(dataset)
         self.assertEqual(encoded_once, encoded_twice)
+        import hashlib
+        self.assertEqual(len(encoded_once), PROJECTION_BYTES)
+        self.assertEqual(
+            "sha256:" + hashlib.sha256(encoded_once).hexdigest(),
+            PROJECTION_DIGEST,
+        )
 
         with open_netcdf_bytes(encoded_once) as reopened:
             self.assertEqual(reopened.attrs["projection_id"], PROJECTION_ID)
