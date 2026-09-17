@@ -6,18 +6,18 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **59**.
+Registered modules: **61**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 24 |
+| `canonical` | 26 |
 | `legacy` | 24 |
 | `reference` | 11 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 26 |
-| `runnable` | 33 |
+| `runnable` | 35 |
 
 ### Canonical and reference modules
 
@@ -29,6 +29,7 @@ Registered modules: **59**.
 | `canonical` | `src/fortran/conservative_transport.f90` | `conservative_mass_tracer_transport` | `runnable` | no |
 | `canonical` | `src/fortran/coriolis_rotation.f90` | `coriolis_rotation_operator` | `runnable` | no |
 | `canonical` | `src/fortran/dry_thermodynamics.f90` | `dry_thermodynamics` | `runnable` | no |
+| `canonical` | `src/fortran/geophysical_reference_values.f90` | `geophysical_reference_values` | `runnable` | no |
 | `canonical` | `src/fortran/lapack_tridiagonal.f90` | `lapack_tridiagonal_backend` | `runnable` | no |
 | `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
 | `canonical` | `src/fortran/moist_vapor_algebra.f90` | `moist_vapor_algebra` | `runnable` | no |
@@ -39,6 +40,7 @@ Registered modules: **59**.
 | `canonical` | `src/fortran/saturation_moisture.f90` | `saturation_moisture_composition` | `runnable` | no |
 | `canonical` | `src/fortran/saturation_vapor_pressure.f90` | `saturation_vapor_pressure` | `runnable` | no |
 | `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
+| `canonical` | `src/fortran/thermodynamic_reference_values.f90` | `thermodynamic_reference_values` | `runnable` | no |
 | `canonical` | `src/fortran/time_integration.f90` | `time_integration_reference` | `runnable` | no |
 | `canonical` | `src/fortran/vertical_diffusion.f90` | `vertical_diffusion_operator` | `runnable` | no |
 | `canonical` | `src/geometry.rs` | `riemannian_geometry_reference` | `runnable` | no |
