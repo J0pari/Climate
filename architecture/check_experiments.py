@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Cross-record integrity checks for Climate experiment specifications.
 
-CUE validates the shape of an ExperimentSpec. This module validates graph edges
-that CUE deliberately does not resolve across repository files: method IDs,
-local fixture digests, and resource compatibility.
+CUE validates record shape. This module validates graph edges that CUE does not
+resolve across repository files: method IDs, local fixture/configuration digests,
+configuration ownership metadata, and resource compatibility.
 
 The checker does not execute scientific methods.
 """
@@ -18,6 +18,19 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 EXPERIMENTS_DIR = ROOT / "experiments"
 METHODS_REGISTRY = ROOT / "methods" / "registry.json"
+CONFIGURATION_GROUPS = {
+    "kernel_parameters": ("kernel_parameters", "configurations/kernel/"),
+    "numerical_policies": ("numerical_policy", "configurations/numerical/"),
+    "data_policies": ("data_policy", "configurations/data/"),
+    "execution_policies": ("execution_policy", "configurations/execution/"),
+}
+CONFIGURATION_IDENTITY_FIELDS = (
+    "configuration_id",
+    "semantic_version",
+    "kind",
+    "owner",
+    "provenance",
+)
 
 
 @dataclass(frozen=True)
@@ -53,6 +66,103 @@ def _resource_number(resource: dict[str, Any] | None, key: str) -> float:
         return 0.0
     value = resource.get(key, 0)
     return float(value) if isinstance(value, (int, float)) else 0.0
+
+
+def _check_configuration_refs(
+    root: Path,
+    rel_path: str,
+    experiment: dict[str, Any],
+) -> list[Finding]:
+    findings: list[Finding] = []
+    configuration = experiment.get("configuration")
+    if not isinstance(configuration, dict):
+        return findings
+
+    seen_ids: dict[str, str] = {}
+    resolved_root = root.resolve()
+    for group, (expected_kind, expected_prefix) in CONFIGURATION_GROUPS.items():
+        for reference in configuration.get(group, []) or []:
+            if not isinstance(reference, dict):
+                continue
+
+            configuration_id = reference.get("configuration_id")
+            if isinstance(configuration_id, str) and configuration_id:
+                if configuration_id in seen_ids:
+                    findings.append(Finding(
+                        "experiments.configuration_duplicate",
+                        rel_path,
+                        f"configuration_id {configuration_id!r} appears in both {seen_ids[configuration_id]} and {group}",
+                    ))
+                else:
+                    seen_ids[configuration_id] = group
+
+            record_path = reference.get("record_path")
+            if not isinstance(record_path, str) or not record_path:
+                continue
+            if not record_path.startswith(expected_prefix):
+                findings.append(Finding(
+                    "experiments.configuration_layer_mismatch",
+                    rel_path,
+                    f"{group} reference {record_path!r} must live under {expected_prefix}",
+                ))
+
+            local_path = (root / record_path).resolve()
+            try:
+                local_path.relative_to(resolved_root)
+            except ValueError:
+                findings.append(Finding(
+                    "experiments.configuration_path_escape",
+                    rel_path,
+                    f"configuration record escapes repository root: {record_path}",
+                ))
+                continue
+            if not local_path.is_file():
+                findings.append(Finding(
+                    "experiments.configuration_missing",
+                    rel_path,
+                    f"configuration record does not exist: {record_path}",
+                ))
+                continue
+
+            expected_digest = reference.get("digest")
+            actual_digest = sha256_file(local_path)
+            if expected_digest != actual_digest:
+                findings.append(Finding(
+                    "experiments.configuration_digest_mismatch",
+                    rel_path,
+                    f"digest for {record_path} is {expected_digest!r}, actual {actual_digest!r}",
+                ))
+
+            try:
+                record = load_json(local_path)
+            except (OSError, json.JSONDecodeError) as error:
+                findings.append(Finding(
+                    "experiments.configuration_record_invalid",
+                    rel_path,
+                    f"cannot read configuration record {record_path}: {error}",
+                ))
+                continue
+
+            if record.get("kind") != expected_kind:
+                findings.append(Finding(
+                    "experiments.configuration_layer_mismatch",
+                    rel_path,
+                    f"configuration record {record_path} declares kind {record.get('kind')!r}, expected {expected_kind!r}",
+                ))
+
+            mismatched = [
+                field
+                for field in CONFIGURATION_IDENTITY_FIELDS
+                if reference.get(field) != record.get(field)
+            ]
+            if mismatched:
+                findings.append(Finding(
+                    "experiments.configuration_identity_mismatch",
+                    rel_path,
+                    f"configuration reference disagrees with {record_path} on: {', '.join(mismatched)}",
+                ))
+
+    return findings
 
 
 def check_experiment(
@@ -162,6 +272,7 @@ def check_experiment(
                 f"digest for {citation} is {expected_digest!r}, actual {actual_digest!r}",
             ))
 
+    findings.extend(_check_configuration_refs(root, rel_path, experiment))
     return findings
 
 
