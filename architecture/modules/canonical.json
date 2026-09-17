@@ -396,12 +396,12 @@
       "language": "fortran",
       "maturity": "runnable",
       "evidence_eligible": false,
-      "intended_role": "canonical geometric-height finite-volume diffusion operator with explicit nonuniform layer geometry, face diffusivity, boundary-condition semantics, conservation diagnostics, and solver-independent tridiagonal bands",
+      "intended_role": "canonical geometric-height finite-volume diffusion operator with explicit nonuniform layer geometry, face diffusivity, caller-declared boundary-condition semantics, conservation diagnostics, and solver-independent tridiagonal bands",
       "known_gaps": [
         "this operator is explicitly geometric-height based and must not be reused for pressure, sigma, hybrid, or mass coordinates without the corresponding metric and mass factors",
         "face diffusivities and their provenance remain caller-owned scientific inputs",
         "transported-variable thermodynamic weights such as density or heat capacity are not silently assumed and require a distinct physically specified operator when needed",
-        "the current boundary set covers zero flux, prescribed upward flux, and prescribed value only",
+        "boundary conditions are required caller choices; zero flux, prescribed upward flux, and prescribed value are supported but none is an implicit default",
         "operator correctness does not validate any climate closure, timestep, or diffusivity parameterization"
       ]
     }
