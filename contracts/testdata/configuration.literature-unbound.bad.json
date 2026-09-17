@@ -1,0 +1,10 @@
+{
+  "configuration_id": "physics.unbound_literature_fixture.v1",
+  "semantic_version": "1.0.0",
+  "kind": "kernel_parameters",
+  "owner": "physics.fixture",
+  "provenance": "literature_fixed",
+  "settings": {
+    "fixture_role": "schema_witness"
+  }
+}
