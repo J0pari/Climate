@@ -1,0 +1,12 @@
+{
+  "configuration_id": "geometry.euclidean_sanity.numerical.v1",
+  "semantic_version": "1.0.0",
+  "kind": "numerical_policy",
+  "owner": "geometry.euclidean_sanity",
+  "provenance": "experiment_policy",
+  "settings": {
+    "missing_result": "fail",
+    "nonfinite_result": "fail",
+    "comparison_basis": "declared_metric_contract"
+  }
+}
