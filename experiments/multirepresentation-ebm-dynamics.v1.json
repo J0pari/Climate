@@ -1,8 +1,8 @@
 {
   "experiment_id": "multirepresentation.ebm_dynamics.v1",
-  "semantic_version": "0.1.0",
-  "question": "Which representations of the same two-layer climate energy-balance state preserve both physical thermal modes under data-driven dynamics identification, and what is lost through scalar projection or gained only redundantly through naive concatenation?",
-  "hypothesis": "On the declared two-layer EBM control, PyDMD recovers the exact fast and slow decay timescales from every rank-two temperature, heat-flux, or modal representation; scalar one-coordinate projections cannot resolve both modes; concatenating equivalent full-state views adds observed dimensions without adding dynamical rank and exposes severe conditioning rather than new physical information.",
+  "semantic_version": "0.2.0",
+  "question": "Which representations of the same two-layer climate energy-balance state support an unaugmented linear Markov model that preserves both physical thermal modes, and what is lost through scalar projection or gained only redundantly through naive concatenation?",
+  "hypothesis": "On the declared two-layer EBM control, PyDMD recovers the exact fast and slow decay timescales from every rank-two temperature, heat-flux, or modal representation; an unaugmented one-coordinate Markov representation cannot resolve both state modes; concatenating equivalent full-state views adds observed dimensions without adding dynamical rank and exposes severe conditioning rather than new physical information. These mode-recovery statements are distinct from Kalman observability of a scalar output over time.",
   "candidate_methods": [
     "dynamics.dmd.pydmd_v1"
   ],
@@ -30,7 +30,7 @@
       "units_metadata": {
         "temperature": "K anomaly",
         "heat_flux": "W m^-2",
-        "thermal_modes": "coordinates induced by the exact linear generator eigenbasis"
+        "thermal_modes": "coordinates induced by the exact linear generator eigenbasis with the reference's declared heat-capacity normalization"
       },
       "quality_control_policy": "physical parameters must be finite and positive; representation maps are exact deterministic functions of the same paired physical states; non-finite samples or invalid decay spectra fail closed",
       "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
@@ -65,7 +65,7 @@
       "units": "mode count",
       "direction": "target",
       "target": 1,
-      "aggregation_domain": "maximum resolved mode count over surface-temperature-only and TOA-imbalance-only scalar projections",
+      "aggregation_domain": "maximum resolved mode count over surface-temperature-only and TOA-imbalance-only unaugmented scalar Markov representations",
       "missing_data_policy": "both scalar controls must execute"
     },
     {
@@ -96,22 +96,22 @@
     }
   ],
   "negative_controls": [
-    "project the two-reservoir state to surface temperature alone and require the unaugmented rank-one representation to expose that it cannot resolve two independent thermal modes",
-    "project the same state to TOA imbalance alone as a second rank-one observability control",
+    "project the two-reservoir state to surface temperature alone and require the unaugmented rank-one Markov representation to expose that it cannot resolve two independent thermal modes in one state coordinate",
+    "project the same state to TOA imbalance alone as a second rank-one Markov-closure control; do not interpret this as a claim of control-theoretic unobservability over time",
     "concatenate temperature and heat-flux views even though both are invertible maps of the same two-dimensional state and report the resulting redundant dimensions and conditioning",
     "concatenate temperature, heat-flux, and exact modal views and verify that six observed coordinates still span only the original two-dimensional dynamical state"
   ],
   "falsifiers": [
     "any declared rank-two representation fails to recover both exact thermal decay timescales within 2e-11 relative error",
-    "a scalar unaugmented representation is reported as resolving two independent modes despite having matrix rank one",
+    "a scalar unaugmented representation is reported as resolving two independent Markov state modes despite having matrix rank one",
     "temperature-plus-flux or all-view concatenation is treated as adding dynamical degrees of freedom when its matrix rank remains two",
     "the DMD implementation is silently replaced or given exact target timescales during fitting",
     "representation samples no longer refer to identical paired physical EBM states across views"
   ],
   "split_policy": "not applicable to this deterministic structural control; noisy, learned, or observational follow-on experiments require distinct estimation and confirmation data",
-  "preprocessing": "no learned preprocessing or target-informed scaling; each representation is an explicit deterministic map of the same exact EBM state pairs and DMD rank is fixed to the intended observable rank",
+  "preprocessing": "no learned preprocessing or target-informed scaling; each representation is an explicit deterministic map of the same exact EBM state pairs and DMD rank is fixed to the intended unaugmented representation rank",
   "seeds": [],
-  "stopping_rule": "the reference experiment is retained only if every rank-two view recovers both exact modes, both scalar controls expose one-mode observability, and both concatenated controls expose redundant dimensions without being credited as additional physical state",
+  "stopping_rule": "the reference experiment is retained only if every rank-two view recovers both exact modes, both scalar controls expose one-mode recovery for the unaugmented one-coordinate Markov model without being mislabeled as unobservable, and both concatenated controls expose redundant dimensions without being credited as additional physical state",
   "multiple_comparison_policy": "all declared representation conditions and controls are reported; no condition is selected after inspecting recovery error",
   "expected_artifact_types": [
     "ebm_representation_dynamics/v1",
