@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
-UPLOAD_ARTIFACT = re.compile(r"^\s*uses:\s*actions/upload-artifact@", re.MULTILINE)
+UPLOAD_ARTIFACT = re.compile(r"^\s*-\s*uses:\s*actions/upload-artifact@", re.MULTILINE)
 
 
 @dataclass(frozen=True)
