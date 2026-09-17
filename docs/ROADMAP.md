@@ -69,9 +69,9 @@ Continue sweeping places where the mathematical name outruns the realized struct
 
 Current high-leverage edges:
 
-- derive and verify Amari α-connections from an explicit likelihood/Fisher family rather than dummy observations or regularized matrices;
+- the explicit normal-family Fisher/Amari reference now realizes α-connections, duality, and cubic-tensor structure; remaining work is differential migration of legacy information-geometry implementations only where those implementations still earn a role;
 - use the exact Lie-bracket and Noether references to separate infinitesimal/variational structure from useful but different black-box diagnostics;
-- continue differential checks between symbolic geometry and canonical Rust geometry;
+- extend symbolic/canonical geometry agreement from the realized constant-linear coordinate and finite-difference jet witnesses to nonlinear coordinate changes and additional independent derivative backends;
 - formalize additional small immutable algebraic invariants in Lean only when the statement is stable and the proof reduces ambiguity.
 
 A weaker abstraction is retained only when it is independently the better tool for a real task, not because it is easier to implement.
@@ -92,11 +92,19 @@ The candidate unifying program is defined in `docs/MULTIREPRESENTATION-CLIMATE-M
 
 Within this program, sheaf structure may help with local data/chart consistency, ultrametric methods may contribute an alternative relational geometry or kernel, Clifford structure may represent local oriented/multicomponent dynamics, and Noether/Hamiltonian structure may constrain physical evolution without each becoming a coordinate axis of one universal manifold.
 
-Numerical obligations include:
+Realized structural controls now include:
 
-- independent derivative-generation witnesses (analytic/AD/finite difference/complex step where applicable);
-- coordinate reparameterization, scale/unit, and permutation metamorphics on the canonical geometry implementation;
-- conditioning/refusal behavior across near-singular and indefinite metrics;
+- coordinate-covariant Fisher squared length for the two-layer EBM across temperature-state, heat-flux, exact thermal-mode, and unit-rescaled charts, with raw Euclidean distance retained as an explicit representation/unit-dependent negative control;
+- exact separation between one-coordinate unaugmented DMD Markov closure and dynamical observability of the same known two-state system;
+- equal-cost synthetic Pareto observation design over the declared two-layer EBM channels, separating cost authority from Fisher rank and fast/slow modal information rather than selecting an arbitrary weighted winner;
+- constant-linear coordinate metamorphics for the canonical Levi-Civita kernel, including permutation and anisotropic scaling, plus an independent finite-difference metric-jet witness on a known conformal metric;
+- `MetricJet` rejection of derivative data that violate metric-index symmetry or mixed-partial commutation at scale-derived floating-point roundoff.
+
+Numerical obligations still include:
+
+- nonlinear coordinate-change witnesses, including the inhomogeneous Christoffel transformation term;
+- additional independent derivative-generation witnesses such as AD or complex-step where the metric construction supports them;
+- conditioning/refusal behavior across near-singular metrics and explicit separation between invertibility, positive-definiteness, and scientific metric admissibility;
 - explicit candidate metric construction separated from generic tensor machinery;
 - reference experiments for common/product/fiber geometry on systems with known latent structure;
 - dynamical tests of candidate coordinates using known evolution laws before climate interpretation;
@@ -208,7 +216,7 @@ Documentation has two deliberately different maintenance modes.
 python architecture/render_status.py --write
 ```
 
-and let CI enforce that the generated projection matches.
+and let CI enforce that the generated projection matches. On mismatch the checker emits a unified diff so projection drift is diagnosable rather than a generic stale-file failure.
 
 **Human-maintained:** priority judgments, scientific rationale, interpretation boundaries, architecture tradeoffs, and resource strategy. These should be updated after meaningful changes in capability or evidence; attempting to infer them automatically would hide judgment rather than remove maintenance.
 
@@ -218,11 +226,13 @@ Prefer adding another generated field only when there is an existing authoritati
 
 Subject to failures discovered by CI, the current high-leverage set is:
 
-1. verify coordinate-covariant information distance for the physically grounded two-layer EBM across temperature-state, heat-flux, and exact thermal-mode charts, while using the same physical perturbations to demonstrate why unweighted Euclidean distance is representation- and unit-dependent;
-2. treat observation/representation weighting as a constrained information-design problem with explicit noise and cost semantics: compare identifiable rank, slow/fast modal information, conditioning, and cross-mode coupling rather than tuning arbitrary latent weights to a downstream score;
-3. turn geometry reference/canonical agreement into derivative and coordinate metamorphic differential tests so candidate representation work rests on trustworthy geometry;
-4. define the next coupled atmospheric dynamics slice around energy/momentum/continuity-consistent interfaces rather than adding another isolated tendency kernel;
-5. progress the climate-data sheaf into explicit station cover/stalk/restriction semantics that can later participate in local chart/data-consistency experiments;
+1. extend geometry differential verification to nonlinear coordinate changes and a second independent derivative-generation route, while keeping derivative-estimation acceptance policy outside the mathematical `MetricJet` contract;
+2. define the next coupled atmospheric dynamics slice around pressure-gradient/pressure-work, kinetic/internal/potential-energy exchange, and continuity-consistent interfaces rather than adding another isolated tendency kernel;
+3. progress the climate-data sheaf into explicit station cover/stalk/restriction semantics that can later participate in local chart/data-consistency experiments;
+4. establish one narrow immutable observational/reanalysis data projection with CF-aware coordinates/units, explicit QC/missingness, transformation lineage, and digests before expanding the data surface;
+5. move beyond the equal-cost synthetic observation-design control only when a real cost/noise/provenance authority exists; do not tune representation weights to downstream scores in its absence;
 6. prepare GPU differential fixtures only after a candidate manifold computation is useful enough that acceleration removes a demonstrated experiment bottleneck.
+
+Recently retired from this list because their structural controls now execute are coordinate-covariant two-layer EBM Fisher distance, the DMD-versus-observability semantic separation, and equal-cost Pareto observation design. These remain structural controls rather than empirical observing-system or climate-manifold validation.
 
 This list is intentionally short and manually curated. It should change when evidence changes, while the generated status beneath it updates mechanically.
