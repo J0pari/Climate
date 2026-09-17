@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **41**.
+Registered modules: **42**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 28 |
-| `reference` | 13 |
+| `reference` | 14 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 39 |
+| `runnable` | 40 |
 
 ### Canonical and reference modules
 
@@ -55,6 +55,7 @@ Registered modules: **41**.
 | `reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
 | `reference` | `reference/multirepresentation_common.py` | `reference_multirepresentation_common_manifold` | `runnable` | no |
 | `reference` | `reference/ncei_ghcnd.py` | `reference_ncei_ghcnd_access` | `runnable` | no |
+| `reference` | `reference/ncei_ghcnd_projection.py` | `reference_ncei_ghcnd_cf_projection` | `runnable` | no |
 | `reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
 | `reference` | `reference/nsidc_sea_ice_index.py` | `reference_nsidc_sea_ice_index_access` | `runnable` | no |
 | `reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
