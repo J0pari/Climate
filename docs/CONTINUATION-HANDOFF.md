@@ -32,7 +32,9 @@ The generated-status checker now prints a unified diff when a projection is stal
 
 ## Working style the user expects
 
-Act rather than repeatedly asking for permission. Use small coherent commits and verify exact heads in GitHub Actions. `main` is canonical, but substantial changes should normally be assembled/tested on a feature branch and fast-forwarded only after the canonical lanes pass. Never force-update or rewrite history. Do not merge old draft PRs merely because they exist.
+Act rather than repeatedly asking for permission. Use small coherent commits directly on `main`, verify exact heads in GitHub Actions, and never force-update or rewrite history. Do not assemble work on feature branches, and do not merge old draft PRs merely because they exist.
+
+Edits should be granular and evidence-preserving. Do not broadly rewrite documents or architecture merely to make them conform to a simplified new plan; change the smallest stale or contradictory surface, preserve learned lessons that remain valid, and make disagreements inspectable through narrow commits.
 
 The user strongly rejects temporary/band-aid implementations where the harder final-form abstraction is already knowable. Do the real thing rather than building a knowingly disposable surrogate.
 
@@ -134,5 +136,5 @@ Reserve the user's physical gaming laptop primarily for GPU/hardware truths: CUD
 1. Fetch current `main` and verify it has not advanced past the handoff.
 2. Read `docs/generated/STATUS.md`, `docs/FORTRAN-PHYSICS-FRONTIER.md`, `docs/ROADMAP.md`, and relevant module registry records.
 3. Inspect exact-head Actions jobs; remember that the expected legacy-physics failure makes the aggregate architecture workflow red.
-4. Work in small coherent commits, preserve machine-authority/generated-status synchronization, and let CI falsify the implementation before fast-forwarding `main`.
+4. Commit directly to `main` in small coherent changes, preserve machine-authority/generated-status synchronization, and let CI falsify each exact head before moving on to dependent work.
 5. Never infer validation or evidence eligibility from successful compilation/tests alone.
