@@ -24,6 +24,8 @@ FIXTURE = (
     / "ncei-ghcnd-USW00094728-2024-01-01-to-2024-01-03.json"
 )
 SOURCE_DIGEST = "sha256:06e00068f7de97d76b8bc523d5acb22ec7b21631adfec0e0c1a284faf1ac1a46"
+PROJECTION_DIGEST = "sha256:2954cdf8ae4b0d1a56b37e36cc362e22a252cdfb9001bf09cbdacbabea5ba793"
+PROJECTION_BYTES = 4752
 
 
 def source_payload():
