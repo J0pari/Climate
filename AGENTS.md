@@ -17,7 +17,7 @@ This file is the binding contributor/agent contract. `README.md` is descriptive.
 9. **Reproducibility is part of correctness.** Results intended as evidence must bind code revision, method/config versions, dataset identities, preprocessing, random seeds, environment, command, artifacts, and metric definitions.
 10. **Commons is a control/evidence boundary, not a scientific authority.** Commons may schedule, fingerprint, trace, and compare Climate experiments. It must not convert experimental Climate output into stronger evidence classes than Climate earned.
 11. **Performance is not scientific evidence by itself.** A faster GPU path does not strengthen a scientific claim unless it preserves the declared numerical semantics and passes the same validation contract.
-12. **Fallbacks are distinct implementations.** CPU, fake/compatibility MPI or NCCL, reduced precision, tensor-core fallbacks, approximate solvers, and alternate algorithms must not masquerade as the requested implementation in evidence-producing runs.
+12. **Execution identity is fail-closed.** CPU, fake/compatibility MPI or NCCL, reduced precision, tensor-core alternatives, approximate solvers, and alternate algorithms are distinct implementations. They may execute only when explicitly requested under their own identity. If the requested implementation/backend/precision/resource class is unavailable, the execution is ineligible; it must not substitute another implementation and retain success semantics.
 13. **Unavailable resources remain explicit gates.** Compile success, static inspection, mocks, shims, or prose must not stand in for execution on a resource that the claim actually depends on. CUDA correctness needs a CUDA device; integrated scheduling needs the integrated system; real-data generalization needs the declared data.
 14. **Preserve semantic information, not incidental syntax.** Refactors may substantially change layout, control flow, abstractions, or language boundaries when that increases technical accuracy, composability, falsifiability, or scientific meaning. Do not preserve brittle structure merely because it is old.
 15. **No semantic smoothing.** A migration may simplify syntax, but it must not collapse scientifically meaningful distinctions such as missing vs zero, undefined vs stable, unavailable vs failed, heuristic vs measured, proposal vs evidence, or policy threshold vs physical tipping claim. If compatibility code conflates states, canonical code should split them and document the compatibility difference where that difference remains operationally relevant.
@@ -120,7 +120,7 @@ Before a new accelerated method is treated as more than an exploratory prototype
 - resource envelope/VRAM estimate;
 - reference or differential witness;
 - whether setup/transfers are included in performance claims;
-- actual fallback identity if the preferred capability is absent.
+- requested execution identity and fail-closed behavior when the requested capability is unavailable.
 
 Host code owns scientific interpretation and claim/evidence state. Device kernels execute bounded numerical transformations; they do not promote outputs into physical probabilities, causal claims, or validated conclusions.
 
