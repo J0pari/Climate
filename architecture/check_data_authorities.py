@@ -220,6 +220,19 @@ def check(root: Path = ROOT, registry: dict | None = None) -> list[Finding]:
         relative_path = usage.get("path")
         anchor = usage.get("anchor")
         candidate_text: str | None = None
+
+        if scope == "planned" and relative_path != "architecture/planning_graph.json":
+            findings.append(_finding(
+                "data_authority.planned_path",
+                path,
+                "planned external/data usage must live on the planning authority rather than implementation source",
+            ))
+        if scope == "current" and relative_path == "architecture/planning_graph.json":
+            findings.append(_finding(
+                "data_authority.current_path",
+                path,
+                "current usage must name a realized repository boundary rather than the planning graph",
+            ))
         if not isinstance(relative_path, str) or not relative_path:
             findings.append(_finding("data_authority.usage_path", path, "path must be a non-empty repository-relative path"))
         else:
