@@ -250,6 +250,19 @@ if(ENABLE_TESTING)
     )
     climate_add_canonical_test(moist_vapor_algebra test_moist_vapor_algebra)
 
+    add_executable(test_pressure_thermo_composition
+        tests/fortran/test_pressure_thermo_composition.f90
+    )
+    target_link_libraries(test_pressure_thermo_composition PRIVATE
+        climate_dry_thermodynamics
+        climate_moist_vapor_algebra
+        climate_pressure_coordinate_hydrostatics
+    )
+    climate_add_canonical_test(
+        pressure_thermo_composition
+        test_pressure_thermo_composition
+    )
+
     add_executable(test_saturation_vapor_pressure
         tests/fortran/test_saturation_vapor_pressure.f90
     )
