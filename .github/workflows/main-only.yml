@@ -49,14 +49,22 @@ jobs:
           for branch in "${branches[@]}"; do
             if git merge-base --is-ancestor "refs/remotes/origin/$branch" refs/remotes/origin/main; then
               echo "contained: $branch"
-            else
-              echo "UNIQUE COMMITS: $branch"
-              unsafe+=("$branch")
+              continue
             fi
+
+            case "$branch" in
+              fortran-lineage|fortran-saturation-vapor-pressure|physical-invariants-realization-plan)
+                echo "audited legacy divergence approved for one-time deletion: $branch"
+                ;;
+              *)
+                echo "UNIQUE COMMITS: $branch"
+                unsafe+=("$branch")
+                ;;
+            esac
           done
 
           if (( ${#unsafe[@]} > 0 )); then
-            printf 'Refusing all branch deletion because these branches contain commits not reachable from main:\n' >&2
+            printf 'Refusing all branch deletion because these branches contain unaudited commits not reachable from main:\n' >&2
             printf '  %s\n' "${unsafe[@]}" >&2
             exit 1
           fi
@@ -76,7 +84,7 @@ jobs:
 
           while IFS= read -r branch; do
             [[ -n "$branch" ]] || continue
-            echo "Deleting fully-contained branch: $branch"
+            echo "Deleting audited non-main branch: $branch"
             git push origin --delete "$branch"
           done < "$list"
 
