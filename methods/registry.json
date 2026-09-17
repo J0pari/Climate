@@ -75,6 +75,120 @@
       "reference_methods": ["geometry.reference.cpu_v1"]
     },
     {
+      "method_id": "multirepresentation.jsf.datafold_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "83da38a42ef05bb355db566a17abbac297c63a27+datafold-2.0.2",
+      "maturity": "runnable",
+      "hypothesis_family": "nonlinear_common_manifold_reference",
+      "input_contracts": ["paired_multirepresentation_fixture/v1"],
+      "output_contracts": ["common_coordinate/v1", "multirepresentation_diagnostics/v1"],
+      "assumptions": [
+        "paired rows across views refer to the same latent realization",
+        "each view is standardized independently before kernel construction",
+        "the first nonconstant jointly smooth function is the candidate common coordinate for this fixture",
+        "datafold 2.0.2 owns the jointly smooth functions algorithm; Climate owns the fixture semantics and evaluation"
+      ],
+      "known_limitations": [
+        "verified only as runnable on one deterministic synthetic common-coordinate fixture",
+        "does not establish product, fibered, stratified, local-atlas, or climate-data geometry",
+        "kernel and spectral hyperparameters are fixture-specific reference settings rather than a universal selection policy",
+        "successful common-coordinate recovery is not evidence that real climate views share one common manifold"
+      ],
+      "resource": {
+        "cpu_cores": 2,
+        "memory_bytes": 2147483648,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 600
+      },
+      "reference_methods": [
+        "multirepresentation.concat_pca.sklearn_v1",
+        "multirepresentation.linear_cca.sklearn_v1",
+        "multirepresentation.concat_spectral.sklearn_v1"
+      ]
+    },
+    {
+      "method_id": "multirepresentation.concat_pca.sklearn_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "83da38a42ef05bb355db566a17abbac297c63a27+scikit-learn-1.2.2",
+      "maturity": "runnable",
+      "hypothesis_family": "concatenated_linear_fusion_baseline",
+      "input_contracts": ["paired_multirepresentation_fixture/v1"],
+      "output_contracts": ["common_coordinate/v1", "multirepresentation_diagnostics/v1"],
+      "assumptions": [
+        "each view is standardized independently before concatenation",
+        "the leading PCA component is used as the one-dimensional fused coordinate",
+        "scikit-learn 1.2.2 owns PCA implementation semantics"
+      ],
+      "known_limitations": [
+        "linear variance-maximizing baseline only",
+        "concatenation gives all standardized observed coordinates one Euclidean feature space",
+        "not a common-manifold method"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": []
+    },
+    {
+      "method_id": "multirepresentation.linear_cca.sklearn_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "83da38a42ef05bb355db566a17abbac297c63a27+scikit-learn-1.2.2",
+      "maturity": "runnable",
+      "hypothesis_family": "linear_multiview_correlation_baseline",
+      "input_contracts": ["paired_multirepresentation_fixture/v1"],
+      "output_contracts": ["common_coordinate/v1", "multirepresentation_diagnostics/v1"],
+      "assumptions": [
+        "paired rows across views refer to the same latent realization",
+        "views are standardized before CCA and the aligned first canonical scores are averaged",
+        "scikit-learn 1.2.2 owns CCA implementation semantics"
+      ],
+      "known_limitations": [
+        "linear shared-subspace baseline only",
+        "one canonical component is evaluated",
+        "does not model nonlinear common geometry"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": []
+    },
+    {
+      "method_id": "multirepresentation.concat_spectral.sklearn_v1",
+      "semantic_version": "0.1.0",
+      "implementation_build": "83da38a42ef05bb355db566a17abbac297c63a27+scikit-learn-1.2.2",
+      "maturity": "runnable",
+      "hypothesis_family": "concatenated_nonlinear_geometry_baseline",
+      "input_contracts": ["paired_multirepresentation_fixture/v1"],
+      "output_contracts": ["common_coordinate/v1", "multirepresentation_diagnostics/v1"],
+      "assumptions": [
+        "each view is standardized independently before concatenation",
+        "nearest-neighbor spectral embedding is applied to the concatenated Euclidean feature space",
+        "scikit-learn 1.2.2 owns spectral embedding implementation semantics"
+      ],
+      "known_limitations": [
+        "nonlinear concatenation baseline but not a multiview common-manifold construction",
+        "nearest-neighbor graph parameters are fixture-specific",
+        "one embedding coordinate is evaluated"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": []
+    },
+    {
       "method_id": "sheaf.real.spectral_v1",
       "semantic_version": "0.1.0",
       "implementation_build": "e0804c047114792ed84988ef2e2b0db2e529ff90",
