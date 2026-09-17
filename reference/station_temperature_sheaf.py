@@ -147,6 +147,23 @@ class StationTemperatureSheaf:
         residual = self.compatibility_residual()
         return bool(np.array_equal(residual, np.zeros_like(residual)))
 
+    def centered_station_residual_energy_baseline(self) -> float:
+        energy = 0.0
+        for variable in self.snapshot.variables:
+            values = np.asarray(
+                [
+                    station.values[variable]
+                    for station in self.snapshot.stations.values()
+                    if station.values[variable] is not None
+                ],
+                dtype=np.float64,
+            )
+            if values.size < 2:
+                continue
+            centered = values - np.mean(values)
+            energy += float(centered @ centered)
+        return energy
+
     def graph_residual_baseline(self) -> np.ndarray:
         residual: list[float] = []
         for edge in self.base.simplices(1):

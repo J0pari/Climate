@@ -132,6 +132,10 @@ class StationTemperatureSheafTests(unittest.TestCase):
         self.assertEqual(clean_sheaf.provider_quality_flag_count(), 0)
         self.assertEqual(fault_sheaf.provider_quality_flag_count(), 0)
         self.assertGreater(fault_sheaf.compatibility_energy(), clean_sheaf.compatibility_energy())
+        self.assertGreater(
+            fault_sheaf.centered_station_residual_energy_baseline(),
+            clean_sheaf.centered_station_residual_energy_baseline(),
+        )
         np.testing.assert_array_equal(
             fault_sheaf.compatibility_residual(),
             fault_sheaf.graph_residual_baseline(),
