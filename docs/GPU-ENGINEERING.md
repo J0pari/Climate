@@ -1,8 +1,8 @@
 # Climate GPU engineering specification
 
-Status: **architectural execution specification**. This document defines the target GPU execution discipline for Climate. It deliberately borrows the strongest general patterns from the Slime repository—explicit device residency, transfer schedules, deterministic reductions, device-safe identities, source gates, and evidence-bearing hardware metadata—without importing Slime's domain model or evolutionary algorithms.
+Status: **architectural execution specification**. This document defines the GPU execution discipline for Climate: explicit device residency, transfer schedules, deterministic reductions, device-safe identities, source gates, and evidence-bearing hardware metadata.
 
-The behavioral/scientific meaning of methods lives in `docs/ARCHITECTURE.md`, `docs/VALIDATION-AND-EVIDENCE.md`, and method-specific contracts. This document specifies how accelerated implementations must execute when their results are used as scientific evidence.
+The behavioral/scientific meaning of methods lives in `docs/ARCHITECTURE.md`, `docs/VALIDATION-AND-EVIDENCE.md`, and method-specific contracts. This document specifies how accelerated implementations must execute when their results are used as scientific evidence. It does not decide which scientific workload should be accelerated first.
 
 ## 1. Core principle
 
@@ -33,20 +33,22 @@ A device result must never promote its own scientific interpretation. A kernel m
 
 ## 2. Why Climate needs a binding GPU spec
 
-Climate's ambitious methods are unusually vulnerable to confusing numerical artifacts with scientific effects. The repository currently contains GPU code that mixes metric construction, tensor-core paths, inversion, curvature, risk scoring, MPI/NCCL compatibility shims, and high-precision refinement in one large compilation unit. That shape makes it difficult to distinguish:
+Climate's ambitious methods are vulnerable to confusing numerical artifacts with scientific effects. Accelerated paths can combine mathematical transformations, precision choices, factorization, reductions, batching, communication, fallbacks, and resource behavior in ways that make it difficult to distinguish:
 
 - mathematical changes from implementation changes;
 - precision effects from hypothesis effects;
 - fallback execution from intended hardware execution;
 - transfer overhead from kernel cost;
 - nondeterministic reductions from unstable science;
-- a failed GPU implementation from a failed scientific idea.
+- an accelerated implementation failure from a failed scientific idea.
 
-The target architecture therefore requires the GPU implementation to be independently specified and differentially testable against reference implementations.
+The GPU implementation must therefore be independently specified and differentially testable against reference implementations.
 
-## 3. First GPU target: geometric/curvature experiment engine
+## 3. Workload selection precedes accelerator architecture
 
-The first purpose-built GPU subsystem should be a **batched geometric experiment engine**, not a monolithic "curvature application".
+No scientific family is the default first GPU target. Acceleration begins only after a useful experiment or numerical path has a demonstrated bottleneck that GPU execution can plausibly remove without changing its scientific semantics.
+
+A geometry/multirepresentation workload is one possible candidate if profiling and experiment demand justify it. In that case a purpose-built subsystem should be a **batched geometric experiment engine**, not a monolithic "curvature application".
 
 Conceptually:
 
@@ -87,11 +89,11 @@ MetricResult[N]
 - invariant selection;
 - precision policy.
 
-This design intentionally accelerates **hypothesis competition**, not only one favored geometric formulation.
+This design accelerates **hypothesis competition**, not only one favored geometric formulation. It becomes relevant only if the corresponding CPU/reference experiment is scientifically useful and computationally constrained.
 
 ## 4. Other suitable batched GPU workloads
 
-The same execution philosophy can support later engines without forcing a single universal kernel architecture.
+The same execution philosophy can support different engines without forcing a single universal kernel architecture.
 
 ### 4.1 Information geometry
 
@@ -109,21 +111,21 @@ Keep feature/time-series data resident and evaluate multiple distance families i
 - generic ultrametric;
 - p-adic encodings.
 
-GPU acceleration is valuable here because it makes falsification over many representations cheap.
+GPU acceleration is valuable here only when it makes scientifically useful comparison over many representations materially cheaper.
 
 ### 4.3 Latent-dimension / representation search
 
-Evaluate many candidate embeddings or added dimensions against held-out predictive, geometric, and numerical criteria. The device layout should support candidate batching without importing any specific evolutionary-search policy.
+Evaluate many candidate embeddings or added dimensions against held-out predictive, geometric, and numerical criteria. The device layout should support candidate batching without importing any specific search policy.
 
 ### 4.4 Topological/sheaf methods
 
-Only after the mathematical implementation uses real complexes/boundary operators, compile host-side structures into compact device arrays for sparse operations and large fault-injection ensembles. Do not port the abstract object model wholesale to CUDA.
+Only after the mathematical implementation uses real complexes/boundary operators and profiling identifies a suitable workload, compile host-side structures into compact device arrays for sparse operations and large fault-injection ensembles. Do not port the abstract object model wholesale to CUDA.
 
 ## 5. Device context pattern
 
 Each accelerated subsystem must expose a bounded context whose allocations and lifetimes are inspectable.
 
-A geometric implementation should converge toward a shape such as:
+A geometric implementation, if justified, could converge toward a shape such as:
 
 ```text
 CurvatureDeviceContext
@@ -185,7 +187,7 @@ Large GPU outputs should become content-addressed artifacts. Event/evidence reco
 
 Every evidence-producing GPU pipeline must document its expected host/device transfer schedule. Normal operation should minimize synchronization and avoid repeatedly transferring bulk state merely for host-side convenience.
 
-For the geometric engine a desirable pattern is:
+For a geometric engine a desirable pattern is:
 
 ```text
 T0 setup
@@ -213,7 +215,7 @@ Transfers are part of profiling evidence. A speedup claim that excludes dominant
 
 Prefer phase-decomposed kernels at real synchronization boundaries rather than one enormous kernel with hidden responsibilities.
 
-A likely geometric decomposition is:
+A possible geometric decomposition is:
 
 1. `project_state_kernel`
 2. `construct_metric_kernel`
@@ -354,7 +356,7 @@ EnsembleMemberId
 ArtifactId
 ```
 
-C++/CUDA implementations should use trivially-copyable strong wrappers with explicit construction/extraction, following the zero-runtime-cost pattern already proven useful in Slime. Indices that are purely local numeric loop coordinates (e.g. `i`, `j`, vertical index) need not become global identities.
+C++/CUDA implementations should use trivially-copyable strong wrappers with explicit construction/extraction when this prevents cross-domain identity mistakes at zero meaningful runtime cost. Indices that are purely local numeric loop coordinates (e.g. `i`, `j`, vertical index) need not become global identities.
 
 The purpose is to prevent a valid integer from the wrong domain silently addressing another buffer or record.
 
@@ -481,7 +483,7 @@ For PDE/discretization kernels also include convergence and conservation witness
 
 ## 22. Source gates to implement
 
-Climate should adopt machine-enforced source gates similar in spirit to Slime, but specific to scientific computing.
+Climate should adopt machine-enforced source gates specific to scientific computing.
 
 Initial targets:
 
@@ -499,7 +501,7 @@ Each source gate must have a planted negative test proving it catches the violat
 
 ## 23. Multi-GPU policy
 
-Do not start with multi-GPU because the file already includes NCCL/MPI concepts.
+Do not start with multi-GPU merely because a candidate implementation can name NCCL/MPI concepts.
 
 First establish a single-GPU implementation with:
 
@@ -529,27 +531,24 @@ candidate throughput
 energy/power only if it becomes an explicit research metric
 ```
 
-Prefer optimization that reduces total experiment cost or enables stronger meta-experiments. A locally faster kernel that increases scientific fragility is a regression.
+Prefer optimization that reduces total experiment cost or enables stronger scientific experiments. A locally faster kernel that increases scientific fragility is a regression.
 
-## 25. Planned migration of `climate_curvature_compute.cu`
+## 25. Activation sequence for a geometry accelerator
 
-Do **not** immediately rewrite the existing file. Use it as an inventory source while building the new path behind tests.
+Use this sequence only after a geometry/multirepresentation workload has demonstrated scientific usefulness and a real acceleration need:
 
-Order:
+1. identify the smallest mathematically coherent high-cost slice;
+2. establish an independent CPU/reference witness for that slice;
+3. define explicit input/output structures, layouts, and precision;
+4. select maintained CUDA libraries for generic operations before considering custom kernels;
+5. introduce checked CUDA wrappers and a bounded device context;
+6. implement the minimum device stages needed by the experiment;
+7. add conditioning/residual/failure diagnostics;
+8. differential-test GPU versus the independent reference;
+9. profile end to end, including transfers and setup;
+10. only then consider fusion, tensor-core use, or custom replacements for library operations.
 
-1. inventory every existing CUDA/library operation and fallback;
-2. identify the smallest mathematically coherent curvature slice;
-3. implement a CPU/reference witness for that slice;
-4. define explicit input/output structures and precision;
-5. introduce checked CUDA wrappers and device context;
-6. implement candidate-batched metric construction;
-7. add factorization/conditioning diagnostics;
-8. implement connection/curvature contractions needed by the experiment;
-9. differential-test GPU versus reference;
-10. profile and only then fuse/use tensor cores;
-11. retire obsolete paths once equivalent evidence exists.
-
-The migration must not preserve a compatibility shim merely because it exists today.
+No compatibility path or acceleration feature is retained merely because it already exists; every active path must satisfy the current method contract.
 
 ## 26. Relationship to Commons
 
@@ -572,8 +571,8 @@ When Commons resource control is available, production GPU evidence should execu
 
 The GPU architecture is working when:
 
-- changing a metric definition does not require rewriting orchestration;
-- multiple hypotheses can be evaluated in the same batched pipeline;
+- a scientific method can acquire acceleration without changing its scientific contract;
+- multiple candidates can be evaluated efficiently when batching is actually part of the workload;
 - device residency and transfers are inspectable;
 - GPU and reference implementations can disagree loudly;
 - precision/conditioning failures are diagnostics rather than scientific outputs;
