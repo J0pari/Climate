@@ -3,7 +3,9 @@
 
 Climate owns the physical variables, units, reservoir exchanges, and balance
 identities. SciPy owns the generic matrix exponential used to propagate the
-constant-forcing linear system.
+constant-forcing linear system. Thermal modes are normalized in the natural
+heat-capacity inner product rather than by an eigensolver's arbitrary Euclidean
+column convention.
 """
 from __future__ import annotations
 
@@ -15,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from scipy.linalg import eig, expm
+from scipy.linalg import expm
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -99,6 +101,21 @@ def system_matrix(parameters: TwoLayerParameters) -> np.ndarray:
         ],
         dtype=float,
     )
+
+
+def heat_capacity_metric(parameters: TwoLayerParameters) -> np.ndarray:
+    """Natural positive state metric for the linear two-reservoir storage system.
+
+    The dynamics are self-adjoint in this metric: ``C A = A.T C``. Normalizing
+    right decay modes by ``B.T C B = I`` removes arbitrary eigenvector scaling
+    from modal coordinates and any bilinear forms pulled back to those modes.
+    """
+    return np.diag(
+        [
+            parameters.surface_heat_capacity_w_yr_m2_k,
+            parameters.deep_heat_capacity_w_yr_m2_k,
+        ]
+    ).astype(float)
 
 
 def forcing_vector(parameters: TwoLayerParameters, forcing_w_m2: float) -> np.ndarray:
@@ -251,18 +268,41 @@ def state_from_flux_coordinates_k(
 
 
 def mode_basis(parameters: TwoLayerParameters) -> tuple[np.ndarray, np.ndarray]:
-    eigenvalues, eigenvectors = eig(system_matrix(parameters))
-    if np.max(np.abs(eigenvalues.imag)) > 1e-12 or np.max(np.abs(eigenvectors.imag)) > 1e-12:
-        raise RuntimeError("expected real decay modes for the stable two-layer reference")
-    eigenvalues = eigenvalues.real
-    basis = eigenvectors.real
+    """Return decay timescales and heat-capacity-orthonormal state modes.
+
+    With ``A`` the state tendency matrix and ``C`` the diagonal heat-capacity
+    metric, ``C A = A.T C``. Therefore ``S = C^(1/2) A C^(-1/2)`` is symmetric.
+    We diagonalize ``S`` with a Hermitian eigensolver and map its orthonormal
+    eigenvectors back to state space. The resulting basis ``B`` satisfies
+    ``A B = B diag(lambda)`` and ``B.T C B = I``.
+    """
+    matrix = system_matrix(parameters)
+    metric = heat_capacity_metric(parameters)
+    capacities = np.diag(metric)
+    sqrt_capacity = np.sqrt(capacities)
+    inverse_sqrt_capacity = 1.0 / sqrt_capacity
+
+    self_adjoint_residual = metric @ matrix - matrix.T @ metric
+    scale = max(float(np.linalg.norm(metric @ matrix, ord=np.inf)), 1.0)
+    if float(np.linalg.norm(self_adjoint_residual, ord=np.inf)) > 1e-12 * scale:
+        raise RuntimeError("two-layer dynamics are not self-adjoint in heat-capacity metric")
+
+    symmetric = (
+        sqrt_capacity[:, None] * matrix * inverse_sqrt_capacity[None, :]
+    )
+    if not np.allclose(symmetric, symmetric.T, rtol=2e-14, atol=2e-14):
+        raise RuntimeError("heat-capacity transformed dynamics are not symmetric")
+
+    eigenvalues, orthonormal_vectors = np.linalg.eigh(symmetric)
     if np.any(eigenvalues >= 0.0):
         raise RuntimeError("two-layer reference must have strictly decaying modes")
 
     timescales = -1.0 / eigenvalues
     order = np.argsort(timescales)
     timescales = timescales[order]
-    basis = basis[:, order]
+    eigenvalues = eigenvalues[order]
+    orthonormal_vectors = orthonormal_vectors[:, order]
+    basis = inverse_sqrt_capacity[:, None] * orthonormal_vectors
 
     for column in range(basis.shape[1]):
         vector = basis[:, column]
@@ -270,6 +310,12 @@ def mode_basis(parameters: TwoLayerParameters) -> tuple[np.ndarray, np.ndarray]:
         if vector[pivot] < 0.0:
             basis[:, column] = -vector
 
+    gram = basis.T @ metric @ basis
+    eigen_residual = matrix @ basis - basis * eigenvalues[None, :]
+    if not np.allclose(gram, np.eye(2), rtol=2e-13, atol=2e-13):
+        raise RuntimeError("two-layer modal basis lost heat-capacity orthonormality")
+    if float(np.linalg.norm(eigen_residual, ord=np.inf)) > 2e-13:
+        raise RuntimeError("two-layer modal basis does not diagonalize the dynamics")
     if not np.isfinite(basis).all() or abs(float(np.linalg.det(basis))) <= 1e-12:
         raise RuntimeError("two-layer modal basis is singular or non-finite")
     return timescales, basis
@@ -283,10 +329,11 @@ def modal_coordinates(
     value = _state_vector(state)
     equilibrium = equilibrium_state_k(parameters, forcing_w_m2)
     _, basis = mode_basis(parameters)
-    coordinates = np.linalg.solve(basis, value - equilibrium)
+    metric = heat_capacity_metric(parameters)
+    coordinates = basis.T @ metric @ (value - equilibrium)
     if not np.isfinite(coordinates).all():
         raise RuntimeError("modal coordinates became non-finite")
-    return coordinates
+    return np.asarray(coordinates, dtype=float)
 
 
 def state_from_modal_coordinates_k(
