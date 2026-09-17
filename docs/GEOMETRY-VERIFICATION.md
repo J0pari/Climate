@@ -10,11 +10,11 @@ The controlling claim is `climate.geometry.regime_indicator`. Passing mathematic
 
 The geometry program uses complementary portable authorities and executable witnesses:
 
-- `reference/geometry_sympy.py` plus `tests/reference/test_geometry_sympy.py`: symbolic known-geometry oracle covering flat Cartesian, flat polar/nonzero-connection, positive-curvature sphere, negative-curvature Poincaré disk, torsion freedom, metric compatibility, Riemann antisymmetry, and first Bianchi witnesses;
-- `src/geometry.rs`: canonical Rust Levi-Civita kernel from explicit local metric jets, with executable Cartesian/polar/sphere fixtures, metric-compatibility and Bianchi witnesses, and fail-closed nonsymmetric/singular-metric behavior;
+- `reference/geometry_sympy.py` plus `tests/reference/test_geometry_sympy.py`: symbolic known-geometry oracle covering flat Cartesian, flat polar/nonzero-connection, a nonlinear quadratic-shear chart whose Christoffel connection is entirely the inhomogeneous transformation term, positive-curvature sphere, negative-curvature Poincaré disk, torsion freedom, metric compatibility, Riemann antisymmetry, and first Bianchi witnesses;
+- `src/geometry.rs`: canonical Rust Levi-Civita kernel from explicit local metric jets, with executable Cartesian/polar/nonlinear-quadratic-shear/sphere fixtures, scale-aware tolerances, an omitted-inhomogeneous-term negative control, metric-compatibility and Bianchi witnesses, and fail-closed nonsymmetric/singular-metric behavior;
 - `tests/geometry_coordinate_metamorphics.rs`: constant-linear coordinate covariance under permutation and anisotropic rescaling, plus finite-difference metric-jet construction for a nonconstant conformal metric.
 
-These authorities deliberately stop before choosing a climate metric or mapping curvature to tipping/risk/timescale. Remaining obligations include nonlinear coordinate-change witnesses with the inhomogeneous Christoffel term, an additional derivative-generation route independent of finite differences where applicable, conditioning/refusal characterization, geodesic verification, and real CUDA differential comparison.
+These authorities deliberately stop before choosing a climate metric or mapping curvature to tipping/risk/timescale. Their verified scope does not by itself establish an independent derivative-generation route, complete conditioning/refusal characterization, geodesic-solver correctness, or CUDA differential equivalence. `architecture/planning_graph.json` is the sole authority for work that extends this scope.
 
 Module and claim lifecycle state is rendered from machine authorities in `docs/generated/STATUS.md`; this document owns verification semantics and obligations rather than duplicating generated status.
 
@@ -33,15 +33,7 @@ Questions 1–3 must be answered before question 4 can support a physical/predic
 
 Maintain small, readable reference implementations before optimizing the CUDA path.
 
-Reference priorities:
-
-- explicit metric input rather than a climate-specific hand-built metric;
-- analytic metric functions for fixtures;
-- derivatives computed by at least one independently checkable method;
-- FP64 default;
-- clear tensor index conventions;
-- no climate tipping/risk mapping;
-- outputs limited to geometric/numerical diagnostics.
+Reference implementations use explicit metric inputs rather than climate-specific hand-built metrics, analytic fixtures where available, independently checkable derivatives, FP64 by default, pinned tensor-index conventions, and geometric/numerical outputs without climate tipping/risk interpretation.
 
 The reference may use Python/SymPy, Rust, Julia, or another suitable independent mechanism, but the oracle must be independent enough that optimized code does not merely reproduce the same implementation bug.
 

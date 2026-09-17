@@ -324,7 +324,7 @@
     {
       "id": "geometry.nonlinear_coordinate_witness",
       "title": "Verify nonlinear coordinate covariance",
-      "status": "ready",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
       "summary": "Extend independent geometry verification to a nonlinear coordinate transformation including the inhomogeneous Christoffel transformation term.",
@@ -332,6 +332,12 @@
       "completion": [
         "A nonlinear analytic fixture has independently generated transformed metric and Christoffel quantities.",
         "Canonical geometry agrees within scale-aware tolerances and detects an intentionally omitted inhomogeneous term."
+      ],
+      "evidence": [
+        "fixtures/geometry/analytic-fixtures.json",
+        "src/geometry.rs",
+        "tests/reference/test_geometry_sympy.py",
+        ".github/workflows/architecture.yml"
       ]
     },
     {
