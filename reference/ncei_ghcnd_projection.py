@@ -124,6 +124,7 @@ def project_single_station_temperature(payload):
                     "standard_name": "air_temperature",
                     "long_name": "daily maximum air temperature",
                     "units": "degree_Celsius",
+                    "units_metadata": "temperature: on_scale",
                     "cell_methods": "time: maximum",
                     "ancillary_variables": "daily_maximum_air_temperature_attributes",
                 },
@@ -135,6 +136,7 @@ def project_single_station_temperature(payload):
                     "standard_name": "air_temperature",
                     "long_name": "daily minimum air temperature",
                     "units": "degree_Celsius",
+                    "units_metadata": "temperature: on_scale",
                     "cell_methods": "time: minimum",
                     "ancillary_variables": "daily_minimum_air_temperature_attributes",
                 },
@@ -160,7 +162,12 @@ def project_single_station_temperature(payload):
             "time": (
                 "time",
                 times,
-                {"standard_name": "time", "long_name": "date of daily summary", "axis": "T"},
+                {
+                    "standard_name": "time",
+                    "long_name": "date of daily summary",
+                    "axis": "T",
+                    "units_metadata": "leap_seconds: unknown",
+                },
             ),
             "latitude": (
                 (),
@@ -193,6 +200,7 @@ def project_single_station_temperature(payload):
             "featureType": "timeSeries",
             "title": "NCEI GHCN-Daily single-station temperature projection",
             "source": "NOAA NCEI Global Historical Climatology Network - Daily, daily-summaries API",
+            "history": f"{PROJECTION_ID} projection from the source artifact identified by source_artifact_sha256.",
             "projection_id": PROJECTION_ID,
             "source_id": "ncei.ghcnd.v3",
             "source_request_url": payload.request_url,
