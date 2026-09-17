@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the human-readable roadmap from the sole-owner planning graph."""
+"""Render a concise human-readable view of the sole-owner planning graph."""
 from __future__ import annotations
 
 import argparse
@@ -24,10 +24,6 @@ def load_graph(path: Path = DEFAULT_GRAPH) -> dict[str, Any]:
     return data
 
 
-def _bullet_list(items: list[str]) -> list[str]:
-    return [f"- {item}" for item in items]
-
-
 def render(graph: dict[str, Any]) -> str:
     nodes = list(graph.get("nodes", []))
     nodes.sort(key=lambda node: (
@@ -45,9 +41,9 @@ def render(graph: dict[str, Any]) -> str:
         "# Climate obligation roadmap",
         "",
         "> Generated from `architecture/planning_graph.json`. Do not hand-edit this file.",
-        "> Planned work, priority, dependencies, blockers, and completion criteria are owned only by that graph.",
+        "> The graph is the sole authority for planned work, priority, dependencies, blockers, and completion criteria.",
         "",
-        "Objective realized state remains owned by the module/claim/experiment/realization registries and is rendered separately in `docs/generated/STATUS.md`.",
+        "Objective realized state is owned by the module, claim, experiment, hazard, and realization authorities and is rendered separately in `docs/generated/STATUS.md`.",
         "",
         "## Planning summary",
         "",
@@ -57,45 +53,24 @@ def render(graph: dict[str, Any]) -> str:
         f"- Done: {counts.get('done', 0)}",
         f"- Dropped: {counts.get('dropped', 0)}",
         "",
-        "## Obligation graph",
+        "## Graph projection",
         "",
+        "| Obligation | Status | Priority | Resource | Dependencies |",
+        "| --- | --- | --- | --- | --- |",
     ]
 
     for node in nodes:
-        node_id = node["id"]
-        lines.extend([
-            f"### {node['title']} (`{node_id}`)",
-            "",
-            f"**Status:** `{node['status']}` · **Priority:** `{node['priority']}` · **Resource:** `{node['resource_class']}`",
-            "",
-            node["summary"].strip(),
-            "",
-        ])
-
         deps = node.get("depends_on", [])
-        if deps:
-            lines.append("**Depends on:** " + ", ".join(f"`{dep}`" for dep in deps))
-            lines.append("")
+        dependency_text = ", ".join(f"`{dep}`" for dep in deps) if deps else "—"
+        lines.append(
+            f"| `{node['id']}` — {node['title']} | `{node['status']}` | "
+            f"`{node['priority']}` | `{node['resource_class']}` | {dependency_text} |"
+        )
 
-        blockers = node.get("blockers", [])
-        if blockers:
-            lines.append("**Blockers**")
-            lines.append("")
-            lines.extend(_bullet_list(blockers))
-            lines.append("")
-
-        lines.append("**Completion criteria**")
-        lines.append("")
-        lines.extend(_bullet_list(node.get("completion", [])))
-        lines.append("")
-
-        evidence = node.get("evidence", [])
-        if evidence:
-            lines.append("**Evidence**")
-            lines.append("")
-            lines.extend(f"- `{path}`" for path in evidence)
-            lines.append("")
-
+    lines.extend([
+        "",
+        "Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.",
+    ])
     return "\n".join(lines).rstrip() + "\n"
 
 
