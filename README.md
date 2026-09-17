@@ -73,28 +73,11 @@ Several mathematical families contribute to this program with different roles an
 
 The repository does not assume that every one of these belongs inside a single smooth manifold. A successful integration may be heterogeneous.
 
-## Canonical foundations
+## Executable foundations
 
-The executable mathematical and physical foundations are intentionally smaller than the full research agenda. Canonical and independently checkable surfaces include:
+The executable surface is intentionally narrower than the research agenda. It contains small portable physical kernels, independently checkable mathematical references, canonical numerical primitives, and explicit verification fixtures. Exact module inventory, lifecycle, maturity, registered experiments, and claim status are generated from machine-readable authorities in [`docs/generated/STATUS.md`](docs/generated/STATUS.md).
 
-- Levi-Civita geometry from explicit metric data;
-- Fisher-information primitives with explicit observation noise and preserved rank deficiency;
-- exact finite p-adic/ultrametric primitives;
-- sparse Clifford-algebra primitives;
-- modal-logic semantics;
-- finite sheaf numerics plus independent exact cohomology references;
-- symbolic Lie-bracket and variational/Noether references;
-- fixed-step RK4 and transparent implicit reference numerics;
-- LAPACK-backed tridiagonal solves;
-- exact constant-`f` Coriolis rotation;
-- conservative extensive mass/tracer budget updates;
-- finite-volume vertical diffusion;
-- dry and moist thermodynamic identities;
-- phase-explicit saturation vapor pressure and saturation-moisture composition;
-- pressure-coordinate hydrostatics and fixed-pressure-coordinate continuity;
-- direct-DFT spectral reference behavior.
-
-Repository status, module maturity, registered experiments, and claim maturity are generated from machine-readable authorities in [`docs/generated/STATUS.md`](docs/generated/STATUS.md).
+The physical realization boundary is described in [`docs/FORTRAN-PHYSICS-FRONTIER.md`](docs/FORTRAN-PHYSICS-FRONTIER.md); geometry, sheaf, and other method-specific verification obligations live in their corresponding specifications.
 
 ## Architecture
 
