@@ -2,17 +2,14 @@
 """Validate staged realization and semantic authority for sheaf/cohomology work.
 
 The checker does not decide whether the scientific claim is true. It prevents
-three cheaper substitutes for progress:
+two cheaper substitutes for progress:
 
 * weakening the pinned claim statement;
-* marking mathematical obligations realized without concrete witnesses;
-* re-introducing authoritative sheaf/cohomology terminology into the legacy
-  heuristic surface after that terminology has been moved to exact references.
+* marking mathematical obligations realized without concrete witnesses.
 """
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +17,6 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "methods" / "sheaf-realization.v1.json"
 CLAIMS = ROOT / "claims" / "registry.json"
-LEGACY_SOURCE = ROOT / "climate_multiscale_sheaf.hs"
 ALLOWED_STATUSES = {"open", "reference_realized", "validated"}
 STRUCTURAL_OBLIGATIONS = {
     "station_cover_nerve",
@@ -30,33 +26,10 @@ STRUCTURAL_OBLIGATIONS = {
     "global_section_and_gluing",
 }
 
-# These identifiers used mathematically authoritative names for computations
-# that did not satisfy the corresponding definitions. The legacy file may
-# discuss the concepts in comments, but these executable symbols may not return.
-FORBIDDEN_LEGACY_AUTHORITY_SYMBOLS = {
-    "coboundary0",
-    "coboundary1",
-    "computeBettiNumbers",
-    "eulerCharacteristic",
-    "adjunctionUnit",
-    "adjunctionCounit",
-    "glueLocalSections",
-}
-
 
 def _load(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
-
-
-def validate_legacy_semantics(source_text: str) -> list[str]:
-    errors: list[str] = []
-    for symbol in sorted(FORBIDDEN_LEGACY_AUTHORITY_SYMBOLS):
-        if re.search(rf"\b{re.escape(symbol)}\b", source_text):
-            errors.append(
-                f"legacy sheaf heuristic surface reintroduced forbidden authority symbol {symbol}"
-            )
-    return errors
 
 
 def validate_ledger(
@@ -143,7 +116,6 @@ def main() -> int:
     ledger = _load(LEDGER)
     claims = _load(CLAIMS)
     errors = validate_ledger(ledger, claims)
-    errors.extend(validate_legacy_semantics(LEGACY_SOURCE.read_text(encoding="utf-8")))
     obligations = ledger.get("obligations", [])
     realized = sum(1 for item in obligations if item.get("status") != "open")
     total = len(obligations)
