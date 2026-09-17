@@ -1,10 +1,10 @@
 # Fortran time-integration semantics
 
-This document defines the numerical semantics of the canonical Fortran time-integration surface. It is not a transcription of `climate_physics_core.f90`. The legacy source is treated as evidence about intended physical/numerical responsibilities; canonical code may use different algorithms when they provide equal or greater correctness, semantic precision, performance, diagnosability, or future extensibility.
+This document defines the numerical semantics of the canonical Fortran time-integration surface and the boundary between Climate-owned physical semantics and maintained generic numerical infrastructure.
 
 ## Design rule: decomposition is not simplification
 
-The canonical surface separates independently testable contracts that were interleaved in the legacy monolith:
+The canonical surface separates independently testable contracts:
 
 - explicit ODE stepping,
 - linear implicit solves,
@@ -17,25 +17,25 @@ The canonical surface separates independently testable contracts that were inter
 - grid and boundary semantics,
 - and climate-specific process coupling.
 
-Separating these concerns is allowed only when the missing semantics remain explicit obligations. A smaller kernel must not silently erase capabilities or physical assumptions that previously existed in one large routine.
+Separating these concerns is allowed only when the missing semantics remain explicit obligations. A smaller kernel must not erase physical assumptions or coupled responsibilities merely because they live outside that kernel.
 
 ## Library boundary: reference locally, delegate generic production numerics
 
 Climate should not spend novelty budget reimplementing mature generic numerical algorithms.
 
-The hand-written RK4, theta-step, and Thomas-factorization code in this repository is retained because it is small, inspectable, deterministic, and useful as a differential/reference oracle. It is not intended to grow into a bespoke production solver stack.
+The hand-written RK4, theta-step, and Thomas-factorization code is small, inspectable, deterministic, and useful as a differential/reference oracle. It is not intended to grow into a bespoke production solver stack.
 
-For production-oriented CPU integration, the preferred trajectory is SUNDIALS ARKODE rather than implementing our own adaptive/embedded Runge--Kutta, IMEX, multirate, nonlinear-solver, and error-controller machinery. ARKODE already supplies explicit, implicit, additive IMEX, and multirate methods plus reusable vector/matrix/nonlinear/linear-solver interfaces and modern Fortran bindings. Climate should contribute the scientifically meaningful split of tendencies, Jacobians/operators, tolerances, conservation monitors, and evidence capture around that library.
+For production-oriented CPU integration, the preferred trajectory is SUNDIALS ARKODE rather than implementing a project-local adaptive/embedded Runge--Kutta, IMEX, multirate, nonlinear-solver, and error-controller stack. ARKODE supplies explicit, implicit, additive IMEX, and multirate methods plus reusable vector/matrix/nonlinear/linear-solver interfaces and modern Fortran bindings. Climate should contribute the scientifically meaningful split of tendencies, Jacobians/operators, tolerances, conservation monitors, and evidence capture around that library.
 
-For tridiagonal linear solves, LAPACK `DGTTRF`/`DGTTRS` is the production-oriented CPU backend because it provides partial pivoting and reusable factorization. `src/fortran/linear_implicit.f90` remains the transparent no-pivot reference path. Differential tests deliberately cover both a system where the two agree and a system that requires LAPACK pivoting and must be rejected by the reference Thomas path.
+For tridiagonal linear solves, LAPACK `DGTTRF`/`DGTTRS` is the production-oriented CPU backend because it provides partial pivoting and reusable factorization. `src/fortran/linear_implicit.f90` is the transparent no-pivot reference path. Differential tests deliberately cover both a system where the two agree and a system that requires LAPACK pivoting and must be rejected by the reference Thomas path.
 
-PETSc TS is a plausible later distributed-system option when Climate reaches a genuinely domain-decomposed, MPI-scale state representation; it is not justified merely to solve independent vertical columns. The dependency should enter only when its scalable vector/matrix/preconditioner and TS machinery solve an actual repository problem better than the lighter ARKODE/LAPACK path.
+PETSc TS is a plausible distributed-system option when Climate has a genuinely domain-decomposed, MPI-scale state representation; it is not justified merely to solve independent vertical columns. The dependency should enter only when its scalable vector/matrix/preconditioner and TS machinery solve an actual repository problem better than the lighter ARKODE/LAPACK path.
 
-GPU production paths should likewise prefer maintained vendor/library solvers where their semantics fit, while keeping CPU reference kernels for differential verification. A GPU library call is still not evidence of scientific correctness; implementation identity, precision, determinism, residuals, conditioning, and CPU/GPU agreement remain part of the evidence boundary.
+GPU production paths should likewise prefer maintained vendor/library solvers where their semantics fit, while keeping CPU reference kernels for differential verification. A GPU library call is not evidence of scientific correctness; implementation identity, precision, determinism, residuals, conditioning, and CPU/GPU agreement remain part of the evidence boundary.
 
 ## Explicit stepping
 
-`src/fortran/time_integration.f90` currently provides deterministic classical RK4 for a real state vector,
+`src/fortran/time_integration.f90` provides deterministic classical RK4 for a real state vector,
 
 \[
 y_{n+1}=y_n+\frac{\Delta t}{6}(k_1+2k_2+2k_3+k_4).
@@ -66,9 +66,9 @@ Important semantics:
 
 ## Factorization and performance
 
-The legacy code allocates three dense `nz x nz` matrices while only using their diagonal bands. The canonical reference solver stores the true tridiagonal representation and performs an O(n) Thomas factorization.
+The canonical reference solver stores the true tridiagonal representation and performs an O(n) Thomas factorization.
 
-Factorization and solve are separate operations so one factorization can be reused across multiple right-hand sides when the matrix is unchanged. This is important for repeated column solves, ensembles, multiple tracers, and later batched CPU/GPU implementations.
+Factorization and solve are separate operations so one factorization can be reused across multiple right-hand sides when the matrix is unchanged. This is important for repeated column solves, ensembles, multiple tracers, and batched CPU/GPU implementations.
 
 Reuse is only valid when the exact matrix is unchanged. Any change in operator coefficients, boundary conditions, `theta`, or `dt` that changes the left-hand matrix requires a new factorization.
 
@@ -88,9 +88,9 @@ The LAPACK path does not pretend that LAPACK's singular/non-singular status is a
 
 These are measurements, not acceptance policy. Higher layers decide what residual or conditioning is acceptable for a given experiment or evidence claim.
 
-## Current witnesses
+## Witnesses
 
-The portable Fortran witnesses currently require:
+The portable Fortran witnesses require:
 
 - exact integration of a constant tendency by RK4,
 - fourth-order RK4 convergence under timestep halving,
@@ -108,27 +108,12 @@ The portable Fortran witnesses currently require:
 
 These witnesses establish software/numerical behavior only. They do not validate a climate discretization, timestep, parameterization, or physical process.
 
-## Legacy mapping
+## Climate-specific integration frontier
 
-The legacy `time_integrate` routine mixes several different operations:
+The higher integration layer must define climate-specific operators with explicit units, coordinate semantics, boundary conditions, coefficient provenance, and physical exchange meaning. Those operators should be tested against manufactured problems, conservation/balance laws, nullspaces, and appropriate wave or mode behavior before being coupled through a general integrator.
 
-- explicit tendency application,
-- an analytically implicit Coriolis update,
-- vertical temperature diffusion,
-- moisture forward Euler plus clipping,
-- pressure/density updates,
-- diagnostic vertical velocity and geopotential,
-- diffusion filtering,
-- and divergence damping.
+The production integrator should be selected by physical and numerical requirements. SUNDIALS ARKODE is the default external candidate because it supplies higher-order adaptive ERK/DIRK/ARK and multirate machinery. Climate's novel work is the physically meaningful explicit/implicit/fast partition, Jacobians or linear operators, tolerance semantics, conservation monitors, reproducibility/evidence capture, and comparative experiments—not reimplementation of generic time-step controllers.
 
-Those responsibilities should not be copied into one replacement routine. Each should either map to a canonical kernel with its own witnesses or remain an explicit unresolved obligation.
+Integrator choice must not define the physics partition after the fact. The partition should follow from the equations and desired discrete structure: conservative or reversible dynamics, stiff dissipative processes, fast wave processes, external forcing, and exchange terms should be separated for scientific reasons first, then mapped onto the capabilities of the chosen solver.
 
-In particular, the legacy temperature solve suggests a tridiagonal implicit operator, but its exact current implementation is not authoritative: it uses dense storage for banded data, has undeclared/invalid local declaration placement under standard Fortran, has no pivot policy, and refers to state/grid fields that do not exist in the declared types. The canonical layer preserves the useful mathematical intent while discarding those implementation defects.
-
-## Next integration frontier
-
-The next higher layer should define a climate-specific operator adapter with explicit units, vertical coordinate semantics, boundary conditions, and coefficient provenance. That adapter can then be tested against manufactured diffusion problems and conservation/nullspace properties.
-
-After that, the final coupled integrator should be selected by requirements rather than legacy fidelity. SUNDIALS ARKODE is the default external candidate because it already supplies higher-order adaptive ERK/DIRK/ARK and multirate machinery. Climate's novel work should be the physically meaningful explicit/implicit/fast partition, Jacobians or linear operators, tolerance semantics, conservation monitors, reproducibility/evidence capture, and comparative experiments—not reimplementation of generic time-step controllers.
-
-A more sophisticated external method may supersede the theta primitive. The theta primitive remains useful as a reference oracle and a directly testable building block even if it is not the final production stepping method.
+A more sophisticated external method may supersede the theta primitive for production stepping. The theta primitive remains useful as a reference oracle and directly testable building block.
