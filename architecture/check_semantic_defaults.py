@@ -10,12 +10,15 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from architecture.source_surface import ROLE_SCIENTIFIC, iter_source_files
-
 ROOT = Path(__file__).resolve().parents[1]
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(ROOT))
+
+from architecture.source_surface import ROLE_SCIENTIFIC, iter_source_files
 
 RUST_DEFAULT_IMPL = re.compile(r"\bimpl\s+Default\s+for\s+([A-Za-z_][A-Za-z0-9_]*)")
 RUST_DERIVE_DEFAULT = re.compile(r"#\[derive\([^\]]*\bDefault\b[^\]]*\)\]")
