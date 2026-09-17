@@ -25,8 +25,16 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Audit branch ancestry before deletion
-        id: audit
+      - name: Delete newly created non-main branch
+        if: github.event_name == 'create' && github.event.ref_type == 'branch' && github.event.ref != 'main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Deleting non-main branch created against repository policy: ${{ github.event.ref }}"
+          git push origin --delete "${{ github.event.ref }}"
+
+      - name: Audit existing branch ancestry
+        if: github.event_name != 'create'
         shell: bash
         run: |
           set -euo pipefail
@@ -49,44 +57,22 @@ jobs:
           for branch in "${branches[@]}"; do
             if git merge-base --is-ancestor "refs/remotes/origin/$branch" refs/remotes/origin/main; then
               echo "contained: $branch"
-              continue
+            else
+              echo "UNIQUE COMMITS: $branch"
+              unsafe+=("$branch")
             fi
-
-            case "$branch" in
-              fortran-lineage|fortran-saturation-vapor-pressure|physical-invariants-realization-plan)
-                echo "audited legacy divergence approved for one-time deletion: $branch"
-                ;;
-              *)
-                echo "UNIQUE COMMITS: $branch"
-                unsafe+=("$branch")
-                ;;
-            esac
           done
 
           if (( ${#unsafe[@]} > 0 )); then
-            printf 'Refusing all branch deletion because these branches contain unaudited commits not reachable from main:\n' >&2
+            printf 'Refusing automatic deletion because these branches contain commits not reachable from main:\n' >&2
             printf '  %s\n' "${unsafe[@]}" >&2
             exit 1
           fi
 
-          printf '%s\n' "${branches[@]}" > "$RUNNER_TEMP/main-only-delete-list"
-
-      - name: Delete audited non-main branches
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          list="$RUNNER_TEMP/main-only-delete-list"
-          if [[ ! -s "$list" ]]; then
-            echo 'Nothing to delete.'
-            exit 0
-          fi
-
-          while IFS= read -r branch; do
-            [[ -n "$branch" ]] || continue
-            echo "Deleting audited non-main branch: $branch"
+          for branch in "${branches[@]}"; do
+            echo "Deleting fully-contained non-main branch: $branch"
             git push origin --delete "$branch"
-          done < "$list"
+          done
 
       - name: Verify only main remains
         shell: bash
