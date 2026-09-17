@@ -6,16 +6,17 @@ This document defines the minimum mathematical/numerical evidence required befor
 
 The controlling claim is `climate.geometry.regime_indicator`. Passing mathematical or numerical geometry tests does **not** validate that claim; it only establishes correctness of a declared geometric computation under the tested scope.
 
-## Current realized boundary
+## Verification authorities and scope
 
-The repository now has two independent portable authorities for a nontrivial subset of this program:
+The geometry program uses complementary portable authorities and executable witnesses:
 
 - `reference/geometry_sympy.py` plus `tests/reference/test_geometry_sympy.py`: symbolic known-geometry oracle covering flat Cartesian, flat polar/nonzero-connection, positive-curvature sphere, negative-curvature Poincaré disk, torsion freedom, metric compatibility, Riemann antisymmetry, and first Bianchi witnesses;
-- `src/geometry.rs`: canonical Rust Levi-Civita kernel from explicit local metric jets, with executable Cartesian/polar/sphere fixtures, metric-compatibility and Bianchi witnesses, and fail-closed nonsymmetric/singular-metric behavior.
+- `src/geometry.rs`: canonical Rust Levi-Civita kernel from explicit local metric jets, with executable Cartesian/polar/sphere fixtures, metric-compatibility and Bianchi witnesses, and fail-closed nonsymmetric/singular-metric behavior;
+- `tests/geometry_coordinate_metamorphics.rs`: constant-linear coordinate covariance under permutation and anisotropic rescaling, plus finite-difference metric-jet construction for a nonconstant conformal metric.
 
-These implementations deliberately stop before choosing a climate metric or mapping curvature to tipping/risk/timescale. They also do not yet satisfy the whole verification program below. Important open items include independent derivative-generation checks, broader coordinate/unit/permutation metamorphics, conditioning characterization, geodesic verification, canonical-vs-reference differential fixtures, and real CUDA comparison.
+These authorities deliberately stop before choosing a climate metric or mapping curvature to tipping/risk/timescale. Remaining obligations include nonlinear coordinate-change witnesses with the inhomogeneous Christoffel term, an additional derivative-generation route independent of finite differences where applicable, conditioning/refusal characterization, geodesic verification, and real CUDA differential comparison.
 
-The module/claim status itself is rendered from machine authorities in `docs/generated/STATUS.md`; this document owns the richer verification requirements and must be updated manually when those requirements or their interpretation change.
+Module and claim lifecycle state is rendered from machine authorities in `docs/generated/STATUS.md`; this document owns verification semantics and obligations rather than duplicating generated status.
 
 ## 1. Separation of questions
 
