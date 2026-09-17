@@ -16,7 +16,8 @@ package climate
 #DeterminismClass: "D0" | "D1" | "D2"
 #NetworkPolicy: "none" | "restricted" | "required"
 #ClaimType: "software" | "numerical" | "physical" | "statistical" | "predictive" | "causal" | "interpretive" | "performance" | "resource" | "interoperability"
-#ParameterProvenance: "placeholder" | "fallback" | "heuristic" | "calibrated" | "literature_fixed" | "learned"
+#ConfigurationKind: "kernel_parameters" | "numerical_policy" | "data_policy" | "execution_policy"
+#ConfigurationProvenance: "explicit" | "literature_fixed" | "calibrated" | "learned" | "experiment_policy"
 #ExecutionClass: "R0_static" | "R1_portable_cpu" | "R2_toolchain_ci" | "R3_cuda_device" | "R4_integrated_system" | "R5_large_data"
 #ExecutionFailureClass: "capability_unavailable" | "required_input_missing" | "configuration_invalid" | "implementation_unavailable" | "implementation_substituted" | "backend_mismatch" | "precision_mismatch" | "resource_mismatch" | "dataset_mismatch" | "undeclared_default"
 
@@ -28,6 +29,57 @@ package climate
 	compute_capability?: string
 	network:         #NetworkPolicy
 	max_seconds?:    int & >0
+}
+
+// Configuration records are deliberately owner-scoped. Shared immutable
+// physical reference values are not runtime configuration and live in their
+// focused scientific authorities instead of being copied into these records.
+#ConfigurationRecord: {
+	configuration_id: #Id
+	semantic_version: #Semver
+	kind:              #ConfigurationKind
+	owner:             #Id
+	provenance:        #ConfigurationProvenance
+	settings:          {...}
+}
+
+#ConfigurationRef: {
+	configuration_id: #Id
+	semantic_version: #Semver
+	kind:              #ConfigurationKind
+	owner:             #Id
+	provenance:        #ConfigurationProvenance
+	record_path:       string & =~"^configurations/(kernel|numerical|data|execution)/[A-Za-z0-9._/-]+\\.json$"
+	digest:            #Sha256
+}
+
+#KernelParameterRef: #ConfigurationRef & {
+	kind: "kernel_parameters"
+	record_path: =~"^configurations/kernel/"
+}
+
+#NumericalPolicyRef: #ConfigurationRef & {
+	kind: "numerical_policy"
+	record_path: =~"^configurations/numerical/"
+}
+
+#DataPolicyRef: #ConfigurationRef & {
+	kind: "data_policy"
+	record_path: =~"^configurations/data/"
+}
+
+#ExecutionPolicyRef: #ConfigurationRef & {
+	kind: "execution_policy"
+	record_path: =~"^configurations/execution/"
+}
+
+// The experiment/run surface composes references only. Component definitions
+// remain in their owner-scoped records and are bound by content digest.
+#ExperimentConfiguration: {
+	kernel_parameters?:   [...#KernelParameterRef]
+	numerical_policies?:  [...#NumericalPolicyRef]
+	data_policies?:       [...#DataPolicyRef]
+	execution_policies?:  [...#ExecutionPolicyRef]
 }
 
 #ExecutionIdentity: {
@@ -69,7 +121,7 @@ package climate
 	}
 	// Alternate implementations require distinct identities; this is not
 	// permission for runtime substitution of an unavailable requested capability.
-	fallback_identity_required: true
+	alternate_identity_required: true
 	resource: #ResourceEnvelope
 }
 
@@ -150,6 +202,7 @@ package climate
 	candidate_methods: [...#Id] & [_, ...]
 	baseline_methods:  [...#Id] & [_, ...]
 	datasets:          [...#DatasetRef] & [_, ...]
+	configuration?:    #ExperimentConfiguration
 	primary_metrics:   [...#MetricDefinition] & [_, ...]
 	secondary_metrics?: [...#MetricDefinition]
 	negative_controls: [...string]
@@ -195,7 +248,7 @@ package climate
 	execution:           #ExecutionResolution
 	scientific_output_eligible: bool
 	resolved_dataset_digests: [...#Sha256]
-	resolved_configuration: {...}
+	resolved_configuration: #ExperimentConfiguration
 	seeds:               [...int]
 	environment:         #ResolvedEnvironment
 	hardware:            #HardwareRecord
