@@ -1,8 +1,8 @@
 # Validation, verification, and evidence architecture
 
-Status: **binding scientific-quality specification** for future implementation.
+Status: **binding scientific-quality specification**.
 
-This repository needs to detect several distinct failure classes that are currently easy to conflate:
+The repository must distinguish several failure classes that are easy to conflate:
 
 - code that does not run;
 - code that runs but implements the wrong equations;
@@ -113,25 +113,9 @@ This plane exists specifically to prevent category errors where impressive mathe
 
 ## 2. Claim registry
 
-The repository should eventually maintain a machine-readable claim registry. Conceptual record:
+`claims/registry.json` is the machine-readable authority for registered scientific/software claims. A claim record carries the scoped statement, claim type, subject, maturity, dependencies, required evidence, supporting/attacking evidence, unresolved falsifiers, and owner.
 
-```text
-Claim {
-  claim_id
-  text
-  claim_type
-  subject / method_id
-  maturity
-  scope
-  dependencies
-  required_evidence
-  supporting_evidence
-  attacking_evidence
-  unresolved_falsifiers
-  owner
-  supersedes
-}
-```
+The registry does not make a claim true by registration. It makes the claim and its unmet obligations explicit enough for evidence tooling and generated status to track them without relying on prose.
 
 Useful `claim_type` values include:
 
@@ -148,11 +132,11 @@ resource
 interoperability
 ```
 
-A README sentence such as "high curvature regions identify tipping elements" should eventually resolve to one or more claim IDs. If no evidence record supports the claim at the required level, documentation renders it as hypothesis/prototype language rather than established fact.
+Scientific prose that asserts or materially strengthens a registered claim should be consistent with the claim's recorded maturity and evidence. If the required evidence is absent, documentation must use hypothesis/prototype language rather than established-fact language.
 
 ## 3. Placeholder and heuristic controls
 
-Current Climate code has explicit placeholders and heuristic constants. Future infrastructure should distinguish:
+Important implementation paths and parameters must distinguish:
 
 ```text
 placeholder      = intentionally incomplete implementation
@@ -163,9 +147,9 @@ literature_fixed = value adopted from a cited source under a declared interpreta
 learned          = fit by a recorded training/calibration procedure
 ```
 
-Every important parameter should eventually carry provenance of this sort.
+Important parameters should carry provenance of this sort whenever their origin affects scientific interpretation or reproducibility.
 
-CI should be able to answer:
+CI and evidence tooling should be able to answer:
 
 - Does a decision-eligible path contain a placeholder?
 - Did a fallback activate during a validation run?
@@ -348,15 +332,15 @@ Exploratory analysis is allowed, but must be labeled exploratory; confirmatory e
 
 ## 11. Reproducibility levels
 
-Useful levels:
+Execution-resource classes use the `R0_static` … `R5_large_data` namespace in `docs/EXECUTION-TOPOLOGY.md`. Reproducibility therefore uses a separate `REP*` namespace:
 
-- **R0 described** — prose sufficient to understand intent.
-- **R1 replayable** — exact command/config/seed/revision/data refs recorded.
-- **R2 artifact-reproducible** — same environment can recreate outputs within declared equivalence.
-- **R3 environment-reproducible** — environment/container/lockfiles allow recreation elsewhere.
-- **R4 independently replicated** — independent path reproduces the scientific result.
+- **REP0 described** — prose sufficient to understand intent.
+- **REP1 replayable** — exact command/config/seed/revision/data refs recorded.
+- **REP2 artifact-reproducible** — same environment can recreate outputs within declared equivalence.
+- **REP3 environment-reproducible** — environment/container/lockfiles allow recreation elsewhere.
+- **REP4 independently replicated** — independent path reproduces the scientific result.
 
-Do not use "reproducible" without indicating which sense.
+Do not use "reproducible" without indicating which sense when the distinction matters.
 
 ## 12. CI versus scientific evaluation
 
