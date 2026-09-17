@@ -99,6 +99,9 @@ experiment_id
 repository revision
 method implementation build(s)
 contract fingerprints
+requested execution identity
+resolved execution eligibility / typed failure
+scientific-output eligibility
 resolved input digests
 resolved configuration
 random seeds
@@ -111,6 +114,8 @@ stdout/stderr digests
 produced artifact refs
 parent/causation ids
 ```
+
+`#ExecutionResolution` in `contracts/climate.cue` is the machine authority for execution identity. An eligible execution must resolve exactly the requested method/implementation/build/backend/precision/resource-class identity. If that request cannot be satisfied, resolution is ineligible and records a typed failure without a replacement implementation. An alternate backend or algorithm is a separate request, not a runtime downgrade of another request.
 
 ### `ArtifactRef`
 
@@ -330,6 +335,7 @@ No language is authoritative by chronology or provenance. Authority comes from t
 - Missingness is data, not a silent default.
 - Randomness is seeded and recorded.
 - Approximation level is explicit.
+- Requested and resolved execution identities must agree for an eligible run; unavailable requirements fail closed rather than selecting an alternate implementation.
 - An experiment consumes immutable references and emits immutable artifacts/evidence.
 - Domain-specific code never invents its own run identity when Commons supplies one.
 - Cross-language FFI stays narrow; complex climate arrays should use documented memory/layout contracts rather than ad-hoc pointer conventions.
