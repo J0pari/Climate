@@ -19,13 +19,15 @@ The minimum mathematical requirements are:
 
 ## Realization ladder
 
+The stage namespace is `SH*`; execution-resource classes use `R*` elsewhere in the repository.
+
 The order below is a dependency graph, not a demand to finish the entire theory before useful experiments begin.
 
-### R0 — truthful local diagnostics
+### SH0 — truthful local diagnostics
 
 Station overlap, discrepancy, residual, and reconstruction diagnostics may be used when they are named according to the quantities they actually compute. Topological or categorical interpretation is not inferred from a diagnostic label.
 
-### R1 — exact finite-complex algebra
+### SH1 — exact finite-complex algebra
 
 Construct a finite abstract simplicial complex, exact cochain groups over a declared coefficient field, linear coboundary matrices, executable `d^2 = 0` checks, and rank-defined cohomology dimensions on known fixtures.
 
@@ -33,27 +35,29 @@ Construct a finite abstract simplicial complex, exact cochain groups over a decl
 
 Required fixtures include at least: interval, disconnected points, circle/triangle boundary, filled triangle, and a 2-sphere triangulation.
 
-### R2 — station-cover nerve
+### SH2 — station-cover nerve and generic sheaf structure
 
 Define station coverage sets or another scientifically defensible cover. Construct simplices only from non-empty intersections, or from an explicitly justified approximation with error semantics. Coverage-radius choices are experiment inputs, not hidden constants. Compare the constructed nerve against simpler graph representations.
 
-### R3 — climate-data sheaf
+The generic reference layer also owns finite-dimensional stalks, explicit restrictions, restriction composition, exact global-section compatibility through `ker(d^0)`, and real degree-zero sheaf operators where those operations are declared.
+
+### SH3 — climate-data sheaf
 
 Define stalk vector spaces and restriction maps for a concrete climate-data task. State units and missing-data semantics. Verify restriction identities/composition and construct the cellular/sheaf coboundary from those restrictions. Re-run `d^2 = 0` as a hard witness.
 
 A scalar residual diagnostic may be derived from a cochain, but the residual itself is not automatically a cohomology class.
 
-### R4 — global-section / obstruction semantics
+### SH4 — global-section / obstruction semantics
 
 Define exactly what compatible local sections and a global section mean for the chosen data model. Implement compatibility and gluing against the actual restriction maps. If an obstruction score is used, derive it from the sheaf model and distinguish exact obstruction/nonexistence from a normed approximate inconsistency.
 
-### R5 — synthetic falsification
+### SH5 — synthetic falsification
 
 Use known-topology fixtures, injected station faults, withheld observations, disconnected coverage, and perturbations that should *not* create a topological signal. Compare against graph residuals, ordinary QC, interpolation/kriging, and non-topological learned baselines.
 
-### R6 — climate-data evaluation
+### SH6 — climate-data evaluation
 
-After R1-R5 are independently witnessed, evaluate the method on declared real station networks. Any claim of incremental value is empirical and task-scoped; mathematical correctness alone cannot promote it.
+After the structural and synthetic obligations are independently witnessed, evaluate the method on declared real station networks. Any claim of incremental value is empirical and task-scoped; mathematical correctness alone cannot promote it.
 
 ## Promotion law
 
