@@ -1,6 +1,6 @@
 # Commons integration contract
 
-Status: **interface specification**. The default integration posture is `observe` only until the gates in this document are satisfied.
+Status: **contract-ready read integration**. Climate can now submit its existing CPU experiment runtime through Commons `work-scheduler/v1`; live R4 completion still requires a real machine cutover/daemon witness.
 
 The purpose of this interface is to let Commons coordinate Climate without owning Climate's scientific semantics or silently upgrading the strength of its evidence.
 
@@ -30,7 +30,7 @@ The purpose of this interface is to let Commons coordinate Climate without ownin
 - cross-repository evidence taxonomy;
 - workspace-level experiment DAGs and promotion decisions where Climate is one evaluator/producer among others.
 
-Neither side should duplicate the other's source of truth. Climate pins the Commons-owned `gpu-scheduler/v1` ABI in `contracts/gpu-scheduler-pin.json`; `architecture/commons_interface.json` is Climate's machine-readable declaration of its side of this boundary.
+Neither side should duplicate the other's source of truth. Climate pins the resource-generic Commons `work-scheduler/v1` ABI in `contracts/work-scheduler-pin.json` while retaining the legacy GPU pin only for compatibility history; `architecture/commons_interface.json` is Climate's machine-readable declaration of its side of this boundary.
 
 ## 2. Control levels
 
@@ -211,7 +211,7 @@ dataset locality requirement
 
 Commons may translate these declarations into concrete leases. Climate should not assume a particular machine, GPU id, or cluster topology in its scientific spec.
 
-The currently pinned `gpu-scheduler/v1` contract is specifically a GPU arbiter. It must not be used to encode a CPU-only Climate experiment as a nominal GPU job merely to obtain orchestration. `architecture/commons_control.py` therefore exposes contract/status/inspection only. A resource-generic Commons execution contract is required before the current CPU experiment runtime can cross Gate B/C without semantic substitution.
+`work-scheduler/v1` now represents the current CPU experiment honestly: the Climate adapter submits `resourceClass=cpu`, a positive RAM declaration, the exact Climate experiment spec, explicit repository revision and run scope, and writes only beneath `run-artifacts/commons/`. CPU submission carries zero GPU claim and must not depend on GPU availability. The older `gpu-scheduler/v1` pin remains compatibility history, not the Climate execution route.
 
 ## 8. Sandboxing
 

@@ -1,8 +1,9 @@
-"""Fail-closed Climate view of the Commons-owned gpu-scheduler/v1.
+"""Fail-closed Climate client for Commons work-scheduler/v1.
 
-This module verifies ownership and ABI compatibility and exposes read-only
-control-plane status/inspection. It intentionally does not submit Climate's
-current CPU experiment runtime through a GPU-only scheduler contract.
+Climate owns the experiment and scientific semantics. Commons receives only a
+declared command plus machine-resource requirements. The adapter permits CPU
+experiment execution into run-artifacts; it does not grant Commons repository
+source writes or scientific evidence-promotion authority.
 """
 from __future__ import annotations
 
@@ -10,14 +11,18 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 from typing import Any, Mapping
 
 ROOT = Path(__file__).resolve().parents[1]
-PIN = ROOT / "contracts" / "gpu-scheduler-pin.json"
-ABI_KEYS = ("schema", "contractVersion", "compatibility", "public",
-            "types", "endpoints", "gpu_lock")
+PIN = ROOT / "contracts" / "work-scheduler-pin.json"
+ABI_KEYS = (
+    "schema", "contractVersion", "compatibility", "public", "types",
+    "endpoints", "resource_semantics",
+)
+_RUN_SCOPE = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
 class CommonsControlError(RuntimeError):
@@ -51,10 +56,10 @@ def commons_root(env: Mapping[str, str] | None = None) -> Path:
 
 
 def scheduler_path(env: Mapping[str, str] | None = None) -> Path:
-    path = commons_root(env) / "control" / "gpu_scheduler.py"
+    path = commons_root(env) / "control" / "work_scheduler.py"
     if not path.is_file():
         raise CommonsControlError(
-            f"Commons scheduler entrypoint is unavailable: {path}")
+            f"Commons work scheduler entrypoint is unavailable: {path}")
     return path
 
 
@@ -107,3 +112,62 @@ def inspect_job(
 ) -> dict[str, Any]:
     verify_scheduler_contract(env)
     return _invoke(["inspect", "--job", job_id], env)
+
+
+def submit_cpu_experiment(
+    *,
+    experiment_path: Path,
+    repository_revision: str,
+    run_scope: str,
+    ram_mib: int,
+    max_minutes: float = 30.0,
+    priority: int = 0,
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """Enqueue one existing Climate CPU experiment without changing its semantics."""
+    verify_scheduler_contract(env)
+    if not repository_revision.strip():
+        raise CommonsControlError("repository_revision must be explicit")
+    if not _RUN_SCOPE.fullmatch(run_scope):
+        raise CommonsControlError(
+            "run_scope must contain only letters, digits, dot, underscore, or hyphen")
+    if ram_mib <= 0:
+        raise CommonsControlError("ram_mib must be positive")
+
+    experiment = experiment_path.resolve()
+    experiments_root = (ROOT / "experiments").resolve()
+    try:
+        experiment.relative_to(experiments_root)
+    except ValueError as exc:
+        raise CommonsControlError(
+            "experiment_path must resolve under Climate experiments/") from exc
+    if not experiment.is_file():
+        raise CommonsControlError(f"experiment does not exist: {experiment}")
+
+    output_dir = ROOT / "run-artifacts" / "commons" / run_scope
+    command = [
+        sys.executable,
+        str(ROOT / "src" / "experiment_runtime.py"),
+        "--experiment", str(experiment),
+        "--output-dir", str(output_dir),
+        "--repository-revision", repository_revision,
+        "--run-scope", run_scope,
+    ]
+    ack = _invoke([
+        "submit",
+        "--name", f"climate-{run_scope}",
+        "--repo", "climate",
+        "--resource-class", "cpu",
+        "--priority", str(priority),
+        "--max-minutes", str(max_minutes),
+        "--ram", str(ram_mib),
+        "--cwd", str(ROOT),
+        "--cmd", *command,
+    ], env)
+    return {
+        **ack,
+        "experiment": str(experiment.relative_to(ROOT)),
+        "outputDir": str(output_dir.relative_to(ROOT)),
+        "repositoryRevision": repository_revision,
+        "runScope": run_scope,
+    }

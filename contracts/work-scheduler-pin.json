@@ -1,0 +1,12 @@
+{
+  "schema": "work-scheduler/v1",
+  "fingerprint": "8289268fa4774dfb2c44934eb7cb0729986bd8e8c86a36254ce9470f76b2c5b6",
+  "adoptedAt": "2026-09-17",
+  "capabilities": [
+    "contract",
+    "status",
+    "inspect",
+    "submit:cpu"
+  ],
+  "owner": "commons"
+}

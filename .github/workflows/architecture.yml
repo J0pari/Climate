@@ -57,9 +57,14 @@ jobs:
       - name: Vet Commons boundary contracts
         run: |
           "$(go env GOPATH)/bin/cue" vet -d '#CommonsSchedulerPin' contracts/climate.cue contracts/gpu-scheduler-pin.json
+          "$(go env GOPATH)/bin/cue" vet -d '#CommonsWorkSchedulerPin' contracts/climate.cue contracts/work-scheduler-pin.json
           "$(go env GOPATH)/bin/cue" vet -d '#ClimateCommonsInterface' contracts/climate.cue architecture/commons_interface.json
           if "$(go env GOPATH)/bin/cue" vet -d '#CommonsSchedulerPin' contracts/climate.cue contracts/testdata/commons-scheduler-pin.bad.json; then
             echo 'invalid Commons scheduler pin was accepted' >&2
+            exit 1
+          fi
+          if "$(go env GOPATH)/bin/cue" vet -d '#CommonsWorkSchedulerPin' contracts/climate.cue contracts/testdata/commons-work-scheduler-pin.bad.json; then
+            echo 'invalid Commons work-scheduler pin was accepted' >&2
             exit 1
           fi
       - name: Vet layered configuration records

@@ -426,19 +426,28 @@ package climate
 	owner:       "commons"
 }
 
+#CommonsWorkSchedulerPin: {
+	schema:      "work-scheduler/v1"
+	fingerprint: #Fingerprint
+	adoptedAt:   string & !=""
+	capabilities: [...string & !=""]
+	owner:       "commons"
+}
+
 #ClimateCommonsInterface: {
 	schema_version: 1
 	interface_id:   "climate.commons.v1"
 	repository_id:  "J0pari/Climate"
 	supported_control_level: "observe" | "read" | "write"
 	scheduler_contract: {
-		schema:   "gpu-scheduler/v1"
-		pin_path: "contracts/gpu-scheduler-pin.json"
+		schema:   "work-scheduler/v1"
+		pin_path: "contracts/work-scheduler-pin.json"
 		owner:    "commons"
 	}
 	entrypoints: {
-		inspect:        [...string & !=""] & [_, ...]
-		run_experiment: [...string & !=""] & [_, ...]
+		inspect:           [...string & !=""] & [_, ...]
+		run_experiment:    [...string & !=""] & [_, ...]
+		submit_experiment: [...string & !=""] & [_, ...]
 	}
 	produces: [...string & !=""] & [_, ...]
 	accepts:  [...string & !=""] & [_, ...]

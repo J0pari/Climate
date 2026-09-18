@@ -2,10 +2,10 @@
   "schema_version": 1,
   "interface_id": "climate.commons.v1",
   "repository_id": "J0pari/Climate",
-  "supported_control_level": "observe",
+  "supported_control_level": "read",
   "scheduler_contract": {
-    "schema": "gpu-scheduler/v1",
-    "pin_path": "contracts/gpu-scheduler-pin.json",
+    "schema": "work-scheduler/v1",
+    "pin_path": "contracts/work-scheduler-pin.json",
     "owner": "commons"
   },
   "entrypoints": {
@@ -21,6 +21,11 @@
       "<experiment-spec>",
       "--output-dir",
       "<output-dir>"
+    ],
+    "submit_experiment": [
+      "python",
+      "architecture/commons_control.py",
+      "submit_cpu_experiment"
     ]
   },
   "produces": [
@@ -44,7 +49,7 @@
     "evidence": "evidence/"
   },
   "limitations": [
-    "gpu-scheduler/v1 is GPU-specific and cannot honestly represent the current CPU experiment runtime",
+    "work-scheduler/v1 contract compatibility does not itself satisfy the R4 live integrated-execution witness",
     "contract compatibility is not R4 integrated execution evidence",
     "Commons does not own Climate scientific interpretation or evidence promotion"
   ]
