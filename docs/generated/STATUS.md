@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **43**.
+Registered modules: **44**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 28 |
+| `canonical` | 29 |
 | `reference` | 15 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 41 |
+| `runnable` | 42 |
 
 ### Canonical and reference modules
 
@@ -50,6 +50,7 @@ Registered modules: **43**.
 | `canonical` | `src/padic.rs` | `ultrametric_reference` | `runnable` | no |
 | `canonical` | `src/physical_state.rs` | `typed_physical_state_boundary` | `runnable` | no |
 | `canonical` | `src/sheaf.rs` | `sheaf_numerics` | `runnable` | no |
+| `canonical` | `src/station_sheaf.py` | `global_station_sheaf_substrate` | `runnable` | no |
 | `reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |
 | `reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
 | `reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
@@ -95,21 +96,24 @@ Experiment specifications: **4**.
 
 ## Sheaf realization frontier
 
-Obligations: **14 realized / 1 open / 15 total**.
+Obligations: **12 realized / 4 open / 16 total** (7 reference, 5 canonical, 0 validated).
 
-| Layer | Realized | Open |
-| --- | ---: | ---: |
-| `SH1` | 3 | 0 |
-| `SH2` | 5 | 0 |
-| `SH3` | 4 | 0 |
-| `SH4` | 1 | 0 |
-| `SH5` | 1 | 0 |
-| `SH6` | 0 | 1 |
+| Layer | Reference | Canonical | Validated | Open |
+| --- | ---: | ---: | ---: | ---: |
+| `SH1` | 3 | 0 | 0 | 0 |
+| `SH2` | 4 | 1 | 0 | 0 |
+| `SH3` | 0 | 3 | 0 | 2 |
+| `SH4` | 0 | 0 | 0 | 1 |
+| `SH5` | 0 | 1 | 0 | 0 |
+| `SH6` | 0 | 0 | 0 | 1 |
 
 Open obligations:
 
+- `restriction_functoriality` (`SH3`): Canonical higher-dimensional climate stalks and nontrivial restriction maps satisfy identity and composition laws on the production locality complex.
+- `higher_cochain_d_squared_zero` (`SH3`): Canonical sparse higher-degree climate cochain differentials are assembled from production restriction maps and satisfy d_(k+1) o d_k = 0 without dense global matrices or global tuple enumeration.
+- `global_section_and_gluing` (`SH4`): Climate-data compatibility, global-section existence/nullspace structure, and any reconstruction/gluing semantics are computed through scalable sparse or matrix-free operators on the actual canonical restrictions; incompatibility is not silently merged away.
 - `baseline_and_real_data_incremental_value` (`SH6`): Task-scoped real-data evaluation demonstrates incremental value, if any, over graph residual, QC, interpolation, and other declared baselines.
 
 ## Interpretation boundary
 
-This projection reports declared repository structure only. A module listed as runnable is not thereby verified; a reference-realized mathematical obligation is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity.
+This projection reports declared repository structure only. A module listed as runnable is not thereby verified; reference-realized obligations are independent correctness oracles rather than production completion; canonical realization is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity.

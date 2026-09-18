@@ -4,62 +4,59 @@ Status: architectural and mathematical specification for `climate.sheaf.consiste
 
 ## Mathematical contract
 
-Sheaf/cohomology terminology is reserved for structures satisfying the defining algebraic laws. Mathematical realization and empirical climate usefulness remain separate claims.
+Sheaf/cohomology terminology is reserved for structures satisfying the defining laws. Mathematical realization, scalable execution, and empirical climate usefulness are distinct authorities.
 
-The binding structural requirements are:
+1. **Declared base complex.** Climate cochains live on an explicit simplicial/cellular complex or poset.
+2. **Linear restrictions and cochains.** Stalks, units, missingness, and restriction maps are explicit; coboundaries are assembled from those restrictions.
+3. **Functorial restrictions.** Identity and composition laws are executable invariants where higher cells are present.
+4. **Cochain-complex identity.** Consecutive production coboundaries satisfy `d_(k+1) o d_k = 0`.
+5. **Cohomology-derived invariants.** Betti/cohomology terminology refers to kernel/image structure over a declared coefficient system, not thresholded residual counts.
+6. **Gluing semantics.** Compatible local sections and global-section/nullspace structure are defined by restrictions. Reconstruction or interpolation is separate.
+7. **Scale-preserving realization.** Climate-data execution must not require a global all-pairs scan, one projected CRS, global tuple/powerset enumeration, dense global coboundary matrices, or loading all stations and times into memory.
+8. **Reference/production separation.** Small exact implementations are independent correctness oracles. They do not discharge production climate-data obligations.
 
-1. **Linear cochain maps.** Coboundaries are linear maps between declared cochain groups.
-2. **Declared base complex.** Simplices arise from an explicit simplicial/cellular complex or poset rather than arbitrary tuple enumeration.
-3. **Cochain-complex identity.** Consecutive coboundaries satisfy `d_(k+1) o d_k = 0` under the declared coefficient system.
-4. **Cohomology-derived Betti numbers.** A Betti number is the dimension of a cohomology group over a declared field; thresholded residual counts are not Betti numbers.
-5. **Explicit stalks and restrictions.** Climate-data stalk contents, units, missingness, and restriction maps are explicit and restrictions satisfy identity/composition.
-6. **Restriction-derived coboundary.** Climate-data cochain differentials are assembled from those restrictions.
-7. **Gluing semantics.** Compatible local sections and the global-section space are defined by the restrictions. Averaging or interpolation is a separate reconstruction operation.
-8. **Adjunction terminology.** An adjunction requires categories, functors, unit/counit natural transformations, and triangle identities.
+## Canonical station substrate
 
-## Realized reference scope
+`src/station_sheaf.py` is provider-neutral. It consumes stable station identities, WGS84 coordinates, explicit variable/unit descriptors, and bounded observation sections with a separate observed/missing mask.
 
-### Exact finite-complex and generic sheaf reference
+Global station locality uses a 3-D unit-sphere `cKDTree` for conservative radius candidates and `pyproj.Geod` for exact WGS84 ellipsoidal refinement. Anti-meridian and polar behavior therefore do not depend on a local projected CRS. Edge ownership is deterministic over half-open tail-vertex ranges so shards own disjoint edges over the same immutable catalog.
 
-`reference/sheaf_cohomology.py` realizes finite abstract simplicial complexes, exact nerves of declared finite covers, finite-dimensional GF(2) cellular sheaves, functorial restriction maps, block coboundaries, `d² = 0`, global-section compatibility through `ker(d⁰)`, and cohomology dimensions from exact rank arithmetic.
+The current base complex is a declared Vietoris--Rips complex over that geodesic graph. Higher simplices are generated only when requested from intersections of forward local adjacency. Simplices are owned by their smallest vertex, giving deterministic partitioning; a partition can request the codimension-one halo faces needed by its owned cofaces.
 
-`src/sheaf.rs` independently supplies real-valued degree-zero cellular-sheaf operators on graphs: explicit stalks/restrictions, `d⁰`, compatibility residuals, `L₀ = d⁰ᵀd⁰`, and SVD-derived structural diagnostics. Its scalar identity-restriction special case is also kernel-checked in Lean.
+`StationSchemaSheaf` supports heterogeneous station capabilities. A simplex stalk is the intersection of the normalized variable schemas carried by its vertices. Restrictions are sparse coordinate-selection maps, so nontrivial heterogeneous restrictions retain exact identity/composition semantics. Cochain indexes are partition-local, and sparse oriented coboundaries are assembled from owned cofaces plus explicit halo faces.
 
-### Provider-backed climate-data reference
+`StationIdentitySheaf` is the same-variable special case. Degree-zero coboundaries are SciPy CSR with two structural nonzeros per edge-variable row, or restrictions are applied locally without materializing a global matrix. Missing observations mask restriction rows; they are never converted into observations with a zero/default value.
 
-`reference/station_temperature_sheaf.py` composes the NCEI GHCN-Daily adapter, the exact finite-cover nerve machinery, pyproj coordinate transformation, NumPy cochain algebra, and a SciPy nearest-neighbor baseline.
+## Generic canonical sheaf operator
 
-The checked-in source fixture is the exact NCEI response for Central Park (`USW00094728`), LaGuardia (`USW00014732`), and JFK (`USW00094789`) for 2024-01-01 through 2024-01-03, identified by:
+`src/sheaf.rs` owns generic real finite-dimensional vertex/edge stalks with explicit non-identity restriction matrices. Ordinary residual and `L0` application are matrix-free over local edge blocks. Sparse coboundary triplets are available for maintained sparse-library backends.
 
-```text
-source_id = ncei.ghcnd.v3
-sha256 = 45f8e9a08d61939ca639e599250bdf4fbc8a41986f52d7c7e023f1a947c8bd42
-bytes = 6957
-records = 9
-```
+Dense `D`, `D^T D`, and SVD materialization remain bounded verification diagnostics. They are not the production foundation for large climate-data graphs.
 
-The reference experiment declares a 20 km station-support radius and EPSG:32618 projected coordinates. These are fixture policy, not universal claims about station representativeness. The finite cover is constructed from provider station coordinates under that rule; the resulting three-station fixture contains a 2-simplex.
+## Global sections and gluing
 
-Vertex and higher-simplex stalk bases contain only daily `TMAX` and `TMIN` variables actually present at every station participating in the simplex. Units are degrees Celsius under the captured metric-unit provider request. Provider quality flags remain explicit. A quality-flagged value can be marked unavailable by declared policy; an absent value is never filled by climatology, interpolation, or a static default.
+For the coordinate-selection station sheaf, each normalized variable induces an identity sheaf on the subgraph of stations that structurally support it. Global-section dimension is therefore computed from sparse connected components of those induced subgraphs rather than a dense global nullspace.
 
-Restriction maps select the variables shared by face and coface stalks. Their identity/composition semantics are executable, and the resulting oriented real cochains satisfy `d¹d⁰ = 0` on the climate-data fixture.
+A partial observed station section extends to a global section exactly when all observed values agree inside each relevant connected component. Components with an observation anchor are determined; unanchored components remain explicitly free; conflicting components make extension fail. No interpolation or default value is inserted and called gluing.
 
-## Compatibility, gluing, and falsification
+## Provider composition
 
-The global-section space is `ker(d⁰)`; incompatibility is retained as a residual rather than merged away. On the complete two-variable three-station fixture the global-section dimension is two, corresponding to constant `TMAX` and constant `TMIN` directions. The observed station assignment is not silently promoted to a compatible global section.
+`reference/station_temperature_sheaf.py` parses the captured NCEI GHCN-Daily witness and projects provider identity, coordinates, TMAX/TMIN, units, quality flags, and missingness into the canonical `StationCatalog` and `StationSection`.
 
-Synthetic fault and withholding transforms are explicit derived test operations over the captured provider artifact. They do not replace unavailable source data:
+The three-station artifact is only a provider/provenance regression fixture. It owns no second topology builder, projected coordinate system, dense cochain implementation, or station-scale execution model.
 
-- an injected +10 °C `TMAX` perturbation is recorded in transformation lineage;
-- a withheld `TMAX` becomes unavailable and is removed from affected stalk bases rather than imputed;
-- provider-QC counts remain independently visible;
-- ordinary centered residuals and graph-edge residuals are computed from the same information;
-- SciPy nearest-neighbor interpolation is a separate baseline rather than a sheaf restriction or fallback value.
+The data architecture targets a federation of every station worldwide that can be lawfully and reproducibly accessed without paid data access. Provider aliases, relocation/history, revisions, quality/source flags, access/license semantics, and cross-provider deduplication remain explicit data semantics. Numerical kernels do not encode a fixed provider list.
 
-For complete shared temperature stalks, the sheaf compatibility residual equals the ordinary graph residual exactly. That equality is an important negative control: this fixture establishes climate-data sheaf semantics and falsification behavior, not an incremental advantage for sheaf machinery.
+## Independent mathematical references
 
-## Empirical interpretation boundary
+`reference/sheaf_cohomology.py` retains exact finite-complex, finite-cover nerve, GF(2) cellular-sheaf, cohomology-dimension, and functoriality witnesses. Its powerset enumeration and dense exact matrices are useful because the fixtures are deliberately bounded and independently inspectable; they are not a station-network scaling path.
 
-The realized reference does not establish that 20 km is a generally valid station-support scale, that GHCN-D observations are homogenized for every climate task, that a nonzero cohomology class identifies a physical data defect, or that sheaf diagnostics outperform standard QC, residual, graph, or interpolation methods on broader real station networks.
+The scalar identity-restriction special case remains kernel-checked in Lean. That proof strengthens the algebraic boundary without changing production implementation identity.
 
-`baseline_and_real_data_incremental_value` remains an open empirical realization obligation in `methods/sheaf-realization.v1.json`. The planning graph is the sole authority for work selection and priority; this document defines only the current mathematical and scientific scope.
+## Current realization boundary
+
+The canonical path realizes global indexed station locality, deterministic partition ownership, bounded observation sections, sparse degree-zero operators, heterogeneous coordinate-selection restrictions, partition-local sparse higher-cochain assembly, matrix-free generic degree-zero application, and exact component-local global-section extension semantics.
+
+The machine realization ledger remains authoritative about which of those capabilities have executable promotion witnesses at the current revision. Empirical incremental value over ordinary QC, graph residuals, interpolation/kriging, and other declared baselines remains a separate claim.
+
+Worldwide station scale is an engineering/data target, not empirical validation.

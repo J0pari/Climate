@@ -140,20 +140,30 @@ def render_status(root: Path = ROOT) -> str:
         for obligation in obligations:
             status = obligation.get("status", "unknown")
             by_layer[obligation.get("layer", "unknown")][status] += 1
-        realized = sum(1 for item in obligations if item.get("status") == "reference_realized")
+        reference_realized = sum(
+            1 for item in obligations if item.get("status") == "reference_realized"
+        )
+        canonical_realized = sum(
+            1 for item in obligations if item.get("status") == "canonical_realized"
+        )
+        validated = sum(1 for item in obligations if item.get("status") == "validated")
         open_count = sum(1 for item in obligations if item.get("status") == "open")
+        realized = reference_realized + canonical_realized + validated
         lines.extend([
             "",
             "## Sheaf realization frontier",
             "",
-            f"Obligations: **{realized} realized / {open_count} open / {len(obligations)} total**.",
+            f"Obligations: **{realized} realized / {open_count} open / {len(obligations)} total** "
+            f"({reference_realized} reference, {canonical_realized} canonical, {validated} validated).",
             "",
-            "| Layer | Realized | Open |",
-            "| --- | ---: | ---: |",
+            "| Layer | Reference | Canonical | Validated | Open |",
+            "| --- | ---: | ---: | ---: | ---: |",
         ])
         for layer in sorted(by_layer):
             lines.append(
                 f"| `{layer}` | {by_layer[layer].get('reference_realized', 0)} | "
+                f"{by_layer[layer].get('canonical_realized', 0)} | "
+                f"{by_layer[layer].get('validated', 0)} | "
                 f"{by_layer[layer].get('open', 0)} |"
             )
         open_items = [item for item in obligations if item.get("status") == "open"]
@@ -166,7 +176,7 @@ def render_status(root: Path = ROOT) -> str:
         "",
         "## Interpretation boundary",
         "",
-        "This projection reports declared repository structure only. A module listed as runnable is not thereby verified; a reference-realized mathematical obligation is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity.",
+        "This projection reports declared repository structure only. A module listed as runnable is not thereby verified; reference-realized obligations are independent correctness oracles rather than production completion; canonical realization is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity.",
         "",
     ])
     return "\n".join(lines)
