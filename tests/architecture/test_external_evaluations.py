@@ -35,6 +35,36 @@ class ExternalEvaluationIntegrityTests(unittest.TestCase):
             _write_spec(root)
             self.assertEqual(check_external_evaluations.check(root), [])
 
+    def test_non_external_claim_evaluation_does_not_require_task_set(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            evaluations = root / "evaluations"
+            evaluations.mkdir(parents=True)
+            (evaluations / "claim.json").write_text(
+                json.dumps({
+                    "evaluation_id": "claim.eval.v1",
+                    "claim_id": "claim.one",
+                    "experiment_id": "experiment.one",
+                }),
+                encoding="utf-8",
+            )
+            self.assertEqual(check_external_evaluations.check(root), [])
+
+    def test_duplicate_id_is_global_across_evaluation_families(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_spec(root, evaluation_id="shared.eval.v1")
+            (root / "evaluations" / "claim.json").write_text(
+                json.dumps({
+                    "evaluation_id": "shared.eval.v1",
+                    "claim_id": "claim.one",
+                    "experiment_id": "experiment.one",
+                }),
+                encoding="utf-8",
+            )
+            codes = {f.code for f in check_external_evaluations.check(root)}
+            self.assertIn("external_evaluations.duplicate_id", codes)
+
     def test_task_digest_drift_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

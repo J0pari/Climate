@@ -54,11 +54,16 @@ def check(root: Path = ROOT) -> list[Finding]:
                     f"evaluation_id already declared in {ids[evaluation_id]}"))
             else:
                 ids[evaluation_id] = rel
+        is_external_artifact_evaluation = (
+            "subject_contract" in spec or "task_set" in spec
+        )
+        if not is_external_artifact_evaluation:
+            continue
         task_set = spec.get("task_set")
         if not isinstance(task_set, dict):
             findings.append(Finding(
                 "external_evaluations.task_set_missing", rel,
-                "task_set must be an artifact reference"))
+                "external-artifact evaluation task_set must be an artifact reference"))
             continue
         uri = task_set.get("uri")
         if not isinstance(uri, str) or not uri:
