@@ -30,7 +30,11 @@
         "data/ncei_ghcnd_bulk.py::stream_by_year_partitions",
         "reference/ncei_ghcnd.py::DailySummariesPayload",
         "reference/station_temperature_sheaf.py::to_station_catalog"
-      ]
+      ],
+      "access": "NCEI HTTPS archive and Common Access Data/Search Service REST APIs",
+      "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",
+      "update_semantics": "daily updates plus periodic reconstruction; NCEI assigns unique daily versions and values/flags can be revised, so responses used as evidence must be captured and digested",
+      "revision_identity": "catalog, inventory, and by-year inputs bind the exact provider URL to the captured artifact SHA-256; resumable HTTP capture additionally binds a stable remote validator and Content-Length; published observation partitions carry the captured compressed-artifact SHA-256 as source_revision and revisions use explicit supersession or tombstone lineage"
     }
   ]
 }
