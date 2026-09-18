@@ -652,6 +652,31 @@
         "src/fortran/vertical_diffusion.f90",
         "contracts/climate.cue"
       ]
+    },
+    {
+      "id": "orchestration.external_artifact_evaluation",
+      "title": "Evaluate external model artifacts through Climate-owned tasks",
+      "status": "blocked",
+      "priority": "P1",
+      "resource_class": "R4_integrated_system",
+      "summary": "Use Commons evaluation-exchange/v1 to bind immutable external artifacts to Climate-owned evaluation specifications and attestations without allowing the exchange layer to make Training promotion decisions.",
+      "depends_on": [
+        "orchestration.commons_read_execution"
+      ],
+      "blockers": [
+        "No Climate evaluator currently consumes training.model-artifact/v1 artifacts; artifact identity validation exists, but evaluation/attestation issuance must remain unavailable until a concrete adapter and falsifiable Climate task are registered."
+      ],
+      "completion": [
+        "A versioned Climate evaluation specification declares the model-artifact input contract, climate task, metrics, controls, resource class, and falsifiers.",
+        "A Training artifact is referenced by full SHA-256 exchange identity while retaining its local alias only as metadata.",
+        "One Commons-scheduled Climate evaluation emits a contract-valid evaluation attestation with immutable subject binding and Climate run/artifact lineage.",
+        "The attestation carries evidence class and verification separately and cannot encode Training acceptance/promotion."
+      ],
+      "evidence": [
+        "contracts/evaluation-exchange-pin.json",
+        "architecture/commons_control.py",
+        "docs/COMMONS-INTEGRATION.md"
+      ]
     }
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "schema": "evaluation-exchange/v1",
+  "fingerprint": "fc712459b05d056b9848f2dcbb5bc3d1b8a2541d966ad5ddc19a0a9b41409d48",
+  "adoptedAt": "2026-09-17",
+  "capabilities": [
+    "artifact:validate",
+    "request:receive"
+  ],
+  "owner": "commons"
+}

@@ -291,6 +291,8 @@ Local orchestration may still be needed for:
 
 Workspace-level scheduling, cross-repository dependencies, global GPU leases, experiment DAGs, run identity, and cross-repo lineage should align with Commons rather than duplicate it.
 
+The current boundary is explicit: `work-scheduler/v1` is the resource-generic execution waist used for Climate CPU submissions, while `evaluation-exchange/v1` carries immutable cross-repository artifact and evaluation identity without carrying acceptance or promotion decisions. Climate retains experiment, metric, evidence-class, interpretation, and claim authority; an external artifact is only evaluable after Climate registers a concrete evaluator for its artifact contract.
+
 ## 4. Physical state versus research artifacts
 
 Physical state, derived diagnostics, and research representations are distinct architectural categories:

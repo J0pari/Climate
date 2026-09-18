@@ -39,7 +39,8 @@
   "accepts": [
     "Commons run/trace/correlation/causation identity",
     "Commons scheduler contract verification",
-    "content-addressed Training artifact identity for explicit Climate evaluation"
+    "content-addressed Training artifact identity for explicit Climate evaluation",
+    "Commons evaluation-exchange/v1 external artifact references"
   ],
   "scientific_authority": {
     "contract": "contracts/climate.cue",
@@ -51,6 +52,7 @@
   "limitations": [
     "work-scheduler/v1 contract compatibility does not itself satisfy the R4 live integrated-execution witness",
     "contract compatibility is not R4 integrated execution evidence",
-    "Commons does not own Climate scientific interpretation or evidence promotion"
+    "Commons does not own Climate scientific interpretation or evidence promotion",
+    "No Training-model Climate evaluator is registered yet; external artifact references validate, but attestation issuance fails closed."
   ]
 }

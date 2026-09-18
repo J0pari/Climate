@@ -460,3 +460,11 @@ package climate
 	}
 	limitations: [...string & !=""]
 }
+
+#CommonsEvaluationExchangePin: {
+	schema:      "evaluation-exchange/v1"
+	fingerprint: #Fingerprint
+	adoptedAt:   string & !=""
+	capabilities: [...string & !=""]
+	owner:       "commons"
+}

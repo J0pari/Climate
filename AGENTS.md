@@ -193,8 +193,8 @@ Architecture documents may describe intended contracts that are not yet fully re
 
 ## 12. Commons-facing behavior
 
-Climate's default Commons posture is **experimental / observe-only** until the gates in `docs/COMMONS-INTEGRATION.md` are satisfied.
+Climate's Commons posture is **experimental / read execution** through the pinned `work-scheduler/v1` boundary. Commons may enqueue explicitly declared Climate work into Climate-owned artifact output paths, but it does not gain source-write or scientific-promotion authority.
 
-Read execution comes later behind a sandbox. Repository write authority, if enabled, must obey this contract's direct-`main`, small-coherent-commit, current-file-reread, and no-history-rewrite rules; Commons must not introduce a branch/PR workflow that conflicts with them.
+Repository write authority is not granted by the scheduler or evaluation-exchange contracts. Any future write authority would still have to obey this contract's direct-`main`, small-coherent-commit, current-file-reread, and no-history-rewrite rules; Commons must not introduce a branch/PR workflow that conflicts with them.
 
 For GPU work, Commons may eventually own cross-repository resource leases and run identity; Climate owns device-local numerical execution, streams, layouts, kernels, numerical checkpoint semantics, and hardware-specific correctness tests.

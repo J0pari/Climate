@@ -18,6 +18,7 @@ from typing import Any, Mapping
 
 ROOT = Path(__file__).resolve().parents[1]
 PIN = ROOT / "contracts" / "work-scheduler-pin.json"
+EVALUATION_PIN = ROOT / "contracts" / "evaluation-exchange-pin.json"
 ABI_KEYS = (
     "schema", "contractVersion", "compatibility", "public", "types",
     "endpoints", "resource_semantics",
@@ -26,6 +27,10 @@ _RUN_SCOPE = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
 class CommonsControlError(RuntimeError):
+    pass
+
+
+class ExternalEvaluationUnavailable(CommonsControlError):
     pass
 
 
@@ -171,3 +176,49 @@ def submit_cpu_experiment(
         "repositoryRevision": repository_revision,
         "runScope": run_scope,
     }
+
+
+_EVAL_ABI_KEYS = (
+    "schema", "contractVersion", "compatibility", "types", "invariants",
+)
+_SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
+_REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+
+
+def load_evaluation_pin() -> dict[str, Any]:
+    return json.loads(EVALUATION_PIN.read_text(encoding="utf-8"))
+
+
+def evaluation_exchange_fingerprint(contract: Mapping[str, Any]) -> str:
+    abi = {key: contract.get(key) for key in _EVAL_ABI_KEYS if key in contract}
+    canonical = json.dumps(abi, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def validate_external_artifact_ref(ref: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate exchange identity without pretending the artifact is evaluable."""
+    required = (
+        "producer_repository", "local_artifact_id", "digest",
+        "artifact_contract",
+    )
+    missing = [key for key in required if not ref.get(key)]
+    if missing:
+        raise CommonsControlError(
+            "external artifact ref missing: " + ", ".join(missing))
+    if not _REPOSITORY.fullmatch(str(ref["producer_repository"])):
+        raise CommonsControlError("producer_repository must be owner/name")
+    if not _SHA256_HEX.fullmatch(str(ref["digest"])):
+        raise CommonsControlError(
+            "external artifact digest must be full lowercase SHA-256")
+    return dict(ref)
+
+
+def require_external_evaluator(
+    subject: Mapping[str, Any],
+    evaluation_id: str,
+) -> None:
+    """Fail closed until Climate implements the named artifact evaluator."""
+    validate_external_artifact_ref(subject)
+    raise ExternalEvaluationUnavailable(
+        f"Climate has no registered external-artifact evaluator "
+        f"{evaluation_id!r}; no attestation was issued")

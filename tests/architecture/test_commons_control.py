@@ -99,5 +99,36 @@ class CommonsControlTests(unittest.TestCase):
                 )
 
 
+    def test_external_artifact_ref_requires_full_digest(self):
+        good = {
+            "producer_repository": "J0pari/Training",
+            "local_artifact_id": "0123456789abcdef",
+            "digest": "a" * 64,
+            "artifact_contract": "training.model-artifact/v1",
+        }
+        self.assertEqual(
+            commons_control.validate_external_artifact_ref(good)["digest"],
+            "a" * 64,
+        )
+        bad = dict(good)
+        bad["digest"] = "a" * 16
+        with self.assertRaises(commons_control.CommonsControlError):
+            commons_control.validate_external_artifact_ref(bad)
+
+    def test_external_training_artifact_evaluation_fails_closed_until_registered(self):
+        subject = {
+            "producer_repository": "J0pari/Training",
+            "local_artifact_id": "0123456789abcdef",
+            "digest": "b" * 64,
+            "artifact_contract": "training.model-artifact/v1",
+        }
+        with self.assertRaises(
+            commons_control.ExternalEvaluationUnavailable
+        ):
+            commons_control.require_external_evaluator(
+                subject,
+                "climate.training-artifact.v1",
+            )
+
 if __name__ == "__main__":
     unittest.main()

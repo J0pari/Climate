@@ -328,3 +328,22 @@ Once Commons provides these facilities, Climate should avoid building separate i
 - cross-repository promotion bookkeeping.
 
 Climate may retain local component scheduling where it is scientifically/numerically part of a simulation, but that distinction must be explicit.
+
+## 7. External artifact evaluation
+
+Climate pins Commons `evaluation-exchange/v1` as an interoperability boundary,
+not as scientific authority. A Training model artifact can be presented as an
+external artifact reference only when it carries its producer repository,
+producer-local alias, full SHA-256 identity, and artifact contract. The local
+16-character Training alias is metadata; it is never the cross-repository
+identity.
+
+Climate currently validates that identity but has no registered evaluator for
+`training.model-artifact/v1`. `architecture/commons_control.py` therefore
+fails closed rather than inventing an attestation. The next legitimate step is
+a concrete Climate-owned evaluation specification that declares the task,
+metrics, controls, falsifiers, artifact adapter, and resource envelope.
+
+Any eventual evaluation attestation is evidence about the immutable model
+artifact. It does not mutate that artifact and cannot accept, reject, deploy,
+or promote it; Training retains those decisions.
