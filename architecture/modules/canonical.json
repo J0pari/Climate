@@ -6,11 +6,11 @@
       "family": "ncei_ghcnd_bulk_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-specific bulk discovery and normalization adapter for complete GHCN-Daily station/inventory authorities, producing bounded content-addressed federation catalog shards and bulk yearly artifact identities without per-station REST enumeration",
+      "intended_role": "canonical provider-specific bulk discovery, normalization, and streaming observation-routing adapter for complete GHCN-Daily station/inventory/by-year authorities, producing bounded federation catalog shards and spatial/year/element partition keys without station-by-time or per-station REST materialization",
       "known_gaps": [
-        "the adapter identifies provider by-year artifacts but does not yet download, verify, and publish those observation bytes into immutable federation observation partitions",
+        "the streaming router is storage-format neutral; a durable columnar/object-store sink must still content-address and publish routed partitions before they enter a StationFederationManifest",
         "ghcnd-stations.txt is treated as a provider metadata snapshot effective at the captured date; the adapter does not back-project current coordinates into unobserved historical relocation epochs",
-        "observation rows from by-year artifacts are not yet repartitioned into bounded spatial/variable chunks for the federation manifest",
+        "provider element values remain raw GHCN integer semantics at this boundary; unit normalization into climate variable contracts is a separate explicit adapter rather than an ingestion default",
         "cross-provider station crosswalks remain federation-level evidence obligations and are never inferred from location proximity"
       ],
       "authority_kind": "canonical_implementation",

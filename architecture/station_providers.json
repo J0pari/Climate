@@ -26,6 +26,7 @@
         "data/ncei_ghcnd_bulk.py::parse_station_catalog",
         "data/ncei_ghcnd_bulk.py::parse_inventory",
         "data/ncei_ghcnd_bulk.py::adaptive_catalog_shards",
+        "data/ncei_ghcnd_bulk.py::stream_by_year_partitions",
         "reference/ncei_ghcnd.py::DailySummariesPayload",
         "reference/station_temperature_sheaf.py::to_station_catalog"
       ]

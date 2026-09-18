@@ -7,10 +7,14 @@ worldwide ingestion loop.
 """
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
+from datetime import date
+import gzip
 import hashlib
 import math
-from typing import Iterable, Sequence
+from pathlib import Path
+from typing import Iterable, Protocol, Sequence
 
 from src.station_federation import (
     AliasBinding,
@@ -308,6 +312,239 @@ def catalog_shard_refs(
         ))
     return tuple(refs)
 
+
+
+@dataclass(frozen=True)
+class GHCNByYearRecord:
+    station_id: str
+    observation_date: str
+    element: str
+    value: int | None
+    measurement_flag: str
+    quality_flag: str
+    source_flag: str
+    observation_time: str
+
+
+@dataclass(frozen=True, order=True)
+class GHCNObservationPartitionKey:
+    source_id: str
+    spatial_partition: str
+    year: int
+    element: str
+
+
+@dataclass(frozen=True)
+class RoutedGHCNObservation:
+    canonical_station_id: str
+    observation_date: str
+    element: str
+    value: int | None
+    measurement_flag: str
+    quality_flag: str
+    source_flag: str
+    observation_time: str
+
+
+@dataclass(frozen=True)
+class GHCNRoutingSummary:
+    row_count: int
+    missing_value_count: int
+    partition_count: int
+
+
+class ObservationPartitionSink(Protocol):
+    def write(
+        self,
+        key: GHCNObservationPartitionKey,
+        record: RoutedGHCNObservation,
+    ) -> None:
+        ...
+
+
+class StationShardLookup:
+    """Bounded station-metadata lookup used while streaming observation rows."""
+
+    def __init__(
+        self,
+        shards: Sequence[StationCatalogShard],
+        *,
+        source_id: str = SOURCE_ID,
+    ) -> None:
+        mapping: dict[str, tuple[str, str]] = {}
+        for shard in shards:
+            for station in shard.stations:
+                for binding in station.aliases:
+                    alias = binding.alias
+                    if alias.source_id != source_id:
+                        continue
+                    value = (station.canonical_station_id, shard.spatial_partition)
+                    previous = mapping.get(alias.provider_station_id)
+                    if previous is not None and previous != value:
+                        raise ValueError(
+                            f"provider station {alias.provider_station_id!r} "
+                            "resolves to multiple federation shards"
+                        )
+                    mapping[alias.provider_station_id] = value
+        if not mapping:
+            raise ValueError(
+                f"no aliases for provider {source_id!r} exist in catalog shards"
+            )
+        self.source_id = source_id
+        self._mapping = mapping
+
+    def resolve(self, provider_station_id: str) -> tuple[str, str]:
+        try:
+            return self._mapping[provider_station_id]
+        except KeyError as exc:
+            raise ValueError(
+                f"provider station {provider_station_id!r} is absent from the "
+                "captured federation catalog; refresh metadata instead of "
+                "silently dropping the observation"
+            ) from exc
+
+
+def _parse_yyyymmdd(raw: str, *, expected_year: int) -> str:
+    if len(raw) != 8 or not raw.isdigit():
+        raise ValueError(f"GHCN by-year date must be YYYYMMDD, got {raw!r}")
+    year = int(raw[0:4])
+    month = int(raw[4:6])
+    day = int(raw[6:8])
+    if year != expected_year:
+        raise ValueError(
+            f"GHCN by-year record year {year} does not match artifact year "
+            f"{expected_year}"
+        )
+    try:
+        return date(year, month, day).isoformat()
+    except ValueError as exc:
+        raise ValueError(f"invalid GHCN by-year date {raw!r}") from exc
+
+
+def parse_by_year_row(
+    row: Sequence[str],
+    *,
+    expected_year: int,
+) -> GHCNByYearRecord:
+    """Parse one documented by-year CSV row without interpreting climate units."""
+    if len(row) != 8:
+        raise ValueError(
+            f"GHCN by-year row must contain 8 comma-separated fields, got {len(row)}"
+        )
+    station_id, raw_date, element, raw_value, mflag, qflag, sflag, obs_time = row
+    if len(station_id) != 11 or not station_id.strip():
+        raise ValueError("GHCN by-year station id must contain 11 characters")
+    if len(element) != 4 or not element.strip():
+        raise ValueError("GHCN by-year element must contain 4 characters")
+    try:
+        integer_value = int(raw_value)
+    except ValueError as exc:
+        raise ValueError(f"GHCN by-year value is not an integer: {raw_value!r}") from exc
+    value = None if integer_value == -9999 else integer_value
+    for name, flag in (
+        ("measurement_flag", mflag),
+        ("quality_flag", qflag),
+        ("source_flag", sflag),
+    ):
+        if len(flag) > 1:
+            raise ValueError(f"{name} must be blank or one character")
+    if obs_time and (len(obs_time) != 4 or not obs_time.isdigit()):
+        raise ValueError("observation_time must be blank or HHMM digits")
+    return GHCNByYearRecord(
+        station_id=station_id,
+        observation_date=_parse_yyyymmdd(raw_date, expected_year=expected_year),
+        element=element,
+        value=value,
+        measurement_flag=mflag,
+        quality_flag=qflag,
+        source_flag=sflag,
+        observation_time=obs_time,
+    )
+
+
+def iter_by_year_records(
+    lines: Iterable[str],
+    *,
+    expected_year: int,
+) -> Iterable[GHCNByYearRecord]:
+    """Stream provider rows; no year-sized list or station-time tensor is built."""
+    reader = csv.reader(lines)
+    for row_number, row in enumerate(reader, start=1):
+        if not row:
+            continue
+        try:
+            yield parse_by_year_row(row, expected_year=expected_year)
+        except ValueError as exc:
+            raise ValueError(
+                f"invalid GHCN by-year row {row_number}: {exc}"
+            ) from exc
+
+
+def iter_gzip_by_year(
+    path: Path,
+    *,
+    expected_year: int,
+) -> Iterable[GHCNByYearRecord]:
+    """Stream a captured provider .csv.gz artifact directly from disk."""
+    def generate():
+        with gzip.open(path, mode="rt", encoding="ascii", newline="") as handle:
+            yield from iter_by_year_records(handle, expected_year=expected_year)
+    return generate()
+
+
+def stream_by_year_partitions(
+    lines: Iterable[str],
+    *,
+    expected_year: int,
+    lookup: StationShardLookup,
+    sink: ObservationPartitionSink,
+    elements: Sequence[str] | None = None,
+) -> GHCNRoutingSummary:
+    """Route one provider year to bounded partition sinks without row buffering.
+
+    Storage format is deliberately sink-owned so maintained Parquet/Zarr/object-
+    store writers can implement publication without changing provider parsing,
+    station identity, partition keys, or missing/flag semantics.
+    """
+    selected = None if elements is None else frozenset(elements)
+    if selected is not None and (
+        not selected or any(len(item) != 4 for item in selected)
+    ):
+        raise ValueError("elements must be a non-empty sequence of 4-character ids")
+    partition_keys: set[GHCNObservationPartitionKey] = set()
+    row_count = 0
+    missing = 0
+    for record in iter_by_year_records(lines, expected_year=expected_year):
+        if selected is not None and record.element not in selected:
+            continue
+        canonical_id, spatial_partition = lookup.resolve(record.station_id)
+        key = GHCNObservationPartitionKey(
+            source_id=lookup.source_id,
+            spatial_partition=spatial_partition,
+            year=expected_year,
+            element=record.element,
+        )
+        sink.write(
+            key,
+            RoutedGHCNObservation(
+                canonical_station_id=canonical_id,
+                observation_date=record.observation_date,
+                element=record.element,
+                value=record.value,
+                measurement_flag=record.measurement_flag,
+                quality_flag=record.quality_flag,
+                source_flag=record.source_flag,
+                observation_time=record.observation_time,
+            ),
+        )
+        partition_keys.add(key)
+        row_count += 1
+        missing += record.value is None
+    return GHCNRoutingSummary(
+        row_count=row_count,
+        missing_value_count=missing,
+        partition_count=len(partition_keys),
+    )
 
 def by_year_url(year: int) -> str:
     if not isinstance(year, int) or year < 0 or year > 9999:

@@ -8,8 +8,10 @@ from data.ncei_ghcnd_bulk import (
     by_year_url,
     by_year_urls,
     catalog_shard_refs,
+    StationShardLookup,
     parse_inventory,
     parse_station_catalog,
+    stream_by_year_partitions,
 )
 
 
@@ -88,6 +90,89 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_year/2024.csv.gz",
             ),
         )
+
+
+    def test_by_year_stream_routes_rows_without_year_materialization(self):
+        catalog, inventory = self.payloads()
+        stations = build_federated_stations(
+            catalog, inventory, metadata_effective_date="2026-09-18"
+        )
+        shards = adaptive_catalog_shards(
+            stations,
+            metadata_effective_date="2026-09-18",
+            max_station_records=1,
+        )
+        lookup = StationShardLookup(shards)
+        writes = []
+        class Sink:
+            def write(self, key, record):
+                writes.append((key, record))
+
+        def lines():
+            yield "USW00000001,20240101,TMAX,123,,,S,0700\n"
+            self.assertEqual(len(writes), 1)
+            yield "USW00000002,20240101,TMIN,-9999,,Q,S,\n"
+            self.assertEqual(len(writes), 2)
+            yield "USW00000001,20240102,PRCP,5,,,S,0700\n"
+
+        summary = stream_by_year_partitions(
+            lines(),
+            expected_year=2024,
+            lookup=lookup,
+            sink=Sink(),
+        )
+        self.assertEqual(summary.row_count, 3)
+        self.assertEqual(summary.missing_value_count, 1)
+        self.assertEqual(summary.partition_count, 3)
+        self.assertIsNone(writes[1][1].value)
+        self.assertEqual(writes[1][1].quality_flag, "Q")
+        self.assertEqual(writes[0][0].source_id, "ncei.ghcnd.v3")
+
+    def test_by_year_unknown_station_fails_closed(self):
+        catalog, inventory = self.payloads()
+        stations = build_federated_stations(
+            catalog, inventory, metadata_effective_date="2026-09-18"
+        )
+        lookup = StationShardLookup(
+            adaptive_catalog_shards(
+                stations,
+                metadata_effective_date="2026-09-18",
+                max_station_records=2,
+            )
+        )
+        class Sink:
+            def write(self, key, record):
+                raise AssertionError("unknown station must refuse before sink write")
+        with self.assertRaisesRegex(ValueError, "absent from the captured federation catalog"):
+            stream_by_year_partitions(
+                ["USW99999999,20240101,TMAX,100,,,S,0700\n"],
+                expected_year=2024,
+                lookup=lookup,
+                sink=Sink(),
+            )
+
+    def test_by_year_wrong_artifact_year_refuses(self):
+        catalog, inventory = self.payloads()
+        stations = build_federated_stations(
+            catalog, inventory, metadata_effective_date="2026-09-18"
+        )
+        lookup = StationShardLookup(
+            adaptive_catalog_shards(
+                stations,
+                metadata_effective_date="2026-09-18",
+                max_station_records=2,
+            )
+        )
+        class Sink:
+            def write(self, key, record):
+                raise AssertionError("wrong-year row must not reach sink")
+        with self.assertRaisesRegex(ValueError, "does not match artifact year"):
+            stream_by_year_partitions(
+                ["USW00000001,20250101,TMAX,100,,,S,0700\n"],
+                expected_year=2024,
+                lookup=lookup,
+                sink=Sink(),
+            )
 
 
 if __name__ == "__main__":
