@@ -115,20 +115,26 @@ class CommonsControlTests(unittest.TestCase):
         with self.assertRaises(commons_control.CommonsControlError):
             commons_control.validate_external_artifact_ref(bad)
 
-    def test_external_training_artifact_evaluation_fails_closed_until_registered(self):
+    def test_registered_external_evaluator_fails_closed_on_missing_runtime(self):
         subject = {
             "producer_repository": "J0pari/Training",
             "local_artifact_id": "0123456789abcdef",
             "digest": "b" * 64,
             "artifact_contract": "training.model-artifact/v1",
         }
-        with self.assertRaises(
-            commons_control.ExternalEvaluationUnavailable
+        evaluation_id = "external.training_artifact.climate_contract_reasoning.v1"
+        spec = commons_control.load_external_evaluation_spec(evaluation_id)
+        self.assertEqual(spec["subject_contract"], "training.model-artifact/v1")
+        self.assertEqual(spec["adapter"]["status"], "unavailable")
+        with self.assertRaisesRegex(
+            commons_control.ExternalEvaluationUnavailable,
+            "registered but adapter",
         ):
-            commons_control.require_external_evaluator(
-                subject,
-                "climate.training-artifact.v1",
-            )
+            commons_control.require_external_evaluator(subject, evaluation_id)
+
+    def test_unknown_external_evaluator_refuses(self):
+        with self.assertRaises(commons_control.ExternalEvaluationUnavailable):
+            commons_control.load_external_evaluation_spec("missing.evaluator.v1")
 
 if __name__ == "__main__":
     unittest.main()

@@ -338,11 +338,19 @@ producer-local alias, full SHA-256 identity, and artifact contract. The local
 16-character Training alias is metadata; it is never the cross-repository
 identity.
 
-Climate currently validates that identity but has no registered evaluator for
-`training.model-artifact/v1`. `architecture/commons_control.py` therefore
-fails closed rather than inventing an attestation. The next legitimate step is
-a concrete Climate-owned evaluation specification that declares the task,
-metrics, controls, falsifiers, artifact adapter, and resource envelope.
+Climate now registers a first deliberately narrow evaluator for
+`training.model-artifact/v1`: `external.training_artifact.climate_contract_reasoning.v1`.
+Its immutable task set checks reasoning over Climate's binding evidence,
+execution-identity, contamination, and cross-repository promotion boundaries.
+The evaluator is behavioral only; its specification explicitly excludes
+climate prediction, observational skill, physical validity, and Training
+promotion.
+
+The evaluator runtime remains unavailable. `architecture/commons_control.py`
+resolves the registered specification and then fails closed because
+`climate.external-model-runtime/v1` is not yet implemented. That is the
+remaining execution blocker; no attestation is issued without a runtime that
+binds the exact requested Training artifact digest.
 
 Any eventual evaluation attestation is evidence about the immutable model
 artifact. It does not mutate that artifact and cannot accept, reject, deploy,

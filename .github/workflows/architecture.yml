@@ -40,6 +40,8 @@ jobs:
         run: python architecture/check_hazards.py
       - name: Experiment graph integrity
         run: python architecture/check_experiments.py
+      - name: External artifact evaluation integrity
+        run: python architecture/check_external_evaluations.py
       - name: Sheaf realization integrity
         run: python architecture/check_sheaf_realization.py
       - name: Durable documentation and comment semantics
@@ -70,6 +72,14 @@ jobs:
           fi
           if "$(go env GOPATH)/bin/cue" vet -d '#CommonsEvaluationExchangePin' contracts/climate.cue contracts/testdata/commons-evaluation-exchange-pin.bad.json; then
             echo 'invalid Commons evaluation-exchange pin was accepted' >&2
+            exit 1
+          fi
+      - name: Vet external artifact evaluator contracts
+        run: |
+          "$(go env GOPATH)/bin/cue" vet -d '#ClimateContractReasoningTaskSet' contracts/climate.cue fixtures/evaluation/climate-contract-reasoning-v1.json
+          "$(go env GOPATH)/bin/cue" vet -d '#ExternalArtifactEvaluationSpec' contracts/climate.cue evaluations/external-training-artifact-climate-contract-reasoning.v1.json
+          if "$(go env GOPATH)/bin/cue" vet -d '#ExternalArtifactEvaluationSpec' contracts/climate.cue contracts/testdata/external-artifact-evaluation.promotion.bad.json; then
+            echo 'external evaluator with foreign promotion authority was accepted' >&2
             exit 1
           fi
       - name: Vet layered configuration records

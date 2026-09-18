@@ -468,3 +468,61 @@ package climate
 	capabilities: [...string & !=""]
 	owner:       "commons"
 }
+
+
+#ExternalModelRuntimeStatus: "unavailable" | "available"
+
+#ClimateContractChoiceTask: {
+	task_id: #Id
+	prompt: string & !=""
+	choices: {
+		A: string & !=""
+		B: string & !=""
+		C: string & !=""
+	}
+	correct_choice: "A" | "B" | "C"
+	authority: string & !=""
+}
+
+#ClimateContractReasoningTaskSet: {
+	schema: "climate-contract-reasoning-taskset/v1"
+	task_set_id: #Id
+	semantic_version: #Semver
+	scope: string & !=""
+	tasks: [...#ClimateContractChoiceTask] & [_, ...]
+}
+
+#ExternalArtifactEvaluationSpec: {
+	schema_version: 1
+	evaluation_id: #Id
+	semantic_version: #Semver
+	evaluator_repository: "J0pari/Climate"
+	subject_contract: "training.model-artifact/v1"
+	adapter: {
+		interface: "climate.external-model-runtime/v1"
+		status: #ExternalModelRuntimeStatus
+		required_capabilities: [...string & !=""] & [_, ...]
+		implementation?: string & !=""
+	}
+	task_set: #ArtifactRef & {
+		schema: "climate-contract-reasoning-taskset/v1"
+		uri: =~"^fixtures/evaluation/[A-Za-z0-9._/-]+\\.json$"
+	}
+	primary_metrics: [...#MetricDefinition] & [_, ...]
+	negative_controls: [...{
+		control_id: #Id
+		description: string & !=""
+	}] & [_, ...]
+	falsifiers: [...string & !=""] & [_, ...]
+	evaluator_resource: #ResourceEnvelope
+	subject_runtime_resource_policy: "must-be-declared-at-execution"
+	evidence_policy: {
+		evidence_class: "behavioral"
+		verification: "verified"
+		scope: string & !=""
+	}
+	issuance: {
+		requires_adapter_available: true
+		promotion_authority: "none"
+	}
+}

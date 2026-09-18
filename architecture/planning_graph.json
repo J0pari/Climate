@@ -664,7 +664,7 @@
         "orchestration.commons_read_execution"
       ],
       "blockers": [
-        "No Climate evaluator currently consumes training.model-artifact/v1 artifacts; artifact identity validation exists, but evaluation/attestation issuance must remain unavailable until a concrete adapter and falsifiable Climate task are registered."
+        "The Climate contract-reasoning evaluator, immutable task set, metrics, controls, and falsifiers are registered, but climate.external-model-runtime/v1 is unavailable; no Training artifact can execute and no evaluation attestation can be issued until that adapter binds the requested full artifact digest to a real model runtime."
       ],
       "completion": [
         "A versioned Climate evaluation specification declares the model-artifact input contract, climate task, metrics, controls, resource class, and falsifiers.",
@@ -674,7 +674,10 @@
       ],
       "evidence": [
         "contracts/evaluation-exchange-pin.json",
+        "evaluations/external-training-artifact-climate-contract-reasoning.v1.json",
+        "fixtures/evaluation/climate-contract-reasoning-v1.json",
         "architecture/commons_control.py",
+        "architecture/check_external_evaluations.py",
         "docs/COMMONS-INTEGRATION.md"
       ]
     }

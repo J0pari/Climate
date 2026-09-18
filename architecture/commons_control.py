@@ -19,6 +19,7 @@ from typing import Any, Mapping
 ROOT = Path(__file__).resolve().parents[1]
 PIN = ROOT / "contracts" / "work-scheduler-pin.json"
 EVALUATION_PIN = ROOT / "contracts" / "evaluation-exchange-pin.json"
+EVALUATIONS_DIR = ROOT / "evaluations"
 ABI_KEYS = (
     "schema", "contractVersion", "compatibility", "public", "types",
     "endpoints", "resource_semantics",
@@ -213,12 +214,39 @@ def validate_external_artifact_ref(ref: Mapping[str, Any]) -> dict[str, Any]:
     return dict(ref)
 
 
+def load_external_evaluation_spec(evaluation_id: str) -> dict[str, Any]:
+    matches = []
+    if EVALUATIONS_DIR.is_dir():
+        for path in sorted(EVALUATIONS_DIR.glob("*.json")):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if data.get("evaluation_id") == evaluation_id:
+                matches.append((path, data))
+    if not matches:
+        raise ExternalEvaluationUnavailable(
+            f"Climate has no registered external-artifact evaluator "
+            f"{evaluation_id!r}; no attestation was issued")
+    if len(matches) != 1:
+        raise CommonsControlError(
+            f"external evaluator {evaluation_id!r} is declared more than once")
+    return matches[0][1]
+
+
 def require_external_evaluator(
     subject: Mapping[str, Any],
     evaluation_id: str,
-) -> None:
-    """Fail closed until Climate implements the named artifact evaluator."""
-    validate_external_artifact_ref(subject)
-    raise ExternalEvaluationUnavailable(
-        f"Climate has no registered external-artifact evaluator "
-        f"{evaluation_id!r}; no attestation was issued")
+) -> dict[str, Any]:
+    """Resolve a registered evaluator and fail closed when its runtime is absent."""
+    validated = validate_external_artifact_ref(subject)
+    spec = load_external_evaluation_spec(evaluation_id)
+    if validated["artifact_contract"] != spec.get("subject_contract"):
+        raise CommonsControlError(
+            f"evaluator {evaluation_id!r} expects subject contract "
+            f"{spec.get('subject_contract')!r}, got "
+            f"{validated['artifact_contract']!r}")
+    adapter = spec.get("adapter") or {}
+    if adapter.get("status") != "available":
+        raise ExternalEvaluationUnavailable(
+            f"Climate evaluator {evaluation_id!r} is registered but "
+            f"adapter {adapter.get('interface')!r} is unavailable; "
+            "no attestation was issued")
+    return spec

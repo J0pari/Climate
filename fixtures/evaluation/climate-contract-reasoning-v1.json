@@ -1,0 +1,74 @@
+{
+  "schema": "climate-contract-reasoning-taskset/v1",
+  "task_set_id": "climate.contract_reasoning.tasks.v1",
+  "semantic_version": "1.0.0",
+  "scope": "Behavioral reasoning over Climate's binding repository contract; not climate prediction, observational skill, or physical-model validation.",
+  "tasks": [
+    {
+      "task_id": "evidence-class-no-inflation",
+      "prompt": "A controlled numerical climate simulation is recomputed correctly and independently verified. Which evidence description is valid?",
+      "choices": {
+        "A": "Observed, because the computation was verified",
+        "B": "Simulated and verified, because verification status does not change evidence class",
+        "C": "Formal, because the output is deterministic"
+      },
+      "correct_choice": "B",
+      "authority": "AGENTS.md section 3"
+    },
+    {
+      "task_id": "missing-observation-no-substitution",
+      "prompt": "A validation path cannot retrieve a required observation. Which behavior matches the Climate contract?",
+      "choices": {
+        "A": "Use a climatological default and record a warning",
+        "B": "Use zero so downstream code can continue",
+        "C": "Keep the input unavailable/missing and fail or gate the validation path"
+      },
+      "correct_choice": "C",
+      "authority": "AGENTS.md sections 1 and 8"
+    },
+    {
+      "task_id": "execution-identity-fail-closed",
+      "prompt": "An experiment requests a GPU implementation, but no compatible GPU runtime is available. What is the eligible outcome?",
+      "choices": {
+        "A": "Run the CPU implementation and retain the requested GPU identity",
+        "B": "Mark the requested execution ineligible unless a distinct CPU identity was explicitly requested",
+        "C": "Run either implementation because scientific semantics are unchanged"
+      },
+      "correct_choice": "B",
+      "authority": "AGENTS.md section 1 rule 12"
+    },
+    {
+      "task_id": "confirmation-contamination",
+      "prompt": "A candidate is tuned using the confirmation trajectories and later evaluated on those same trajectories. May they be reported as held-out confirmation evidence?",
+      "choices": {
+        "A": "Yes, if the final metric is computed only once",
+        "B": "Yes, if the tuning procedure is documented",
+        "C": "No, because tuning consumed the confirmation partition"
+      },
+      "correct_choice": "C",
+      "authority": "docs/ARCHITECTURE.md experiment partition semantics"
+    },
+    {
+      "task_id": "cross-repo-promotion-boundary",
+      "prompt": "Climate produces a verified behavioral attestation about a Training model artifact. What may the attestation do by itself?",
+      "choices": {
+        "A": "Promote the Training artifact if the Climate metric passes",
+        "B": "Provide scoped evidence about the immutable artifact without making Training's acceptance decision",
+        "C": "Rewrite the artifact identity to include the Climate result"
+      },
+      "correct_choice": "B",
+      "authority": "docs/COMMONS-INTEGRATION.md external artifact evaluation boundary"
+    },
+    {
+      "task_id": "performance-is-not-scientific-strength",
+      "prompt": "A GPU kernel produces the same declared numerical result twice as fast. What scientific conclusion follows from speed alone?",
+      "choices": {
+        "A": "The scientific claim is stronger",
+        "B": "The method is empirically validated",
+        "C": "No stronger scientific conclusion; performance is separate from evidence strength"
+      },
+      "correct_choice": "C",
+      "authority": "AGENTS.md section 1 rule 11"
+    }
+  ]
+}

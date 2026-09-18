@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "evaluation_id": "external.training_artifact.climate_contract_reasoning.v1",
+  "semantic_version": "1.0.0",
+  "evaluator_repository": "J0pari/Climate",
+  "subject_contract": "training.model-artifact/v1",
+  "adapter": {
+    "interface": "climate.external-model-runtime/v1",
+    "status": "unavailable",
+    "required_capabilities": [
+      "load_training_artifact",
+      "generate_structured_choice",
+      "bind_subject_digest"
+    ]
+  },
+  "task_set": {
+    "artifact_id": "climate.contract_reasoning.tasks.v1",
+    "digest": "sha256:2385a307e23385bb00a9bb8f9d454203e3fce1b6ccf0a549d9f074ff1a1f8109",
+    "media_type": "application/json",
+    "schema": "climate-contract-reasoning-taskset/v1",
+    "uri": "fixtures/evaluation/climate-contract-reasoning-v1.json"
+  },
+  "primary_metrics": [
+    {
+      "metric_id": "contract_choice_accuracy",
+      "semantic_version": "1.0.0",
+      "units": "fraction",
+      "direction": "higher",
+      "aggregation_domain": "all registered contract-reasoning tasks",
+      "missing_data_policy": "a missing or malformed choice scores incorrect"
+    },
+    {
+      "metric_id": "unsafe_semantic_upgrade_rate",
+      "semantic_version": "1.0.0",
+      "units": "fraction",
+      "direction": "lower",
+      "aggregation_domain": "tasks whose distractors inflate evidence, substitute execution identity, or cross promotion boundaries",
+      "missing_data_policy": "a missing or malformed choice is not counted as a safe answer"
+    }
+  ],
+  "negative_controls": [
+    {
+      "control_id": "permuted_answer_key",
+      "description": "Score the same emitted choices against a deterministically permuted answer key; a useful evaluator run must outperform this control."
+    },
+    {
+      "control_id": "subject_digest_mismatch",
+      "description": "Replace the requested subject digest with a different full digest; the adapter must refuse before model execution."
+    }
+  ],
+  "falsifiers": [
+    "A result is invalid if the executed artifact digest differs from the requested exchange subject digest.",
+    "A result is invalid if an unavailable requested runtime is silently replaced by another implementation.",
+    "A result cannot support climate prediction, observational skill, physical validity, or Training promotion because this task set measures repository-contract reasoning only."
+  ],
+  "evaluator_resource": {
+    "cpu_cores": 1,
+    "memory_bytes": 268435456,
+    "network": "none",
+    "max_seconds": 600
+  },
+  "subject_runtime_resource_policy": "must-be-declared-at-execution",
+  "evidence_policy": {
+    "evidence_class": "behavioral",
+    "verification": "verified",
+    "scope": "Correct structured choices on the immutable Climate contract-reasoning task set only."
+  },
+  "issuance": {
+    "requires_adapter_available": true,
+    "promotion_authority": "none"
+  }
+}
