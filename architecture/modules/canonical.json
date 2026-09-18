@@ -6,9 +6,10 @@
       "family": "ncei_ghcnd_bulk_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-specific bulk discovery, normalization, and streaming observation-routing adapter for complete GHCN-Daily station/inventory/by-year authorities, producing bounded federation catalog shards and spatial/year/element partition keys without station-by-time or per-station REST materialization",
+      "intended_role": "canonical provider-specific resumable bulk acquisition, discovery, normalization, and streaming observation-routing adapter for complete GHCN-Daily station/inventory/by-year authorities, binding remote revision validators and final artifact digests while producing bounded federation catalog shards and spatial/year/element partition keys without station-by-time or per-station REST materialization",
       "known_gaps": [
         "ghcnd-stations.txt is treated as a provider metadata snapshot effective at the captured date; the adapter does not back-project current coordinates into unobserved historical relocation epochs",
+        "HTTP resume requires provider byte-range support plus a stable strong ETag or Last-Modified validator; changed or weakly identified remote artifacts fail closed rather than mixing revisions",
         "provider element values remain raw GHCN integer semantics at this boundary; unit normalization into climate variable contracts is a separate explicit adapter rather than an ingestion default",
         "cross-provider station crosswalks remain federation-level evidence obligations and are never inferred from location proximity"
       ],
@@ -518,7 +519,7 @@
       "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, explicit evidence-bound provider aliases, resolved location epochs, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
       "known_gaps": [
         "the current provider registry realizes NCEI GHCN-Daily only; additional lawfully accessible no-fee providers remain a data-integration obligation rather than hardcoded kernel branches",
-        "provider bulk acquisition, durable external object-store publication, and resumable downloader state are not yet implemented by this module",
+        "durable remote object-store publication remains an adapter responsibility; canonical local publication is content-addressed and the NCEI scale adapter now provides resumable bulk acquisition",
         "cross-provider alias bindings require explicit upstream crosswalk evidence; no cross-provider crosswalk adapter is registered yet",
         "catalog-record counts in manifest coverage are shard record totals, not a claim that unresolved aliases across different shards have already been deduplicated"
       ],
