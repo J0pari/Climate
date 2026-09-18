@@ -14,6 +14,7 @@ from src.experiment_runtime import (
     DEFAULT_EXPERIMENT,
     ROOT,
     MethodProcessFailure,
+    _experiment_adapters,
     _run_process,
     run_experiment,
 )
@@ -36,6 +37,20 @@ REGIME_FEEDBACK_EXPERIMENT = (
 
 
 class ExperimentRuntimeTests(unittest.TestCase):
+    def test_adapter_registry_is_explicit_and_complete_for_current_runtime(self) -> None:
+        self.assertEqual(
+            set(_experiment_adapters()),
+            {
+                "multirepresentation.ebm_dynamics.v1",
+                "physics.two_layer_ebm.forcing_protocols.v1",
+                "multirepresentation.ebm_forced_ood.v1",
+                "multirepresentation.ebm_observation_degradation.v1",
+                "physics.two_layer_ebm.parameter_identifiability.v1",
+                "multirepresentation.ebm_stochastic_statistics.v1",
+                "multirepresentation.ebm_regime_feedback.v1",
+            },
+        )
+
     def assert_failed_run(
         self,
         output: Path,

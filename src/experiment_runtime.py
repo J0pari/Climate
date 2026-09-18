@@ -24,7 +24,7 @@ import shlex
 import subprocess
 import sys
 from datetime import datetime, timezone
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_EXPERIMENT = ROOT / "experiments" / "multirepresentation-ebm-dynamics.v1.json"
@@ -1117,6 +1117,7 @@ def _run_ebm_forcing_adapter(
     run_scope: str,
     methods: Mapping[str, Mapping[str, Any]],
     resolved_configuration: Mapping[str, Any],
+    configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     baseline_descriptor, candidate_descriptor = _require_methods(
         experiment,
@@ -1273,6 +1274,7 @@ def _run_ebm_forced_ood_adapter(
     run_scope: str,
     methods: Mapping[str, Mapping[str, Any]],
     resolved_configuration: Mapping[str, Any],
+    configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     baseline_descriptor, candidate_descriptor = _require_methods(
         experiment,
@@ -1451,6 +1453,7 @@ def _run_ebm_observation_degradation_adapter(
     run_scope: str,
     methods: Mapping[str, Mapping[str, Any]],
     resolved_configuration: Mapping[str, Any],
+    configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     baseline_descriptor, candidate_descriptor = _require_methods(
         experiment,
@@ -1655,6 +1658,7 @@ def _run_ebm_parameter_identifiability_adapter(
     run_scope: str,
     methods: Mapping[str, Mapping[str, Any]],
     resolved_configuration: Mapping[str, Any],
+    configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     baseline_descriptor, candidate_descriptor = _require_methods(
         experiment,
@@ -1846,6 +1850,7 @@ def _run_ebm_stochastic_statistics_adapter(
     run_scope: str,
     methods: Mapping[str, Mapping[str, Any]],
     resolved_configuration: Mapping[str, Any],
+    configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     baseline_descriptor, candidate_descriptor = _require_methods(
         experiment,
@@ -2036,6 +2041,7 @@ def _run_ebm_regime_feedback_adapter(
     run_scope: str,
     methods: Mapping[str, Mapping[str, Any]],
     resolved_configuration: Mapping[str, Any],
+    configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     baseline_descriptor, candidate_descriptor = _require_methods(
         experiment,
@@ -2323,6 +2329,27 @@ def _persist_failed_method_run(
     return path
 
 
+ExperimentAdapter = Callable[..., dict[str, Any]]
+
+
+def _experiment_adapters() -> dict[str, ExperimentAdapter]:
+    """Return the explicit local adapter registry.
+
+    The registry owns only experiment-id-to-family-evaluator routing. Scientific
+    semantics remain inside each named adapter; adding a new family is therefore
+    a small registration change rather than another branch in common execution.
+    """
+    return {
+        EBM_DYNAMICS_EXPERIMENT: _run_ebm_dynamics_adapter,
+        EBM_FORCING_EXPERIMENT: _run_ebm_forcing_adapter,
+        EBM_FORCED_OOD_EXPERIMENT: _run_ebm_forced_ood_adapter,
+        EBM_OBSERVATION_DEGRADATION_EXPERIMENT: _run_ebm_observation_degradation_adapter,
+        EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT: _run_ebm_parameter_identifiability_adapter,
+        EBM_STOCHASTIC_STATISTICS_EXPERIMENT: _run_ebm_stochastic_statistics_adapter,
+        EBM_REGIME_FEEDBACK_EXPERIMENT: _run_ebm_regime_feedback_adapter,
+    }
+
+
 def _dispatch_experiment(
     *,
     experiment: Mapping[str, Any],
@@ -2334,78 +2361,22 @@ def _dispatch_experiment(
     configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     experiment_id = experiment.get("experiment_id")
-    if experiment_id == EBM_DYNAMICS_EXPERIMENT:
-        return _run_ebm_dynamics_adapter(
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
-            configuration_records=configuration_records,
+    adapters = _experiment_adapters()
+    if not isinstance(experiment_id, str) or experiment_id not in adapters:
+        supported = ", ".join(sorted(adapters))
+        raise ValueError(
+            f"no local CPU adapter for experiment {experiment_id!r}; "
+            f"supported: {supported}"
         )
-    if experiment_id == EBM_FORCING_EXPERIMENT:
-        return _run_ebm_forcing_adapter(
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
-        )
-    if experiment_id == EBM_FORCED_OOD_EXPERIMENT:
-        return _run_ebm_forced_ood_adapter(
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
-        )
-    if experiment_id == EBM_OBSERVATION_DEGRADATION_EXPERIMENT:
-        return _run_ebm_observation_degradation_adapter(
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
-        )
-    if experiment_id == EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT:
-        return _run_ebm_parameter_identifiability_adapter(
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
-        )
-    if experiment_id == EBM_STOCHASTIC_STATISTICS_EXPERIMENT:
-        return _run_ebm_stochastic_statistics_adapter(
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
-        )
-    if experiment_id == EBM_REGIME_FEEDBACK_EXPERIMENT:
-        return _run_ebm_regime_feedback_adapter(
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
-        )
-    raise ValueError(
-        "no local CPU adapter for experiment "
-        f"{experiment_id!r}; supported: {EBM_DYNAMICS_EXPERIMENT}, "
-        f"{EBM_FORCING_EXPERIMENT}, {EBM_FORCED_OOD_EXPERIMENT}, "
-        f"{EBM_OBSERVATION_DEGRADATION_EXPERIMENT}, "
-        f"{EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT}, "
-        f"{EBM_STOCHASTIC_STATISTICS_EXPERIMENT}, "
-        f"{EBM_REGIME_FEEDBACK_EXPERIMENT}"
+    adapter = adapters[experiment_id]
+    return adapter(
+        experiment=experiment,
+        output_dir=output_dir,
+        repository_revision=repository_revision,
+        run_scope=run_scope,
+        methods=methods,
+        resolved_configuration=resolved_configuration,
+        configuration_records=configuration_records,
     )
 
 
