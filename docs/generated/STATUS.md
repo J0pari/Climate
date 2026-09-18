@@ -26,7 +26,6 @@ Registered modules: **54**.
 | `canonical` | `canonical_implementation` | `data/ncei_ghcnd_parquet.py` | `ncei_ghcnd_parquet_partition_publication` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_trajectory_secant_numerics` | `prototype` | no |
 | `canonical` | `canonical_implementation` | `src/budget_ledger.rs` | `streaming_extensive_budget_accounting` | `runnable` | no |
-| `canonical` | `canonical_implementation` | `src/physical_budget_adapters.rs` | `physical_kernel_budget_adapters` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/experiment_runtime.py` | `experiment_runtime` | `runnable` | no |
@@ -53,6 +52,7 @@ Registered modules: **54**.
 | `canonical` | `canonical_implementation` | `src/modal.rs` | `modal_logic_reference` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/numerics.rs` | `numerics` | `prototype` | no |
 | `canonical` | `canonical_implementation` | `src/padic.rs` | `ultrametric_reference` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/physical_budget_adapters.rs` | `physical_kernel_budget_adapters` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/physical_state.rs` | `typed_physical_state_boundary` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/sheaf.rs` | `sheaf_numerics` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/station_federation.py` | `global_station_data_federation` | `runnable` | no |
