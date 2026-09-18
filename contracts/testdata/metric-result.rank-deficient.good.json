@@ -1,0 +1,12 @@
+{
+  "metric": {
+    "metric_id": "fixture.condition_number",
+    "semantic_version": "1.0.0",
+    "units": "1",
+    "direction": "descriptive",
+    "aggregation_domain": "fixture matrix",
+    "missing_data_policy": "fail"
+  },
+  "status": "rank_deficient",
+  "detail": "sample matrix has exact structural rank deficiency"
+}

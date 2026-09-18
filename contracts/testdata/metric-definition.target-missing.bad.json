@@ -1,0 +1,8 @@
+{
+  "metric_id": "fixture.target_metric",
+  "semantic_version": "1.0.0",
+  "units": "1",
+  "direction": "target",
+  "aggregation_domain": "fixture",
+  "missing_data_policy": "fail"
+}

@@ -95,6 +95,24 @@ jobs:
             echo 'ineligible execution resolved to a replacement identity' >&2
             exit 1
           fi
+      - name: Vet metric result status semantics
+        run: |
+          "$(go env GOPATH)/bin/cue" vet -d '#MetricResult' contracts/climate.cue contracts/testdata/metric-result.finite.good.json
+          "$(go env GOPATH)/bin/cue" vet -d '#MetricResult' contracts/climate.cue contracts/testdata/metric-result.rank-deficient.good.json
+      - name: Reject ambiguous metric semantics
+        run: |
+          if "$(go env GOPATH)/bin/cue" vet -d '#MetricDefinition' contracts/climate.cue contracts/testdata/metric-definition.target-missing.bad.json; then
+            echo 'target metric without target was accepted' >&2
+            exit 1
+          fi
+          if "$(go env GOPATH)/bin/cue" vet -d '#MetricDefinition' contracts/climate.cue contracts/testdata/metric-definition.descriptive-target.bad.json; then
+            echo 'descriptive metric with target was accepted' >&2
+            exit 1
+          fi
+          if "$(go env GOPATH)/bin/cue" vet -d '#MetricResult' contracts/climate.cue contracts/testdata/metric-result.rank-deficient-value.bad.json; then
+            echo 'rank-deficient metric encoded a fake finite value' >&2
+            exit 1
+          fi
       - name: Vet valid experiment fixture
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ExperimentSpec" contracts/climate.cue contracts/testdata/experiment.good.json'
       - name: Reject invalid experiment fixture

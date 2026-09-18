@@ -188,11 +188,22 @@ package climate
 	aggregation_domain: string & !=""
 	missing_data_policy: string & !=""
 	uncertainty_method?: string
+
+	if direction == "target" {
+		target: number
+	}
+	if direction == "descriptive" {
+		target?: _|_
+	}
 }
+
+#MetricResultStatus: "finite" | "rank_deficient" | "undefined"
 
 #MetricResult: {
 	metric:  #MetricDefinition
-	value:   number
+	status:  #MetricResultStatus
+	value?:  number
+	detail?: string & !=""
 	interval?: {
 		lower: number
 		upper: number
@@ -200,6 +211,15 @@ package climate
 	}
 	sample_size?: int & >=0
 	reference_population?: string
+
+	if status == "finite" {
+		value: number
+	}
+	if status != "finite" {
+		value?: _|_
+		interval?: _|_
+		detail: string & !=""
+	}
 }
 
 #ArtifactRef: {

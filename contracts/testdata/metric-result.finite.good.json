@@ -1,0 +1,13 @@
+{
+  "metric": {
+    "metric_id": "fixture.finite_metric",
+    "semantic_version": "1.0.0",
+    "units": "1",
+    "direction": "lower",
+    "aggregation_domain": "fixture",
+    "missing_data_policy": "fail"
+  },
+  "status": "finite",
+  "value": 0.25,
+  "sample_size": 4
+}

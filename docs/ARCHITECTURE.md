@@ -152,17 +152,18 @@ A metric must carry semantics, not just a number.
 
 ```text
 metric_id + version
-value
+status (finite | rank_deficient | undefined)
+finite value when status is finite
 units
 aggregation domain
-sampling distribution / interval if applicable
+sampling distribution / interval if applicable and finite
 reference population/dataset
-higher/lower/is-target semantics
+higher/lower/is-target/descriptive semantics
 missing-data policy
 uncertainty method
 ```
 
-A value such as `0.84` without this context is not a stable scientific interface.
+A value such as `0.84` without this context is not a stable scientific interface. Singular or undefined diagnostics are represented by status rather than non-standard JSON infinities, NaNs, or fabricated finite sentinels.
 
 ## 3. Layered system shape
 
