@@ -9,6 +9,7 @@ from src.station_sheaf import (
     SparseRipsComplex,
     StationCatalog,
     StationIdentitySheaf,
+    StationSchemaSheaf,
     StationSection,
     StationVariable,
     concatenate_edge_chunks,
@@ -98,6 +99,58 @@ class GlobalStationSheafTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "latitude"):
             StationCatalog(("a",), np.array([91.0]), np.array([0.0]))
 
+
+    def test_simplex_owner_ranges_partition_higher_cells(self):
+        catalog = StationCatalog(
+            station_ids=("a", "b", "c", "d"),
+            latitude_deg=np.array([0.0, 0.0, 0.05, 20.0]),
+            longitude_deg=np.array([0.0, 0.05, 0.0, 20.0]),
+        )
+        chunks = list(GlobalRadiusIndex(catalog).iter_edges(max_distance_m=9_000.0))
+        complex_ = SparseRipsComplex.from_edge_chunks(catalog.station_ids, chunks)
+        whole = list(complex_.iter_simplices(2))
+        partitioned = (
+            list(complex_.iter_simplices(2, owner_start=0, owner_stop=1))
+            + list(complex_.iter_simplices(2, owner_start=1, owner_stop=4))
+        )
+        self.assertEqual(sorted(partitioned), sorted(whole))
+
+    def test_heterogeneous_restrictions_are_functorial_and_sparse_d_squared_zero(self):
+        catalog = StationCatalog(
+            station_ids=("a", "b", "c"),
+            latitude_deg=np.array([0.0, 0.0, 0.05]),
+            longitude_deg=np.array([0.0, 0.05, 0.0]),
+        )
+        chunks = list(GlobalRadiusIndex(catalog).iter_edges(max_distance_m=9_000.0))
+        complex_ = SparseRipsComplex.from_edge_chunks(catalog.station_ids, chunks)
+        variables = (
+            StationVariable("temperature", "K"),
+            StationVariable("precipitation", "mm"),
+            StationVariable("pressure", "Pa"),
+        )
+        sheaf = StationSchemaSheaf(
+            variables=variables,
+            station_variable_ids=(
+                ("temperature", "precipitation"),
+                ("temperature", "precipitation", "pressure"),
+                ("temperature", "pressure"),
+            ),
+        )
+
+        direct = sheaf.restriction_matrix((1,), (0, 1, 2))
+        via_edge = (
+            sheaf.restriction_matrix((0, 1), (0, 1, 2))
+            @ sheaf.restriction_matrix((1,), (0, 1))
+        )
+        np.testing.assert_array_equal(direct.toarray(), via_edge.toarray())
+
+        c0, c1, d0 = sheaf.degree_operator(complex_, 0)
+        lower1, c2, d1 = sheaf.degree_operator(complex_, 1)
+        self.assertEqual(c1.simplices, lower1.simplices)
+        self.assertEqual(d0.nnz, 8)
+        self.assertEqual(d1.nnz, 3)
+        composite = d1 @ d0
+        self.assertEqual(composite.nnz, 0)
 
 if __name__ == "__main__":
     unittest.main()

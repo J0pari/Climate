@@ -380,3 +380,184 @@ def concatenate_edge_chunks(chunks: Sequence[StationEdgeChunk]) -> StationEdgeCh
         np.concatenate([chunk.head for chunk in chunks]),
         np.concatenate([chunk.distance_m for chunk in chunks]),
     )
+
+
+Simplex = tuple[int, ...]
+
+
+def codimension_one_faces(simplex: Simplex) -> tuple[Simplex, ...]:
+    if len(simplex) < 2:
+        return ()
+    return tuple(
+        simplex[:omitted] + simplex[omitted + 1 :]
+        for omitted in range(len(simplex))
+    )
+
+
+@dataclass(frozen=True)
+class CochainIndex:
+    """Partition-local sparse cochain layout.
+
+    A partition owns a bounded simplex set. Halo faces may be added explicitly,
+    so distributed cochain assembly does not require global simplex tables.
+    """
+
+    simplices: tuple[Simplex, ...]
+    bases: tuple[tuple[int, ...], ...]
+    offsets: tuple[int, ...]
+    simplex_position: Mapping[Simplex, int]
+    total_dimension: int
+
+    def basis(self, simplex: Simplex) -> tuple[int, ...]:
+        try:
+            return self.bases[self.simplex_position[simplex]]
+        except KeyError as exc:
+            raise ValueError(f"simplex {simplex!r} is absent from cochain index") from exc
+
+    def offset(self, simplex: Simplex) -> int:
+        try:
+            return self.offsets[self.simplex_position[simplex]]
+        except KeyError as exc:
+            raise ValueError(f"simplex {simplex!r} is absent from cochain index") from exc
+
+
+class StationSchemaSheaf:
+    """Heterogeneous station-variable sheaf over a sparse locality complex.
+
+    Each station declares the subset of the normalized variable schema that it
+    can carry structurally. A simplex stalk is the intersection of its vertex
+    schemas. Restrictions are sparse coordinate-selection maps, so identity and
+    composition are exact by construction while allowing heterogeneous station
+    capabilities.
+    """
+
+    def __init__(
+        self,
+        *,
+        variables: Sequence[StationVariable],
+        station_variable_ids: Sequence[Sequence[str]],
+    ) -> None:
+        self.variables = tuple(variables)
+        if not self.variables:
+            raise ValueError("variables must be non-empty")
+        variable_ids = tuple(item.variable_id for item in self.variables)
+        if len(set(variable_ids)) != len(variable_ids):
+            raise ValueError("variable_ids must be unique")
+        lookup = {variable_id: index for index, variable_id in enumerate(variable_ids)}
+        schemas: list[tuple[int, ...]] = []
+        for station_index, schema in enumerate(station_variable_ids):
+            names = tuple(schema)
+            if len(set(names)) != len(names):
+                raise ValueError(f"station {station_index} schema contains duplicate variable ids")
+            unknown = sorted(set(names) - set(lookup))
+            if unknown:
+                raise ValueError(f"station {station_index} schema contains unknown variables {unknown}")
+            schemas.append(tuple(sorted(lookup[name] for name in names)))
+        if not schemas:
+            raise ValueError("station_variable_ids must be non-empty")
+        self.station_bases = tuple(schemas)
+
+    @property
+    def station_count(self) -> int:
+        return len(self.station_bases)
+
+    def stalk_basis(self, simplex: Simplex) -> tuple[int, ...]:
+        if not simplex:
+            raise ValueError("simplex must be non-empty")
+        if any(vertex < 0 or vertex >= self.station_count for vertex in simplex):
+            raise ValueError("simplex references station outside sheaf")
+        shared = set(self.station_bases[simplex[0]])
+        for vertex in simplex[1:]:
+            shared.intersection_update(self.station_bases[vertex])
+        return tuple(sorted(shared))
+
+    def cochain_index(self, simplices: Sequence[Simplex]) -> CochainIndex:
+        ordered = tuple(simplices)
+        if len(set(ordered)) != len(ordered):
+            raise ValueError("cochain simplices must be unique")
+        bases: list[tuple[int, ...]] = []
+        offsets: list[int] = []
+        positions: dict[Simplex, int] = {}
+        offset = 0
+        for position, simplex in enumerate(ordered):
+            canonical = tuple(sorted(simplex))
+            if canonical != simplex or len(set(simplex)) != len(simplex):
+                raise ValueError(f"simplex {simplex!r} is not strictly ordered")
+            positions[simplex] = position
+            basis = self.stalk_basis(simplex)
+            bases.append(basis)
+            offsets.append(offset)
+            offset += len(basis)
+        return CochainIndex(
+            simplices=ordered,
+            bases=tuple(bases),
+            offsets=tuple(offsets),
+            simplex_position=positions,
+            total_dimension=offset,
+        )
+
+    def required_faces(self, cofaces: Sequence[Simplex]) -> tuple[Simplex, ...]:
+        faces = {
+            face
+            for coface in cofaces
+            for face in codimension_one_faces(coface)
+        }
+        return tuple(sorted(faces))
+
+    def restriction_matrix(self, face: Simplex, coface: Simplex) -> csr_matrix:
+        if not set(face) < set(coface):
+            raise ValueError("restriction requires a strict face inclusion")
+        face_basis = self.stalk_basis(face)
+        coface_basis = self.stalk_basis(coface)
+        face_columns = {variable: column for column, variable in enumerate(face_basis)}
+        rows = np.arange(len(coface_basis), dtype=np.int64)
+        cols = np.asarray([face_columns[variable] for variable in coface_basis], dtype=np.int64)
+        return coo_matrix(
+            (np.ones(len(coface_basis), dtype=np.float64), (rows, cols)),
+            shape=(len(coface_basis), len(face_basis)),
+        ).tocsr()
+
+    def coboundary(
+        self,
+        *,
+        lower: CochainIndex,
+        upper: CochainIndex,
+    ) -> csr_matrix:
+        """Assemble a sparse oriented coboundary on an explicit partition/halo."""
+        rows: list[int] = []
+        cols: list[int] = []
+        data: list[float] = []
+        for coface in upper.simplices:
+            upper_basis = upper.basis(coface)
+            upper_offset = upper.offset(coface)
+            for omitted, face in enumerate(codimension_one_faces(coface)):
+                if face not in lower.simplex_position:
+                    raise ValueError(
+                        f"lower cochain index lacks required halo face {face!r}"
+                    )
+                lower_basis = lower.basis(face)
+                lower_columns = {variable: column for column, variable in enumerate(lower_basis)}
+                lower_offset = lower.offset(face)
+                sign = -1.0 if omitted % 2 else 1.0
+                for row_local, variable in enumerate(upper_basis):
+                    rows.append(upper_offset + row_local)
+                    cols.append(lower_offset + lower_columns[variable])
+                    data.append(sign)
+        matrix = coo_matrix(
+            (np.asarray(data, dtype=np.float64), (rows, cols)),
+            shape=(upper.total_dimension, lower.total_dimension),
+        ).tocsr()
+        matrix.sort_indices()
+        return matrix
+
+    def degree_operator(
+        self,
+        complex_: SparseRipsComplex,
+        degree: int,
+    ) -> tuple[CochainIndex, CochainIndex, csr_matrix]:
+        """Convenience assembly for bounded single-partition witnesses."""
+        lower_simplices = tuple(complex_.iter_simplices(degree))
+        upper_simplices = tuple(complex_.iter_simplices(degree + 1))
+        lower = self.cochain_index(lower_simplices)
+        upper = self.cochain_index(upper_simplices)
+        return lower, upper, self.coboundary(lower=lower, upper=upper)
