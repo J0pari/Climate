@@ -163,10 +163,15 @@ package climate
 	artifacts?: [...#ArtifactRef]
 }
 
+#MethodBuildIdentity: {
+	policy: "source_digest_at_run"
+	sources: [...string & !=""] & [_, ...]
+}
+
 #MethodDescriptor: {
 	method_id:             #Id
 	semantic_version:      #Semver
-	implementation_build:  string & !=""
+	build_identity?:       #MethodBuildIdentity
 	contract_fingerprint?: #Fingerprint
 	maturity:              #Maturity
 	hypothesis_family:     string & !=""

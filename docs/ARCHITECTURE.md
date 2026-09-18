@@ -50,7 +50,7 @@ Describes one executable scientific or numerical method independently of an expe
 ```text
 method_id
 semantic_version
-implementation_build
+build_identity policy + implementation source paths
 maturity
 hypothesis_family
 input_contracts
@@ -63,6 +63,8 @@ validation status by claim
 ```
 
 A method descriptor does **not** state that the method is scientifically correct. It states what implementation and interpretation are being evaluated.
+
+Actual `implementation_build` is a run-time receipt, not an authored registry fact. Runnable local methods declare `build_identity.policy = source_digest_at_run` plus the source files that define the implementation. The runtime hashes those sources and records resolved library/toolchain versions separately, preventing stale hand-maintained commit strings from surviving source edits.
 
 ### Implementation authority is not scientific endorsement
 

@@ -16,6 +16,8 @@ jobs:
         run: python -m unittest discover -s tests/architecture -v
       - name: Claim graph integrity
         run: python architecture/check_claims.py
+      - name: Method identity integrity
+        run: python architecture/check_methods.py
       - name: Module inventory integrity
         run: python architecture/check_modules.py
       - name: Planning graph integrity

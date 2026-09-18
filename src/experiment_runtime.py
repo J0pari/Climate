@@ -31,15 +31,6 @@ CONTRACT = ROOT / "contracts" / "climate.cue"
 SUPPORTED_EXPERIMENT = "multirepresentation.ebm_dynamics.v1"
 BASELINE_METHOD = "physics.two_layer_ebm.exact_modes_v1"
 CANDIDATE_METHOD = "dynamics.dmd.pydmd_v1"
-METHOD_SOURCES = {
-    BASELINE_METHOD: ("reference/two_layer_energy_balance.py",),
-    CANDIDATE_METHOD: (
-        "reference/two_layer_energy_balance.py",
-        "reference/two_layer_representation_dynamics.py",
-    ),
-}
-
-
 def _load_json(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
@@ -81,9 +72,14 @@ def _method_map() -> dict[str, dict[str, Any]]:
 
 
 def _resolved_method_build(method_id: str, descriptor: Mapping[str, Any]) -> str:
-    sources = METHOD_SOURCES.get(method_id)
-    if not sources:
-        raise ValueError(f"no executable source binding registered for {method_id}")
+    identity = descriptor.get("build_identity")
+    if not isinstance(identity, dict):
+        raise ValueError(f"{method_id} has no build identity policy")
+    if identity.get("policy") != "source_digest_at_run":
+        raise ValueError(f"{method_id} has unsupported build identity policy")
+    sources = identity.get("sources")
+    if not isinstance(sources, list) or not sources or not all(isinstance(item, str) and item for item in sources):
+        raise ValueError(f"{method_id} has no executable source binding")
     digest = hashlib.sha256()
     for relative in sources:
         path = ROOT / relative
@@ -93,10 +89,7 @@ def _resolved_method_build(method_id: str, descriptor: Mapping[str, Any]) -> str
         digest.update(b"\0")
         digest.update(path.read_bytes())
         digest.update(b"\0")
-    declared = descriptor.get("implementation_build")
-    if not isinstance(declared, str) or not declared:
-        raise ValueError(f"{method_id} has no declared implementation_build")
-    return f"{declared}|source-sha256:{digest.hexdigest()}"
+    return f"source-sha256:{digest.hexdigest()}"
 
 
 def _resolve_configuration(experiment: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:

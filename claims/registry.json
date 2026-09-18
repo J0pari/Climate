@@ -100,10 +100,8 @@
       "claim_type": "software",
       "subject": "GPU experiment engine",
       "maturity": "concept",
-      "scope": "Planned single-GPU reference-equivalence and throughput tests; no current implementation is covered by this claim.",
-      "depends_on": [
-        "climate.geometry.regime_indicator"
-      ],
+      "scope": "Planned single-GPU reference-equivalence and throughput tests; software equivalence is epistemically independent of whether geometric regime indicators prove scientifically useful. Acceleration work remains planning-blocked until a useful workload and measured bottleneck exist.",
+      "depends_on": [],
       "required_evidence": [
         "explicit buffer and transfer contract",
         "CPU or high-precision reference implementation",

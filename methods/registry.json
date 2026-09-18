@@ -1,22 +1,26 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "methods": [
     {
       "method_id": "geometry.reference.cpu_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "planned",
-      "maturity": "concept",
+      "maturity": "runnable",
       "hypothesis_family": "geometry_verification_reference",
-      "input_contracts": ["analytic_metric_fixture/v1"],
-      "output_contracts": ["geometry_diagnostics/v1"],
+      "input_contracts": [
+        "analytic_metric_fixture/v1"
+      ],
+      "output_contracts": [
+        "geometry_diagnostics/v1"
+      ],
       "assumptions": [
         "fixture metric and coordinate conventions are explicit",
         "FP64 is the default reference precision",
         "no climate interpretation is produced"
       ],
       "known_limitations": [
-        "implementation does not exist yet",
-        "intended for correctness/reference scale rather than climate-scale throughput"
+        "the registered CPU implementation is the canonical Rust MetricJet/Levi-Civita path; independent symbolic verification remains a separate reference authority",
+        "metric construction and derivative generation remain caller-owned and are not supplied by this method",
+        "intended for correctness/reference-scale execution rather than climate-scale throughput"
       ],
       "resource": {
         "cpu_cores": 2,
@@ -25,16 +29,26 @@
         "network": "none",
         "max_seconds": 600
       },
-      "reference_methods": []
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "src/geometry.rs"
+        ]
+      }
     },
     {
       "method_id": "geometry.candidate.gpu_batched_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "planned",
       "maturity": "concept",
       "hypothesis_family": "batched_geometry_acceleration",
-      "input_contracts": ["analytic_metric_fixture/v1", "geometry_candidate/v1"],
-      "output_contracts": ["geometry_diagnostics/v1"],
+      "input_contracts": [
+        "analytic_metric_fixture/v1",
+        "geometry_candidate/v1"
+      ],
+      "output_contracts": [
+        "geometry_diagnostics/v1"
+      ],
       "assumptions": [
         "single-GPU implementation before multi-GPU",
         "candidate batching preserves candidate isolation",
@@ -72,16 +86,22 @@
           "max_seconds": 600
         }
       },
-      "reference_methods": ["geometry.reference.cpu_v1"]
+      "reference_methods": [
+        "geometry.reference.cpu_v1"
+      ]
     },
     {
       "method_id": "multirepresentation.jsf.datafold_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "83da38a42ef05bb355db566a17abbac297c63a27+datafold-2.0.2",
       "maturity": "runnable",
       "hypothesis_family": "nonlinear_common_manifold_reference",
-      "input_contracts": ["paired_multirepresentation_fixture/v1"],
-      "output_contracts": ["common_coordinate/v1", "multirepresentation_diagnostics/v1"],
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1"
+      ],
+      "output_contracts": [
+        "common_coordinate/v1",
+        "multirepresentation_diagnostics/v1"
+      ],
       "assumptions": [
         "paired rows across views refer to the same latent realization",
         "each view is standardized independently before kernel construction",
@@ -105,16 +125,26 @@
         "multirepresentation.concat_pca.sklearn_v1",
         "multirepresentation.linear_cca.sklearn_v1",
         "multirepresentation.concat_spectral.sklearn_v1"
-      ]
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_common.py"
+        ]
+      }
     },
     {
       "method_id": "multirepresentation.concat_pca.sklearn_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "83da38a42ef05bb355db566a17abbac297c63a27+scikit-learn-1.2.2",
       "maturity": "runnable",
       "hypothesis_family": "concatenated_linear_fusion_baseline",
-      "input_contracts": ["paired_multirepresentation_fixture/v1"],
-      "output_contracts": ["common_coordinate/v1", "multirepresentation_diagnostics/v1"],
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1"
+      ],
+      "output_contracts": [
+        "common_coordinate/v1",
+        "multirepresentation_diagnostics/v1"
+      ],
       "assumptions": [
         "each view is standardized independently before concatenation",
         "the leading PCA component is used as the one-dimensional fused coordinate",
@@ -132,16 +162,26 @@
         "network": "none",
         "max_seconds": 120
       },
-      "reference_methods": []
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_common.py"
+        ]
+      }
     },
     {
       "method_id": "multirepresentation.linear_cca.sklearn_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "83da38a42ef05bb355db566a17abbac297c63a27+scikit-learn-1.2.2",
       "maturity": "runnable",
       "hypothesis_family": "linear_multiview_correlation_baseline",
-      "input_contracts": ["paired_multirepresentation_fixture/v1"],
-      "output_contracts": ["common_coordinate/v1", "multirepresentation_diagnostics/v1"],
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1"
+      ],
+      "output_contracts": [
+        "common_coordinate/v1",
+        "multirepresentation_diagnostics/v1"
+      ],
       "assumptions": [
         "paired rows across views refer to the same latent realization",
         "views are standardized before CCA and the aligned first canonical scores are averaged",
@@ -159,16 +199,26 @@
         "network": "none",
         "max_seconds": 120
       },
-      "reference_methods": []
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_common.py"
+        ]
+      }
     },
     {
       "method_id": "multirepresentation.concat_spectral.sklearn_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "83da38a42ef05bb355db566a17abbac297c63a27+scikit-learn-1.2.2",
       "maturity": "runnable",
       "hypothesis_family": "concatenated_nonlinear_geometry_baseline",
-      "input_contracts": ["paired_multirepresentation_fixture/v1"],
-      "output_contracts": ["common_coordinate/v1", "multirepresentation_diagnostics/v1"],
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1"
+      ],
+      "output_contracts": [
+        "common_coordinate/v1",
+        "multirepresentation_diagnostics/v1"
+      ],
       "assumptions": [
         "each view is standardized independently before concatenation",
         "nearest-neighbor spectral embedding is applied to the concatenated Euclidean feature space",
@@ -186,16 +236,26 @@
         "network": "none",
         "max_seconds": 120
       },
-      "reference_methods": []
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_common.py"
+        ]
+      }
     },
     {
       "method_id": "physics.two_layer_ebm.exact_modes_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "5617ca2757e8422ee87731218ce1a6c6377f84ba+scipy-1.18.1",
       "maturity": "runnable",
       "hypothesis_family": "two_layer_thermal_mode_oracle",
-      "input_contracts": ["two_layer_ebm_fixture/v1"],
-      "output_contracts": ["thermal_decay_timescales/v1", "two_layer_energy_budget/v1"],
+      "input_contracts": [
+        "two_layer_ebm_fixture/v1"
+      ],
+      "output_contracts": [
+        "thermal_decay_timescales/v1",
+        "two_layer_energy_budget/v1"
+      ],
       "assumptions": [
         "the declared two-layer energy-balance model is linear and time invariant for fixed parameters",
         "thermal modes are defined about the constant-forcing equilibrium",
@@ -213,16 +273,27 @@
         "network": "none",
         "max_seconds": 120
       },
-      "reference_methods": []
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py"
+        ]
+      }
     },
     {
       "method_id": "dynamics.dmd.pydmd_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "44ffae471bb706f997efec2024205e1eb462f816+pydmd-2025.8.1",
       "maturity": "runnable",
       "hypothesis_family": "representation_dynamical_observability",
-      "input_contracts": ["paired_state_transition_samples/v1"],
-      "output_contracts": ["dmd_eigenvalues/v1", "thermal_decay_timescales/v1", "representation_conditioning/v1"],
+      "input_contracts": [
+        "paired_state_transition_samples/v1"
+      ],
+      "output_contracts": [
+        "dmd_eigenvalues/v1",
+        "thermal_decay_timescales/v1",
+        "representation_conditioning/v1"
+      ],
       "assumptions": [
         "paired sample matrices contain the same physical realizations before and after one declared time interval",
         "DMD rank is declared from the intended resolved state dimension rather than selected using the exact target timescales",
@@ -242,16 +313,30 @@
         "network": "none",
         "max_seconds": 600
       },
-      "reference_methods": ["physics.two_layer_ebm.exact_modes_v1"]
+      "reference_methods": [
+        "physics.two_layer_ebm.exact_modes_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_representation_dynamics.py"
+        ]
+      }
     },
     {
       "method_id": "sheaf.real.spectral_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "e0804c047114792ed84988ef2e2b0db2e529ff90",
       "maturity": "runnable",
       "hypothesis_family": "finite_sheaf_structural_ablation",
-      "input_contracts": ["finite_real_cellular_sheaf/v1", "local_section/v1"],
-      "output_contracts": ["compatibility_energy/v1", "sheaf_spectrum_report/v1"],
+      "input_contracts": [
+        "finite_real_cellular_sheaf/v1",
+        "local_section/v1"
+      ],
+      "output_contracts": [
+        "compatibility_energy/v1",
+        "sheaf_spectrum_report/v1"
+      ],
       "assumptions": [
         "all finite-dimensional stalks and restriction matrices are declared explicitly",
         "the same restriction maps are available to the strong local-residual baseline",
@@ -270,16 +355,30 @@
         "network": "none",
         "max_seconds": 120
       },
-      "reference_methods": ["sheaf.real.local_residual_v1", "graph.scalar_laplacian_v1"]
+      "reference_methods": [
+        "sheaf.real.local_residual_v1",
+        "graph.scalar_laplacian_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "src/sheaf.rs"
+        ]
+      }
     },
     {
       "method_id": "sheaf.real.local_residual_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "e0804c047114792ed84988ef2e2b0db2e529ff90",
       "maturity": "runnable",
       "hypothesis_family": "finite_sheaf_local_residual_baseline",
-      "input_contracts": ["finite_real_cellular_sheaf/v1", "local_section/v1"],
-      "output_contracts": ["edge_residuals/v1", "compatibility_energy/v1"],
+      "input_contracts": [
+        "finite_real_cellular_sheaf/v1",
+        "local_section/v1"
+      ],
+      "output_contracts": [
+        "edge_residuals/v1",
+        "compatibility_energy/v1"
+      ],
       "assumptions": [
         "uses exactly the same endpoint restriction matrices as the spectral candidate",
         "computes edge-local residuals independently of the assembled global coboundary",
@@ -296,16 +395,27 @@
         "network": "none",
         "max_seconds": 120
       },
-      "reference_methods": []
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "tests/sheaf_ablation.rs"
+        ]
+      }
     },
     {
       "method_id": "graph.scalar_laplacian_v1",
       "semantic_version": "0.1.0",
-      "implementation_build": "e0804c047114792ed84988ef2e2b0db2e529ff90",
       "maturity": "runnable",
       "hypothesis_family": "scalar_graph_structural_baseline",
-      "input_contracts": ["scalar_graph/v1", "vertex_signal/v1"],
-      "output_contracts": ["graph_laplacian/v1", "compatibility_energy/v1"],
+      "input_contracts": [
+        "scalar_graph/v1",
+        "vertex_signal/v1"
+      ],
+      "output_contracts": [
+        "graph_laplacian/v1",
+        "compatibility_energy/v1"
+      ],
       "assumptions": [
         "rank-one vertex and edge spaces use identity endpoint restrictions",
         "edge orientation is representational and must not change the graph Laplacian",
@@ -322,7 +432,13 @@
         "network": "none",
         "max_seconds": 120
       },
-      "reference_methods": []
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "tests/sheaf_ablation.rs"
+        ]
+      }
     }
   ]
 }
