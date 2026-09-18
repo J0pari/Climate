@@ -303,6 +303,43 @@
       }
     },
     {
+      "method_id": "multirepresentation.raw_concat.standardized_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "standardized_raw_multiview_baseline",
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1",
+        "discovery_confirmation_partition/v1"
+      ],
+      "output_contracts": [
+        "paired_representation_features/v1"
+      ],
+      "assumptions": [
+        "each view is standardized with discovery-only mean and variance before concatenation",
+        "confirmation samples use the discovery-fitted scalers without target-informed transformation",
+        "all observed coordinates from both paired views remain available to the raw baseline"
+      ],
+      "known_limitations": [
+        "raw concatenation defines no shared geometry and performs no nuisance suppression or dimension reduction",
+        "Euclidean distance in the standardized concatenated feature space is a baseline convention rather than a scientific metric claim",
+        "downstream target recovery reflects both retained information and the fixed evaluation probe"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_structure_evaluation.py"
+        ]
+      }
+    },
+    {
       "method_id": "multirepresentation.factor_analysis.sklearn_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",

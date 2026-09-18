@@ -67,11 +67,12 @@
       "family": "reference_multirepresentation_structure_evaluation",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "evaluation-only layer bound to the exact structural-worlds-v1 ground-truth fixture, deriving separately seeded confirmation realizations without restating world semantics, testing conservative nonlinear cross-view dependence with explicit abstention, and comparing existing PCA/CCA/spectral/JSF methods plus standard factor analysis on held-out confirmation worlds",
+      "intended_role": "evaluation-only layer bound to the exact structural-worlds-v1 ground-truth fixture, deriving separately seeded confirmation realizations without restating world semantics, testing conservative nonlinear cross-view dependence with explicit abstention, comparing PCA/CCA/spectral/JSF/factor-analysis coordinates, and applying one discovery-fitted downstream probe to standardized raw concatenation and simple latent representations on held-out confirmation targets",
       "known_gaps": [
         "the current selector decides only whether detectable shared statistical structure supports a shared-coordinate hypothesis; it does not identify product, fiber, quotient, stratum, topology, or causal semantics",
-        "raw-concatenation and state-space baselines with matched downstream probes remain open completion work",
+        "a genuinely temporal state-space baseline remains open and must not be substituted by a static latent model",
         "dimension and topology selection are not yet benchmarked by this evaluator",
+        "spectral and JSF coordinates are scored as held-out-world unsupervised diagnostics rather than through the discovery-fitted downstream probe because these registered implementations do not expose the same maintained out-of-sample transform contract",
         "the worlds are synthetic low-dimensional controls and produce no climate-data claim evidence"
       ],
       "authority_kind": "independent_reference",

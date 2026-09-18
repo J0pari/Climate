@@ -24,10 +24,10 @@
     },
     "jsf": {
       "k_neighbor": 40,
-      "delta": 1.0,
+      "delta": 1,
       "n_kernel_eigenvectors": 30,
       "n_jointly_smooth_functions": 6,
-      "kernel_eigenvalue_cut_off": 1e-08,
+      "kernel_eigenvalue_cut_off": 1e-8,
       "eigenvector_tolerance": 1e-10
     }
   },
@@ -35,6 +35,24 @@
     "coordinate_recovery_metric": "absolute Spearman rank correlation with the authoritative shared_evaluation_target_name when one exists",
     "abstention_policy": "A world with no authoritative shared evaluation target expects abstention. A world with an authoritative shared evaluation target expects the dependence selector to support a shared coordinate. No per-world labels are restated here.",
     "confirmation_policy": "Confirmation worlds use the same authoritative world semantics and sample count with each base seed increased by confirmation_seed_offset. Method settings and selector alpha are fixed before confirmation execution.",
-    "failure_policy": "A coordinate baseline failure is recorded as a method failure for that world rather than silently substituted by another algorithm."
+    "failure_policy": "A coordinate baseline failure is recorded as a method failure for that world rather than silently substituted by another algorithm.",
+    "matched_information_policy": "For worlds with an authoritative shared evaluation target, fit the same k-nearest-neighbor regressor on discovery targets for each listed representation and score only on confirmation targets. Raw/PCA/CCA/factor representations are fit from discovery views without target access; the downstream target probe is identical across representations. Spectral and JSF remain separate held-out coordinate diagnostics because these registered implementations do not expose the same maintained out-of-sample transform contract."
+  },
+  "matched_information_probe": {
+    "family": "discovery_fitted_knn_regression",
+    "n_neighbors": 20,
+    "weights": "distance",
+    "metric": "minkowski",
+    "p": 2,
+    "representations": [
+      "raw_concat",
+      "concat_pca",
+      "linear_cca",
+      "factor_analysis"
+    ],
+    "scoring": [
+      "confirmation_normalized_rmse",
+      "confirmation_abs_spearman"
+    ]
   }
 }

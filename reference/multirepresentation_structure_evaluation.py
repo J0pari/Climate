@@ -28,8 +28,10 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(ROOT))
 
 import numpy as np
-from sklearn.decomposition import FactorAnalysis
+from sklearn.cross_decomposition import CCA
+from sklearn.decomposition import FactorAnalysis, PCA
 from sklearn.feature_selection import mutual_info_regression
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler
 
 from reference.multirepresentation_common import (
@@ -94,6 +96,28 @@ def load_evaluation_fixture(
         raise ValueError("invalid rejected-null selector decision")
     if selector.get("decision_when_not_rejected") not in SUPPORTED_DECISIONS:
         raise ValueError("invalid non-rejected selector decision")
+
+    probe = payload.get("matched_information_probe")
+    if not isinstance(probe, dict):
+        raise ValueError("matched_information_probe policy is required")
+    probe_neighbors = probe.get("n_neighbors")
+    if not isinstance(probe_neighbors, int) or probe_neighbors < 2:
+        raise ValueError("matched-information n_neighbors must be >= 2")
+    if probe.get("weights") not in {"uniform", "distance"}:
+        raise ValueError("matched-information weights policy is unsupported")
+    if probe.get("metric") != "minkowski" or int(probe.get("p", 0)) < 1:
+        raise ValueError("matched-information metric policy is unsupported")
+    expected_probe_representations = [
+        "raw_concat",
+        "concat_pca",
+        "linear_cca",
+        "factor_analysis",
+    ]
+    if probe.get("representations") != expected_probe_representations:
+        raise ValueError(
+            "matched-information representation identities changed without "
+            "an evaluation fixture version"
+        )
     return payload
 
 
@@ -239,6 +263,132 @@ def _coordinate_methods(
     }
 
 
+def _discovery_fitted_representations(
+    discovery: StructuralWorld,
+    confirmation: StructuralWorld,
+    baseline_config: dict[str, Any],
+) -> dict[str, tuple[np.ndarray, np.ndarray]]:
+    scaler_a = StandardScaler().fit(discovery.view_a)
+    scaler_b = StandardScaler().fit(discovery.view_b)
+    discovery_a = scaler_a.transform(discovery.view_a)
+    discovery_b = scaler_b.transform(discovery.view_b)
+    confirmation_a = scaler_a.transform(confirmation.view_a)
+    confirmation_b = scaler_b.transform(confirmation.view_b)
+    discovery_raw = np.column_stack([discovery_a, discovery_b])
+    confirmation_raw = np.column_stack([confirmation_a, confirmation_b])
+
+    pca = PCA(n_components=1, svd_solver="full")
+    discovery_pca = pca.fit_transform(discovery_raw)
+    confirmation_pca = pca.transform(confirmation_raw)
+
+    factor_config = baseline_config["factor_analysis"]
+    factor = FactorAnalysis(
+        n_components=1,
+        svd_method=str(factor_config["svd_method"]),
+    )
+    discovery_factor = factor.fit_transform(discovery_raw)
+    confirmation_factor = factor.transform(confirmation_raw)
+
+    cca = CCA(n_components=1, scale=False, max_iter=2000, tol=1e-10)
+    discovery_cca_a, discovery_cca_b = cca.fit_transform(
+        discovery_a,
+        discovery_b,
+    )
+    confirmation_cca_a, confirmation_cca_b = cca.transform(
+        confirmation_a,
+        confirmation_b,
+    )
+    score_scaler_a = StandardScaler().fit(discovery_cca_a)
+    score_scaler_b = StandardScaler().fit(discovery_cca_b)
+    discovery_score_a = score_scaler_a.transform(discovery_cca_a)[:, 0]
+    discovery_score_b = score_scaler_b.transform(discovery_cca_b)[:, 0]
+    confirmation_score_a = score_scaler_a.transform(confirmation_cca_a)[:, 0]
+    confirmation_score_b = score_scaler_b.transform(confirmation_cca_b)[:, 0]
+    if float(np.dot(discovery_score_a, discovery_score_b)) < 0.0:
+        discovery_score_b = -discovery_score_b
+        confirmation_score_b = -confirmation_score_b
+    discovery_cca = (0.5 * (discovery_score_a + discovery_score_b))[:, None]
+    confirmation_cca = (0.5 * (confirmation_score_a + confirmation_score_b))[:, None]
+
+    representations = {
+        "raw_concat": (discovery_raw, confirmation_raw),
+        "concat_pca": (discovery_pca, confirmation_pca),
+        "linear_cca": (discovery_cca, confirmation_cca),
+        "factor_analysis": (discovery_factor, confirmation_factor),
+    }
+    for name, (train, test) in representations.items():
+        if (
+            train.ndim != 2
+            or test.ndim != 2
+            or train.shape[0] != discovery.view_a.shape[0]
+            or test.shape[0] != confirmation.view_a.shape[0]
+            or not np.isfinite(train).all()
+            or not np.isfinite(test).all()
+        ):
+            raise RuntimeError(f"invalid discovery-fitted representation {name}")
+    return representations
+
+
+def _matched_information_probe(
+    discovery: StructuralWorld,
+    confirmation: StructuralWorld,
+    baseline_config: dict[str, Any],
+    probe_config: dict[str, Any],
+) -> dict[str, Any] | None:
+    target_name = discovery.ground_truth.get("shared_evaluation_target_name")
+    if target_name is None:
+        return None
+    if (
+        not isinstance(target_name, str)
+        or target_name not in discovery.targets
+        or target_name not in confirmation.targets
+    ):
+        raise ValueError("authoritative shared evaluation target is inconsistent")
+
+    train_target = np.asarray(discovery.targets[target_name], dtype=float)
+    test_target = np.asarray(confirmation.targets[target_name], dtype=float)
+    if (
+        train_target.shape != (discovery.view_a.shape[0],)
+        or test_target.shape != (confirmation.view_a.shape[0],)
+        or not np.isfinite(train_target).all()
+        or not np.isfinite(test_target).all()
+    ):
+        raise ValueError("matched-information targets are invalid")
+    target_scale = float(np.std(test_target))
+    if not math.isfinite(target_scale) or target_scale <= 0.0:
+        raise ValueError("confirmation target scale must be finite and positive")
+
+    representations = _discovery_fitted_representations(
+        discovery,
+        confirmation,
+        baseline_config,
+    )
+    requested = list(probe_config["representations"])
+    if set(representations) != set(requested):
+        raise ValueError("matched-information representation policy is inconsistent")
+
+    results: dict[str, Any] = {}
+    for name in requested:
+        train, test = representations[name]
+        probe = KNeighborsRegressor(
+            n_neighbors=int(probe_config["n_neighbors"]),
+            weights=str(probe_config["weights"]),
+            metric=str(probe_config["metric"]),
+            p=int(probe_config["p"]),
+        )
+        probe.fit(train, train_target)
+        predicted = np.asarray(probe.predict(test), dtype=float)
+        if predicted.shape != test_target.shape or not np.isfinite(predicted).all():
+            raise RuntimeError(f"matched-information probe failed for {name}")
+        rmse = float(np.sqrt(np.mean((predicted - test_target) ** 2)))
+        results[name] = {
+            "representation_dimension": int(test.shape[1]),
+            "confirmation_normalized_rmse": rmse / target_scale,
+            "confirmation_abs_spearman": abs_spearman(predicted, test_target),
+        }
+    return results
+
+
 def _expected_selector_decision(world: StructuralWorld) -> str:
     target_name = world.ground_truth.get("shared_evaluation_target_name")
     if target_name is None:
@@ -313,6 +463,7 @@ def evaluate_structural_worlds(
 
     selector_policy = evaluation_fixture["dependence_selector"]
     baseline_config = evaluation_fixture["coordinate_baselines"]
+    probe_config = evaluation_fixture["matched_information_probe"]
     world_results: dict[str, Any] = {}
     discovery_calibrated: list[bool] = []
     confirmation_calibrated: list[bool] = []
@@ -358,6 +509,12 @@ def evaluate_structural_worlds(
             "confirmation_coordinate_baselines": _evaluate_coordinate_baselines(
                 confirmation_world,
                 baseline_config,
+            ),
+            "matched_information_probe": _matched_information_probe(
+                discovery_world,
+                confirmation_world,
+                baseline_config,
+                probe_config,
             ),
         }
 

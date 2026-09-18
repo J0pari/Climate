@@ -121,6 +121,47 @@ class MultirepresentationStructureEvaluationTests(unittest.TestCase):
                 for diagnostics in baselines.values():
                     self.assertNotIn("shared_target_abs_spearman", diagnostics)
 
+    def test_matched_information_probe_uses_one_policy_across_raw_and_simple_latents(self) -> None:
+        required = [
+            "raw_concat",
+            "concat_pca",
+            "linear_cca",
+            "factor_analysis",
+        ]
+        self.assertEqual(
+            self.evaluation_fixture["matched_information_probe"]["representations"],
+            required,
+        )
+        for world_id, item in self.result["worlds"].items():
+            target_name = item["shared_evaluation_target_name"]
+            probe = item["matched_information_probe"]
+            if target_name is None:
+                self.assertIsNone(probe, msg=world_id)
+                continue
+            self.assertEqual(list(probe), required)
+            self.assertGreater(probe["raw_concat"]["representation_dimension"], 1)
+            for representation, diagnostics in probe.items():
+                self.assertTrue(
+                    np.isfinite(diagnostics["confirmation_normalized_rmse"]),
+                    msg=(world_id, representation),
+                )
+                self.assertTrue(
+                    np.isfinite(diagnostics["confirmation_abs_spearman"]),
+                    msg=(world_id, representation),
+                )
+                self.assertGreaterEqual(
+                    diagnostics["confirmation_normalized_rmse"],
+                    0.0,
+                )
+                self.assertGreaterEqual(
+                    diagnostics["confirmation_abs_spearman"],
+                    0.0,
+                )
+                self.assertLessEqual(
+                    diagnostics["confirmation_abs_spearman"],
+                    1.0,
+                )
+
     def test_discovery_and_confirmation_samples_have_distinct_digests(self) -> None:
         self.assertNotEqual(
             self.result["discovery_sample_digest"],
