@@ -278,7 +278,7 @@
       "ownership_class": "numerical_policy",
       "disposition": "retain_local",
       "source_ids": [],
-      "rationale": "the positive temperature-increment degeneracy tolerance is numerical finite-difference policy; no history threshold, observation, radiative forcing, or physical feedback threshold is supplied locally"
+      "rationale": "the positive temperature-increment degeneracy tolerance is numerical secant-denominator policy; it supplies no observational threshold, radiative forcing, physical feedback derivative, or causal interpretation"
     },
     {
       "usage_id": "feedback.ice_extent_observation",

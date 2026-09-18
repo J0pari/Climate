@@ -3,15 +3,15 @@
   "modules": [
     {
       "path": "src/albedo_temperature_sensitivity.rs",
-      "family": "albedo_temperature_sensitivity_numerics",
+      "family": "albedo_temperature_trajectory_secant_numerics",
       "language": "rust",
       "maturity": "prototype",
-      "intended_role": "canonical provenance-neutral finite-difference primitive for local d(albedo)/dT and its time rate from explicit SI-timed numeric samples, without observational, forcing, calibration, threshold, or feedback interpretation",
+      "intended_role": "canonical provenance-neutral trajectory/secant finite-difference primitive for adjacent Δ(albedo)/ΔT and change in that secant over time from explicit SI-timed numeric samples, without causal, partial-derivative, observational, forcing, calibration, threshold, or feedback interpretation",
       "known_gaps": [
-        "the adjacent-sample finite difference is a numerical quantity, not a statistically robust or empirical climate feedback estimate",
+        "the adjacent-sample trajectory secant is a path-dependent numerical quantity, not a causal or partial climate-feedback derivative",
         "the kernel accepts no observational provenance; empirical adapters must bind source-backed values through the canonical observed-field provenance boundary before constructing numerical samples",
         "the kernel owns no sea-ice extent, radiative forcing, process threshold, calibration, or uncertainty model",
-        "radiative feedback conversion requires a separately sourced radiative field matched to the declared albedo level, definition, aggregation, and time base",
+        "radiative feedback interpretation requires separately sourced radiative fields plus an experiment that controls or models the variables needed for a partial/causal derivative",
         "the temperature-increment degeneracy tolerance is explicit numerical policy rather than an empirical threshold"
       ],
       "authority_kind": "canonical_implementation",

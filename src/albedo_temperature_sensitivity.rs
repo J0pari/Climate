@@ -1,9 +1,9 @@
-//! Provenance-neutral numerical primitives for local albedo-temperature sensitivity.
+//! Provenance-neutral numerical primitives for local albedo-temperature trajectory secants.
 //!
-//! This module computes finite-difference changes in albedo with respect to
-//! temperature from explicit numeric samples. Its inputs are numerical values,
-//! not observations, and its outputs are not empirical climate-feedback
-//! estimates. It intentionally owns no sea-ice extent, radiative forcing,
+//! This module computes finite-difference secant slopes along an observed or
+//! simulated trajectory in (temperature, albedo) space. Its inputs are numerical
+//! values, not observations, and its outputs are not partial derivatives, causal
+//! effects, or empirical climate-feedback estimates. It intentionally owns no sea-ice extent, radiative forcing,
 //! observational source, empirical calibration, process threshold, or fallback.
 //!
 //! An empirical adapter must bind source-backed values through the repository's
@@ -17,7 +17,7 @@ use std::collections::VecDeque;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-const SENSITIVITY_RATE_HISTORY: usize = 3;
+const SECANT_RATE_HISTORY: usize = 3;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct AlbedoTemperatureSample {
@@ -68,7 +68,7 @@ impl AlbedoTemperatureSample {
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct AlbedoTemperatureNumericalPolicy {
-    /// Positive numerical threshold below which d(albedo)/dT is undefined.
+    /// Positive numerical threshold below which the trajectory secant in temperature is undefined.
     pub temperature_increment_tolerance_k: f64,
 }
 
@@ -100,7 +100,7 @@ pub enum AlbedoTemperatureConfigError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub enum SensitivityDegeneracy {
+pub enum SecantDegeneracy {
     TemperatureIncrementBelowTolerance {
         delta_temperature_k: f64,
         tolerance_k: f64,
@@ -111,7 +111,7 @@ pub enum SensitivityDegeneracy {
 pub enum QuantityEstimate {
     Available { value: f64 },
     InsufficientHistory { required: usize, actual: usize },
-    Degenerate { reason: SensitivityDegeneracy },
+    Degenerate { reason: SecantDegeneracy },
 }
 
 impl QuantityEstimate {
@@ -127,10 +127,11 @@ impl QuantityEstimate {
 pub struct AlbedoTemperatureDiagnostics {
     /// Number of samples retained by the local finite-difference stencil.
     pub retained_sample_count: usize,
-    /// Local finite-difference estimate d(albedo)/dT in K^-1.
-    pub albedo_temperature_sensitivity_per_k: QuantityEstimate,
-    /// Change in d(albedo)/dT per second.
-    pub sensitivity_rate_per_k_per_s: QuantityEstimate,
+    /// Secant slope Δ(albedo)/ΔT along the latest trajectory interval, in K^-1.
+    /// This is not a causal or partial feedback derivative.
+    pub albedo_temperature_trajectory_secant_per_k: QuantityEstimate,
+    /// Change in successive trajectory secant slopes per second.
+    pub trajectory_secant_rate_per_k_per_s: QuantityEstimate,
 }
 
 #[derive(Debug, Clone)]
@@ -146,7 +147,7 @@ impl AlbedoTemperatureTracker {
         let policy = policy.validate()?;
         Ok(Self {
             policy,
-            history: VecDeque::with_capacity(SENSITIVITY_RATE_HISTORY),
+            history: VecDeque::with_capacity(SECANT_RATE_HISTORY),
         })
     }
 
@@ -164,7 +165,7 @@ impl AlbedoTemperatureTracker {
             }
         }
         self.history.push_back(sample);
-        while self.history.len() > SENSITIVITY_RATE_HISTORY {
+        while self.history.len() > SECANT_RATE_HISTORY {
             self.history.pop_front();
         }
         Ok(self.diagnostics())
@@ -174,34 +175,34 @@ impl AlbedoTemperatureTracker {
         let retained_sample_count = self.history.len();
         AlbedoTemperatureDiagnostics {
             retained_sample_count,
-            albedo_temperature_sensitivity_per_k: if retained_sample_count >= 2 {
-                self.sensitivity_between(retained_sample_count - 2, retained_sample_count - 1)
+            albedo_temperature_trajectory_secant_per_k: if retained_sample_count >= 2 {
+                self.secant_between(retained_sample_count - 2, retained_sample_count - 1)
             } else {
                 QuantityEstimate::InsufficientHistory {
                     required: 2,
                     actual: retained_sample_count,
                 }
             },
-            sensitivity_rate_per_k_per_s: if retained_sample_count
-                >= SENSITIVITY_RATE_HISTORY
+            trajectory_secant_rate_per_k_per_s: if retained_sample_count
+                >= SECANT_RATE_HISTORY
             {
-                self.sensitivity_rate()
+                self.secant_rate()
             } else {
                 QuantityEstimate::InsufficientHistory {
-                    required: SENSITIVITY_RATE_HISTORY,
+                    required: SECANT_RATE_HISTORY,
                     actual: retained_sample_count,
                 }
             },
         }
     }
 
-    fn sensitivity_between(&self, left: usize, right: usize) -> QuantityEstimate {
+    fn secant_between(&self, left: usize, right: usize) -> QuantityEstimate {
         let earlier = self.history[left];
         let later = self.history[right];
         let delta_temperature_k = later.temperature_k - earlier.temperature_k;
         if delta_temperature_k.abs() < self.policy.temperature_increment_tolerance_k {
             return QuantityEstimate::Degenerate {
-                reason: SensitivityDegeneracy::TemperatureIncrementBelowTolerance {
+                reason: SecantDegeneracy::TemperatureIncrementBelowTolerance {
                     delta_temperature_k,
                     tolerance_k: self.policy.temperature_increment_tolerance_k,
                 },
@@ -213,10 +214,10 @@ impl AlbedoTemperatureTracker {
         }
     }
 
-    fn sensitivity_rate(&self) -> QuantityEstimate {
+    fn secant_rate(&self) -> QuantityEstimate {
         let n = self.history.len();
-        let previous = self.sensitivity_between(n - 3, n - 2);
-        let current = self.sensitivity_between(n - 2, n - 1);
+        let previous = self.secant_between(n - 3, n - 2);
+        let current = self.secant_between(n - 2, n - 1);
         match (previous, current) {
             (
                 QuantityEstimate::Available { value: previous },
@@ -264,19 +265,19 @@ mod tests {
     }
 
     #[test]
-    fn derivative_and_rate_require_only_their_mathematical_stencils() {
+    fn trajectory_secant_and_rate_require_only_their_mathematical_stencils() {
         let mut tracker = AlbedoTemperatureTracker::new(policy()).unwrap();
 
         let first = tracker.observe(synthetic_sample(0)).unwrap();
         assert_eq!(
-            first.albedo_temperature_sensitivity_per_k,
+            first.albedo_temperature_trajectory_secant_per_k,
             QuantityEstimate::InsufficientHistory {
                 required: 2,
                 actual: 1,
             }
         );
         assert_eq!(
-            first.sensitivity_rate_per_k_per_s,
+            first.trajectory_secant_rate_per_k_per_s,
             QuantityEstimate::InsufficientHistory {
                 required: 3,
                 actual: 1,
@@ -284,9 +285,9 @@ mod tests {
         );
 
         let second = tracker.observe(synthetic_sample(1)).unwrap();
-        assert!((second.albedo_temperature_sensitivity_per_k.value().unwrap() + 0.02).abs() < 1.0e-12);
+        assert!((second.albedo_temperature_trajectory_secant_per_k.value().unwrap() + 0.02).abs() < 1.0e-12);
         assert_eq!(
-            second.sensitivity_rate_per_k_per_s,
+            second.trajectory_secant_rate_per_k_per_s,
             QuantityEstimate::InsufficientHistory {
                 required: 3,
                 actual: 2,
@@ -294,7 +295,7 @@ mod tests {
         );
 
         let third = tracker.observe(synthetic_sample(2)).unwrap();
-        assert!(third.sensitivity_rate_per_k_per_s.value().unwrap().abs() < 1.0e-18);
+        assert!(third.trajectory_secant_rate_per_k_per_s.value().unwrap().abs() < 1.0e-18);
     }
 
     #[test]
@@ -322,7 +323,7 @@ mod tests {
             })
             .unwrap();
 
-        let rate = diagnostics.sensitivity_rate_per_k_per_s.value().unwrap();
+        let rate = diagnostics.trajectory_secant_rate_per_k_per_s.value().unwrap();
         // Slopes -0.02 and -0.03 live at t=5 s and t=25 s.
         assert!((rate + 0.0005).abs() < 1.0e-15);
     }
@@ -333,11 +334,11 @@ mod tests {
         for index in 0..20 {
             tracker.observe(synthetic_sample(index)).unwrap();
         }
-        assert_eq!(tracker.diagnostics().retained_sample_count, SENSITIVITY_RATE_HISTORY);
+        assert_eq!(tracker.diagnostics().retained_sample_count, SECANT_RATE_HISTORY);
     }
 
     #[test]
-    fn undefined_temperature_derivative_remains_degenerate() {
+    fn undefined_temperature_secant_remains_degenerate() {
         let mut tracker = AlbedoTemperatureTracker::new(policy()).unwrap();
         tracker.observe(synthetic_sample(0)).unwrap();
         tracker.observe(synthetic_sample(1)).unwrap();
@@ -346,13 +347,13 @@ mod tests {
         let diagnostics = tracker.observe(third).unwrap();
 
         assert!(matches!(
-            diagnostics.albedo_temperature_sensitivity_per_k,
+            diagnostics.albedo_temperature_trajectory_secant_per_k,
             QuantityEstimate::Degenerate {
-                reason: SensitivityDegeneracy::TemperatureIncrementBelowTolerance { .. }
+                reason: SecantDegeneracy::TemperatureIncrementBelowTolerance { .. }
             }
         ));
         assert!(matches!(
-            diagnostics.sensitivity_rate_per_k_per_s,
+            diagnostics.trajectory_secant_rate_per_k_per_s,
             QuantityEstimate::Degenerate { .. }
         ));
     }

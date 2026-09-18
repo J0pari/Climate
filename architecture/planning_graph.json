@@ -198,11 +198,12 @@
       "status": "ready",
       "priority": "P1",
       "resource_class": "R5_large_data",
-      "summary": "Build empirical feedback diagnostics only by adapting source-backed observed fields into narrow numerical primitives, with process definitions, aggregation, missingness, uncertainty, and radiative quantities remaining explicit.",
+      "summary": "Ground feedback diagnostics in explicit observations and process definitions. Trajectory/secant diagnostics remain path-dependent numerical quantities unless an experiment identifies a causal or partial feedback derivative through controlled variables, explicit radiative fields, provenance, uncertainty, and competing process explanations.",
       "depends_on": [
         "data.immutable_observational_projection"
       ],
       "completion": [
+        "Any albedo-temperature finite-difference quantity is reported as a trajectory/secant diagnostic unless the experiment design identifies the variables and controls required for a causal or partial feedback derivative.",
         "Each feedback diagnostic declares measured variables, aggregation, units, time base, uncertainty, and missing-data handling.",
         "Process-specific thresholds are either empirically sourced with domain of applicability or typed as experiment policy rather than physical truth.",
         "Benchmarks retain observational provenance and compare against simpler trend or regression diagnostics.",
