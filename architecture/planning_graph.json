@@ -620,6 +620,31 @@
         "experiments/multirepresentation-ebm-forced-ood.v1.json",
         "tests/reference/test_two_layer_forced_representation.py"
       ]
+    },
+    {
+      "id": "physics.streaming_budget_accounting",
+      "title": "Compose physical kernels through a streaming budget ledger",
+      "status": "active",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Make conservation/balance accounting a common streaming sidecar rather than kernel-specific diagnostics. Extensive quantities use one signed ledger across boundaries, resolved sources/sinks, internal and coupling exchanges, numerical corrections, solver residual effects, and roundoff; partition merges must preserve accounting semantics without materializing global state.",
+      "depends_on": [
+        "physics.authoritative_flux_recomposition"
+      ],
+      "completion": [
+        "A canonical extensive-quantity ledger exposes typed process classes, explicit sign semantics, compensated accumulation, partition merging, uncertainty bounds, and an unexplained residual without repair or hidden balancing.",
+        "Duplicate partitions and incompatible quantity/domain/time identities fail closed before accumulation.",
+        "Carrier mass, tracer mass, pressure/thermodynamic energy exchange, and at least one dissipative operator emit or adapt into the common ledger using their existing authoritative process semantics.",
+        "A coupled witness shows internal exchanges cancel for the declared mathematical reason while legitimate boundary forcing, dissipation, and numerical corrections remain separately visible.",
+        "Partitioned and unpartitioned accounting agree within declared floating-point tolerance, and the accounting path requires memory proportional to process identities plus partition metadata rather than global field size."
+      ],
+      "evidence": [
+        "src/budget_ledger.rs",
+        "docs/PHYSICAL-INVARIANTS-REALIZATION.md",
+        "src/fortran/conservative_transport.f90",
+        "src/fortran/pressure_energy_exchange.f90",
+        "src/fortran/vertical_diffusion.f90"
+      ]
     }
   ]
 }

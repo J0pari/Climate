@@ -6,23 +6,24 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **48**.
+Registered modules: **49**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 30 |
+| `canonical` | 31 |
 | `reference` | 18 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 46 |
+| `runnable` | 47 |
 
 ### Canonical and reference modules
 
 | Registry | Authority | Path | Family | Maturity | Scientific evidence eligible |
 | --- | --- | --- | --- | --- | --- |
 | `canonical` | `canonical_implementation` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_trajectory_secant_numerics` | `prototype` | no |
+| `canonical` | `canonical_implementation` | `src/budget_ledger.rs` | `streaming_extensive_budget_accounting` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/experiment_runtime.py` | `experiment_runtime` | `runnable` | no |

@@ -18,6 +18,22 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/budget_ledger.rs",
+      "family": "streaming_extensive_budget_accounting",
+      "language": "rust",
+      "maturity": "runnable",
+      "intended_role": "canonical streaming sidecar ledger for extensive physical quantities, with one signed accounting convention, typed boundary/source/sink/exchange/correction/solver channels, compensated accumulation, explicit unexplained residuals, and duplicate-safe partition merging without requiring a global climate-state materialization",
+      "known_gaps": [
+        "physical kernels must still emit correctly signed process contributions; the ledger cannot infer conservation semantics from state mutations",
+        "partition IDs prevent accidental duplicate counting but callers remain responsible for defining non-overlapping extensive partitions",
+        "Neumaier compensation improves floating-point accumulation but does not promise bitwise merge-order invariance across arbitrary distributed reduction trees",
+        "unit compatibility is declared by exact ledger identity strings rather than a dimensional-analysis type system",
+        "mass, energy, water, tracer, and coupled-reservoir integrations remain to be wired through this common ledger before system-level budget closure is realized"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/clifford.rs",
       "family": "clifford_reference",
       "language": "rust",

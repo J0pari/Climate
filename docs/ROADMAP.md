@@ -7,7 +7,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 ## Planning summary
 
-- Active: 3
+- Active: 4
 - Ready: 14
 - Blocked: 6
 - Done: 9
@@ -18,6 +18,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
 | `experimentation.climate_representation_ladder` — Build a climate-representation benchmark ladder | `active` | `P0` | `R2_toolchain_ci` | `experimentation.common_cpu_runtime` |
+| `physics.streaming_budget_accounting` — Compose physical kernels through a streaming budget ledger | `active` | `P0` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 | `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `active` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `ready` | `P0` | `R5_large_data` | `data.external_authority_audit` |

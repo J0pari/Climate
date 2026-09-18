@@ -3,6 +3,7 @@
 //! Canonical implementations live under `src/`; historical prototype source is
 //! available through Git history rather than a compatibility feature surface.
 
+pub mod budget_ledger;
 pub mod clifford;
 pub mod ebm_observation_geometry;
 pub mod albedo_temperature_sensitivity;

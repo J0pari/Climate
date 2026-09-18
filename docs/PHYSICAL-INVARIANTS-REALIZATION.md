@@ -152,6 +152,14 @@ For a closed ideal test, the legitimate right-hand-side terms collapse to zero e
 
 For a forced system, closure means the measured state change agrees with the independently accumulated terms.
 
+### Realized streaming ledger substrate
+
+`src/budget_ledger.rs` realizes the common extensive-quantity accounting substrate used by this plan. It is intentionally a sidecar rather than a climate-state container: callers supply before/after extensive totals and process contributions as they stream through local partitions. Contributions are aggregated by typed process class and stable process identity, with compensated floating-point accumulation.
+
+The ledger uses one sign convention—every recorded term is a signed contribution to `Q_after - Q_before`—and never invents a balancing process. Boundary fluxes require explicit boundary classification; physical source/sink sign errors fail closed; numerical correction and solver-residual effects have distinct channels; and the unexplained residual remains visible.
+
+Partition merge requires identical quantity/domain/time/precision identity and rejects repeated partition IDs before double counting. This is the production-facing scaling contract for accounting: state fields need not be gathered globally merely to close a budget. Integrating individual physical kernels into the ledger remains an active obligation rather than something inferred from the ledger's existence.
+
 ### Required ledger properties
 
 Each term carries:
