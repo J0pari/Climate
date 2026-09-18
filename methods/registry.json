@@ -217,6 +217,49 @@
       }
     },
     {
+      "method_id": "multirepresentation.fixed_decode_statistics.numpy_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "fixed_representation_climate_statistics_preservation",
+      "input_contracts": [
+        "stochastic_two_layer_trajectory/v1",
+        "linear_representation_maps/v1"
+      ],
+      "output_contracts": [
+        "stochastic_representation_statistics/v1"
+      ],
+      "assumptions": [
+        "candidate and baseline use the identical seeded physical trajectory",
+        "each representation is a fixture-declared linear observation map",
+        "the decoder is the fixed Moore-Penrose pseudoinverse with no learned parameters",
+        "population covariance and the declared lag covariance are scored separately"
+      ],
+      "known_limitations": [
+        "fixed linear decoding does not test learned latent-state inference or generative forecasting",
+        "statistics are evaluated on one synthetic seeded trajectory and are not observational climate statistics",
+        "surface-only failure is representation information loss under this decoder, not a theorem that scalar time series cannot recover hidden state dynamically",
+        "no aggregate score ranks representations across distinct statistical targets"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "physics.two_layer_ebm.stochastic_internal_exchange_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_stochastic_variability.py",
+          "reference/two_layer_stochastic_representation_statistics.py"
+        ]
+      }
+    },
+    {
       "method_id": "multirepresentation.concat_pca.sklearn_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",
@@ -494,6 +537,50 @@
           "reference/two_layer_energy_balance.py",
           "reference/two_layer_forcing_protocols.py",
           "reference/two_layer_parameter_identifiability.py"
+        ]
+      }
+    },
+    {
+      "method_id": "physics.two_layer_ebm.stochastic_internal_exchange_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "two_layer_seeded_internal_variability_reference",
+      "input_contracts": [
+        "two_layer_ebm_fixture/v1",
+        "stochastic_internal_exchange_fixture/v1"
+      ],
+      "output_contracts": [
+        "stochastic_two_layer_trajectory_summary/v1",
+        "two_layer_energy_budget/v1"
+      ],
+      "assumptions": [
+        "the two-layer EBM remains linear with fixed reference parameters over the run",
+        "the stochastic exchange flux is piecewise constant over each fixed interval",
+        "the exchange process is stationary AR(1) after the declared burn-in and uses one fixture-pinned NumPy generator seed",
+        "equal-and-opposite extensive exchange contributions cancel from the total storage budget",
+        "SciPy matrix exponential owns the exact finite-interval linear propagation"
+      ],
+      "known_limitations": [
+        "the AR(1) exchange process is a synthetic structural control rather than a calibrated model of ocean-atmosphere internal variability",
+        "one seeded realization is used for deterministic regression testing rather than uncertainty quantification",
+        "the model remains global-mean, linear, Gaussian-forced, and spatially unresolved",
+        "successful energy-budget cancellation does not validate the stochastic process as climate physics"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "physics.two_layer_ebm.affine_forcing_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_stochastic_variability.py"
         ]
       }
     },

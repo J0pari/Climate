@@ -18,6 +18,9 @@ OBSERVATION_DEGRADATION_EXPERIMENT = (
 PARAMETER_IDENTIFIABILITY_EXPERIMENT = (
     ROOT / "experiments" / "two-layer-ebm-parameter-identifiability.v1.json"
 )
+STOCHASTIC_STATISTICS_EXPERIMENT = (
+    ROOT / "experiments" / "multirepresentation-ebm-stochastic-statistics.v1.json"
+)
 
 
 class ExperimentRuntimeTests(unittest.TestCase):
@@ -378,6 +381,110 @@ class ExperimentRuntimeTests(unittest.TestCase):
             for filename in (
                 "baseline-forcing-protocols.json",
                 "candidate-parameter-identifiability.json",
+                "metric-results.json",
+                "run-baseline.json",
+                "run-candidate.json",
+                "outcome.json",
+            ):
+                self.assert_portable_json_tree(output / filename)
+
+    def test_stochastic_statistics_experiment_uses_same_runtime_spine(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            outcome = run_experiment(
+                experiment_path=STOCHASTIC_STATISTICS_EXPERIMENT,
+                output_dir=output,
+                repository_revision="g" * 40,
+                run_scope="stochastic-statistics-fixture-run",
+            )
+            self.assertEqual(
+                outcome["experiment_id"],
+                "multirepresentation.ebm_stochastic_statistics.v1",
+            )
+            self.assertEqual(outcome["evidence"], [])
+            self.assertEqual(len(outcome["runs"]), 2)
+            self.assertTrue(
+                all(
+                    "multirepresentation.ebm_stochastic_statistics.v1"
+                    in run["run_id"]
+                    for run in outcome["runs"]
+                )
+            )
+
+            def by_population(metric_id: str) -> dict[str, float]:
+                return {
+                    item["reference_population"]: item["value"]
+                    for item in outcome["metrics"]
+                    if item["metric"]["metric_id"] == metric_id
+                }
+
+            covariance = by_population(
+                "multirepresentation.ebm.stochastic.state_covariance_relative_frobenius_error"
+            )
+            lag = by_population(
+                "multirepresentation.ebm.stochastic.lag_covariance_relative_frobenius_error"
+            )
+            deep_variance = by_population(
+                "multirepresentation.ebm.stochastic.deep_variance_relative_error"
+            )
+            ranks = by_population(
+                "multirepresentation.ebm.stochastic.structural_observation_rank"
+            )
+            self.assertLess(covariance["temperature_state"], 1e-12)
+            self.assertLess(lag["temperature_state"], 1e-12)
+            self.assertGreater(covariance["surface_temperature_scalar"], 0.1)
+            self.assertGreater(lag["surface_temperature_scalar"], 0.1)
+            self.assertAlmostEqual(
+                deep_variance["surface_temperature_scalar"], 1.0, places=12
+            )
+            self.assertEqual(ranks["temperature_state"], 2)
+            self.assertEqual(ranks["surface_temperature_scalar"], 1)
+            self.assertEqual(ranks["redundant_surface_pair"], 1)
+            self.assertAlmostEqual(
+                covariance["redundant_surface_pair"],
+                covariance["surface_temperature_scalar"],
+                places=12,
+            )
+            self.assertAlmostEqual(
+                lag["redundant_surface_pair"],
+                lag["surface_temperature_scalar"],
+                places=12,
+            )
+
+            metric_values = {
+                item["metric"]["metric_id"]: item["value"]
+                for item in outcome["metrics"]
+                if "reference_population" not in item
+            }
+            self.assertLess(
+                metric_values[
+                    "physics.two_layer_ebm.stochastic.max_abs_total_budget_residual_w_m2"
+                ],
+                1e-12,
+            )
+            self.assertLess(
+                metric_values[
+                    "physics.two_layer_ebm.stochastic.max_abs_direct_internal_storage_w_m2"
+                ],
+                1e-14,
+            )
+
+            baseline, candidate = outcome["runs"]
+            self.assertEqual(len(baseline["resolved_dataset_digests"]), 2)
+            self.assertEqual(len(candidate["resolved_dataset_digests"]), 2)
+            self.assertEqual(
+                baseline["execution"]["resolved"]["method_id"],
+                "physics.two_layer_ebm.stochastic_internal_exchange_v1",
+            )
+            self.assertEqual(
+                candidate["execution"]["resolved"]["method_id"],
+                "multirepresentation.fixed_decode_statistics.numpy_v1",
+            )
+
+            self.assert_artifact_digests(outcome, output)
+            for filename in (
+                "baseline-stochastic-variability.json",
+                "candidate-stochastic-statistics.json",
                 "metric-results.json",
                 "run-baseline.json",
                 "run-candidate.json",

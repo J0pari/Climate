@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "fixture_id": "physics.two-layer-ebm-stochastic-internal-variability.v1",
+  "description": "Seeded stochastic internal-variability control for the two-layer EBM. A piecewise-constant AR(1) heat-exchange perturbation is applied equal-and-opposite to the surface and deep reservoirs so it redistributes heat without directly sourcing or sinking total column heat.",
+  "dt_years": 0.5,
+  "burn_in_steps": 512,
+  "sample_steps": 4096,
+  "external_forcing_w_m2": 0.0,
+  "internal_exchange_ar1_rho": 0.85,
+  "internal_exchange_stationary_std_w_m2": 0.4,
+  "seed": 90217,
+  "pseudoinverse_rcond": 1e-12,
+  "lag_steps": 1,
+  "representations": [
+    {
+      "representation_id": "temperature_state",
+      "observation_matrix": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "representation_id": "surface_temperature_scalar",
+      "observation_matrix": [
+        [
+          1.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "representation_id": "redundant_surface_pair",
+      "observation_matrix": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ]
+    }
+  ],
+  "stochastic_policy": "At each fixed interval, update the exchange flux by xi_next = rho*xi + sigma*sqrt(1-rho^2)*epsilon with epsilon ~ N(0,1), then hold xi_next constant over the interval. The same signed flux enters the surface storage equation positively and the deep storage equation negatively.",
+  "statistics_policy": "After the fixed burn-in, compute state mean, zero-lag covariance, and one-step lag covariance using population normalization. Representation diagnostics use only fixture-declared linear observation maps and their fixed Moore-Penrose pseudoinverses; no statistical model is fit.",
+  "interpretation_boundary": "The AR(1) exchange process is a synthetic internal-variability control, not a calibrated ocean-atmosphere noise model. Statistics-preservation results apply only to this declared process and representation family."
+}

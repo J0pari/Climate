@@ -1,0 +1,192 @@
+{
+  "experiment_id": "multirepresentation.ebm_stochastic_statistics.v1",
+  "semantic_version": "0.1.0",
+  "question": "Which fixed representations preserve the declared long-run state statistics of a seeded two-layer EBM with synthetic internal stochastic heat exchange, when the physical stochastic process and decoder policy are fixed in advance?",
+  "hypothesis": "The full two-temperature state preserves mean, zero-lag covariance, lag covariance, and both reservoir variances to floating-point precision. A surface-temperature scalar preserves surface variance but loses deep-reservoir variance and cross-reservoir covariance/lag structure. Duplicating the exact same surface coordinate increases observed dimension without improving any decoded climate statistic.",
+  "candidate_methods": [
+    "multirepresentation.fixed_decode_statistics.numpy_v1"
+  ],
+  "baseline_methods": [
+    "physics.two_layer_ebm.stochastic_internal_exchange_v1"
+  ],
+  "datasets": [
+    {
+      "id": "physics.two_layer_ebm.geoffroy_mean.v1",
+      "digest": "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9",
+      "source_family": "literature_parameterized_two_layer_energy_balance_reference",
+      "source_version": "1",
+      "variables": [
+        "surface_temperature_anomaly_k",
+        "deep_temperature_anomaly_k"
+      ],
+      "spatial_domain": "global mean two-reservoir climate control",
+      "grid": "not spatially resolved",
+      "units_metadata": {
+        "temperature": "K anomaly"
+      },
+      "quality_control_policy": "physical parameters must be finite and positive; values remain the literature-fixed reference fixture",
+      "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.stochastic_internal_variability.v1",
+      "digest": "sha256:2e90778c71b7edebc9b4518ccd83fb6b18e471caa255e66bebc475cf47101db7",
+      "source_family": "synthetic_seeded_internal_exchange_variability_fixture",
+      "source_version": "1",
+      "variables": [
+        "internal_exchange_w_m2",
+        "temperature_state",
+        "surface_temperature_scalar",
+        "redundant_surface_pair"
+      ],
+      "time_domain": "fixed burn-in followed by a seeded stationary-analysis trajectory",
+      "temporal_resolution": "0.5 year",
+      "units_metadata": {
+        "temperature": "K anomaly",
+        "internal_exchange": "W m^-2"
+      },
+      "quality_control_policy": "AR(1) coefficient, stationary exchange scale, seed, timestep, burn-in, retained sample count, lag, representation matrices, and pseudoinverse policy are immutable experiment inputs",
+      "citation": "fixtures/physics/two-layer-ebm-stochastic-internal-variability-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.state_covariance_relative_frobenius_error",
+      "semantic_version": "0.1.0",
+      "units": "relative matrix error",
+      "direction": "descriptive",
+      "aggregation_domain": "reported separately for each declared fixed representation after reconstruction with the fixture-pinned pseudoinverse",
+      "missing_data_policy": "every representation requires the complete retained stochastic trajectory",
+      "uncertainty_method": "single deterministic seeded stochastic-control realization"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.lag_covariance_relative_frobenius_error",
+      "semantic_version": "0.1.0",
+      "units": "relative matrix error",
+      "direction": "descriptive",
+      "aggregation_domain": "reported separately for each representation for the fixture-declared lag covariance",
+      "missing_data_policy": "every representation requires all retained samples and the declared lag",
+      "uncertainty_method": "single deterministic seeded stochastic-control realization"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.deep_variance_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "descriptive",
+      "aggregation_domain": "reported separately for each representation for reconstructed deep-reservoir variance",
+      "missing_data_policy": "reference deep variance must be positive and every representation must execute",
+      "uncertainty_method": "single deterministic seeded stochastic-control realization"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.surface_variance_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "descriptive",
+      "aggregation_domain": "reported separately for each representation for reconstructed surface-temperature variance",
+      "missing_data_policy": "reference surface variance must be positive and every representation must execute"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.structural_observation_rank",
+      "semantic_version": "0.1.0",
+      "units": "rank",
+      "direction": "descriptive",
+      "aggregation_domain": "rank of each fixture-declared representation observation matrix",
+      "missing_data_policy": "every representation matrix is required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.full_state_covariance_error",
+      "semantic_version": "0.1.0",
+      "units": "relative matrix error",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "full-state reconstructed zero-lag covariance relative to the physical trajectory covariance",
+      "missing_data_policy": "full-state representation is required",
+      "uncertainty_method": "exact representation identity control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.full_state_lag_covariance_error",
+      "semantic_version": "0.1.0",
+      "units": "relative matrix error",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "full-state reconstructed lag covariance relative to the physical trajectory lag covariance",
+      "missing_data_policy": "full-state representation is required",
+      "uncertainty_method": "exact representation identity control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.redundant_vs_surface_covariance_error_delta",
+      "semantic_version": "0.1.0",
+      "units": "relative-error difference",
+      "direction": "target",
+      "target": 0,
+      "aggregation_domain": "redundant surface-pair covariance error minus single surface-scalar covariance error",
+      "missing_data_policy": "both surface representations are required",
+      "uncertainty_method": "exact redundancy negative control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.stochastic.redundant_vs_surface_lag_covariance_error_delta",
+      "semantic_version": "0.1.0",
+      "units": "relative-error difference",
+      "direction": "target",
+      "target": 0,
+      "aggregation_domain": "redundant surface-pair lag-covariance error minus single surface-scalar lag-covariance error",
+      "missing_data_policy": "both surface representations are required",
+      "uncertainty_method": "exact redundancy negative control"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.stochastic.max_abs_total_budget_residual_w_m2",
+      "semantic_version": "0.1.0",
+      "units": "W m^-2",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "maximum absolute instantaneous total-column budget residual over retained stochastic states",
+      "missing_data_policy": "all retained physical states are required",
+      "uncertainty_method": "deterministic seeded structural control"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.stochastic.max_abs_direct_internal_storage_w_m2",
+      "semantic_version": "0.1.0",
+      "units": "W m^-2",
+      "direction": "lower",
+      "target": 1e-14,
+      "aggregation_domain": "maximum absolute direct total-storage contribution of the equal-and-opposite stochastic internal exchange",
+      "missing_data_policy": "all retained exchange samples are required",
+      "uncertainty_method": "exact internal-exchange cancellation control"
+    }
+  ],
+  "negative_controls": [
+    "the stochastic exchange flux enters the surface and deep storage equations with exactly opposite extensive contributions and is not treated as external radiative forcing",
+    "the physical stochastic trajectory is generated from one fixture-pinned seed and candidate/baseline execution must agree on its digest",
+    "the surface scalar is allowed to lose deep-reservoir and cross-reservoir statistics; no learned hidden-state reconstruction is introduced",
+    "the redundant surface pair duplicates one identical surface coordinate and must remain structural rank one",
+    "mean, zero-lag covariance, lag covariance, surface variance, and deep variance are reported separately; no aggregate climate-statistics score is produced"
+  ],
+  "falsifiers": [
+    "the stochastic internal exchange directly sources or sinks total column storage",
+    "candidate and baseline executions disagree on the physical trajectory digest",
+    "the identity full-state representation fails to preserve zero-lag or lag covariance to floating-point tolerance",
+    "duplicating the surface coordinate improves decoded covariance or lag-covariance statistics materially",
+    "the synthetic AR(1) variability is reported as a calibrated model of observed internal climate variability"
+  ],
+  "split_policy": "No model or decoder is fit. A fixed burn-in is discarded and the following seeded trajectory is used only for deterministic statistics-preservation diagnostics.",
+  "preprocessing": "Apply only the fixture-declared linear observation matrices and fixed Moore-Penrose pseudoinverses. Statistics use population-normalized centered covariance and the fixture-declared lag.",
+  "seeds": [
+    90217
+  ],
+  "stopping_rule": "Report every declared statistic for every representation. Require exact internal-exchange budget cancellation, trajectory identity across baseline/candidate execution, full-state preservation, and redundancy equivalence without converting the diagnostics into a single score.",
+  "multiple_comparison_policy": "All representation matrices, stochastic-process parameters, seed, burn-in, retained sample count, and lag are fixed by this experiment version.",
+  "expected_artifact_types": [
+    "stochastic_two_layer_trajectory_summary/v1",
+    "stochastic_representation_statistics/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 1,
+    "memory_bytes": 536870912,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 120
+  }
+}

@@ -239,7 +239,7 @@
         "the observation-noise magnitude and linear maps are synthetic structural controls rather than calibrated instrument, reanalysis, or retrieval-error models",
         "instantaneous fixed-pseudoinverse reconstruction deliberately does not exploit known dynamics to infer an unobserved state component",
         "the exactly duplicated noisy surface channel tests coordinate redundancy, not the benefit of independent repeated sensors",
-        "stochastic internal variability and regime-dependent feedback remain separate immutable benchmark rungs"
+        "regime-dependent feedback remains a separate immutable benchmark rung"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -301,6 +301,36 @@
         "redundant concatenated views are intentionally tested and can be extremely ill-conditioned even when they preserve the exact dynamics algebraically",
         "failure of a one-dimensional unaugmented DMD representation to resolve both modes is a Markov-closure/mode-recovery result, not a Kalman observability result; known dynamics or delay embeddings can make scalar outputs observable",
         "success does not establish that higher-dimensional or nonlinear climate representations preserve dynamical closure"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/two_layer_stochastic_representation_statistics.py",
+      "family": "reference_two_layer_stochastic_representation_statistics",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "fixed linear-representation climate-statistics preservation benchmark over the seeded two-layer stochastic internal-variability control, scoring mean-state error, zero-lag covariance, lag covariance, reservoir variances, and exact redundant-coordinate controls through fixture-pinned Moore-Penrose decoders without fitting a statistical or hidden-state model",
+      "known_gaps": [
+        "statistics are measured on one synthetic seeded trajectory rather than observational or reanalysis climate statistics",
+        "fixed linear pseudoinverse decoding does not test learned state inference, delay embedding, nonlinear representation learning, or generative forecasting",
+        "surface-only information loss under this decoder is not a theorem that scalar time series cannot recover hidden state dynamically",
+        "regime-dependent feedback and nonlinear stochastic climate statistics remain separate benchmark work"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/two_layer_stochastic_variability.py",
+      "family": "reference_two_layer_stochastic_internal_variability",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "seeded synthetic internal-variability reference for the linear two-layer EBM, applying a piecewise-constant AR(1) equal-and-opposite heat-exchange flux with exact matrix-exponential interval propagation, reproducible trajectory identity, and explicit total-storage budget cancellation diagnostics",
+      "known_gaps": [
+        "the AR(1) exchange process is a synthetic structural control rather than a calibrated ocean-atmosphere variability model",
+        "one pinned realization supports deterministic regression and representation diagnostics but not uncertainty quantification",
+        "the reference remains global-mean, linear, Gaussian-forced, and spatially unresolved",
+        "correct internal budget cancellation does not validate the stochastic process as Earth-system physics"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
