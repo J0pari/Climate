@@ -15,7 +15,6 @@ ground_truth record.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import importlib.metadata
 import json
 import math
@@ -44,8 +43,10 @@ from reference.multirepresentation_common import (
 from reference.multirepresentation_worlds import (
     DEFAULT_FIXTURE as DEFAULT_WORLD_FIXTURE,
     StructuralWorld,
+    bind_world_fixture_authority,
     generate_worlds,
     load_fixture as load_world_fixture,
+    world_set_digest,
 )
 
 
@@ -59,12 +60,6 @@ SUPPORTED_DECISIONS = {
     "shared_coordinate_supported",
     "abstain_no_cross_view_evidence",
 }
-
-
-def _git_blob_sha(path: Path) -> str:
-    data = path.read_bytes()
-    header = f"blob {len(data)}\0".encode("utf-8")
-    return hashlib.sha1(header + data).hexdigest()
 
 
 def load_evaluation_fixture(
@@ -119,22 +114,6 @@ def load_evaluation_fixture(
             "an evaluation fixture version"
         )
     return payload
-
-
-def _bind_world_authority(
-    world_fixture_path: Path,
-    world_fixture: dict[str, Any],
-    evaluation_fixture: dict[str, Any],
-) -> None:
-    if world_fixture.get("fixture_id") != evaluation_fixture.get("world_fixture_id"):
-        raise ValueError("evaluation policy resolved a different world fixture identity")
-    observed_blob = _git_blob_sha(world_fixture_path)
-    expected_blob = evaluation_fixture.get("world_fixture_git_blob_sha")
-    if observed_blob != expected_blob:
-        raise ValueError(
-            "authoritative structural-world fixture bytes changed without "
-            "a new evaluation-policy binding"
-        )
 
 
 def _standardize(view: np.ndarray) -> np.ndarray:
@@ -431,27 +410,16 @@ def _evaluate_coordinate_baselines(
     return results
 
 
-def _sample_digest(worlds: dict[str, StructuralWorld]) -> str:
-    digest = hashlib.sha256()
-    for world_id in sorted(worlds):
-        world = worlds[world_id]
-        digest.update(world_id.encode("utf-8"))
-        digest.update(b"\0")
-        digest.update(np.asarray(world.view_a, dtype="<f8").tobytes(order="C"))
-        digest.update(np.asarray(world.view_b, dtype="<f8").tobytes(order="C"))
-    return "sha256:" + digest.hexdigest()
-
-
 def evaluate_structural_worlds(
     world_fixture: dict[str, Any],
     evaluation_fixture: dict[str, Any],
     *,
     world_fixture_path: Path = DEFAULT_WORLD_FIXTURE,
 ) -> dict[str, Any]:
-    _bind_world_authority(
-        world_fixture_path,
+    bind_world_fixture_authority(
         world_fixture,
         evaluation_fixture,
+        world_fixture_path=world_fixture_path,
     )
     discovery = generate_worlds(world_fixture)
     confirmation = generate_worlds(
@@ -527,8 +495,8 @@ def evaluate_structural_worlds(
         "confirmation_seed_offset": int(
             evaluation_fixture["confirmation_seed_offset"]
         ),
-        "discovery_sample_digest": _sample_digest(discovery),
-        "confirmation_sample_digest": _sample_digest(confirmation),
+        "discovery_sample_digest": world_set_digest(discovery),
+        "confirmation_sample_digest": world_set_digest(confirmation),
         "selector_summary": {
             "all_discovery_decisions_calibrated": all(discovery_calibrated),
             "all_confirmation_decisions_calibrated": all(confirmation_calibrated),

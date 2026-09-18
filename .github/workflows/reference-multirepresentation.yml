@@ -9,6 +9,7 @@ on:
       - 'tests/reference/test_multirepresentation_common.py'
       - 'tests/reference/test_multirepresentation_structure_evaluation.py'
       - 'tests/reference/test_multirepresentation_worlds.py'
+      - 'tests/reference/test_multirepresentation_world_dynamics.py'
       - 'fixtures/multirepresentation/**'
       - 'requirements/reference-multirepresentation.txt'
       - '.github/workflows/reference-multirepresentation.yml'
@@ -22,6 +23,7 @@ on:
       - 'tests/reference/test_multirepresentation_common.py'
       - 'tests/reference/test_multirepresentation_structure_evaluation.py'
       - 'tests/reference/test_multirepresentation_worlds.py'
+      - 'tests/reference/test_multirepresentation_world_dynamics.py'
       - 'fixtures/multirepresentation/**'
       - 'requirements/reference-multirepresentation.txt'
       - '.github/workflows/reference-multirepresentation.yml'
@@ -48,6 +50,7 @@ jobs:
         run: |
           python -m unittest tests.reference.test_multirepresentation_common -v
           python -m unittest tests.reference.test_multirepresentation_worlds -v
+          python -m unittest tests.reference.test_multirepresentation_world_dynamics -v
           python -m unittest tests.reference.test_multirepresentation_structure_evaluation -v
       - name: Materialize structural-world ground truth
         run: python reference/multirepresentation_worlds.py | tee multirepresentation-worlds.json

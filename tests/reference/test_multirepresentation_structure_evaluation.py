@@ -6,12 +6,15 @@ import unittest
 import numpy as np
 
 from reference.multirepresentation_structure_evaluation import (
-    DEFAULT_WORLD_FIXTURE,
-    _git_blob_sha,
     evaluate_structural_worlds,
     load_evaluation_fixture,
 )
-from reference.multirepresentation_worlds import generate_worlds, load_fixture
+from reference.multirepresentation_worlds import (
+    DEFAULT_FIXTURE,
+    generate_worlds,
+    git_blob_sha,
+    load_fixture,
+)
 
 
 class MultirepresentationStructureEvaluationTests(unittest.TestCase):
@@ -36,7 +39,7 @@ class MultirepresentationStructureEvaluationTests(unittest.TestCase):
         )
         self.assertEqual(
             self.evaluation_fixture["world_fixture_git_blob_sha"],
-            _git_blob_sha(DEFAULT_WORLD_FIXTURE),
+            git_blob_sha(DEFAULT_FIXTURE),
         )
 
     def test_world_authority_owns_shared_evaluation_target_semantics(self) -> None:

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "fixture_id": "multirepresentation.structural-world-dynamics.v1",
+  "description": "Role-based temporal sampling policy for the authoritative structural-worlds-v1 relationships. It introduces time ordering and held-out trajectory seeds without restating any world-specific relationship, target, observation map, or identifiability semantics.",
+  "world_fixture_id": "multirepresentation.structural-worlds.v1",
+  "world_fixture_git_blob_sha": "55c6dd11be982c618ee032f4cef9291794d01fd8",
+  "trajectory_steps": 1024,
+  "burn_in_steps": 256,
+  "dt": 1.0,
+  "discovery_seed_offset": 300000,
+  "confirmation_seed_offset": 400000,
+  "role_processes": {
+    "shared": {
+      "family": "stationary_gaussian_ar1",
+      "rho": 0.97,
+      "stationary_std": 0.45
+    },
+    "private": {
+      "family": "stationary_gaussian_ar1",
+      "rho": 0.6,
+      "stationary_std": 0.5
+    },
+    "nuisance": {
+      "family": "stationary_gaussian_ar1",
+      "rho": 0.15,
+      "stationary_std": 4.0
+    }
+  },
+  "interpretation_boundary": "Temporal processes are synthetic controls attached to latent roles by the existing world authority. They do not redefine static world truth, imply causal climate dynamics, or turn a static non-identifiability declaration into a dynamical identifiability claim."
+}
