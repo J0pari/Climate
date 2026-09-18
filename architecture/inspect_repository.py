@@ -74,6 +74,8 @@ def inspect_required_architecture_files(root: Path) -> list[Finding]:
         "docs/COMMONS-INTEGRATION.md",
         "docs/ROADMAP.md",
         "contracts/climate.cue",
+        "contracts/gpu-scheduler-pin.json",
+        "architecture/commons_interface.json",
     )
     findings: list[Finding] = []
     for rel in required:

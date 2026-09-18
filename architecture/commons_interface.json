@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "interface_id": "climate.commons.v1",
+  "repository_id": "J0pari/Climate",
+  "supported_control_level": "observe",
+  "scheduler_contract": {
+    "schema": "gpu-scheduler/v1",
+    "pin_path": "contracts/gpu-scheduler-pin.json",
+    "owner": "commons"
+  },
+  "entrypoints": {
+    "inspect": [
+      "python",
+      "architecture/inspect_repository.py",
+      "--json"
+    ],
+    "run_experiment": [
+      "python",
+      "src/experiment_runtime.py",
+      "--experiment",
+      "<experiment-spec>",
+      "--output-dir",
+      "<output-dir>"
+    ]
+  },
+  "produces": [
+    "ExperimentOutcome",
+    "RunManifest",
+    "MetricResult",
+    "EvidenceRecord",
+    "ArtifactRef",
+    "BudgetReport"
+  ],
+  "accepts": [
+    "Commons run/trace/correlation/causation identity",
+    "Commons scheduler contract verification",
+    "content-addressed Training artifact identity for explicit Climate evaluation"
+  ],
+  "scientific_authority": {
+    "contract": "contracts/climate.cue",
+    "experiments": "experiments/",
+    "methods": "methods/",
+    "claims": "claims/",
+    "evidence": "evidence/"
+  },
+  "limitations": [
+    "gpu-scheduler/v1 is GPU-specific and cannot honestly represent the current CPU experiment runtime",
+    "contract compatibility is not R4 integrated execution evidence",
+    "Commons does not own Climate scientific interpretation or evidence promotion"
+  ]
+}

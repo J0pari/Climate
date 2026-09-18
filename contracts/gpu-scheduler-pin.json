@@ -1,0 +1,11 @@
+{
+  "schema": "gpu-scheduler/v1",
+  "fingerprint": "5d602cc2574cc3c26c8153d5bf4cfa09066f6ec902fb03aef0747792a509c690",
+  "adoptedAt": "2026-09-17",
+  "capabilities": [
+    "contract",
+    "status",
+    "inspect"
+  ],
+  "owner": "commons"
+}

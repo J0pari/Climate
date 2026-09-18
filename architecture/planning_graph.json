@@ -315,11 +315,18 @@
       "summary": "Run one sandboxed Climate experiment through Commons while preserving run, trace, causation, build, artifact, and evidence identity without creating a second scheduler in Climate.",
       "depends_on": [],
       "blockers": [
-        "Requires an available integrated Commons execution environment and authorization boundary."
+        "Commons now owns gpu-scheduler/v1 and Climate pins that ABI, but the v1 scheduler is GPU-specific while the current common Climate experiment runtime is CPU-only; substituting a nominal GPU claim is forbidden.",
+        "A real R4 witness still requires the machine-local Commons scheduler state cutover/daemon and an execution contract able to represent the experiment's actual resource class."
       ],
       "completion": [
         "One real read-only or sandboxed execution preserves Climate scientific semantics and end-to-end lineage.",
         "Climate owns only local numerical scheduling and checkpoint semantics; global resource arbitration remains external."
+      ],
+      "evidence": [
+        "contracts/gpu-scheduler-pin.json",
+        "architecture/commons_interface.json",
+        "src/commons_control.py",
+        "docs/COMMONS-INTEGRATION.md"
       ]
     },
     {

@@ -17,7 +17,7 @@ The purpose of this interface is to let Commons coordinate Climate without ownin
 - benchmark definitions;
 - domain-specific artifact formats.
 
-### Commons owns or may own
+### Commons owns at the shared boundary
 
 - repository identity and access policy;
 - cross-repository `RunId` and correlation/causation identifiers;
@@ -30,7 +30,7 @@ The purpose of this interface is to let Commons coordinate Climate without ownin
 - cross-repository evidence taxonomy;
 - workspace-level experiment DAGs and promotion decisions where Climate is one evaluator/producer among others.
 
-Neither side should duplicate the other's source of truth.
+Neither side should duplicate the other's source of truth. Climate pins the Commons-owned `gpu-scheduler/v1` ABI in `contracts/gpu-scheduler-pin.json`; `architecture/commons_interface.json` is Climate's machine-readable declaration of its side of this boundary.
 
 ## 2. Control levels
 
@@ -211,6 +211,8 @@ dataset locality requirement
 
 Commons may translate these declarations into concrete leases. Climate should not assume a particular machine, GPU id, or cluster topology in its scientific spec.
 
+The currently pinned `gpu-scheduler/v1` contract is specifically a GPU arbiter. It must not be used to encode a CPU-only Climate experiment as a nominal GPU job merely to obtain orchestration. `src/commons_control.py` therefore exposes contract/status/inspection only. A resource-generic Commons execution contract is required before the current CPU experiment runtime can cross Gate B/C without semantic substitution.
+
 ## 8. Sandboxing
 
 Climate's multi-language code and data clients can execute arbitrary code and access remote services. Read execution therefore needs explicit capabilities.
@@ -231,7 +233,7 @@ Data-acquisition gates may need network/secrets and should be separated from pur
 
 ## 9. Compatibility and contract fingerprints
 
-Commons should fingerprint Climate's external contracts rather than internal source layout.
+Commons should fingerprint Climate's external contracts rather than internal source layout. Climate reciprocally verifies the Commons scheduler schema, owner, and ABI fingerprint before trusting its read-only control surface.
 
 Changes requiring deliberate compatibility review include:
 

@@ -1,0 +1,7 @@
+{
+  "schema": "gpu-scheduler/v1",
+  "fingerprint": "not-a-fingerprint",
+  "adoptedAt": "",
+  "capabilities": [],
+  "owner": "training-architecture"
+}

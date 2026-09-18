@@ -421,3 +421,37 @@ package climate
 	supersedes?:       [...#Id]
 	decision_policy?:  string
 }
+
+#CommonsSchedulerPin: {
+	schema:      "gpu-scheduler/v1"
+	fingerprint: #Fingerprint
+	adoptedAt:   string & !=""
+	capabilities: [...string & !=""]
+	owner:       "commons"
+}
+
+#ClimateCommonsInterface: {
+	schema_version: 1
+	interface_id:   "climate.commons.v1"
+	repository_id:  "J0pari/Climate"
+	supported_control_level: "observe" | "read" | "write"
+	scheduler_contract: {
+		schema:   "gpu-scheduler/v1"
+		pin_path: "contracts/gpu-scheduler-pin.json"
+		owner:    "commons"
+	}
+	entrypoints: {
+		inspect:        [...string & !=""] & [_, ...]
+		run_experiment: [...string & !=""] & [_, ...]
+	}
+	produces: [...string & !=""] & [_, ...]
+	accepts:  [...string & !=""] & [_, ...]
+	scientific_authority: {
+		contract:    string & !=""
+		experiments: string & !=""
+		methods:     string & !=""
+		claims:      string & !=""
+		evidence:    string & !=""
+	}
+	limitations: [...string & !=""]
+}
