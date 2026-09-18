@@ -82,6 +82,7 @@ def _world(
 ) -> StructuralWorld:
     rng = np.random.default_rng(int(spec["seed"]))
     world_id = str(spec["world_id"])
+    shared_evaluation_target_name: str | None = None
     ground_truth = {
         "relationship": spec["relationship"],
         "static_identifiability": spec["static_identifiability"],
@@ -94,6 +95,7 @@ def _world(
         view_a = np.column_stack((shared, shared**2))
         view_b = np.column_stack((np.sin(shared), np.cos(shared)))
         targets = {"shared": shared}
+        shared_evaluation_target_name = "shared"
 
     elif world_id == "product":
         private_a = _latent(rng, count, bounds)
@@ -111,6 +113,7 @@ def _world(
         view_a = np.column_stack((base, fiber_a))
         view_b = np.column_stack((np.sin(base), np.cos(base), fiber_b))
         targets = {"shared_base": base, "fiber_a": fiber_a, "fiber_b": fiber_b}
+        shared_evaluation_target_name = "shared_base"
 
     elif world_id == "quotient_noninjective":
         signed = _latent(rng, count, bounds)
@@ -126,6 +129,7 @@ def _world(
             "private_b": private_b,
         }
         ground_truth["lost_in_view_b"] = "sign_of_signed_coordinate"
+        shared_evaluation_target_name = "shared_quotient"
 
     elif world_id == "stratified_regime":
         shared = _latent(rng, count, bounds)
@@ -144,6 +148,7 @@ def _world(
         }
         ground_truth["stratum_count"] = 2
         ground_truth["boundary"] = boundary
+        shared_evaluation_target_name = "shared"
 
     elif world_id == "nuisance_dominated":
         shared = _latent(rng, count, bounds)
@@ -159,6 +164,7 @@ def _world(
             "nuisance_b_1": nuisance_b[:, 1],
         }
         ground_truth["nuisance_scale"] = nuisance_scale
+        shared_evaluation_target_name = "shared"
 
     elif world_id == "independent_null":
         private_a = rng.normal(0.0, 1.0, size=(count, 2))
@@ -177,6 +183,8 @@ def _world(
     else:
         raise ValueError(f"unknown structural world {world_id!r}")
 
+    ground_truth["shared_evaluation_target_name"] = shared_evaluation_target_name
+
     return StructuralWorld(
         world_id=world_id,
         relationship=str(spec["relationship"]),
@@ -188,7 +196,11 @@ def _world(
     )
 
 
-def generate_worlds(fixture: dict[str, Any]) -> dict[str, StructuralWorld]:
+def generate_worlds(
+    fixture: dict[str, Any], *, seed_offset: int = 0
+) -> dict[str, StructuralWorld]:
+    if not isinstance(seed_offset, int) or seed_offset < 0:
+        raise ValueError("seed_offset must be a nonnegative integer")
     count = int(fixture["sample_count"])
     policy = fixture["generation_policy"]
     minimum = int(policy["minimum_samples"])
@@ -216,8 +228,10 @@ def generate_worlds(fixture: dict[str, Any]) -> dict[str, StructuralWorld]:
     for spec in specs:
         if not isinstance(spec, dict):
             raise ValueError("world specification must be an object")
+        resolved_spec = dict(spec)
+        resolved_spec["seed"] = int(spec["seed"]) + seed_offset
         world = _world(
-            spec,
+            resolved_spec,
             count=count,
             bounds=bounds,
             nuisance_scale=nuisance_scale,

@@ -367,7 +367,7 @@
       "status": "active",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Turn multirepresentation structure into a falsifiable benchmark program: deterministic ground-truth worlds cover common-manifold, product, fibered, quotient/noninjective, stratified, nuisance-dominated, and null relationships, including cases that static paired data cannot identify. Candidate methods must recover supported structure, expose uncertainty, or abstain rather than manufacture a universal geometry.",
+      "summary": "Use the existing structural-worlds-v1 fixture and generator as the sole ground-truth authority, while a digest-bound evaluation layer derives separately seeded confirmation realizations and scores methods without restating per-world truth. The first evaluation tranche adds a conservative nonlinear dependence/permutation selector with explicit abstention and confirmation-only PCA, CCA, spectral, JSF, and factor-analysis comparisons; raw/state-space baselines and dimension/topology-selection witnesses remain open.",
       "depends_on": [],
       "completion": [
         "Synthetic systems distinguish shared, private, coupled, quotient/noninjective, stratified, nuisance-dominated, and null structure with immutable known ground truth and explicit identifiability limits.",
@@ -381,7 +381,12 @@
         "reference/multirepresentation_worlds.py",
         "tests/reference/test_multirepresentation_worlds.py",
         "reference/multirepresentation_common.py",
-        "experiments/multirepresentation-common.v1.json"
+        "experiments/multirepresentation-common.v1.json",
+        "fixtures/multirepresentation/structural-world-evaluation-v1.json",
+        "reference/multirepresentation_structure_evaluation.py",
+        "tests/reference/test_multirepresentation_structure_evaluation.py",
+        "methods/registry.json",
+        ".github/workflows/reference-multirepresentation.yml"
       ]
     },
     {

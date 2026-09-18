@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "fixture_id": "multirepresentation.structural-world-evaluation.v1",
+  "description": "Evaluation policy for the authoritative structural-worlds-v1 ground truth. This fixture owns confirmation sampling and method/test policy only; it does not restate world relationships, targets, or identifiability semantics.",
+  "world_fixture_id": "multirepresentation.structural-worlds.v1",
+  "world_fixture_git_blob_sha": "55c6dd11be982c618ee032f4cef9291794d01fd8",
+  "confirmation_seed_offset": 100000,
+  "dependence_selector": {
+    "family": "bidirectional_pairwise_knn_mutual_information_permutation",
+    "n_neighbors": 5,
+    "permutations": 255,
+    "random_state": 41321,
+    "alpha": 0.005,
+    "decision_when_rejected": "shared_coordinate_supported",
+    "decision_when_not_rejected": "abstain_no_cross_view_evidence"
+  },
+  "coordinate_baselines": {
+    "spectral": {
+      "n_neighbors": 30,
+      "random_state": 0
+    },
+    "factor_analysis": {
+      "svd_method": "lapack"
+    },
+    "jsf": {
+      "k_neighbor": 40,
+      "delta": 1.0,
+      "n_kernel_eigenvectors": 30,
+      "n_jointly_smooth_functions": 6,
+      "kernel_eigenvalue_cut_off": 1e-08,
+      "eigenvector_tolerance": 1e-10
+    }
+  },
+  "evaluation_policy": {
+    "coordinate_recovery_metric": "absolute Spearman rank correlation with the authoritative shared_evaluation_target_name when one exists",
+    "abstention_policy": "A world with no authoritative shared evaluation target expects abstention. A world with an authoritative shared evaluation target expects the dependence selector to support a shared coordinate. No per-world labels are restated here.",
+    "confirmation_policy": "Confirmation worlds use the same authoritative world semantics and sample count with each base seed increased by confirmation_seed_offset. Method settings and selector alpha are fixed before confirmation execution.",
+    "failure_policy": "A coordinate baseline failure is recorded as a method failure for that world rather than silently substituted by another algorithm."
+  }
+}

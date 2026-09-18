@@ -5,7 +5,9 @@ on:
     paths:
       - 'reference/multirepresentation_common.py'
       - 'reference/multirepresentation_worlds.py'
+      - 'reference/multirepresentation_structure_evaluation.py'
       - 'tests/reference/test_multirepresentation_common.py'
+      - 'tests/reference/test_multirepresentation_structure_evaluation.py'
       - 'tests/reference/test_multirepresentation_worlds.py'
       - 'fixtures/multirepresentation/**'
       - 'requirements/reference-multirepresentation.txt'
@@ -16,7 +18,9 @@ on:
     paths:
       - 'reference/multirepresentation_common.py'
       - 'reference/multirepresentation_worlds.py'
+      - 'reference/multirepresentation_structure_evaluation.py'
       - 'tests/reference/test_multirepresentation_common.py'
+      - 'tests/reference/test_multirepresentation_structure_evaluation.py'
       - 'tests/reference/test_multirepresentation_worlds.py'
       - 'fixtures/multirepresentation/**'
       - 'requirements/reference-multirepresentation.txt'
@@ -44,7 +48,10 @@ jobs:
         run: |
           python -m unittest tests.reference.test_multirepresentation_common -v
           python -m unittest tests.reference.test_multirepresentation_worlds -v
+          python -m unittest tests.reference.test_multirepresentation_structure_evaluation -v
       - name: Materialize structural-world ground truth
         run: python reference/multirepresentation_worlds.py | tee multirepresentation-worlds.json
       - name: Run registered reference experiment
         run: python reference/multirepresentation_common.py --json | tee multirepresentation-result.json
+      - name: Evaluate structural-world confirmation suite
+        run: python reference/multirepresentation_structure_evaluation.py --json | tee multirepresentation-structure-evaluation.json

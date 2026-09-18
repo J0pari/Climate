@@ -303,6 +303,84 @@
       }
     },
     {
+      "method_id": "multirepresentation.factor_analysis.sklearn_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "standard_latent_factor_baseline",
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1"
+      ],
+      "output_contracts": [
+        "common_coordinate/v1",
+        "multirepresentation_diagnostics/v1"
+      ],
+      "assumptions": [
+        "each observed view is standardized independently before concatenation",
+        "one latent factor is extracted with scikit-learn FactorAnalysis using the fixture-declared SVD backend",
+        "the ground-truth structural target is withheld from factor fitting"
+      ],
+      "known_limitations": [
+        "standard Gaussian linear latent-factor baseline only",
+        "one factor is evaluated and no product, fiber, quotient, or stratum semantics are inferred",
+        "a returned coordinate is not an abstention-capable structure decision"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_structure_evaluation.py"
+        ]
+      }
+    },
+    {
+      "method_id": "multirepresentation.mi_permutation_abstention.sklearn_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "nonlinear_cross_view_dependence_with_abstention",
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1"
+      ],
+      "output_contracts": [
+        "shared_structure_decision/v1",
+        "dependence_test_diagnostics/v1"
+      ],
+      "assumptions": [
+        "paired rows are the only cross-view alignment supplied to the method",
+        "cross-view dependence is summarized by the maximum bidirectional pairwise k-nearest-neighbor mutual-information estimate after independent view standardization",
+        "the null distribution is obtained only by fixture-declared row permutations of the second view",
+        "failure to reject the permutation null emits abstention rather than a geometry label",
+        "world ground truth and evaluation targets are withheld from the selector and used only for scoring"
+      ],
+      "known_limitations": [
+        "dependence supports only the existence of detectable shared statistical structure; it does not identify product, fiber, quotient, stratum, topology, or causal semantics",
+        "finite-sample permutation decisions depend on the declared sample count, estimator, permutation count, and alpha",
+        "pairwise mutual information can miss dependence that exists only jointly across multiple coordinates",
+        "abstention on a null or semantically non-identifiable world is intentionally not converted into a stronger generative claim"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 600
+      },
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_worlds.py",
+          "reference/multirepresentation_structure_evaluation.py"
+        ]
+      }
+    },
+    {
       "method_id": "multirepresentation.concat_pca.sklearn_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",

@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **60**.
+Registered modules: **61**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 35 |
-| `reference` | 25 |
+| `reference` | 26 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 58 |
+| `runnable` | 59 |
 
 ### Canonical and reference modules
 
@@ -62,6 +62,7 @@ Registered modules: **60**.
 | `reference` | `independent_reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/multirepresentation_common.py` | `reference_multirepresentation_common_manifold` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/multirepresentation_structure_evaluation.py` | `reference_multirepresentation_structure_evaluation` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/multirepresentation_worlds.py` | `reference_multirepresentation_structural_worlds` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/ncei_ghcnd.py` | `reference_ncei_ghcnd_access` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/ncei_ghcnd_projection.py` | `reference_ncei_ghcnd_cf_projection` | `runnable` | no |

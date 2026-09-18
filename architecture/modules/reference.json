@@ -63,16 +63,31 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/multirepresentation_structure_evaluation.py",
+      "family": "reference_multirepresentation_structure_evaluation",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "evaluation-only layer bound to the exact structural-worlds-v1 ground-truth fixture, deriving separately seeded confirmation realizations without restating world semantics, testing conservative nonlinear cross-view dependence with explicit abstention, and comparing existing PCA/CCA/spectral/JSF methods plus standard factor analysis on held-out confirmation worlds",
+      "known_gaps": [
+        "the current selector decides only whether detectable shared statistical structure supports a shared-coordinate hypothesis; it does not identify product, fiber, quotient, stratum, topology, or causal semantics",
+        "raw-concatenation and state-space baselines with matched downstream probes remain open completion work",
+        "dimension and topology selection are not yet benchmarked by this evaluator",
+        "the worlds are synthetic low-dimensional controls and produce no climate-data claim evidence"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/multirepresentation_worlds.py",
       "family": "reference_multirepresentation_structural_worlds",
       "language": "python",
       "maturity": "runnable",
       "intended_role": "deterministic ground-truth substrate spanning shared-manifold, product, fibered, quotient/noninjective, stratified, nuisance-dominated, and independent-null paired representations, including explicitly non-identifiable cases where downstream methods should abstain rather than force a shared geometry",
       "known_gaps": [
-        "this module generates ground-truth worlds and does not select, rank, or endorse a representation method",
+        "this module is the sole generator/ground-truth authority for the declared structural worlds; evaluation policy and method scoring are intentionally separate",
         "static paired samples cannot identify every declared generative relationship; non-identifiability is an intended benchmark outcome rather than a defect to regularize away",
         "the current suite is low-dimensional and synthetic; dynamical worlds, observational missingness, forcing shifts, and climate-data confirmation fixtures remain open",
-        "method comparison and structure-selection calibration remain separate experiment obligations"
+        "the confirmation evaluator currently tests shared-coordinate support/abstention and coordinate recovery, not full product/fiber/quotient/stratum classification"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
