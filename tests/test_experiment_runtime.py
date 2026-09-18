@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 import tempfile
 import unittest
@@ -42,6 +43,16 @@ class ExperimentRuntimeTests(unittest.TestCase):
                     "sha256:" + hashlib.sha256(data).hexdigest(),
                 )
 
+            def assert_finite_numbers(value):
+                if isinstance(value, float):
+                    self.assertTrue(math.isfinite(value))
+                elif isinstance(value, dict):
+                    for nested in value.values():
+                        assert_finite_numbers(nested)
+                elif isinstance(value, list):
+                    for nested in value:
+                        assert_finite_numbers(nested)
+
             for filename in (
                 "baseline-exact-modes.json",
                 "candidate-representation-dynamics.json",
@@ -50,10 +61,8 @@ class ExperimentRuntimeTests(unittest.TestCase):
                 "run-candidate.json",
                 "outcome.json",
             ):
-                text = (output / filename).read_text(encoding="utf-8")
-                self.assertNotIn("Infinity", text)
-                self.assertNotIn("NaN", text)
-                json.loads(text)
+                payload = json.loads((output / filename).read_text(encoding="utf-8"))
+                assert_finite_numbers(payload)
 
 
 if __name__ == "__main__":
