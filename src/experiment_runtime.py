@@ -944,6 +944,40 @@ def _run_manifest(
     return manifest
 
 
+def _finalize_two_run_outcome(
+    *,
+    output_dir: Path,
+    experiment_id: str,
+    baseline_run: Mapping[str, Any],
+    candidate_run: Mapping[str, Any],
+    artifacts: Sequence[Mapping[str, Any]],
+    metrics: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Materialize the common two-run outcome envelope.
+
+    Family adapters own scientific evaluation, artifact construction, and metric
+    semantics. This helper owns only the repository-wide receipt filenames and
+    ExperimentOutcome envelope shared by the current CPU benchmark ladder.
+    """
+    baseline = dict(baseline_run)
+    candidate = dict(candidate_run)
+    artifact_records = [dict(item) for item in artifacts]
+    metric_records = [dict(item) for item in metrics]
+    _write_json(output_dir / "run-baseline.json", baseline)
+    _write_json(output_dir / "run-candidate.json", candidate)
+
+    outcome = {
+        "schema_version": 1,
+        "experiment_id": experiment_id,
+        "runs": [baseline, candidate],
+        "artifacts": artifact_records,
+        "metrics": metric_records,
+        "evidence": [],
+    }
+    _write_json(output_dir / "outcome.json", outcome)
+    return outcome
+
+
 def _run_ebm_dynamics_adapter(
     *,
     experiment: Mapping[str, Any],
@@ -1095,19 +1129,14 @@ def _run_ebm_dynamics_adapter(
         receipt=candidate_receipt,
         artifacts=[candidate_artifact, metric_artifact],
     )
-    _write_json(output_dir / "run-baseline.json", baseline_run)
-    _write_json(output_dir / "run-candidate.json", candidate_run)
-
-    outcome = {
-        "schema_version": 1,
-        "experiment_id": EBM_DYNAMICS_EXPERIMENT,
-        "runs": [baseline_run, candidate_run],
-        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
-        "metrics": metrics,
-        "evidence": [],
-    }
-    _write_json(output_dir / "outcome.json", outcome)
-    return outcome
+    return _finalize_two_run_outcome(
+        output_dir=output_dir,
+        experiment_id=EBM_DYNAMICS_EXPERIMENT,
+        baseline_run=baseline_run,
+        candidate_run=candidate_run,
+        artifacts=[baseline_artifact, candidate_artifact, metric_artifact],
+        metrics=metrics,
+    )
 
 
 def _run_ebm_forcing_adapter(
@@ -1252,19 +1281,14 @@ def _run_ebm_forcing_adapter(
         receipt=candidate_receipt,
         artifacts=[candidate_artifact, metric_artifact],
     )
-    _write_json(output_dir / "run-baseline.json", baseline_run)
-    _write_json(output_dir / "run-candidate.json", candidate_run)
-
-    outcome = {
-        "schema_version": 1,
-        "experiment_id": EBM_FORCING_EXPERIMENT,
-        "runs": [baseline_run, candidate_run],
-        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
-        "metrics": metrics,
-        "evidence": [],
-    }
-    _write_json(output_dir / "outcome.json", outcome)
-    return outcome
+    return _finalize_two_run_outcome(
+        output_dir=output_dir,
+        experiment_id=EBM_FORCING_EXPERIMENT,
+        baseline_run=baseline_run,
+        candidate_run=candidate_run,
+        artifacts=[baseline_artifact, candidate_artifact, metric_artifact],
+        metrics=metrics,
+    )
 
 
 def _run_ebm_forced_ood_adapter(
@@ -1431,19 +1455,14 @@ def _run_ebm_forced_ood_adapter(
         receipt=candidate_receipt,
         artifacts=[candidate_artifact, metric_artifact],
     )
-    _write_json(output_dir / "run-baseline.json", baseline_run)
-    _write_json(output_dir / "run-candidate.json", candidate_run)
-
-    outcome = {
-        "schema_version": 1,
-        "experiment_id": EBM_FORCED_OOD_EXPERIMENT,
-        "runs": [baseline_run, candidate_run],
-        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
-        "metrics": metrics,
-        "evidence": [],
-    }
-    _write_json(output_dir / "outcome.json", outcome)
-    return outcome
+    return _finalize_two_run_outcome(
+        output_dir=output_dir,
+        experiment_id=EBM_FORCED_OOD_EXPERIMENT,
+        baseline_run=baseline_run,
+        candidate_run=candidate_run,
+        artifacts=[baseline_artifact, candidate_artifact, metric_artifact],
+        metrics=metrics,
+    )
 
 
 def _run_ebm_observation_degradation_adapter(
@@ -1636,19 +1655,14 @@ def _run_ebm_observation_degradation_adapter(
         receipt=candidate_receipt,
         artifacts=[candidate_artifact, metric_artifact],
     )
-    _write_json(output_dir / "run-baseline.json", baseline_run)
-    _write_json(output_dir / "run-candidate.json", candidate_run)
-
-    outcome = {
-        "schema_version": 1,
-        "experiment_id": EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
-        "runs": [baseline_run, candidate_run],
-        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
-        "metrics": metrics,
-        "evidence": [],
-    }
-    _write_json(output_dir / "outcome.json", outcome)
-    return outcome
+    return _finalize_two_run_outcome(
+        output_dir=output_dir,
+        experiment_id=EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
+        baseline_run=baseline_run,
+        candidate_run=candidate_run,
+        artifacts=[baseline_artifact, candidate_artifact, metric_artifact],
+        metrics=metrics,
+    )
 
 
 def _run_ebm_parameter_identifiability_adapter(
@@ -1828,19 +1842,14 @@ def _run_ebm_parameter_identifiability_adapter(
         receipt=candidate_receipt,
         artifacts=[candidate_artifact, metric_artifact],
     )
-    _write_json(output_dir / "run-baseline.json", baseline_run)
-    _write_json(output_dir / "run-candidate.json", candidate_run)
-
-    outcome = {
-        "schema_version": 1,
-        "experiment_id": EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
-        "runs": [baseline_run, candidate_run],
-        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
-        "metrics": metrics,
-        "evidence": [],
-    }
-    _write_json(output_dir / "outcome.json", outcome)
-    return outcome
+    return _finalize_two_run_outcome(
+        output_dir=output_dir,
+        experiment_id=EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+        baseline_run=baseline_run,
+        candidate_run=candidate_run,
+        artifacts=[baseline_artifact, candidate_artifact, metric_artifact],
+        metrics=metrics,
+    )
 
 
 def _run_ebm_stochastic_statistics_adapter(
@@ -2019,19 +2028,14 @@ def _run_ebm_stochastic_statistics_adapter(
         receipt=candidate_receipt,
         artifacts=[candidate_artifact, metric_artifact],
     )
-    _write_json(output_dir / "run-baseline.json", baseline_run)
-    _write_json(output_dir / "run-candidate.json", candidate_run)
-
-    outcome = {
-        "schema_version": 1,
-        "experiment_id": EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
-        "runs": [baseline_run, candidate_run],
-        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
-        "metrics": metrics,
-        "evidence": [],
-    }
-    _write_json(output_dir / "outcome.json", outcome)
-    return outcome
+    return _finalize_two_run_outcome(
+        output_dir=output_dir,
+        experiment_id=EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
+        baseline_run=baseline_run,
+        candidate_run=candidate_run,
+        artifacts=[baseline_artifact, candidate_artifact, metric_artifact],
+        metrics=metrics,
+    )
 
 
 def _run_ebm_regime_feedback_adapter(
@@ -2207,19 +2211,14 @@ def _run_ebm_regime_feedback_adapter(
         receipt=candidate_receipt,
         artifacts=[candidate_artifact, metric_artifact],
     )
-    _write_json(output_dir / "run-baseline.json", baseline_run)
-    _write_json(output_dir / "run-candidate.json", candidate_run)
-
-    outcome = {
-        "schema_version": 1,
-        "experiment_id": EBM_REGIME_FEEDBACK_EXPERIMENT,
-        "runs": [baseline_run, candidate_run],
-        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
-        "metrics": metrics,
-        "evidence": [],
-    }
-    _write_json(output_dir / "outcome.json", outcome)
-    return outcome
+    return _finalize_two_run_outcome(
+        output_dir=output_dir,
+        experiment_id=EBM_REGIME_FEEDBACK_EXPERIMENT,
+        baseline_run=baseline_run,
+        candidate_run=candidate_run,
+        artifacts=[baseline_artifact, candidate_artifact, metric_artifact],
+        metrics=metrics,
+    )
 
 
 def _available_runtime_libraries() -> dict[str, str]:
