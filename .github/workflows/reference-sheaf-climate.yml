@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'reference/station_temperature_sheaf.py'
+      - 'src/station_sheaf.py'
       - 'reference/ncei_ghcnd.py'
       - 'reference/sheaf_cohomology.py'
       - 'tests/reference/test_station_temperature_sheaf.py'

@@ -122,8 +122,8 @@
         "climate.sheaf.consistency"
       ],
       "known_gaps": [
-        "GF(2) reference stalks do not model continuous climate measurements",
-        "provider-backed geographic station-cover and continuous temperature-stalk semantics are owned by reference/station_temperature_sheaf.py rather than this exact GF(2) oracle",
+        "GF(2) finite-complex arithmetic is an independent exact mathematical witness rather than the climate-data execution foundation",
+        "its finite-cover nerve enumerates bounded fixtures and must not be used as the worldwide station topology builder",
         "mathematical correctness does not establish empirical fault-detection or reconstruction value"
       ]
     },
@@ -133,15 +133,15 @@
       "language": "python",
       "maturity": "runnable",
       "evidence_eligible": false,
-      "intended_role": "provider-backed reference adapter from captured NCEI GHCN-Daily station records to an explicit geographic finite-cover nerve, real temperature stalks/restrictions, functorial cochains, compatibility residuals, provider-QC semantics, and library-backed interpolation baselines",
+      "intended_role": "provider-specific NCEI GHCN-Daily adapter that preserves captured station identity, coordinates, TMAX/TMIN values, quality flags, and missingness while projecting the fixture into the canonical global station catalog/section substrate",
       "claim_ids": [
         "climate.sheaf.consistency"
       ],
       "known_gaps": [
-        "the 20 km station support radius and EPSG:32618 projection are explicit fixture policy for the NYC reference experiment rather than universal station representativeness",
-        "the current stalk basis covers daily TMAX/TMIN only and does not homogenize stations or reinterpret provider quality flags",
-        "the current provider-backed fixture contains three stations over three days and establishes semantics/falsification behavior rather than incremental climate-data value",
-        "on complete shared temperature stalks the compatibility residual equals the ordinary graph residual, so no sheaf advantage is claimed from that case"
+        "the captured NCEI fixture is three stations over three days and exists only to witness provider parsing and canonical-path composition",
+        "TMAX/TMIN are only the first provider-specific variables; the canonical station substrate is provider-neutral",
+        "station homogenization, cross-provider identity reconciliation, and worldwide free-station federation are separate data obligations",
+        "the adapter owns no projected CRS, dense all-pairs scan, finite-cover powerset nerve, or dense cochain implementation"
       ]
     },
     {

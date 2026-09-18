@@ -332,16 +332,16 @@
       "usage_id": "sheaf.station_metadata_and_observations",
       "scope": "current",
       "path": "reference/station_temperature_sheaf.py",
-      "anchor": "extract_station_snapshot",
+      "anchor": "to_station_catalog",
       "ownership_class": "external_api",
       "disposition": "externalize",
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "provider-backed station identity, coordinates, daily TMAX/TMIN values, and quality flags are parsed from an exact digested NCEI GHCN-Daily response; the climate-data sheaf applies an explicit geographic support rule and preserves missingness without synthesizing unavailable observations",
-      "authority_boundary": "build_station_temperature_sheaf",
+      "rationale": "captured NCEI station identity, coordinates, daily TMAX/TMIN values, quality flags, and missingness are projected into the provider-neutral canonical station substrate; global topology and sparse cochain execution are owned by src/station_sheaf.py rather than this provider adapter",
+      "authority_boundary": "to_station_section",
       "witness_path": "tests/reference/test_station_temperature_sheaf.py",
-      "witness_anchor": "test_provider_fixture_identity_and_station_coordinates"
+      "witness_anchor": "test_provider_fixture_uses_canonical_global_sparse_path"
     },
     {
       "usage_id": "validation.surface_temperature",
