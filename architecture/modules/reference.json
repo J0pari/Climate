@@ -208,7 +208,8 @@
         "the benchmark uses a linear model on a truly linear two-layer physical control and therefore tests representation closure rather than realistic emulator capacity",
         "discovery states and forcing are synthetic deterministic samples rather than observational trajectories",
         "surface-temperature failure is a missing-state Markov-closure result and must not be mislabeled dynamic unobservability",
-        "noise, sparse observations, parameter uncertainty, stochastic variability, and regime-dependent feedback remain later benchmark rungs"
+        "this v1 rung remains noiseless by design; observation degradation is versioned separately rather than mutating the control",
+        "parameter uncertainty, stochastic variability, and regime-dependent feedback remain later benchmark rungs"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -224,6 +225,21 @@
         "the exact reference is not trained and therefore does not itself establish out-of-distribution generalization",
         "the underlying two-layer EBM remains linear, global-mean, deterministic, and spatially unresolved",
         "stochastic internal variability, state-dependent feedback, carbon-cycle coupling, and forcing efficacy require later benchmark rungs rather than hidden changes to this fixture"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/two_layer_observation_degradation.py",
+      "family": "reference_two_layer_observation_degradation",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "immutable synthetic observation-degradation rung for the forced two-layer EBM benchmark, applying declared linear observation maps, seeded Gaussian measurement noise, sparse state-channel access, exact redundant-channel controls, fixed non-learned pseudoinverse reconstruction, and held-out forced-response evaluation without changing the underlying physical or forcing fixtures",
+      "known_gaps": [
+        "the observation-noise magnitude and linear maps are synthetic structural controls rather than calibrated instrument, reanalysis, or retrieval-error models",
+        "instantaneous fixed-pseudoinverse reconstruction deliberately does not exploit known dynamics to infer an unobserved state component",
+        "the exactly duplicated noisy surface channel tests coordinate redundancy, not the benefit of independent repeated sensors",
+        "parameter degeneracy, stochastic internal variability, and regime-dependent feedback remain separate immutable benchmark rungs"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false

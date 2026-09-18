@@ -12,6 +12,9 @@ from src.experiment_runtime import DEFAULT_EXPERIMENT, ROOT, run_experiment
 
 FORCING_EXPERIMENT = ROOT / "experiments" / "two-layer-ebm-forcing-protocols.v1.json"
 FORCED_OOD_EXPERIMENT = ROOT / "experiments" / "multirepresentation-ebm-forced-ood.v1.json"
+OBSERVATION_DEGRADATION_EXPERIMENT = (
+    ROOT / "experiments" / "multirepresentation-ebm-observation-degradation.v1.json"
+)
 
 
 class ExperimentRuntimeTests(unittest.TestCase):
@@ -49,6 +52,12 @@ class ExperimentRuntimeTests(unittest.TestCase):
             self.assertEqual(outcome["experiment_id"], "multirepresentation.ebm_dynamics.v1")
             self.assertEqual(len(outcome["runs"]), 2)
             self.assertEqual(outcome["evidence"], [])
+            self.assertTrue(
+                all(
+                    "multirepresentation.ebm_dynamics.v1" in run["run_id"]
+                    for run in outcome["runs"]
+                )
+            )
             self.assertTrue(all(run["scientific_output_eligible"] for run in outcome["runs"]))
             self.assertTrue(all(run["execution"]["status"] == "eligible" for run in outcome["runs"]))
 
@@ -87,6 +96,12 @@ class ExperimentRuntimeTests(unittest.TestCase):
             )
             self.assertEqual(outcome["evidence"], [])
             self.assertEqual(len(outcome["runs"]), 2)
+            self.assertTrue(
+                all(
+                    "physics.two_layer_ebm.forcing_protocols.v1" in run["run_id"]
+                    for run in outcome["runs"]
+                )
+            )
 
             metric_values = {
                 metric["metric"]["metric_id"]: metric["value"]
@@ -130,7 +145,6 @@ class ExperimentRuntimeTests(unittest.TestCase):
             ):
                 self.assert_portable_json_tree(output / filename)
 
-
     def test_ebm_forced_ood_experiment_uses_same_runtime_spine(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp)
@@ -145,6 +159,12 @@ class ExperimentRuntimeTests(unittest.TestCase):
             )
             self.assertEqual(outcome["evidence"], [])
             self.assertEqual(len(outcome["runs"]), 2)
+            self.assertTrue(
+                all(
+                    "multirepresentation.ebm_forced_ood.v1" in run["run_id"]
+                    for run in outcome["runs"]
+                )
+            )
 
             metric_values = {
                 metric["metric"]["metric_id"]: metric["value"]
@@ -187,6 +207,112 @@ class ExperimentRuntimeTests(unittest.TestCase):
                 "outcome.json",
             ):
                 self.assert_portable_json_tree(output / filename)
+
+    def test_observation_degradation_experiment_uses_same_runtime_spine(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            outcome = run_experiment(
+                experiment_path=OBSERVATION_DEGRADATION_EXPERIMENT,
+                output_dir=output,
+                repository_revision="d" * 40,
+                run_scope="shared-ebm-scope",
+            )
+            self.assertEqual(
+                outcome["experiment_id"],
+                "multirepresentation.ebm_observation_degradation.v1",
+            )
+            self.assertEqual(outcome["evidence"], [])
+            self.assertEqual(len(outcome["runs"]), 2)
+            self.assertTrue(
+                all(
+                    "multirepresentation.ebm_observation_degradation.v1"
+                    in run["run_id"]
+                    for run in outcome["runs"]
+                )
+            )
+
+            def by_population(metric_id: str) -> dict[str, float]:
+                return {
+                    item["reference_population"]: item["value"]
+                    for item in outcome["metrics"]
+                    if item["metric"]["metric_id"] == metric_id
+                }
+
+            reconstruction = by_population(
+                "multirepresentation.ebm.observation.state_reconstruction_relative_error"
+            )
+            forced = by_population(
+                "multirepresentation.ebm.observation.ood_forced_state_prediction_relative_error"
+            )
+            ranks = by_population(
+                "multirepresentation.ebm.observation.structural_observation_rank"
+            )
+            dimensions = by_population(
+                "multirepresentation.ebm.observation.observation_dimension"
+            )
+
+            self.assertLess(reconstruction["clean_temperature_state"], 1e-14)
+            self.assertLess(forced["clean_temperature_state"], 1e-12)
+            self.assertLess(
+                reconstruction["noisy_temperature_state"],
+                reconstruction["noisy_surface_scalar"],
+            )
+            self.assertLess(
+                forced["noisy_temperature_state"],
+                forced["noisy_surface_scalar"],
+            )
+            self.assertEqual(ranks["noisy_surface_scalar"], 1)
+            self.assertEqual(ranks["redundant_noisy_surface_pair"], 1)
+            self.assertEqual(dimensions["redundant_noisy_surface_pair"], 2)
+            self.assertAlmostEqual(
+                reconstruction["redundant_noisy_surface_pair"],
+                reconstruction["noisy_surface_scalar"],
+                places=12,
+            )
+            self.assertAlmostEqual(
+                forced["redundant_noisy_surface_pair"],
+                forced["noisy_surface_scalar"],
+                places=12,
+            )
+
+            baseline, candidate = outcome["runs"]
+            self.assertEqual(len(baseline["resolved_dataset_digests"]), 2)
+            self.assertEqual(len(candidate["resolved_dataset_digests"]), 4)
+            self.assertEqual(
+                candidate["execution"]["resolved"]["method_id"],
+                "dynamics.affine_control_lstsq.numpy_v1",
+            )
+
+            self.assert_artifact_digests(outcome, output)
+            for filename in (
+                "baseline-forcing-protocols.json",
+                "candidate-observation-degradation.json",
+                "metric-results.json",
+                "run-baseline.json",
+                "run-candidate.json",
+                "outcome.json",
+            ):
+                self.assert_portable_json_tree(output / filename)
+
+    def test_shared_methods_do_not_collide_across_experiment_run_ids(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            forced = run_experiment(
+                experiment_path=FORCED_OOD_EXPERIMENT,
+                output_dir=root / "forced",
+                repository_revision="e" * 40,
+                run_scope="same-scope",
+            )
+            degraded = run_experiment(
+                experiment_path=OBSERVATION_DEGRADATION_EXPERIMENT,
+                output_dir=root / "degraded",
+                repository_revision="e" * 40,
+                run_scope="same-scope",
+            )
+            forced_ids = {run["run_id"] for run in forced["runs"]}
+            degraded_ids = {run["run_id"] for run in degraded["runs"]}
+            self.assertTrue(forced_ids.isdisjoint(degraded_ids))
+
 
 if __name__ == "__main__":
     unittest.main()

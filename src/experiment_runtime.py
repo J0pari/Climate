@@ -32,6 +32,9 @@ CONTRACT = ROOT / "contracts" / "climate.cue"
 EBM_DYNAMICS_EXPERIMENT = "multirepresentation.ebm_dynamics.v1"
 EBM_FORCING_EXPERIMENT = "physics.two_layer_ebm.forcing_protocols.v1"
 EBM_FORCED_OOD_EXPERIMENT = "multirepresentation.ebm_forced_ood.v1"
+EBM_OBSERVATION_DEGRADATION_EXPERIMENT = (
+    "multirepresentation.ebm_observation_degradation.v1"
+)
 EBM_BASELINE_METHOD = "physics.two_layer_ebm.exact_modes_v1"
 EBM_DYNAMICS_CANDIDATE_METHOD = "dynamics.dmd.pydmd_v1"
 EBM_FORCING_CANDIDATE_METHOD = "physics.two_layer_ebm.affine_forcing_v1"
@@ -394,11 +397,133 @@ def _derive_forced_ood_metrics(
     ]
 
 
+def _derive_observation_degradation_metrics(
+    experiment: Mapping[str, Any], candidate: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    definitions = _metric_definitions(experiment)
+    representations = candidate.get("representations")
+    if not isinstance(representations, dict):
+        raise ValueError(
+            "observation-degradation candidate output lacks representation diagnostics"
+        )
+    ordered = (
+        "clean_temperature_state",
+        "noisy_temperature_state",
+        "noisy_surface_scalar",
+        "redundant_noisy_surface_pair",
+    )
+    if set(representations) != set(ordered):
+        raise ValueError(
+            "observation-degradation candidate representation identities changed"
+        )
+
+    results: list[dict[str, Any]] = []
+    for name in ordered:
+        item = representations[name]
+        results.extend(
+            [
+                _finite_metric(
+                    definitions[
+                        "multirepresentation.ebm.observation.state_reconstruction_relative_error"
+                    ],
+                    float(item["confirmation_state_reconstruction_relative_error"]),
+                    name,
+                ),
+                _finite_metric(
+                    definitions[
+                        "multirepresentation.ebm.observation.ood_forced_state_prediction_relative_error"
+                    ],
+                    float(item["confirmation_forced_state_prediction_relative_error"]),
+                    name,
+                ),
+                _finite_metric(
+                    definitions[
+                        "multirepresentation.ebm.observation.structural_observation_rank"
+                    ],
+                    int(item["structural_observation_rank"]),
+                    name,
+                ),
+                _finite_metric(
+                    definitions[
+                        "multirepresentation.ebm.observation.observation_dimension"
+                    ],
+                    int(item["observation_dimension"]),
+                    name,
+                ),
+                _finite_metric(
+                    definitions[
+                        "multirepresentation.ebm.observation.redundant_dimension_count"
+                    ],
+                    int(item["redundant_dimension_count"]),
+                    name,
+                ),
+            ]
+        )
+    results.extend(
+        [
+            _finite_metric(
+                definitions[
+                    "multirepresentation.ebm.observation.redundant_structural_rank_gain"
+                ],
+                int(candidate["redundant_structural_rank_gain"]),
+            ),
+            _finite_metric(
+                definitions[
+                    "multirepresentation.ebm.observation.redundant_vs_surface_state_reconstruction_error_delta"
+                ],
+                float(
+                    candidate[
+                        "redundant_vs_surface_state_reconstruction_error_delta"
+                    ]
+                ),
+            ),
+            _finite_metric(
+                definitions[
+                    "multirepresentation.ebm.observation.redundant_vs_surface_forced_prediction_error_delta"
+                ],
+                float(
+                    candidate[
+                        "redundant_vs_surface_forced_prediction_error_delta"
+                    ]
+                ),
+            ),
+            _finite_metric(
+                definitions[
+                    "multirepresentation.ebm.observation.noisy_full_vs_surface_forced_prediction_error_gap"
+                ],
+                float(
+                    candidate[
+                        "noisy_full_vs_surface_forced_prediction_error_gap"
+                    ]
+                ),
+            ),
+            _finite_metric(
+                definitions[
+                    "multirepresentation.ebm.observation.clean_control_forced_prediction_relative_error"
+                ],
+                float(candidate["clean_control_forced_prediction_relative_error"]),
+            ),
+        ]
+    )
+    return results
+
+
 def _validated_seeds(experiment: Mapping[str, Any]) -> list[int]:
     seeds = experiment.get("seeds", [])
     if not isinstance(seeds, list) or not all(isinstance(seed, int) for seed in seeds):
         raise ValueError("experiment seeds must be an integer list")
     return list(seeds)
+
+
+def _scoped_run_id(run_scope: str, experiment_id: str, method_id: str) -> str:
+    for name, value in (
+        ("run_scope", run_scope),
+        ("experiment_id", experiment_id),
+        ("method_id", method_id),
+    ):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{name} must be non-empty for run identity")
+    return f"{run_scope}.{experiment_id}.{method_id}"
 
 
 def _execution_identity(method_id: str, implementation_build: str, backend_id: str) -> dict[str, Any]:
@@ -574,7 +699,7 @@ def _run_ebm_dynamics_adapter(
         EBM_DYNAMICS_CANDIDATE_METHOD, candidate_build, "pydmd"
     )
     baseline_run = _run_manifest(
-        run_id=f"{run_scope}.{EBM_BASELINE_METHOD}",
+        run_id=_scoped_run_id(run_scope, EBM_DYNAMICS_EXPERIMENT, EBM_BASELINE_METHOD),
         experiment_id=EBM_DYNAMICS_EXPERIMENT,
         revision=repository_revision,
         method_builds={EBM_BASELINE_METHOD: baseline_build},
@@ -587,7 +712,9 @@ def _run_ebm_dynamics_adapter(
         artifacts=[baseline_artifact],
     )
     candidate_run = _run_manifest(
-        run_id=f"{run_scope}.{EBM_DYNAMICS_CANDIDATE_METHOD}",
+        run_id=_scoped_run_id(
+            run_scope, EBM_DYNAMICS_EXPERIMENT, EBM_DYNAMICS_CANDIDATE_METHOD
+        ),
         experiment_id=EBM_DYNAMICS_EXPERIMENT,
         revision=repository_revision,
         method_builds={
@@ -722,7 +849,7 @@ def _run_ebm_forcing_adapter(
         EBM_FORCING_CANDIDATE_METHOD, candidate_build, "scipy"
     )
     baseline_run = _run_manifest(
-        run_id=f"{run_scope}.{EBM_BASELINE_METHOD}",
+        run_id=_scoped_run_id(run_scope, EBM_FORCING_EXPERIMENT, EBM_BASELINE_METHOD),
         experiment_id=EBM_FORCING_EXPERIMENT,
         revision=repository_revision,
         method_builds={EBM_BASELINE_METHOD: baseline_build},
@@ -735,7 +862,9 @@ def _run_ebm_forcing_adapter(
         artifacts=[baseline_artifact],
     )
     candidate_run = _run_manifest(
-        run_id=f"{run_scope}.{EBM_FORCING_CANDIDATE_METHOD}",
+        run_id=_scoped_run_id(
+            run_scope, EBM_FORCING_EXPERIMENT, EBM_FORCING_CANDIDATE_METHOD
+        ),
         experiment_id=EBM_FORCING_EXPERIMENT,
         revision=repository_revision,
         method_builds={
@@ -886,7 +1015,9 @@ def _run_ebm_forced_ood_adapter(
         EBM_FORCED_OOD_CANDIDATE_METHOD, candidate_build, "numpy.linalg"
     )
     baseline_run = _run_manifest(
-        run_id=f"{run_scope}.{EBM_FORCING_CANDIDATE_METHOD}",
+        run_id=_scoped_run_id(
+            run_scope, EBM_FORCED_OOD_EXPERIMENT, EBM_FORCING_CANDIDATE_METHOD
+        ),
         experiment_id=EBM_FORCED_OOD_EXPERIMENT,
         revision=repository_revision,
         method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
@@ -899,7 +1030,9 @@ def _run_ebm_forced_ood_adapter(
         artifacts=[baseline_artifact],
     )
     candidate_run = _run_manifest(
-        run_id=f"{run_scope}.{EBM_FORCED_OOD_CANDIDATE_METHOD}",
+        run_id=_scoped_run_id(
+            run_scope, EBM_FORCED_OOD_EXPERIMENT, EBM_FORCED_OOD_CANDIDATE_METHOD
+        ),
         experiment_id=EBM_FORCED_OOD_EXPERIMENT,
         revision=repository_revision,
         method_builds={
@@ -924,6 +1057,204 @@ def _run_ebm_forced_ood_adapter(
     outcome = {
         "schema_version": 1,
         "experiment_id": EBM_FORCED_OOD_EXPERIMENT,
+        "runs": [baseline_run, candidate_run],
+        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
+        "metrics": metrics,
+        "evidence": [],
+    }
+    _write_json(output_dir / "outcome.json", outcome)
+    return outcome
+
+
+def _run_ebm_observation_degradation_adapter(
+    *,
+    experiment: Mapping[str, Any],
+    output_dir: Path,
+    repository_revision: str,
+    run_scope: str,
+    methods: Mapping[str, Mapping[str, Any]],
+    resolved_configuration: Mapping[str, Any],
+) -> dict[str, Any]:
+    baseline_descriptor, candidate_descriptor = _require_methods(
+        experiment,
+        methods,
+        baseline_method=EBM_FORCING_CANDIDATE_METHOD,
+        candidate_method=EBM_FORCED_OOD_CANDIDATE_METHOD,
+    )
+    datasets = _resolve_datasets(experiment)
+    if len(datasets) != 4:
+        raise ValueError(
+            "EBM observation-degradation adapter requires exactly four datasets"
+        )
+    by_id = {dataset["id"]: (dataset, path) for dataset, path in datasets}
+    try:
+        base_dataset, ebm_fixture_path = by_id[
+            "physics.two_layer_ebm.geoffroy_mean.v1"
+        ]
+        protocol_dataset, protocol_fixture_path = by_id[
+            "physics.two_layer_ebm.forcing_protocols.v1"
+        ]
+        training_dataset, training_fixture_path = by_id[
+            "physics.two_layer_ebm.forced_representation.v1"
+        ]
+        observation_dataset, observation_fixture_path = by_id[
+            "physics.two_layer_ebm.observation_degradation.v1"
+        ]
+    except KeyError as exc:
+        raise ValueError(
+            "EBM observation-degradation datasets do not match registered identities"
+        ) from exc
+
+    baseline_build = _resolved_method_build(
+        EBM_FORCING_CANDIDATE_METHOD, baseline_descriptor
+    )
+    candidate_build = _resolved_method_build(
+        EBM_FORCED_OOD_CANDIDATE_METHOD, candidate_descriptor
+    )
+    baseline_receipt = _run_process(
+        (
+            sys.executable,
+            str(ROOT / "reference" / "two_layer_forcing_protocols.py"),
+            "--ebm-fixture",
+            str(ebm_fixture_path),
+            "--protocol-fixture",
+            str(protocol_fixture_path),
+            "--json",
+        )
+    )
+    candidate_receipt = _run_process(
+        (
+            sys.executable,
+            str(ROOT / "reference" / "two_layer_observation_degradation.py"),
+            "--ebm-fixture",
+            str(ebm_fixture_path),
+            "--protocol-fixture",
+            str(protocol_fixture_path),
+            "--training-fixture",
+            str(training_fixture_path),
+            "--observation-fixture",
+            str(observation_fixture_path),
+            "--json",
+        )
+    )
+    baseline_payload = baseline_receipt["payload"]
+    candidate_payload = candidate_receipt["payload"]
+    if candidate_payload.get("ebm_fixture_id") != baseline_payload.get("ebm_fixture_id"):
+        raise RuntimeError(
+            "observation-degradation candidate and baseline resolved different EBM fixtures"
+        )
+    if (
+        candidate_payload.get("forcing_protocol_fixture_id")
+        != baseline_payload.get("fixture_id")
+    ):
+        raise RuntimeError(
+            "observation-degradation candidate and baseline resolved different forcing protocols"
+        )
+    expected_training_fixture_id = _load_json(training_fixture_path).get("fixture_id")
+    expected_observation_fixture_id = _load_json(
+        observation_fixture_path
+    ).get("fixture_id")
+    if candidate_payload.get("training_fixture_id") != expected_training_fixture_id:
+        raise RuntimeError(
+            "observation-degradation candidate resolved unexpected training fixture"
+        )
+    if candidate_payload.get("fixture_id") != expected_observation_fixture_id:
+        raise RuntimeError(
+            "observation-degradation candidate resolved unexpected observation fixture"
+        )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    baseline_bytes = _write_json(
+        output_dir / "baseline-forcing-protocols.json", baseline_payload
+    )
+    candidate_bytes = _write_json(
+        output_dir / "candidate-observation-degradation.json", candidate_payload
+    )
+    baseline_artifact = _artifact_ref(
+        "multirepresentation.ebm_observation_degradation.exact_forcing",
+        "two_layer_forcing_response/v1",
+        "baseline-forcing-protocols.json",
+        baseline_bytes,
+    )
+    candidate_artifact = _artifact_ref(
+        "multirepresentation.ebm_observation_degradation.controlled_linear",
+        "observation_degraded_representation_ood/v1",
+        "candidate-observation-degradation.json",
+        candidate_bytes,
+    )
+    metrics = _derive_observation_degradation_metrics(
+        experiment, candidate_payload
+    )
+    metric_bytes = _write_json(
+        output_dir / "metric-results.json",
+        {"schema_version": 1, "metrics": metrics},
+    )
+    metric_artifact = _artifact_ref(
+        "multirepresentation.ebm_observation_degradation.metric_results",
+        "metric_results/v1",
+        "metric-results.json",
+        metric_bytes,
+    )
+
+    libraries = {
+        "numpy": importlib.metadata.version("numpy"),
+        "scipy": importlib.metadata.version("scipy"),
+    }
+    seeds = _validated_seeds(experiment)
+    baseline_identity = _execution_identity(
+        EBM_FORCING_CANDIDATE_METHOD, baseline_build, "scipy"
+    )
+    candidate_identity = _execution_identity(
+        EBM_FORCED_OOD_CANDIDATE_METHOD, candidate_build, "numpy.linalg"
+    )
+    baseline_run = _run_manifest(
+        run_id=_scoped_run_id(
+            run_scope,
+            EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
+            EBM_FORCING_CANDIDATE_METHOD,
+        ),
+        experiment_id=EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
+        revision=repository_revision,
+        method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
+        execution_identity=baseline_identity,
+        dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        resolved_configuration=resolved_configuration,
+        seeds=seeds,
+        libraries=libraries,
+        receipt=baseline_receipt,
+        artifacts=[baseline_artifact],
+    )
+    candidate_run = _run_manifest(
+        run_id=_scoped_run_id(
+            run_scope,
+            EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
+            EBM_FORCED_OOD_CANDIDATE_METHOD,
+        ),
+        experiment_id=EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
+        revision=repository_revision,
+        method_builds={
+            EBM_FORCING_CANDIDATE_METHOD: baseline_build,
+            EBM_FORCED_OOD_CANDIDATE_METHOD: candidate_build,
+        },
+        execution_identity=candidate_identity,
+        dataset_digests=[
+            base_dataset["digest"],
+            protocol_dataset["digest"],
+            training_dataset["digest"],
+            observation_dataset["digest"],
+        ],
+        resolved_configuration=resolved_configuration,
+        seeds=seeds,
+        libraries=libraries,
+        receipt=candidate_receipt,
+        artifacts=[candidate_artifact, metric_artifact],
+    )
+    _write_json(output_dir / "run-baseline.json", baseline_run)
+    _write_json(output_dir / "run-candidate.json", candidate_run)
+
+    outcome = {
+        "schema_version": 1,
+        "experiment_id": EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
         "runs": [baseline_run, candidate_run],
         "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
         "metrics": metrics,
@@ -975,10 +1306,20 @@ def run_experiment(
             methods=methods,
             resolved_configuration=resolved_configuration,
         )
+    if experiment_id == EBM_OBSERVATION_DEGRADATION_EXPERIMENT:
+        return _run_ebm_observation_degradation_adapter(
+            experiment=experiment,
+            output_dir=output_dir,
+            repository_revision=repository_revision,
+            run_scope=run_scope,
+            methods=methods,
+            resolved_configuration=resolved_configuration,
+        )
     raise ValueError(
         "no local CPU adapter for experiment "
         f"{experiment_id!r}; supported: {EBM_DYNAMICS_EXPERIMENT}, "
-        f"{EBM_FORCING_EXPERIMENT}, {EBM_FORCED_OOD_EXPERIMENT}"
+        f"{EBM_FORCING_EXPERIMENT}, {EBM_FORCED_OOD_EXPERIMENT}, "
+        f"{EBM_OBSERVATION_DEGRADATION_EXPERIMENT}"
     )
 
 def main() -> int:

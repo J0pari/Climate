@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **54**.
+Registered modules: **55**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 35 |
-| `reference` | 19 |
+| `reference` | 20 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 52 |
+| `runnable` | 53 |
 
 ### Canonical and reference modules
 
@@ -73,6 +73,7 @@ Registered modules: **54**.
 | `reference` | `independent_reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_forced_representation.py` | `reference_two_layer_forced_representation_ood` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_forcing_protocols.py` | `reference_two_layer_forcing_protocols` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_observation_degradation.py` | `reference_two_layer_observation_degradation` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_observation_design.py` | `reference_two_layer_observation_design` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_observation_information.py` | `reference_two_layer_observation_information` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
@@ -95,7 +96,7 @@ Registered claims: **5**.
 
 ## Registered experiments
 
-Experiment specifications: **6**.
+Experiment specifications: **7**.
 
 | Experiment | File |
 | --- | --- |
@@ -103,6 +104,7 @@ Experiment specifications: **6**.
 | `multirepresentation.common_coordinate.v1` | `experiments/multirepresentation-common.v1.json` |
 | `multirepresentation.ebm_dynamics.v1` | `experiments/multirepresentation-ebm-dynamics.v1.json` |
 | `multirepresentation.ebm_forced_ood.v1` | `experiments/multirepresentation-ebm-forced-ood.v1.json` |
+| `multirepresentation.ebm_observation_degradation.v1` | `experiments/multirepresentation-ebm-observation-degradation.v1.json` |
 | `sheaf.structural_ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
 | `physics.two_layer_ebm.forcing_protocols.v1` | `experiments/two-layer-ebm-forcing-protocols.v1.json` |
 

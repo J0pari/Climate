@@ -1,0 +1,215 @@
+{
+  "experiment_id": "multirepresentation.ebm_observation_degradation.v1",
+  "semantic_version": "0.1.0",
+  "question": "How do declared measurement noise, sparse state-channel access, and exactly redundant observed coordinates affect instantaneous state reconstruction and held-out forced-response prediction when the physical two-layer EBM, forcing protocols, discovery split, and controlled-linear fitting method are held fixed?",
+  "hypothesis": "The clean two-temperature state remains an exact structural control; Gaussian noise degrades full-state reconstruction and prediction without changing its structural observation rank; a noisy surface-only view loses instantaneous access to the deep state; duplicating that exact same noisy surface measurement increases observed coordinate dimension but not structural rank and should not materially change decoded state or forced-response error.",
+  "candidate_methods": [
+    "dynamics.affine_control_lstsq.numpy_v1"
+  ],
+  "baseline_methods": [
+    "physics.two_layer_ebm.affine_forcing_v1"
+  ],
+  "datasets": [
+    {
+      "id": "physics.two_layer_ebm.geoffroy_mean.v1",
+      "digest": "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9",
+      "source_family": "literature_parameterized_two_layer_energy_balance_reference",
+      "source_version": "1",
+      "variables": [
+        "surface_temperature_anomaly_k",
+        "deep_temperature_anomaly_k"
+      ],
+      "spatial_domain": "global mean two-reservoir climate control",
+      "grid": "not spatially resolved",
+      "units_metadata": {
+        "temperature": "K anomaly"
+      },
+      "quality_control_policy": "physical parameters must be finite and positive; malformed states fail closed",
+      "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.forcing_protocols.v1",
+      "digest": "sha256:8c761934353feef7563c8a57a96863afbd08ab547d88fc88228a240c9fa16743",
+      "source_family": "deterministic_synthetic_forcing_protocol_fixture",
+      "source_version": "1",
+      "variables": [
+        "forcing_w_m2",
+        "discovery_forcing_domain_w_m2",
+        "confirmation_forcing_domain_w_m2"
+      ],
+      "time_domain": "discovery forcing interval plus held-out step, ramp, overshoot/reversal, and sign-reversal confirmation protocols",
+      "units_metadata": {
+        "forcing": "W m^-2",
+        "time": "years"
+      },
+      "quality_control_policy": "confirmation domain contains discovery domain and all confirmation protocols are immutable experiment inputs",
+      "citation": "fixtures/physics/two-layer-ebm-forcing-protocols-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.forced_representation.v1",
+      "digest": "sha256:d53b3dbbd84b110b78720ed46903863df64b3cfe2496a91f8ef4d6a2f1093aaf",
+      "source_family": "deterministic_synthetic_discovery_transition_design",
+      "source_version": "1",
+      "variables": [
+        "temperature_state",
+        "forcing_start_w_m2",
+        "forcing_rate_w_m2_per_year"
+      ],
+      "time_domain": "fixed one-year transition samples for discovery fitting",
+      "temporal_resolution": "1 year",
+      "units_metadata": {
+        "temperature": "K anomaly",
+        "forcing": "W m^-2",
+        "forcing_rate": "W m^-2 yr^-1"
+      },
+      "quality_control_policy": "training forcing endpoints are sampled only inside the declared discovery domain; confirmation protocol identities are fixed before execution",
+      "citation": "fixtures/physics/two-layer-ebm-forced-representation-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.observation_degradation.v1",
+      "digest": "sha256:1ed36061891470c1d22a1c58255b8e0c2623249a3dbab3670d9e875838b59872",
+      "source_family": "synthetic_linear_observation_degradation_fixture",
+      "source_version": "1",
+      "variables": [
+        "clean_temperature_state",
+        "noisy_temperature_state",
+        "noisy_surface_scalar",
+        "redundant_noisy_surface_pair"
+      ],
+      "time_domain": "same discovery and held-out confirmation transitions as the forced-representation v1 control",
+      "temporal_resolution": "1 year transition pairs",
+      "units_metadata": {
+        "temperature_observations": "K anomaly",
+        "noise_std": "K"
+      },
+      "quality_control_policy": "observation matrices, noise standard deviation, discovery/confirmation seeds, named-noise reuse, and fixed pseudoinverse policy are immutable; the duplicated surface pair reuses one identical noisy measurement and must remain structural rank one",
+      "citation": "fixtures/physics/two-layer-ebm-observation-degradation-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.observation.state_reconstruction_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "descriptive",
+      "aggregation_domain": "reported separately for each declared representation over all held-out confirmation current states using only the fixture-declared fixed observation pseudoinverse",
+      "missing_data_policy": "every representation and every confirmation protocol is required",
+      "uncertainty_method": "deterministic seeded synthetic measurement-noise control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.observation.ood_forced_state_prediction_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "descriptive",
+      "aggregation_domain": "reported separately for each declared representation over all held-out next states after discovery-only controlled-linear fitting and fixed observation reconstruction",
+      "missing_data_policy": "every representation and every confirmation protocol is required",
+      "uncertainty_method": "deterministic seeded synthetic measurement-noise control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.observation.structural_observation_rank",
+      "semantic_version": "0.1.0",
+      "units": "rank",
+      "direction": "descriptive",
+      "aggregation_domain": "rank of each fixture-declared noiseless observation matrix, reported separately by representation",
+      "missing_data_policy": "every declared observation matrix is required",
+      "uncertainty_method": "exact structural diagnostic up to the fixed numerical rank convention"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.observation.observation_dimension",
+      "semantic_version": "0.1.0",
+      "units": "coordinate count",
+      "direction": "descriptive",
+      "aggregation_domain": "number of observed coordinates reported separately by representation",
+      "missing_data_policy": "every representation is required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.observation.redundant_dimension_count",
+      "semantic_version": "0.1.0",
+      "units": "coordinate count",
+      "direction": "descriptive",
+      "aggregation_domain": "observation dimension minus structural observation rank, reported separately by representation",
+      "missing_data_policy": "dimension and structural rank are required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.observation.redundant_structural_rank_gain",
+      "semantic_version": "0.1.0",
+      "units": "rank difference",
+      "direction": "target",
+      "target": 0,
+      "aggregation_domain": "redundant noisy surface-pair structural rank minus noisy surface-scalar structural rank",
+      "missing_data_policy": "both surface representations are required",
+      "uncertainty_method": "exact structural negative control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.observation.redundant_vs_surface_state_reconstruction_error_delta",
+      "semantic_version": "0.1.0",
+      "units": "relative-error difference",
+      "direction": "descriptive",
+      "aggregation_domain": "redundant-pair minus surface-scalar held-out state-reconstruction error under the same reused noisy surface samples",
+      "missing_data_policy": "both surface representations are required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.observation.redundant_vs_surface_forced_prediction_error_delta",
+      "semantic_version": "0.1.0",
+      "units": "relative-error difference",
+      "direction": "descriptive",
+      "aggregation_domain": "redundant-pair minus surface-scalar held-out forced-state prediction error under the same reused noisy surface samples",
+      "missing_data_policy": "both surface representations are required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.observation.noisy_full_vs_surface_forced_prediction_error_gap",
+      "semantic_version": "0.1.0",
+      "units": "relative-error difference",
+      "direction": "descriptive",
+      "aggregation_domain": "surface-scalar minus noisy-full-state held-out forced-state prediction error",
+      "missing_data_policy": "noisy full-state and noisy surface-scalar representations are required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.observation.clean_control_forced_prediction_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "held-out forced-state prediction error for the unchanged clean two-temperature state control",
+      "missing_data_policy": "clean full-state representation is required",
+      "uncertainty_method": "deterministic noiseless structural control"
+    }
+  ],
+  "negative_controls": [
+    "the clean two-temperature observation map is retained as the exact full-state control under the same discovery/confirmation forcing split",
+    "the noisy full-state, surface-only, and redundant surface views reuse the same named surface-noise samples so representation comparisons cannot benefit from a luckier surface-noise draw",
+    "the redundant surface pair duplicates one identical noisy measurement rather than adding an independent sensor; its observed dimension is two but its noiseless observation matrix rank remains one",
+    "state reconstruction uses only the fixed pseudoinverse of the declared observation matrix and is never fit on discovery or confirmation target states",
+    "the controlled-linear transition model is fit only on discovery transitions; held-out step, ramp, overshoot/reversal, and sign-reversal protocols remain unchanged confirmation data"
+  ],
+  "falsifiers": [
+    "the redundant noisy surface pair is credited with structural observation rank greater than one",
+    "the duplicated surface pair materially changes fixed-decoder reconstruction or forced-response error relative to the identical single noisy surface measurement",
+    "the clean full-state control ceases to reproduce the existing near-exact held-out controlled-linear result",
+    "confirmation observations influence fitting, observation-map selection, pseudoinverse policy, noise scale, or seeds",
+    "the noisy/sparse observation rung is reported as evidence about real observing-system uncertainty rather than a synthetic structural control"
+  ],
+  "split_policy": "Reuse the immutable discovery transition design and held-out forcing protocols from the forced-representation v1 rung. Discovery and confirmation use separate fixture-pinned Gaussian noise seeds. No confirmation observation enters fitting or representation selection.",
+  "preprocessing": "Apply only the fixture-declared linear observation matrices and named Gaussian measurement-noise components. Reconstruct latent state with the fixed Moore-Penrose inverse of the declared noiseless observation matrix; this decoder is not learned.",
+  "seeds": [
+    73119,
+    41873,
+    41879
+  ],
+  "stopping_rule": "Report every representation separately. Preserve the clean full-state exact control, require the redundant two-column surface view to remain structural rank one, and do not collapse reconstruction and forced-response errors into an aggregate representation score.",
+  "multiple_comparison_policy": "All four representation conditions, all four confirmation protocols, the noise standard deviation, and both observation-noise seeds are fixed by this experiment version; no representation may be removed or retuned after inspecting the results.",
+  "expected_artifact_types": [
+    "observation_degraded_representation_ood/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 1,
+    "memory_bytes": 536870912,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 120
+  }
+}

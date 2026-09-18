@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "fixture_id": "physics.two-layer-ebm-observation-degradation.v1",
+  "description": "Immutable observation-degradation rung for the two-layer EBM forced-response benchmark. Declared linear observation maps add Gaussian measurement noise, sparse state-channel access, and an exactly duplicated noisy surface channel without changing the underlying physical or forcing fixtures.",
+  "noise_std_k": 0.05,
+  "discovery_noise_seed": 41873,
+  "confirmation_noise_seed": 41879,
+  "pseudoinverse_rcond": 1e-12,
+  "representations": [
+    {
+      "representation_id": "clean_temperature_state",
+      "channels": [
+        {
+          "state_weights": [
+            1.0,
+            0.0
+          ],
+          "noise_component": null
+        },
+        {
+          "state_weights": [
+            0.0,
+            1.0
+          ],
+          "noise_component": null
+        }
+      ]
+    },
+    {
+      "representation_id": "noisy_temperature_state",
+      "channels": [
+        {
+          "state_weights": [
+            1.0,
+            0.0
+          ],
+          "noise_component": "surface"
+        },
+        {
+          "state_weights": [
+            0.0,
+            1.0
+          ],
+          "noise_component": "deep"
+        }
+      ]
+    },
+    {
+      "representation_id": "noisy_surface_scalar",
+      "channels": [
+        {
+          "state_weights": [
+            1.0,
+            0.0
+          ],
+          "noise_component": "surface"
+        }
+      ]
+    },
+    {
+      "representation_id": "redundant_noisy_surface_pair",
+      "channels": [
+        {
+          "state_weights": [
+            1.0,
+            0.0
+          ],
+          "noise_component": "surface"
+        },
+        {
+          "state_weights": [
+            1.0,
+            0.0
+          ],
+          "noise_component": "surface"
+        }
+      ]
+    }
+  ],
+  "noise_policy": "Named Gaussian noise components are generated once per physical sample and reused exactly by every channel that names the same component. The redundant surface pair therefore duplicates the same noisy measurement rather than creating a second independent sensor.",
+  "reconstruction_policy": "Use the Moore-Penrose pseudoinverse of the declared noiseless observation matrix with the fixed fixture rcond. This is a representation diagnostic, not a learned decoder.",
+  "confirmation_policy": "Use the unchanged held-out forcing protocols and transition interval declared by physics.two-layer-ebm-forced-representation.v1; confirmation observations never enter fitting."
+}

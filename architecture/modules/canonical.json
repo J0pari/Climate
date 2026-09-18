@@ -110,9 +110,9 @@
       "family": "experiment_runtime",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical local CPU runtime that resolves registered experiment/method/configuration identities, verifies immutable dataset digests, executes declared methods without substitution, and emits content-addressed artifacts, typed metrics, run manifests, and a common experiment outcome",
+      "intended_role": "canonical local CPU runtime that resolves registered experiment/method/configuration identities, verifies immutable dataset digests, executes the registered two-layer EBM representation/forcing benchmark ladder without substitution, and emits content-addressed artifacts, typed metrics, experiment-scoped run manifests, and a common experiment outcome",
       "known_gaps": [
-        "the first executable adapter is intentionally limited to multirepresentation.ebm_dynamics.v1 rather than pretending every method already shares an execution adapter",
+        "the executable adapter family is intentionally limited to the registered two-layer EBM benchmark ladder rather than pretending every Climate method already shares one execution adapter",
         "evidence remains empty when an experiment has no claim mapping; successful execution does not manufacture supporting scientific evidence",
         "workspace scheduling, cross-repository resource arbitration, and durable global run identity remain Commons responsibilities"
       ],

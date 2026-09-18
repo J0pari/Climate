@@ -618,7 +618,7 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Use exact and progressively less idealized climate controls to test what information representations preserve under forcing shifts, sparse/noisy observations, parameter degeneracy, stochastic variability, and regime dependence. The current ladder contains an exact piecewise-affine forcing reference plus a discovery-trained controlled-linear OOD rung in which full state succeeds and a surface scalar fails Markov closure under identical controls.",
+      "summary": "Use exact and progressively less idealized climate controls to test what information representations preserve under forcing shifts, sparse/noisy observations, parameter degeneracy, stochastic variability, and regime dependence. The current ladder contains exact piecewise-affine forcing, discovery-trained controlled-linear OOD closure, and an immutable observation-degradation rung separating latent-state reconstruction, held-out forced-response error, structural observation rank, and deliberately redundant coordinates.",
       "depends_on": [
         "experimentation.common_cpu_runtime"
       ],
@@ -639,7 +639,12 @@
         "reference/two_layer_forced_representation.py",
         "fixtures/physics/two-layer-ebm-forced-representation-v1.json",
         "experiments/multirepresentation-ebm-forced-ood.v1.json",
-        "tests/reference/test_two_layer_forced_representation.py"
+        "tests/reference/test_two_layer_forced_representation.py",
+        "reference/two_layer_observation_degradation.py",
+        "fixtures/physics/two-layer-ebm-observation-degradation-v1.json",
+        "experiments/multirepresentation-ebm-observation-degradation.v1.json",
+        "tests/reference/test_two_layer_observation_degradation.py",
+        "tests/test_experiment_runtime.py"
       ]
     },
     {
