@@ -44,8 +44,8 @@ jobs:
         run: python architecture/check_durable_text.py
       - name: Repository root layout
         run: python architecture/check_root_layout.py
-      - name: Source audit
-        run: python architecture/source_gates.py --summary
+      - name: Source integrity gates
+        run: python architecture/source_gates.py --strict
       - name: Static repository inspection
         run: python architecture/inspect_repository.py --json
       - name: Install CUE

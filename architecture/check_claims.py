@@ -123,6 +123,11 @@ def check(
     evidence_registry: dict[str, Any] | None = None,
 ) -> list[Finding]:
     claims, findings = _claim_map(claim_registry)
+    if evidence_registry is None:
+        findings.append(Finding(
+            "claims.evidence_registry_missing",
+            "evidence registry is required; absence must not disable evidence-reference validation",
+        ))
     evidence_ids = _evidence_ids(evidence_registry)
 
     for claim_id, claim in claims.items():

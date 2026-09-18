@@ -70,6 +70,12 @@ class ClaimIntegrityTests(unittest.TestCase):
         })
         self.assertIn("claims.decision_policy_missing", {f.code for f in findings})
 
+    def test_missing_evidence_registry_fails_closed(self):
+        findings = check_claims.check({
+            "claims": [claim("x")],
+        })
+        self.assertIn("claims.evidence_registry_missing", {f.code for f in findings})
+
     def test_evidence_reference_must_resolve_when_registry_is_supplied(self):
         findings = check_claims.check(
             {
@@ -80,12 +86,15 @@ class ClaimIntegrityTests(unittest.TestCase):
         self.assertIn("claims.evidence_missing", {f.code for f in findings})
 
     def test_valid_concept_registry_passes(self):
-        findings = check_claims.check({
-            "claims": [
-                claim("a"),
-                claim("b", depends_on=["a"]),
-            ],
-        })
+        findings = check_claims.check(
+            {
+                "claims": [
+                    claim("a"),
+                    claim("b", depends_on=["a"]),
+                ],
+            },
+            {"schema_version": 1, "evidence": []},
+        )
         self.assertEqual(findings, [])
 
 
