@@ -15,6 +15,7 @@ from src.experiment_runtime import (
     ROOT,
     MethodProcessFailure,
     _experiment_adapters,
+    _require_method_runtimes,
     _resolve_experiment_context,
     _run_process,
     run_experiment,
@@ -38,6 +39,26 @@ REGIME_FEEDBACK_EXPERIMENT = (
 
 
 class ExperimentRuntimeTests(unittest.TestCase):
+    def test_method_runtime_resolution_binds_build_and_backend_before_execution(self) -> None:
+        context = _resolve_experiment_context(
+            experiment_path=DEFAULT_EXPERIMENT,
+            output_dir=Path("unused"),
+            repository_revision="8" * 40,
+            run_scope="method-runtime",
+        )
+        baseline, candidate = _require_method_runtimes(
+            context.experiment,
+            context.methods,
+            baseline_method="physics.two_layer_ebm.exact_modes_v1",
+            baseline_backend="scipy",
+            candidate_method="multirepresentation.pydmd.linear_dmd_v1",
+            candidate_backend="pydmd",
+        )
+        self.assertTrue(baseline.implementation_build.startswith("source-sha256:"))
+        self.assertEqual(baseline.execution_identity["backend_id"], "scipy")
+        self.assertTrue(candidate.implementation_build.startswith("source-sha256:"))
+        self.assertEqual(candidate.execution_identity["backend_id"], "pydmd")
+
     def test_adapter_registry_is_explicit_and_complete_for_current_runtime(self) -> None:
         self.assertEqual(
             set(_experiment_adapters()),

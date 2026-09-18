@@ -222,6 +222,64 @@ def _require_methods(
     return baseline, candidate
 
 
+@dataclass(frozen=True)
+class MethodRuntime:
+    method_id: str
+    implementation_build: str
+    backend_id: str
+
+    @property
+    def execution_identity(self) -> dict[str, Any]:
+        return _execution_identity(
+            self.method_id,
+            self.implementation_build,
+            self.backend_id,
+        )
+
+
+def _resolved_method_runtime(
+    method_id: str,
+    descriptor: Mapping[str, Any],
+    backend_id: str,
+) -> MethodRuntime:
+    if not backend_id:
+        raise ValueError("method backend_id must be explicit")
+    return MethodRuntime(
+        method_id=method_id,
+        implementation_build=_resolved_method_build(method_id, descriptor),
+        backend_id=backend_id,
+    )
+
+
+def _require_method_runtimes(
+    experiment: Mapping[str, Any],
+    methods: Mapping[str, Mapping[str, Any]],
+    *,
+    baseline_method: str,
+    baseline_backend: str,
+    candidate_method: str,
+    candidate_backend: str,
+) -> tuple[MethodRuntime, MethodRuntime]:
+    baseline_descriptor, candidate_descriptor = _require_methods(
+        experiment,
+        methods,
+        baseline_method=baseline_method,
+        candidate_method=candidate_method,
+    )
+    return (
+        _resolved_method_runtime(
+            baseline_method,
+            baseline_descriptor,
+            baseline_backend,
+        ),
+        _resolved_method_runtime(
+            candidate_method,
+            candidate_descriptor,
+            candidate_backend,
+        ),
+    )
+
+
 class MethodProcessFailure(RuntimeError):
     """A method subprocess failed after its provenance receipt was captured."""
 
@@ -328,6 +386,17 @@ def _run_process(
 
     receipt["payload"] = payload
     return receipt
+
+
+def _run_method(
+    runtime: MethodRuntime,
+    command: Sequence[str],
+) -> dict[str, Any]:
+    return _run_process(
+        command,
+        method_id=runtime.method_id,
+        backend_id=runtime.backend_id,
+    )
 
 
 def _artifact_ref(artifact_id: str, schema: str, filename: str, data: bytes) -> dict[str, Any]:
@@ -944,6 +1013,73 @@ def _run_manifest(
     return manifest
 
 
+def _successful_two_run_manifests(
+    *,
+    experiment: Mapping[str, Any],
+    experiment_id: str,
+    revision: str,
+    run_scope: str,
+    resolved_configuration: Mapping[str, Any],
+    seeds: Sequence[int],
+    libraries: Mapping[str, str],
+    baseline_method: MethodRuntime,
+    candidate_method: MethodRuntime,
+    baseline_receipt: Mapping[str, Any],
+    candidate_receipt: Mapping[str, Any],
+    baseline_dataset_digests: Sequence[str],
+    candidate_dataset_digests: Sequence[str],
+    baseline_artifacts: Sequence[Mapping[str, Any]],
+    candidate_artifacts: Sequence[Mapping[str, Any]],
+    baseline_libraries: Mapping[str, str] | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    baseline_run = _run_manifest(
+        run_id=_scoped_run_id(
+            run_scope,
+            experiment_id,
+            baseline_method.method_id,
+        ),
+        experiment_id=experiment_id,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
+        revision=revision,
+        method_builds={
+            baseline_method.method_id: baseline_method.implementation_build,
+        },
+        execution_identity=baseline_method.execution_identity,
+        dataset_digests=baseline_dataset_digests,
+        resolved_configuration=resolved_configuration,
+        seeds=seeds,
+        libraries=(
+            dict(baseline_libraries)
+            if baseline_libraries is not None
+            else dict(libraries)
+        ),
+        receipt=baseline_receipt,
+        artifacts=baseline_artifacts,
+    )
+    candidate_run = _run_manifest(
+        run_id=_scoped_run_id(
+            run_scope,
+            experiment_id,
+            candidate_method.method_id,
+        ),
+        experiment_id=experiment_id,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
+        revision=revision,
+        method_builds={
+            baseline_method.method_id: baseline_method.implementation_build,
+            candidate_method.method_id: candidate_method.implementation_build,
+        },
+        execution_identity=candidate_method.execution_identity,
+        dataset_digests=candidate_dataset_digests,
+        resolved_configuration=resolved_configuration,
+        seeds=seeds,
+        libraries=libraries,
+        receipt=candidate_receipt,
+        artifacts=candidate_artifacts,
+    )
+    return baseline_run, candidate_run
+
+
 def _finalize_two_run_outcome(
     *,
     output_dir: Path,
@@ -988,11 +1124,13 @@ def _run_ebm_dynamics_adapter(
     resolved_configuration: Mapping[str, Any],
     configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    baseline_descriptor, candidate_descriptor = _require_methods(
+    baseline_method, candidate_method = _require_method_runtimes(
         experiment,
         methods,
         baseline_method=EBM_BASELINE_METHOD,
+        baseline_backend="scipy",
         candidate_method=EBM_DYNAMICS_CANDIDATE_METHOD,
+        candidate_backend="pydmd",
     )
     datasets = _resolve_datasets(experiment)
     if len(datasets) != 1:
@@ -1007,24 +1145,18 @@ def _run_ebm_dynamics_adapter(
     if not math.isfinite(dt_years) or dt_years <= 0.0:
         raise ValueError("transition_dt_years must be finite and positive")
 
-    baseline_build = _resolved_method_build(
-        EBM_BASELINE_METHOD, baseline_descriptor
-    )
-    candidate_build = _resolved_method_build(
-        EBM_DYNAMICS_CANDIDATE_METHOD, candidate_descriptor
-    )
-    baseline_receipt = _run_process(
+    baseline_receipt = _run_method(
+        baseline_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_energy_balance.py"),
             "--fixture",
             str(fixture_path),
             "--json",
-        ),
-        method_id=EBM_BASELINE_METHOD,
-        backend_id="scipy",
+        )
     )
-    candidate_receipt = _run_process(
+    candidate_receipt = _run_method(
+        candidate_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_representation_dynamics.py"),
@@ -1033,9 +1165,7 @@ def _run_ebm_dynamics_adapter(
             "--dt-years",
             repr(dt_years),
             "--json",
-        ),
-        method_id=EBM_DYNAMICS_CANDIDATE_METHOD,
-        backend_id="pydmd",
+        )
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1090,44 +1220,23 @@ def _run_ebm_dynamics_adapter(
         "pydmd": importlib.metadata.version("pydmd"),
     }
     seeds = _validated_seeds(experiment)
-    baseline_identity = _execution_identity(
-        EBM_BASELINE_METHOD, baseline_build, "scipy"
-    )
-    candidate_identity = _execution_identity(
-        EBM_DYNAMICS_CANDIDATE_METHOD, candidate_build, "pydmd"
-    )
-    baseline_run = _run_manifest(
-        run_id=_scoped_run_id(run_scope, EBM_DYNAMICS_EXPERIMENT, EBM_BASELINE_METHOD),
+    baseline_run, candidate_run = _successful_two_run_manifests(
+        experiment=experiment,
         experiment_id=EBM_DYNAMICS_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
-        method_builds={EBM_BASELINE_METHOD: baseline_build},
-        execution_identity=baseline_identity,
-        dataset_digests=[dataset["digest"]],
-        resolved_configuration=resolved_configuration,
-        seeds=seeds,
-        libraries={"numpy": libraries["numpy"], "scipy": libraries["scipy"]},
-        receipt=baseline_receipt,
-        artifacts=[baseline_artifact],
-    )
-    candidate_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope, EBM_DYNAMICS_EXPERIMENT, EBM_DYNAMICS_CANDIDATE_METHOD
-        ),
-        experiment_id=EBM_DYNAMICS_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
-        revision=repository_revision,
-        method_builds={
-            EBM_BASELINE_METHOD: baseline_build,
-            EBM_DYNAMICS_CANDIDATE_METHOD: candidate_build,
-        },
-        execution_identity=candidate_identity,
-        dataset_digests=[dataset["digest"]],
+        run_scope=run_scope,
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries=libraries,
-        receipt=candidate_receipt,
-        artifacts=[candidate_artifact, metric_artifact],
+        baseline_method=baseline_method,
+        candidate_method=candidate_method,
+        baseline_receipt=baseline_receipt,
+        candidate_receipt=candidate_receipt,
+        baseline_dataset_digests=[dataset["digest"]],
+        candidate_dataset_digests=[dataset["digest"]],
+        baseline_artifacts=[baseline_artifact],
+        candidate_artifacts=[candidate_artifact, metric_artifact],
+        baseline_libraries={"numpy": libraries["numpy"], "scipy": libraries["scipy"]},
     )
     return _finalize_two_run_outcome(
         output_dir=output_dir,
@@ -1149,11 +1258,13 @@ def _run_ebm_forcing_adapter(
     resolved_configuration: Mapping[str, Any],
     configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    baseline_descriptor, candidate_descriptor = _require_methods(
+    baseline_method, candidate_method = _require_method_runtimes(
         experiment,
         methods,
         baseline_method=EBM_BASELINE_METHOD,
+        baseline_backend="scipy",
         candidate_method=EBM_FORCING_CANDIDATE_METHOD,
+        candidate_backend="scipy",
     )
     datasets = _resolve_datasets(experiment)
     if len(datasets) != 2:
@@ -1169,24 +1280,18 @@ def _run_ebm_forcing_adapter(
     except KeyError as exc:
         raise ValueError("EBM forcing adapter datasets do not match registered identities") from exc
 
-    baseline_build = _resolved_method_build(
-        EBM_BASELINE_METHOD, baseline_descriptor
-    )
-    candidate_build = _resolved_method_build(
-        EBM_FORCING_CANDIDATE_METHOD, candidate_descriptor
-    )
-    baseline_receipt = _run_process(
+    baseline_receipt = _run_method(
+        baseline_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_energy_balance.py"),
             "--fixture",
             str(ebm_fixture_path),
             "--json",
-        ),
-        method_id=EBM_BASELINE_METHOD,
-        backend_id="scipy",
+        )
     )
-    candidate_receipt = _run_process(
+    candidate_receipt = _run_method(
+        candidate_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_forcing_protocols.py"),
@@ -1195,9 +1300,7 @@ def _run_ebm_forcing_adapter(
             "--protocol-fixture",
             str(protocol_fixture_path),
             "--json",
-        ),
-        method_id=EBM_FORCING_CANDIDATE_METHOD,
-        backend_id="scipy",
+        )
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1242,44 +1345,22 @@ def _run_ebm_forcing_adapter(
         "scipy": importlib.metadata.version("scipy"),
     }
     seeds = _validated_seeds(experiment)
-    baseline_identity = _execution_identity(
-        EBM_BASELINE_METHOD, baseline_build, "scipy"
-    )
-    candidate_identity = _execution_identity(
-        EBM_FORCING_CANDIDATE_METHOD, candidate_build, "scipy"
-    )
-    baseline_run = _run_manifest(
-        run_id=_scoped_run_id(run_scope, EBM_FORCING_EXPERIMENT, EBM_BASELINE_METHOD),
+    baseline_run, candidate_run = _successful_two_run_manifests(
+        experiment=experiment,
         experiment_id=EBM_FORCING_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
-        method_builds={EBM_BASELINE_METHOD: baseline_build},
-        execution_identity=baseline_identity,
-        dataset_digests=[base_dataset["digest"]],
+        run_scope=run_scope,
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries=libraries,
-        receipt=baseline_receipt,
-        artifacts=[baseline_artifact],
-    )
-    candidate_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope, EBM_FORCING_EXPERIMENT, EBM_FORCING_CANDIDATE_METHOD
-        ),
-        experiment_id=EBM_FORCING_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
-        revision=repository_revision,
-        method_builds={
-            EBM_BASELINE_METHOD: baseline_build,
-            EBM_FORCING_CANDIDATE_METHOD: candidate_build,
-        },
-        execution_identity=candidate_identity,
-        dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
-        resolved_configuration=resolved_configuration,
-        seeds=seeds,
-        libraries=libraries,
-        receipt=candidate_receipt,
-        artifacts=[candidate_artifact, metric_artifact],
+        baseline_method=baseline_method,
+        candidate_method=candidate_method,
+        baseline_receipt=baseline_receipt,
+        candidate_receipt=candidate_receipt,
+        baseline_dataset_digests=[base_dataset["digest"]],
+        candidate_dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        baseline_artifacts=[baseline_artifact],
+        candidate_artifacts=[candidate_artifact, metric_artifact],
     )
     return _finalize_two_run_outcome(
         output_dir=output_dir,
@@ -1301,11 +1382,13 @@ def _run_ebm_forced_ood_adapter(
     resolved_configuration: Mapping[str, Any],
     configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    baseline_descriptor, candidate_descriptor = _require_methods(
+    baseline_method, candidate_method = _require_method_runtimes(
         experiment,
         methods,
         baseline_method=EBM_FORCING_CANDIDATE_METHOD,
+        baseline_backend="scipy",
         candidate_method=EBM_FORCED_OOD_CANDIDATE_METHOD,
+        candidate_backend="numpy.linalg",
     )
     datasets = _resolve_datasets(experiment)
     if len(datasets) != 3:
@@ -1326,13 +1409,8 @@ def _run_ebm_forced_ood_adapter(
             "EBM forced-OOD adapter datasets do not match registered identities"
         ) from exc
 
-    baseline_build = _resolved_method_build(
-        EBM_FORCING_CANDIDATE_METHOD, baseline_descriptor
-    )
-    candidate_build = _resolved_method_build(
-        EBM_FORCED_OOD_CANDIDATE_METHOD, candidate_descriptor
-    )
-    baseline_receipt = _run_process(
+    baseline_receipt = _run_method(
+        baseline_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_forcing_protocols.py"),
@@ -1341,11 +1419,10 @@ def _run_ebm_forced_ood_adapter(
             "--protocol-fixture",
             str(protocol_fixture_path),
             "--json",
-        ),
-        method_id=EBM_FORCING_CANDIDATE_METHOD,
-        backend_id="scipy",
+        )
     )
-    candidate_receipt = _run_process(
+    candidate_receipt = _run_method(
+        candidate_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_forced_representation.py"),
@@ -1356,9 +1433,7 @@ def _run_ebm_forced_ood_adapter(
             "--training-fixture",
             str(training_fixture_path),
             "--json",
-        ),
-        method_id=EBM_FORCED_OOD_CANDIDATE_METHOD,
-        backend_id="numpy.linalg",
+        )
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1410,50 +1485,22 @@ def _run_ebm_forced_ood_adapter(
         "scipy": importlib.metadata.version("scipy"),
     }
     seeds = _validated_seeds(experiment)
-    baseline_identity = _execution_identity(
-        EBM_FORCING_CANDIDATE_METHOD, baseline_build, "scipy"
-    )
-    candidate_identity = _execution_identity(
-        EBM_FORCED_OOD_CANDIDATE_METHOD, candidate_build, "numpy.linalg"
-    )
-    baseline_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope, EBM_FORCED_OOD_EXPERIMENT, EBM_FORCING_CANDIDATE_METHOD
-        ),
+    baseline_run, candidate_run = _successful_two_run_manifests(
+        experiment=experiment,
         experiment_id=EBM_FORCED_OOD_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
-        method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
-        execution_identity=baseline_identity,
-        dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        run_scope=run_scope,
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries=libraries,
-        receipt=baseline_receipt,
-        artifacts=[baseline_artifact],
-    )
-    candidate_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope, EBM_FORCED_OOD_EXPERIMENT, EBM_FORCED_OOD_CANDIDATE_METHOD
-        ),
-        experiment_id=EBM_FORCED_OOD_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
-        revision=repository_revision,
-        method_builds={
-            EBM_FORCING_CANDIDATE_METHOD: baseline_build,
-            EBM_FORCED_OOD_CANDIDATE_METHOD: candidate_build,
-        },
-        execution_identity=candidate_identity,
-        dataset_digests=[
-            base_dataset["digest"],
-            protocol_dataset["digest"],
-            training_dataset["digest"],
-        ],
-        resolved_configuration=resolved_configuration,
-        seeds=seeds,
-        libraries=libraries,
-        receipt=candidate_receipt,
-        artifacts=[candidate_artifact, metric_artifact],
+        baseline_method=baseline_method,
+        candidate_method=candidate_method,
+        baseline_receipt=baseline_receipt,
+        candidate_receipt=candidate_receipt,
+        baseline_dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        candidate_dataset_digests=[base_dataset["digest"], protocol_dataset["digest"], training_dataset["digest"]],
+        baseline_artifacts=[baseline_artifact],
+        candidate_artifacts=[candidate_artifact, metric_artifact],
     )
     return _finalize_two_run_outcome(
         output_dir=output_dir,
@@ -1475,11 +1522,13 @@ def _run_ebm_observation_degradation_adapter(
     resolved_configuration: Mapping[str, Any],
     configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    baseline_descriptor, candidate_descriptor = _require_methods(
+    baseline_method, candidate_method = _require_method_runtimes(
         experiment,
         methods,
         baseline_method=EBM_FORCING_CANDIDATE_METHOD,
+        baseline_backend="scipy",
         candidate_method=EBM_FORCED_OOD_CANDIDATE_METHOD,
+        candidate_backend="numpy.linalg",
     )
     datasets = _resolve_datasets(experiment)
     if len(datasets) != 4:
@@ -1505,13 +1554,8 @@ def _run_ebm_observation_degradation_adapter(
             "EBM observation-degradation datasets do not match registered identities"
         ) from exc
 
-    baseline_build = _resolved_method_build(
-        EBM_FORCING_CANDIDATE_METHOD, baseline_descriptor
-    )
-    candidate_build = _resolved_method_build(
-        EBM_FORCED_OOD_CANDIDATE_METHOD, candidate_descriptor
-    )
-    baseline_receipt = _run_process(
+    baseline_receipt = _run_method(
+        baseline_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_forcing_protocols.py"),
@@ -1520,11 +1564,10 @@ def _run_ebm_observation_degradation_adapter(
             "--protocol-fixture",
             str(protocol_fixture_path),
             "--json",
-        ),
-        method_id=EBM_FORCING_CANDIDATE_METHOD,
-        backend_id="scipy",
+        )
     )
-    candidate_receipt = _run_process(
+    candidate_receipt = _run_method(
+        candidate_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_observation_degradation.py"),
@@ -1537,9 +1580,7 @@ def _run_ebm_observation_degradation_adapter(
             "--observation-fixture",
             str(observation_fixture_path),
             "--json",
-        ),
-        method_id=EBM_FORCED_OOD_CANDIDATE_METHOD,
-        backend_id="numpy.linalg",
+        )
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1605,55 +1646,22 @@ def _run_ebm_observation_degradation_adapter(
         "scipy": importlib.metadata.version("scipy"),
     }
     seeds = _validated_seeds(experiment)
-    baseline_identity = _execution_identity(
-        EBM_FORCING_CANDIDATE_METHOD, baseline_build, "scipy"
-    )
-    candidate_identity = _execution_identity(
-        EBM_FORCED_OOD_CANDIDATE_METHOD, candidate_build, "numpy.linalg"
-    )
-    baseline_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope,
-            EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
-            EBM_FORCING_CANDIDATE_METHOD,
-        ),
+    baseline_run, candidate_run = _successful_two_run_manifests(
+        experiment=experiment,
         experiment_id=EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
-        method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
-        execution_identity=baseline_identity,
-        dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        run_scope=run_scope,
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries=libraries,
-        receipt=baseline_receipt,
-        artifacts=[baseline_artifact],
-    )
-    candidate_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope,
-            EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
-            EBM_FORCED_OOD_CANDIDATE_METHOD,
-        ),
-        experiment_id=EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
-        revision=repository_revision,
-        method_builds={
-            EBM_FORCING_CANDIDATE_METHOD: baseline_build,
-            EBM_FORCED_OOD_CANDIDATE_METHOD: candidate_build,
-        },
-        execution_identity=candidate_identity,
-        dataset_digests=[
-            base_dataset["digest"],
-            protocol_dataset["digest"],
-            training_dataset["digest"],
-            observation_dataset["digest"],
-        ],
-        resolved_configuration=resolved_configuration,
-        seeds=seeds,
-        libraries=libraries,
-        receipt=candidate_receipt,
-        artifacts=[candidate_artifact, metric_artifact],
+        baseline_method=baseline_method,
+        candidate_method=candidate_method,
+        baseline_receipt=baseline_receipt,
+        candidate_receipt=candidate_receipt,
+        baseline_dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        candidate_dataset_digests=[base_dataset["digest"], protocol_dataset["digest"], training_dataset["digest"], observation_dataset["digest"]],
+        baseline_artifacts=[baseline_artifact],
+        candidate_artifacts=[candidate_artifact, metric_artifact],
     )
     return _finalize_two_run_outcome(
         output_dir=output_dir,
@@ -1675,11 +1683,13 @@ def _run_ebm_parameter_identifiability_adapter(
     resolved_configuration: Mapping[str, Any],
     configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    baseline_descriptor, candidate_descriptor = _require_methods(
+    baseline_method, candidate_method = _require_method_runtimes(
         experiment,
         methods,
         baseline_method=EBM_FORCING_CANDIDATE_METHOD,
+        baseline_backend="scipy",
         candidate_method=EBM_PARAMETER_SENSITIVITY_METHOD,
+        candidate_backend="numpy.linalg+scipy",
     )
     datasets = _resolve_datasets(experiment)
     if len(datasets) != 3:
@@ -1702,13 +1712,8 @@ def _run_ebm_parameter_identifiability_adapter(
             "EBM parameter-identifiability datasets do not match registered identities"
         ) from exc
 
-    baseline_build = _resolved_method_build(
-        EBM_FORCING_CANDIDATE_METHOD, baseline_descriptor
-    )
-    candidate_build = _resolved_method_build(
-        EBM_PARAMETER_SENSITIVITY_METHOD, candidate_descriptor
-    )
-    baseline_receipt = _run_process(
+    baseline_receipt = _run_method(
+        baseline_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_forcing_protocols.py"),
@@ -1717,11 +1722,10 @@ def _run_ebm_parameter_identifiability_adapter(
             "--protocol-fixture",
             str(protocol_fixture_path),
             "--json",
-        ),
-        method_id=EBM_FORCING_CANDIDATE_METHOD,
-        backend_id="scipy",
+        )
     )
-    candidate_receipt = _run_process(
+    candidate_receipt = _run_method(
+        candidate_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_parameter_identifiability.py"),
@@ -1732,9 +1736,7 @@ def _run_ebm_parameter_identifiability_adapter(
             "--parameter-fixture",
             str(parameter_fixture_path),
             "--json",
-        ),
-        method_id=EBM_PARAMETER_SENSITIVITY_METHOD,
-        backend_id="numpy.linalg+scipy",
+        )
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1793,54 +1795,22 @@ def _run_ebm_parameter_identifiability_adapter(
         "scipy": importlib.metadata.version("scipy"),
     }
     seeds = _validated_seeds(experiment)
-    baseline_identity = _execution_identity(
-        EBM_FORCING_CANDIDATE_METHOD, baseline_build, "scipy"
-    )
-    candidate_identity = _execution_identity(
-        EBM_PARAMETER_SENSITIVITY_METHOD, candidate_build, "numpy.linalg+scipy"
-    )
-    baseline_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope,
-            EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
-            EBM_FORCING_CANDIDATE_METHOD,
-        ),
+    baseline_run, candidate_run = _successful_two_run_manifests(
+        experiment=experiment,
         experiment_id=EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
-        method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
-        execution_identity=baseline_identity,
-        dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        run_scope=run_scope,
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries=libraries,
-        receipt=baseline_receipt,
-        artifacts=[baseline_artifact],
-    )
-    candidate_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope,
-            EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
-            EBM_PARAMETER_SENSITIVITY_METHOD,
-        ),
-        experiment_id=EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
-        revision=repository_revision,
-        method_builds={
-            EBM_FORCING_CANDIDATE_METHOD: baseline_build,
-            EBM_PARAMETER_SENSITIVITY_METHOD: candidate_build,
-        },
-        execution_identity=candidate_identity,
-        dataset_digests=[
-            base_dataset["digest"],
-            protocol_dataset["digest"],
-            parameter_dataset["digest"],
-        ],
-        resolved_configuration=resolved_configuration,
-        seeds=seeds,
-        libraries=libraries,
-        receipt=candidate_receipt,
-        artifacts=[candidate_artifact, metric_artifact],
+        baseline_method=baseline_method,
+        candidate_method=candidate_method,
+        baseline_receipt=baseline_receipt,
+        candidate_receipt=candidate_receipt,
+        baseline_dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        candidate_dataset_digests=[base_dataset["digest"], protocol_dataset["digest"], parameter_dataset["digest"]],
+        baseline_artifacts=[baseline_artifact],
+        candidate_artifacts=[candidate_artifact, metric_artifact],
     )
     return _finalize_two_run_outcome(
         output_dir=output_dir,
@@ -1862,11 +1832,13 @@ def _run_ebm_stochastic_statistics_adapter(
     resolved_configuration: Mapping[str, Any],
     configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    baseline_descriptor, candidate_descriptor = _require_methods(
+    baseline_method, candidate_method = _require_method_runtimes(
         experiment,
         methods,
         baseline_method=EBM_STOCHASTIC_BASELINE_METHOD,
+        baseline_backend="numpy.random+scipy",
         candidate_method=EBM_STOCHASTIC_STATISTICS_METHOD,
+        candidate_backend="numpy.linalg+scipy",
     )
     datasets = _resolve_datasets(experiment)
     if len(datasets) != 2:
@@ -1886,13 +1858,8 @@ def _run_ebm_stochastic_statistics_adapter(
             "EBM stochastic-statistics datasets do not match registered identities"
         ) from exc
 
-    baseline_build = _resolved_method_build(
-        EBM_STOCHASTIC_BASELINE_METHOD, baseline_descriptor
-    )
-    candidate_build = _resolved_method_build(
-        EBM_STOCHASTIC_STATISTICS_METHOD, candidate_descriptor
-    )
-    baseline_receipt = _run_process(
+    baseline_receipt = _run_method(
+        baseline_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_stochastic_variability.py"),
@@ -1901,11 +1868,10 @@ def _run_ebm_stochastic_statistics_adapter(
             "--stochastic-fixture",
             str(stochastic_fixture_path),
             "--json",
-        ),
-        method_id=EBM_STOCHASTIC_BASELINE_METHOD,
-        backend_id="numpy.random+scipy",
+        )
     )
-    candidate_receipt = _run_process(
+    candidate_receipt = _run_method(
+        candidate_method,
         (
             sys.executable,
             str(
@@ -1918,9 +1884,7 @@ def _run_ebm_stochastic_statistics_adapter(
             "--stochastic-fixture",
             str(stochastic_fixture_path),
             "--json",
-        ),
-        method_id=EBM_STOCHASTIC_STATISTICS_METHOD,
-        backend_id="numpy.linalg+scipy",
+        )
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1982,51 +1946,22 @@ def _run_ebm_stochastic_statistics_adapter(
         "numpy": importlib.metadata.version("numpy"),
         "scipy": importlib.metadata.version("scipy"),
     }
-    baseline_identity = _execution_identity(
-        EBM_STOCHASTIC_BASELINE_METHOD, baseline_build, "numpy.random+scipy"
-    )
-    candidate_identity = _execution_identity(
-        EBM_STOCHASTIC_STATISTICS_METHOD, candidate_build, "numpy.linalg+scipy"
-    )
-    dataset_digests = [base_dataset["digest"], stochastic_dataset["digest"]]
-    baseline_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope,
-            EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
-            EBM_STOCHASTIC_BASELINE_METHOD,
-        ),
+    baseline_run, candidate_run = _successful_two_run_manifests(
+        experiment=experiment,
         experiment_id=EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
-        method_builds={EBM_STOCHASTIC_BASELINE_METHOD: baseline_build},
-        execution_identity=baseline_identity,
-        dataset_digests=dataset_digests,
+        run_scope=run_scope,
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries=libraries,
-        receipt=baseline_receipt,
-        artifacts=[baseline_artifact],
-    )
-    candidate_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope,
-            EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
-            EBM_STOCHASTIC_STATISTICS_METHOD,
-        ),
-        experiment_id=EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
-        revision=repository_revision,
-        method_builds={
-            EBM_STOCHASTIC_BASELINE_METHOD: baseline_build,
-            EBM_STOCHASTIC_STATISTICS_METHOD: candidate_build,
-        },
-        execution_identity=candidate_identity,
-        dataset_digests=dataset_digests,
-        resolved_configuration=resolved_configuration,
-        seeds=seeds,
-        libraries=libraries,
-        receipt=candidate_receipt,
-        artifacts=[candidate_artifact, metric_artifact],
+        baseline_method=baseline_method,
+        candidate_method=candidate_method,
+        baseline_receipt=baseline_receipt,
+        candidate_receipt=candidate_receipt,
+        baseline_dataset_digests=dataset_digests,
+        candidate_dataset_digests=dataset_digests,
+        baseline_artifacts=[baseline_artifact],
+        candidate_artifacts=[candidate_artifact, metric_artifact],
     )
     return _finalize_two_run_outcome(
         output_dir=output_dir,
@@ -2048,11 +1983,13 @@ def _run_ebm_regime_feedback_adapter(
     resolved_configuration: Mapping[str, Any],
     configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    baseline_descriptor, candidate_descriptor = _require_methods(
+    baseline_method, candidate_method = _require_method_runtimes(
         experiment,
         methods,
         baseline_method=EBM_REGIME_BASELINE_METHOD,
+        baseline_backend="numpy+scipy",
         candidate_method=EBM_REGIME_GATED_METHOD,
+        candidate_backend="numpy.linalg+scipy",
     )
     datasets = _resolve_datasets(experiment)
     if len(datasets) != 2:
@@ -2070,13 +2007,8 @@ def _run_ebm_regime_feedback_adapter(
             "EBM regime-feedback datasets do not match registered identities"
         ) from exc
 
-    baseline_build = _resolved_method_build(
-        EBM_REGIME_BASELINE_METHOD, baseline_descriptor
-    )
-    candidate_build = _resolved_method_build(
-        EBM_REGIME_GATED_METHOD, candidate_descriptor
-    )
-    baseline_receipt = _run_process(
+    baseline_receipt = _run_method(
+        baseline_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_regime_feedback.py"),
@@ -2085,11 +2017,10 @@ def _run_ebm_regime_feedback_adapter(
             "--regime-fixture",
             str(regime_fixture_path),
             "--json",
-        ),
-        method_id=EBM_REGIME_BASELINE_METHOD,
-        backend_id="numpy+scipy",
+        )
     )
-    candidate_receipt = _run_process(
+    candidate_receipt = _run_method(
+        candidate_method,
         (
             sys.executable,
             str(ROOT / "reference" / "two_layer_regime_representation.py"),
@@ -2098,9 +2029,7 @@ def _run_ebm_regime_feedback_adapter(
             "--regime-fixture",
             str(regime_fixture_path),
             "--json",
-        ),
-        method_id=EBM_REGIME_GATED_METHOD,
-        backend_id="numpy.linalg+scipy",
+        )
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -2165,51 +2094,22 @@ def _run_ebm_regime_feedback_adapter(
         "numpy": importlib.metadata.version("numpy"),
         "scipy": importlib.metadata.version("scipy"),
     }
-    baseline_identity = _execution_identity(
-        EBM_REGIME_BASELINE_METHOD, baseline_build, "numpy+scipy"
-    )
-    candidate_identity = _execution_identity(
-        EBM_REGIME_GATED_METHOD, candidate_build, "numpy.linalg+scipy"
-    )
-    dataset_digests = [base_dataset["digest"], regime_dataset["digest"]]
-    baseline_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope,
-            EBM_REGIME_FEEDBACK_EXPERIMENT,
-            EBM_REGIME_BASELINE_METHOD,
-        ),
+    baseline_run, candidate_run = _successful_two_run_manifests(
+        experiment=experiment,
         experiment_id=EBM_REGIME_FEEDBACK_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
-        method_builds={EBM_REGIME_BASELINE_METHOD: baseline_build},
-        execution_identity=baseline_identity,
-        dataset_digests=dataset_digests,
+        run_scope=run_scope,
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries=libraries,
-        receipt=baseline_receipt,
-        artifacts=[baseline_artifact],
-    )
-    candidate_run = _run_manifest(
-        run_id=_scoped_run_id(
-            run_scope,
-            EBM_REGIME_FEEDBACK_EXPERIMENT,
-            EBM_REGIME_GATED_METHOD,
-        ),
-        experiment_id=EBM_REGIME_FEEDBACK_EXPERIMENT,
-        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
-        revision=repository_revision,
-        method_builds={
-            EBM_REGIME_BASELINE_METHOD: baseline_build,
-            EBM_REGIME_GATED_METHOD: candidate_build,
-        },
-        execution_identity=candidate_identity,
-        dataset_digests=dataset_digests,
-        resolved_configuration=resolved_configuration,
-        seeds=seeds,
-        libraries=libraries,
-        receipt=candidate_receipt,
-        artifacts=[candidate_artifact, metric_artifact],
+        baseline_method=baseline_method,
+        candidate_method=candidate_method,
+        baseline_receipt=baseline_receipt,
+        candidate_receipt=candidate_receipt,
+        baseline_dataset_digests=dataset_digests,
+        candidate_dataset_digests=dataset_digests,
+        baseline_artifacts=[baseline_artifact],
+        candidate_artifacts=[candidate_artifact, metric_artifact],
     )
     return _finalize_two_run_outcome(
         output_dir=output_dir,
