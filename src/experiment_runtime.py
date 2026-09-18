@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Canonical local CPU experiment runtime for Climate's common evidence spine.
 
-The first adapters execute registered two-layer EBM representation-dynamics
-forcing-protocol, and discovery-trained forced-OOD experiments through one runtime. The runtime owns identity
-resolution, immutable input checks,
-subprocess receipts, content-addressed artifacts, typed metric results, and
-contract-shaped run/outcome records. Scientific methods remain in their own
-modules and are invoked without changing their semantics.
+The registered two-layer EBM benchmark ladder executes through one runtime:
+representation dynamics, exact forcing protocols, discovery-trained forced OOD,
+observation degradation, and local parameter-sensitivity rank. The runtime owns
+identity resolution, immutable input checks, subprocess receipts,
+content-addressed artifacts, typed metric results, and contract-shaped
+run/outcome records. Scientific methods remain in their own modules and are
+invoked without changing their semantics.
 """
 from __future__ import annotations
 
@@ -35,10 +36,16 @@ EBM_FORCED_OOD_EXPERIMENT = "multirepresentation.ebm_forced_ood.v1"
 EBM_OBSERVATION_DEGRADATION_EXPERIMENT = (
     "multirepresentation.ebm_observation_degradation.v1"
 )
+EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT = (
+    "physics.two_layer_ebm.parameter_identifiability.v1"
+)
 EBM_BASELINE_METHOD = "physics.two_layer_ebm.exact_modes_v1"
 EBM_DYNAMICS_CANDIDATE_METHOD = "dynamics.dmd.pydmd_v1"
 EBM_FORCING_CANDIDATE_METHOD = "physics.two_layer_ebm.affine_forcing_v1"
 EBM_FORCED_OOD_CANDIDATE_METHOD = "dynamics.affine_control_lstsq.numpy_v1"
+EBM_PARAMETER_SENSITIVITY_METHOD = (
+    "physics.two_layer_ebm.log_parameter_sensitivity_v1"
+)
 RUNNABLE_MATURITIES = {
     "runnable", "verified", "validated", "replicated", "decision-eligible"
 }
@@ -506,6 +513,65 @@ def _derive_observation_degradation_metrics(
         ]
     )
     return results
+
+
+def _derive_parameter_identifiability_metrics(
+    experiment: Mapping[str, Any], candidate: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    definitions = _metric_definitions(experiment)
+    equilibrium = candidate.get("equilibrium")
+    transient = candidate.get("transient")
+    if not isinstance(equilibrium, dict) or not isinstance(transient, dict):
+        raise ValueError(
+            "parameter-identifiability candidate lacks sensitivity diagnostics"
+        )
+    condition = transient.get("condition_number")
+    if transient.get("condition_number_status") != "finite" or condition is None:
+        raise ValueError(
+            "parameter-identifiability transient sensitivity must be full rank"
+        )
+    return [
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.parameter.equilibrium_local_sensitivity_rank"
+            ],
+            int(equilibrium["rank"]),
+        ),
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.parameter.transient_local_sensitivity_rank"
+            ],
+            int(transient["rank"]),
+        ),
+        _finite_metric(
+            definitions["physics.two_layer_ebm.parameter.local_rank_gain"],
+            int(candidate["local_rank_gain"]),
+        ),
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.parameter.equilibrium_invisible_parameter_count"
+            ],
+            int(candidate["equilibrium_invisible_parameter_count"]),
+        ),
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.parameter.transient_condition_number"
+            ],
+            float(condition),
+        ),
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.parameter.equilibrium_step_consistency_relative_frobenius"
+            ],
+            float(candidate["equilibrium_step_consistency_relative_frobenius"]),
+        ),
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.parameter.transient_step_consistency_relative_frobenius"
+            ],
+            float(candidate["transient_step_consistency_relative_frobenius"]),
+        ),
+    ]
 
 
 def _validated_seeds(experiment: Mapping[str, Any]) -> list[int]:
@@ -1264,6 +1330,191 @@ def _run_ebm_observation_degradation_adapter(
     return outcome
 
 
+def _run_ebm_parameter_identifiability_adapter(
+    *,
+    experiment: Mapping[str, Any],
+    output_dir: Path,
+    repository_revision: str,
+    run_scope: str,
+    methods: Mapping[str, Mapping[str, Any]],
+    resolved_configuration: Mapping[str, Any],
+) -> dict[str, Any]:
+    baseline_descriptor, candidate_descriptor = _require_methods(
+        experiment,
+        methods,
+        baseline_method=EBM_FORCING_CANDIDATE_METHOD,
+        candidate_method=EBM_PARAMETER_SENSITIVITY_METHOD,
+    )
+    datasets = _resolve_datasets(experiment)
+    if len(datasets) != 3:
+        raise ValueError(
+            "EBM parameter-identifiability adapter requires exactly three datasets"
+        )
+    by_id = {dataset["id"]: (dataset, path) for dataset, path in datasets}
+    try:
+        base_dataset, ebm_fixture_path = by_id[
+            "physics.two_layer_ebm.geoffroy_mean.v1"
+        ]
+        protocol_dataset, protocol_fixture_path = by_id[
+            "physics.two_layer_ebm.forcing_protocols.v1"
+        ]
+        parameter_dataset, parameter_fixture_path = by_id[
+            "physics.two_layer_ebm.parameter_identifiability.v1"
+        ]
+    except KeyError as exc:
+        raise ValueError(
+            "EBM parameter-identifiability datasets do not match registered identities"
+        ) from exc
+
+    baseline_build = _resolved_method_build(
+        EBM_FORCING_CANDIDATE_METHOD, baseline_descriptor
+    )
+    candidate_build = _resolved_method_build(
+        EBM_PARAMETER_SENSITIVITY_METHOD, candidate_descriptor
+    )
+    baseline_receipt = _run_process(
+        (
+            sys.executable,
+            str(ROOT / "reference" / "two_layer_forcing_protocols.py"),
+            "--ebm-fixture",
+            str(ebm_fixture_path),
+            "--protocol-fixture",
+            str(protocol_fixture_path),
+            "--json",
+        )
+    )
+    candidate_receipt = _run_process(
+        (
+            sys.executable,
+            str(ROOT / "reference" / "two_layer_parameter_identifiability.py"),
+            "--ebm-fixture",
+            str(ebm_fixture_path),
+            "--protocol-fixture",
+            str(protocol_fixture_path),
+            "--parameter-fixture",
+            str(parameter_fixture_path),
+            "--json",
+        )
+    )
+    baseline_payload = baseline_receipt["payload"]
+    candidate_payload = candidate_receipt["payload"]
+    if candidate_payload.get("ebm_fixture_id") != baseline_payload.get("ebm_fixture_id"):
+        raise RuntimeError(
+            "parameter-identifiability candidate and baseline resolved different EBM fixtures"
+        )
+    if (
+        candidate_payload.get("forcing_protocol_fixture_id")
+        != baseline_payload.get("fixture_id")
+    ):
+        raise RuntimeError(
+            "parameter-identifiability candidate and baseline resolved different forcing protocols"
+        )
+    expected_parameter_fixture_id = _load_json(parameter_fixture_path).get("fixture_id")
+    if candidate_payload.get("fixture_id") != expected_parameter_fixture_id:
+        raise RuntimeError(
+            "parameter-identifiability candidate resolved unexpected sensitivity fixture"
+        )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    baseline_bytes = _write_json(
+        output_dir / "baseline-forcing-protocols.json", baseline_payload
+    )
+    candidate_bytes = _write_json(
+        output_dir / "candidate-parameter-identifiability.json", candidate_payload
+    )
+    baseline_artifact = _artifact_ref(
+        "physics.two_layer_ebm.parameter_identifiability.exact_forcing",
+        "two_layer_forcing_response/v1",
+        "baseline-forcing-protocols.json",
+        baseline_bytes,
+    )
+    candidate_artifact = _artifact_ref(
+        "physics.two_layer_ebm.parameter_identifiability.sensitivity_rank",
+        "parameter_sensitivity_rank/v1",
+        "candidate-parameter-identifiability.json",
+        candidate_bytes,
+    )
+    metrics = _derive_parameter_identifiability_metrics(
+        experiment, candidate_payload
+    )
+    metric_bytes = _write_json(
+        output_dir / "metric-results.json",
+        {"schema_version": 1, "metrics": metrics},
+    )
+    metric_artifact = _artifact_ref(
+        "physics.two_layer_ebm.parameter_identifiability.metric_results",
+        "metric_results/v1",
+        "metric-results.json",
+        metric_bytes,
+    )
+
+    libraries = {
+        "numpy": importlib.metadata.version("numpy"),
+        "scipy": importlib.metadata.version("scipy"),
+    }
+    seeds = _validated_seeds(experiment)
+    baseline_identity = _execution_identity(
+        EBM_FORCING_CANDIDATE_METHOD, baseline_build, "scipy"
+    )
+    candidate_identity = _execution_identity(
+        EBM_PARAMETER_SENSITIVITY_METHOD, candidate_build, "numpy.linalg+scipy"
+    )
+    baseline_run = _run_manifest(
+        run_id=_scoped_run_id(
+            run_scope,
+            EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+            EBM_FORCING_CANDIDATE_METHOD,
+        ),
+        experiment_id=EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+        revision=repository_revision,
+        method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
+        execution_identity=baseline_identity,
+        dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        resolved_configuration=resolved_configuration,
+        seeds=seeds,
+        libraries=libraries,
+        receipt=baseline_receipt,
+        artifacts=[baseline_artifact],
+    )
+    candidate_run = _run_manifest(
+        run_id=_scoped_run_id(
+            run_scope,
+            EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+            EBM_PARAMETER_SENSITIVITY_METHOD,
+        ),
+        experiment_id=EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+        revision=repository_revision,
+        method_builds={
+            EBM_FORCING_CANDIDATE_METHOD: baseline_build,
+            EBM_PARAMETER_SENSITIVITY_METHOD: candidate_build,
+        },
+        execution_identity=candidate_identity,
+        dataset_digests=[
+            base_dataset["digest"],
+            protocol_dataset["digest"],
+            parameter_dataset["digest"],
+        ],
+        resolved_configuration=resolved_configuration,
+        seeds=seeds,
+        libraries=libraries,
+        receipt=candidate_receipt,
+        artifacts=[candidate_artifact, metric_artifact],
+    )
+    _write_json(output_dir / "run-baseline.json", baseline_run)
+    _write_json(output_dir / "run-candidate.json", candidate_run)
+
+    outcome = {
+        "schema_version": 1,
+        "experiment_id": EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+        "runs": [baseline_run, candidate_run],
+        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
+        "metrics": metrics,
+        "evidence": [],
+    }
+    _write_json(output_dir / "outcome.json", outcome)
+    return outcome
+
+
 def run_experiment(
     *,
     experiment_path: Path,
@@ -1315,11 +1566,21 @@ def run_experiment(
             methods=methods,
             resolved_configuration=resolved_configuration,
         )
+    if experiment_id == EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT:
+        return _run_ebm_parameter_identifiability_adapter(
+            experiment=experiment,
+            output_dir=output_dir,
+            repository_revision=repository_revision,
+            run_scope=run_scope,
+            methods=methods,
+            resolved_configuration=resolved_configuration,
+        )
     raise ValueError(
         "no local CPU adapter for experiment "
         f"{experiment_id!r}; supported: {EBM_DYNAMICS_EXPERIMENT}, "
         f"{EBM_FORCING_EXPERIMENT}, {EBM_FORCED_OOD_EXPERIMENT}, "
-        f"{EBM_OBSERVATION_DEGRADATION_EXPERIMENT}"
+        f"{EBM_OBSERVATION_DEGRADATION_EXPERIMENT}, "
+        f"{EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT}"
     )
 
 def main() -> int:

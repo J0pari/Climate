@@ -15,6 +15,9 @@ FORCED_OOD_EXPERIMENT = ROOT / "experiments" / "multirepresentation-ebm-forced-o
 OBSERVATION_DEGRADATION_EXPERIMENT = (
     ROOT / "experiments" / "multirepresentation-ebm-observation-degradation.v1.json"
 )
+PARAMETER_IDENTIFIABILITY_EXPERIMENT = (
+    ROOT / "experiments" / "two-layer-ebm-parameter-identifiability.v1.json"
+)
 
 
 class ExperimentRuntimeTests(unittest.TestCase):
@@ -287,6 +290,94 @@ class ExperimentRuntimeTests(unittest.TestCase):
             for filename in (
                 "baseline-forcing-protocols.json",
                 "candidate-observation-degradation.json",
+                "metric-results.json",
+                "run-baseline.json",
+                "run-candidate.json",
+                "outcome.json",
+            ):
+                self.assert_portable_json_tree(output / filename)
+
+    def test_parameter_identifiability_experiment_uses_same_runtime_spine(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            outcome = run_experiment(
+                experiment_path=PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+                output_dir=output,
+                repository_revision="f" * 40,
+                run_scope="parameter-identifiability-fixture-run",
+            )
+            self.assertEqual(
+                outcome["experiment_id"],
+                "physics.two_layer_ebm.parameter_identifiability.v1",
+            )
+            self.assertEqual(outcome["evidence"], [])
+            self.assertEqual(len(outcome["runs"]), 2)
+            self.assertTrue(
+                all(
+                    "physics.two_layer_ebm.parameter_identifiability.v1"
+                    in run["run_id"]
+                    for run in outcome["runs"]
+                )
+            )
+
+            metric_values = {
+                item["metric"]["metric_id"]: item["value"]
+                for item in outcome["metrics"]
+            }
+            self.assertEqual(
+                metric_values[
+                    "physics.two_layer_ebm.parameter.equilibrium_local_sensitivity_rank"
+                ],
+                1,
+            )
+            self.assertEqual(
+                metric_values[
+                    "physics.two_layer_ebm.parameter.transient_local_sensitivity_rank"
+                ],
+                4,
+            )
+            self.assertEqual(
+                metric_values["physics.two_layer_ebm.parameter.local_rank_gain"],
+                3,
+            )
+            self.assertEqual(
+                metric_values[
+                    "physics.two_layer_ebm.parameter.equilibrium_invisible_parameter_count"
+                ],
+                3,
+            )
+            self.assertLess(
+                metric_values[
+                    "physics.two_layer_ebm.parameter.equilibrium_step_consistency_relative_frobenius"
+                ],
+                1e-7,
+            )
+            self.assertLess(
+                metric_values[
+                    "physics.two_layer_ebm.parameter.transient_step_consistency_relative_frobenius"
+                ],
+                1e-7,
+            )
+            self.assertTrue(
+                math.isfinite(
+                    metric_values[
+                        "physics.two_layer_ebm.parameter.transient_condition_number"
+                    ]
+                )
+            )
+
+            baseline, candidate = outcome["runs"]
+            self.assertEqual(len(baseline["resolved_dataset_digests"]), 2)
+            self.assertEqual(len(candidate["resolved_dataset_digests"]), 3)
+            self.assertEqual(
+                candidate["execution"]["resolved"]["method_id"],
+                "physics.two_layer_ebm.log_parameter_sensitivity_v1",
+            )
+
+            self.assert_artifact_digests(outcome, output)
+            for filename in (
+                "baseline-forcing-protocols.json",
+                "candidate-parameter-identifiability.json",
                 "metric-results.json",
                 "run-baseline.json",
                 "run-candidate.json",

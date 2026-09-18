@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **55**.
+Registered modules: **56**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 35 |
-| `reference` | 20 |
+| `reference` | 21 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 53 |
+| `runnable` | 54 |
 
 ### Canonical and reference modules
 
@@ -76,6 +76,7 @@ Registered modules: **55**.
 | `reference` | `independent_reference` | `reference/two_layer_observation_degradation.py` | `reference_two_layer_observation_degradation` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_observation_design.py` | `reference_two_layer_observation_design` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_observation_information.py` | `reference_two_layer_observation_information` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_parameter_identifiability.py` | `reference_two_layer_local_parameter_identifiability` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
 
 ## Scientific claims
@@ -96,7 +97,7 @@ Registered claims: **5**.
 
 ## Registered experiments
 
-Experiment specifications: **7**.
+Experiment specifications: **8**.
 
 | Experiment | File |
 | --- | --- |
@@ -107,6 +108,7 @@ Experiment specifications: **7**.
 | `multirepresentation.ebm_observation_degradation.v1` | `experiments/multirepresentation-ebm-observation-degradation.v1.json` |
 | `sheaf.structural_ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
 | `physics.two_layer_ebm.forcing_protocols.v1` | `experiments/two-layer-ebm-forcing-protocols.v1.json` |
+| `physics.two_layer_ebm.parameter_identifiability.v1` | `experiments/two-layer-ebm-parameter-identifiability.v1.json` |
 
 ## Sheaf realization frontier
 

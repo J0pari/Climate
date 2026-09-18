@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "fixture_id": "physics.two-layer-ebm-parameter-identifiability.v1",
+  "description": "Immutable local parameter-sensitivity rung for the two-layer EBM benchmark. It contrasts equilibrium-only observations, where three parameter directions are structurally invisible, with transient held-out forcing histories that locally distinguish all four reference parameters.",
+  "parameter_ids": [
+    "surface_heat_capacity_w_yr_m2_k",
+    "deep_heat_capacity_w_yr_m2_k",
+    "ocean_heat_exchange_w_m2_k",
+    "climate_feedback_w_m2_k"
+  ],
+  "log_parameter_step": 0.0001,
+  "convergence_half_step_multiplier": 0.5,
+  "equilibrium_forcing_w_m2": [
+    -1.0,
+    1.0,
+    4.0
+  ],
+  "transient_protocol_ids": [
+    "held_out_step",
+    "held_out_ramp",
+    "overshoot_reversal",
+    "sign_reversal"
+  ],
+  "rank_policy": "Singular-value rank uses eps * max(matrix_shape) * largest_singular_value. Parameters are perturbed multiplicatively in log coordinates so all four sensitivity columns are dimensionless-parameter derivatives of temperature observations.",
+  "derivative_policy": "Use centered finite differences in log-parameter coordinates at the declared step and half-step. Report the relative Frobenius disagreement as a numerical consistency diagnostic; no optimizer, posterior, prior, or fitted parameter estimate is produced.",
+  "interpretation_boundary": "Full local sensitivity rank under the declared transient protocols is not global parameter identifiability, observational calibration, or evidence that the real climate system identifies these parameters."
+}

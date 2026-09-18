@@ -239,7 +239,7 @@
         "the observation-noise magnitude and linear maps are synthetic structural controls rather than calibrated instrument, reanalysis, or retrieval-error models",
         "instantaneous fixed-pseudoinverse reconstruction deliberately does not exploit known dynamics to infer an unobserved state component",
         "the exactly duplicated noisy surface channel tests coordinate redundancy, not the benefit of independent repeated sensors",
-        "parameter degeneracy, stochastic internal variability, and regime-dependent feedback remain separate immutable benchmark rungs"
+        "stochastic internal variability and regime-dependent feedback remain separate immutable benchmark rungs"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -270,6 +270,21 @@
         "the reference assumes independent Gaussian state-independent observation errors and linear two-layer observation maps",
         "instantaneous Fisher rank is not dynamical observability and must not be interpreted as such",
         "modal information in this control does not establish observational adequacy or identifiable modes in the real climate system"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/two_layer_parameter_identifiability.py",
+      "family": "reference_two_layer_local_parameter_identifiability",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "immutable local log-parameter sensitivity-rank rung for the exact two-layer EBM, contrasting structurally rank-deficient equilibrium temperatures with held-out transient forcing histories, using multiplicative centered finite differences, machine-scaled SVD rank, and a fixed half-step convergence witness without fitting parameters",
+      "known_gaps": [
+        "full transient sensitivity rank is local to the literature-fixed reference parameter point and declared forcing protocols and does not establish global structural identifiability",
+        "the benchmark uses exact synthetic model states without observational noise, process noise, model discrepancy, priors, or posterior inference",
+        "condition number magnitude depends on the declared temperature observation coordinates even though log-parameter coordinates remove parameter units",
+        "practical real-climate parameter recovery requires independently specified forcing uncertainty, observation error, model discrepancy, and estimation procedures"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false

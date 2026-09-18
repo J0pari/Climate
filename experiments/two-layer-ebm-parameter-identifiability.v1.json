@@ -1,0 +1,178 @@
+{
+  "experiment_id": "physics.two_layer_ebm.parameter_identifiability.v1",
+  "semantic_version": "0.1.0",
+  "question": "Which directions in the declared four-parameter two-layer EBM are locally distinguishable from equilibrium temperatures alone versus the existing held-out transient forcing histories, when parameter coordinates and numerical derivative policy are fixed in advance?",
+  "hypothesis": "Equilibrium surface/deep temperatures depend only on climate feedback, so the equilibrium log-parameter sensitivity matrix has rank one with the two heat capacities and ocean-exchange coefficient exactly invisible. The same four-parameter sensitivity under the fixed held-out step, ramp, overshoot/reversal, and sign-reversal protocols is full column rank at the reference point, with stable centered finite differences at the preregistered step and half-step.",
+  "candidate_methods": [
+    "physics.two_layer_ebm.log_parameter_sensitivity_v1"
+  ],
+  "baseline_methods": [
+    "physics.two_layer_ebm.affine_forcing_v1"
+  ],
+  "datasets": [
+    {
+      "id": "physics.two_layer_ebm.geoffroy_mean.v1",
+      "digest": "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9",
+      "source_family": "literature_parameterized_two_layer_energy_balance_reference",
+      "source_version": "1",
+      "variables": [
+        "surface_heat_capacity_w_yr_m2_k",
+        "deep_heat_capacity_w_yr_m2_k",
+        "ocean_heat_exchange_w_m2_k",
+        "climate_feedback_w_m2_k"
+      ],
+      "spatial_domain": "global mean two-reservoir climate control",
+      "grid": "not spatially resolved",
+      "units_metadata": {
+        "surface_heat_capacity": "W yr m^-2 K^-1",
+        "deep_heat_capacity": "W yr m^-2 K^-1",
+        "ocean_heat_exchange": "W m^-2 K^-1",
+        "climate_feedback": "W m^-2 K^-1"
+      },
+      "quality_control_policy": "all four reference parameters are finite and positive; values are literature-fixed fixture inputs rather than estimates produced by this experiment",
+      "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.forcing_protocols.v1",
+      "digest": "sha256:8c761934353feef7563c8a57a96863afbd08ab547d88fc88228a240c9fa16743",
+      "source_family": "deterministic_synthetic_forcing_protocol_fixture",
+      "source_version": "1",
+      "variables": [
+        "forcing_w_m2",
+        "held_out_step",
+        "held_out_ramp",
+        "overshoot_reversal",
+        "sign_reversal"
+      ],
+      "time_domain": "fixed held-out transient excitation histories",
+      "units_metadata": {
+        "forcing": "W m^-2",
+        "time": "years"
+      },
+      "quality_control_policy": "protocol identities, forcing histories, and sampling density are immutable experiment inputs",
+      "citation": "fixtures/physics/two-layer-ebm-forcing-protocols-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.parameter_identifiability.v1",
+      "digest": "sha256:6170ca6c50f6a2def8ec09bd0f2aa6ecf5e6da498809476d868fb2ce85031e52",
+      "source_family": "synthetic_local_log_parameter_sensitivity_fixture",
+      "source_version": "1",
+      "variables": [
+        "log_parameter_step",
+        "equilibrium_forcing_w_m2",
+        "transient_protocol_ids",
+        "rank_policy"
+      ],
+      "time_domain": "equilibrium probes plus the immutable transient protocol set",
+      "units_metadata": {
+        "equilibrium_forcing": "W m^-2",
+        "log_parameter_step": "dimensionless"
+      },
+      "quality_control_policy": "parameter ordering, perturbation step, convergence refinement, equilibrium forcing probes, transient protocol identities, and machine-scaled rank rule are fixed before execution",
+      "citation": "fixtures/physics/two-layer-ebm-parameter-identifiability-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "physics.two_layer_ebm.parameter.equilibrium_local_sensitivity_rank",
+      "semantic_version": "0.1.0",
+      "units": "rank",
+      "direction": "target",
+      "target": 1,
+      "aggregation_domain": "centered log-parameter sensitivity of equilibrium surface/deep temperatures over the fixed equilibrium forcing probes",
+      "missing_data_policy": "all four parameter columns and all equilibrium probes are required",
+      "uncertainty_method": "deterministic structural sensitivity control"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.parameter.transient_local_sensitivity_rank",
+      "semantic_version": "0.1.0",
+      "units": "rank",
+      "direction": "target",
+      "target": 4,
+      "aggregation_domain": "centered log-parameter sensitivity of both temperature states across all samples of the fixed held-out transient forcing protocols",
+      "missing_data_policy": "all four parameter columns and every declared transient protocol sample are required",
+      "uncertainty_method": "deterministic local sensitivity control"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.parameter.local_rank_gain",
+      "semantic_version": "0.1.0",
+      "units": "rank difference",
+      "direction": "target",
+      "target": 3,
+      "aggregation_domain": "transient local sensitivity rank minus equilibrium local sensitivity rank",
+      "missing_data_policy": "both sensitivity matrices are required",
+      "uncertainty_method": "deterministic structural comparison"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "physics.two_layer_ebm.parameter.equilibrium_invisible_parameter_count",
+      "semantic_version": "0.1.0",
+      "units": "parameter count",
+      "direction": "target",
+      "target": 3,
+      "aggregation_domain": "number of equilibrium log-parameter sensitivity columns that are exactly zero under the declared model equations",
+      "missing_data_policy": "all four equilibrium sensitivity columns are required",
+      "uncertainty_method": "exact structural control"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.parameter.transient_condition_number",
+      "semantic_version": "0.1.0",
+      "units": "dimensionless",
+      "direction": "descriptive",
+      "aggregation_domain": "largest divided by smallest singular value of the full-rank transient log-parameter sensitivity matrix",
+      "missing_data_policy": "reported only when transient sensitivity is full column rank"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.parameter.equilibrium_step_consistency_relative_frobenius",
+      "semantic_version": "0.1.0",
+      "units": "relative matrix difference",
+      "direction": "lower",
+      "target": 1e-7,
+      "aggregation_domain": "relative Frobenius disagreement between the preregistered centered log-parameter finite-difference step and its fixed half-step refinement for equilibrium sensitivities",
+      "missing_data_policy": "both derivative steps are required",
+      "uncertainty_method": "numerical derivative consistency witness"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.parameter.transient_step_consistency_relative_frobenius",
+      "semantic_version": "0.1.0",
+      "units": "relative matrix difference",
+      "direction": "lower",
+      "target": 1e-7,
+      "aggregation_domain": "relative Frobenius disagreement between the preregistered centered log-parameter finite-difference step and its fixed half-step refinement for transient sensitivities",
+      "missing_data_policy": "both derivative steps are required",
+      "uncertainty_method": "numerical derivative consistency witness"
+    }
+  ],
+  "negative_controls": [
+    "equilibrium sensitivity must leave surface heat capacity, deep heat capacity, and ocean exchange exactly invisible rather than assigning them small regularized effects",
+    "the same reference parameter point and parameter ordering are used for equilibrium and transient analyses",
+    "transient excitation uses only the existing immutable held-out step, ramp, overshoot/reversal, and sign-reversal forcing protocols",
+    "parameter perturbations are multiplicative in fixed log coordinates and use both the preregistered finite-difference step and fixed half-step refinement",
+    "no optimizer, prior, posterior, parameter fit, target-informed rescaling, or global-identifiability claim is introduced"
+  ],
+  "falsifiers": [
+    "equilibrium local sensitivity rank differs from one or any of the three structurally absent equilibrium parameter columns becomes nonzero",
+    "transient local sensitivity fails to span all four declared parameter directions at the reference point",
+    "the inferred rank changes under the fixed half-step derivative refinement",
+    "the derivative consistency diagnostic exceeds its declared numerical tolerance",
+    "full transient local rank is reported as global identifiability, observational calibration, or evidence about real-climate parameter recoverability"
+  ],
+  "split_policy": "No parameter fitting occurs. The transient observation design reuses the immutable held-out forcing protocols as fixed excitation histories; equilibrium and transient sensitivity matrices are evaluated at the same literature-fixed reference parameter point.",
+  "preprocessing": "Use both temperature-state coordinates in kelvin anomaly. Parameter derivatives are taken with respect to log parameters, avoiding unit-dependent parameter-column scaling without learning a normalization from outputs.",
+  "seeds": [],
+  "stopping_rule": "Report equilibrium and transient ranks, nullities, singular values, condition semantics, exact zero equilibrium columns, and derivative-step consistency. Do not replace a rank-deficient design with regularization or collapse the diagnostics into one aggregate identifiability score.",
+  "multiple_comparison_policy": "The four parameter identities, three equilibrium forcing probes, four transient protocols, and two derivative steps are fixed by this experiment version.",
+  "expected_artifact_types": [
+    "parameter_sensitivity_rank/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 1,
+    "memory_bytes": 536870912,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 120
+  }
+}

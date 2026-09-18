@@ -452,6 +452,52 @@
       }
     },
     {
+      "method_id": "physics.two_layer_ebm.log_parameter_sensitivity_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "two_layer_local_parameter_sensitivity_rank",
+      "input_contracts": [
+        "two_layer_ebm_fixture/v1",
+        "two_layer_forcing_protocols/v1",
+        "log_parameter_sensitivity_fixture/v1"
+      ],
+      "output_contracts": [
+        "parameter_sensitivity_rank/v1",
+        "finite_difference_consistency/v1"
+      ],
+      "assumptions": [
+        "all four physical parameters remain finite and positive under multiplicative perturbation",
+        "sensitivity is evaluated locally at the declared literature-fixed reference parameter point",
+        "parameter coordinates are logarithmic and therefore dimensionless",
+        "transient sensitivities reuse the exact piecewise-affine forcing reference and fixed held-out protocol set",
+        "numerical rank uses a machine-precision and matrix-scale derived singular-value tolerance"
+      ],
+      "known_limitations": [
+        "full local sensitivity rank does not imply global structural identifiability or practical estimability",
+        "the benchmark uses synthetic exact-model trajectories without observational noise, process noise, model discrepancy, priors, or parameter fitting",
+        "condition numbers depend on the declared observation coordinates even though log-parameter coordinates remove physical parameter units",
+        "real-climate parameter identifiability requires observation, forcing, discrepancy, and uncertainty models beyond this structural control"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "physics.two_layer_ebm.affine_forcing_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_forcing_protocols.py",
+          "reference/two_layer_parameter_identifiability.py"
+        ]
+      }
+    },
+    {
       "method_id": "sheaf.real.local_residual_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",
