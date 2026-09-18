@@ -1,5 +1,6 @@
 module climate_spectral_reference
     use, intrinsic :: iso_fortran_env, only: real64
+    use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
     implicit none
     private
 
@@ -9,6 +10,7 @@ module climate_spectral_reference
     integer, parameter, public :: SPECTRAL_OK = 0
     integer, parameter, public :: SPECTRAL_ERR_INVALID_INTERVAL = 1
     integer, parameter, public :: SPECTRAL_ERR_TOO_SHORT = 2
+    integer, parameter, public :: SPECTRAL_ERR_NONFINITE_SIGNAL = 3
 
     public :: dft
     public :: analytic_signal
@@ -98,7 +100,7 @@ contains
         ierr = SPECTRAL_OK
         n = size(signal)
 
-        if (.not. (sample_interval > 0.0_dp)) then
+        if (.not. ieee_is_finite(sample_interval) .or. sample_interval <= 0.0_dp) then
             ierr = SPECTRAL_ERR_INVALID_INTERVAL
             allocate(frequency(0), amplitude(0), phase(0))
             return
@@ -106,6 +108,12 @@ contains
 
         if (n < 3) then
             ierr = SPECTRAL_ERR_TOO_SHORT
+            allocate(frequency(0), amplitude(0), phase(0))
+            return
+        end if
+
+        if (.not. all(ieee_is_finite(signal))) then
+            ierr = SPECTRAL_ERR_NONFINITE_SIGNAL
             allocate(frequency(0), amplitude(0), phase(0))
             return
         end if

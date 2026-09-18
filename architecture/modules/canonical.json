@@ -280,9 +280,10 @@
       "family": "spectral_reference",
       "language": "fortran",
       "maturity": "runnable",
-      "intended_role": "canonical portable reference primitives for deterministic DFT, analytic signals, phase unwrapping, and instantaneous frequency",
+      "intended_role": "canonical portable spectral reference primitives for deterministic DFT, analytic signals, phase unwrapping, and fail-closed instantaneous-frequency diagnostics with explicit finite-input validation",
       "known_gaps": [
-        "direct DFT is intentionally reference-speed rather than production FFT",
+        "direct DFT is intentionally reference-speed rather than a production FFT backend",
+        "low-level DFT and analytic-signal primitives assume finite caller inputs; the diagnostic instantaneous-frequency API validates interval and signal finiteness explicitly",
         "broader CWT, SSA, multitaper, and coherence methods remain to be migrated with dedicated witnesses",
         "not yet compared against an independent external numerical implementation"
       ],
