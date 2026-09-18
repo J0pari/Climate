@@ -1946,6 +1946,7 @@ def _run_ebm_stochastic_statistics_adapter(
         "numpy": importlib.metadata.version("numpy"),
         "scipy": importlib.metadata.version("scipy"),
     }
+    dataset_digests = [base_dataset["digest"], stochastic_dataset["digest"]]
     baseline_run, candidate_run = _successful_two_run_manifests(
         experiment=experiment,
         experiment_id=EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
@@ -2094,6 +2095,7 @@ def _run_ebm_regime_feedback_adapter(
         "numpy": importlib.metadata.version("numpy"),
         "scipy": importlib.metadata.version("scipy"),
     }
+    dataset_digests = [base_dataset["digest"], regime_dataset["digest"]]
     baseline_run, candidate_run = _successful_two_run_manifests(
         experiment=experiment,
         experiment_id=EBM_REGIME_FEEDBACK_EXPERIMENT,

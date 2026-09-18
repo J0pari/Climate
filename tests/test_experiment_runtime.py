@@ -51,7 +51,7 @@ class ExperimentRuntimeTests(unittest.TestCase):
             context.methods,
             baseline_method="physics.two_layer_ebm.exact_modes_v1",
             baseline_backend="scipy",
-            candidate_method="multirepresentation.pydmd.linear_dmd_v1",
+            candidate_method="dynamics.dmd.pydmd_v1",
             candidate_backend="pydmd",
         )
         self.assertTrue(baseline.implementation_build.startswith("source-sha256:"))
