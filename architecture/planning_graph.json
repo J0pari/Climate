@@ -737,7 +737,7 @@
     {
       "id": "experimentation.failure_provenance",
       "title": "Persist structured provenance for failed experiment execution",
-      "status": "active",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
       "summary": "Close the gap between the run contract and runtime behavior so nonzero subprocess exits and invalid method output materialize a durable, contract-valid ineligible run receipt before control is surfaced as an error. Scientific falsification remains a successful execution with attacking/inconclusive evidence; infrastructure or execution failure is recorded separately.",
@@ -749,20 +749,25 @@
         "When experiment/method/input identity is sufficiently resolved, nonzero exits or malformed method output emit a contract-valid ineligible RunManifest with scientific_output_eligible=false before the runtime raises or returns failure.",
         "Failure records distinguish execution stage and typed infrastructure/input/configuration failure from a scientifically attacking metric result.",
         "Negative witnesses cover missing implementation/dependency, nonzero exit, and invalid JSON without losing the failure receipt."
+      ],
+      "evidence": [
+        "src/experiment_runtime.py",
+        "tests/test_experiment_runtime.py",
+        "contracts/climate.cue",
+        "contracts/testdata/run-manifest.ineligible-output.good.json",
+        ".github/workflows/architecture.yml",
+        ".github/workflows/experiment-ebm-runtime.yml"
       ]
     },
     {
       "id": "experimentation.claim_evidence_vertical_slice",
       "title": "Close one claim-to-evidence scientific loop",
-      "status": "blocked",
+      "status": "active",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
       "summary": "Exercise the epistemic architecture end to end on one narrowly scoped existing claim using a preregistered claim mapping, baselines, controls, immutable run receipts, metrics, threat analysis, and an explicit supporting, attacking, or inconclusive evidence record. A null or attacking result satisfies the architecture more honestly than manufacturing a positive result.",
       "depends_on": [
         "experimentation.failure_provenance"
-      ],
-      "blockers": [
-        "Structured failed-run provenance must close first so the first evidence-producing path does not discard exactly the executions most important to audit."
       ],
       "completion": [
         "One existing claim names a versioned claim-scoped experiment or evaluation mapping before execution.",
