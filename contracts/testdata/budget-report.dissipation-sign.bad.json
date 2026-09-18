@@ -1,0 +1,31 @@
+{
+  "identity": {
+    "budget_id": "scalar_quadratic.step.0001",
+    "quantity_id": "weighted_scalar_quadratic",
+    "units": "scalar^2 m",
+    "domain_id": "column-0",
+    "interval_start_ns": 0,
+    "interval_end_ns": 1000000000,
+    "precision": "fp64",
+    "accumulation_method": "neumaier_compensated_f64"
+  },
+  "partition_count": 1,
+  "quantity_before": 10,
+  "quantity_after": 10.1,
+  "actual_change": 0.1,
+  "accounted_change": 0.1,
+  "unexplained_residual": 0,
+  "class_totals": [
+    {
+      "class": "resolved_dissipation",
+      "signed_amount": 0.1
+    }
+  ],
+  "term_totals": [
+    {
+      "class": "resolved_dissipation",
+      "process_id": "vertical_diffusion.quadratic.interior",
+      "signed_amount": 0.1
+    }
+  ]
+}

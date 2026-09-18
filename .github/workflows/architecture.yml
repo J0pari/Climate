@@ -155,6 +155,10 @@ jobs:
             echo 'invalid physical budget report was accepted' >&2
             exit 1
           fi
+          if "$(go env GOPATH)/bin/cue" vet -d '#BudgetReport' contracts/climate.cue contracts/testdata/budget-report.dissipation-sign.bad.json; then
+            echo 'positive resolved dissipation was accepted' >&2
+            exit 1
+          fi
       - name: Vet valid experiment fixture
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ExperimentSpec" contracts/climate.cue contracts/testdata/experiment.good.json'
       - name: Reject invalid experiment fixture

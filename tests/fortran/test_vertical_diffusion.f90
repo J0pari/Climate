@@ -1,13 +1,15 @@
 program test_vertical_diffusion
     use climate_vertical_diffusion, only: dp, VBC_ZERO_FLUX, VBC_PRESCRIBED_FLUX, &
         VBC_PRESCRIBED_VALUE, VDIFF_OK, VDIFF_ERR_DIFFUSIVITY, VDIFF_ERR_BOUNDARY, &
-        height_diffusion_boundary, height_diffusion_operator, &
-        build_height_diffusion_operator, evaluate_height_diffusion
+        height_diffusion_boundary, height_diffusion_operator, height_diffusion_budget_rate, &
+        build_height_diffusion_operator, evaluate_height_diffusion, evaluate_height_diffusion_budget
     implicit none
 
     call test_nonuniform_zero_flux_conservation_and_dissipation()
     call test_prescribed_flux_budget_and_sign()
     call test_dirichlet_linear_steady_state()
+    call test_zero_flux_budget_rate_decomposition()
+    call test_dirichlet_budget_rate_decomposition()
     call test_invalid_boundary_kind_fails_closed()
     call test_negative_diffusivity_fails_closed()
 
@@ -115,6 +117,73 @@ contains
         call require(maxval(abs(tendency)) < 1.0e-13_dp, &
                      'linear profile between fixed boundary values must be a discrete steady state')
     end subroutine test_dirichlet_linear_steady_state
+
+
+    subroutine test_zero_flux_budget_rate_decomposition()
+        real(dp) :: thickness(3), face_diffusivity(4), state(3)
+        type(height_diffusion_boundary) :: bottom, top
+        type(height_diffusion_operator) :: operator
+        type(height_diffusion_budget_rate) :: budget
+        integer :: ierr
+
+        thickness = [1.0_dp, 2.0_dp, 0.5_dp]
+        face_diffusivity = [0.0_dp, 3.0_dp, 1.0_dp, 0.0_dp]
+        state = [1.0_dp, -2.0_dp, 3.0_dp]
+        bottom = height_diffusion_boundary(VBC_ZERO_FLUX, 0.0_dp)
+        top = height_diffusion_boundary(VBC_ZERO_FLUX, 0.0_dp)
+
+        call build_height_diffusion_operator(thickness, face_diffusivity, bottom, top, operator, ierr)
+        call require(ierr == VDIFF_OK, 'zero-flux budget operator construction must succeed')
+        call evaluate_height_diffusion_budget(operator, state, budget, ierr)
+        call require(ierr == VDIFF_OK, 'zero-flux budget evaluation must succeed')
+        call require(abs(budget%inventory_tendency) < 1.0e-13_dp, &
+                     'closed diffusion must preserve weighted scalar inventory')
+        call require(abs(budget%inventory_closure_residual) < 1.0e-13_dp, &
+                     'closed diffusion inventory budget must close')
+        call require(budget%interior_quadratic_dissipation < 0.0_dp, &
+                     'nonconstant closed state must dissipate weighted quadratic norm')
+        call require(abs(budget%boundary_quadratic_exchange) < 1.0e-14_dp, &
+                     'zero-flux boundaries must contribute no quadratic exchange')
+        call require(abs(budget%quadratic_tendency - budget%interior_quadratic_dissipation) < 1.0e-13_dp, &
+                     'closed quadratic tendency must equal interior dissipation')
+        call require(abs(budget%quadratic_closure_residual) < 1.0e-13_dp, &
+                     'closed diffusion quadratic budget must close')
+    end subroutine test_zero_flux_budget_rate_decomposition
+
+
+    subroutine test_dirichlet_budget_rate_decomposition()
+        integer, parameter :: n = 4
+        real(dp) :: thickness(n), face_diffusivity(n + 1), state(n)
+        type(height_diffusion_boundary) :: bottom, top
+        type(height_diffusion_operator) :: operator
+        type(height_diffusion_budget_rate) :: budget
+        integer :: ierr
+
+        thickness = 0.25_dp
+        face_diffusivity = 1.0_dp
+        state = [0.125_dp, 0.375_dp, 0.625_dp, 0.875_dp]
+        bottom = height_diffusion_boundary(VBC_PRESCRIBED_VALUE, 0.0_dp)
+        top = height_diffusion_boundary(VBC_PRESCRIBED_VALUE, 1.0_dp)
+
+        call build_height_diffusion_operator(thickness, face_diffusivity, bottom, top, operator, ierr)
+        call require(ierr == VDIFF_OK, 'Dirichlet budget operator construction must succeed')
+        call evaluate_height_diffusion_budget(operator, state, budget, ierr)
+        call require(ierr == VDIFF_OK, 'Dirichlet budget evaluation must succeed')
+        call require(abs(budget%lower_boundary_flux + 1.0_dp) < 1.0e-13_dp, &
+                     'lower Dirichlet boundary flux sign must be explicit')
+        call require(abs(budget%upper_boundary_flux + 1.0_dp) < 1.0e-13_dp, &
+                     'upper Dirichlet boundary flux sign must be explicit')
+        call require(abs(budget%inventory_tendency) < 1.0e-13_dp, &
+                     'equal steady boundary fluxes must give zero inventory tendency')
+        call require(abs(budget%interior_quadratic_dissipation + 0.75_dp) < 1.0e-13_dp, &
+                     'linear profile interior quadratic dissipation must be exact')
+        call require(abs(budget%boundary_quadratic_exchange - 0.75_dp) < 1.0e-13_dp, &
+                     'Dirichlet boundaries must replenish the dissipated quadratic norm')
+        call require(abs(budget%quadratic_tendency) < 1.0e-13_dp, &
+                     'steady linear profile must have zero quadratic tendency')
+        call require(abs(budget%quadratic_closure_residual) < 1.0e-13_dp, &
+                     'Dirichlet quadratic budget must close')
+    end subroutine test_dirichlet_budget_rate_decomposition
 
 
     subroutine test_invalid_boundary_kind_fails_closed()

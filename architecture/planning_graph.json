@@ -645,7 +645,7 @@
     {
       "id": "physics.streaming_budget_accounting",
       "title": "Compose physical kernels through a streaming budget ledger",
-      "status": "active",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
       "summary": "Make conservation/balance accounting a common streaming sidecar rather than kernel-specific diagnostics. Extensive quantities use one signed ledger across boundaries, resolved sources/sinks, internal and coupling exchanges, numerical corrections, solver residual effects, and roundoff; partition merges must preserve accounting semantics without materializing global state.",
@@ -668,7 +668,8 @@
         "contracts/climate.cue",
         "src/physical_budget_adapters.rs",
         "tests/fortran/test_conservative_transport.f90",
-        "tests/fortran/test_pressure_energy_exchange.f90"
+        "tests/fortran/test_pressure_energy_exchange.f90",
+        "tests/fortran/test_vertical_diffusion.f90"
       ]
     },
     {

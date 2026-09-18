@@ -95,6 +95,88 @@ pub fn conservative_transport_ledger(
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct VerticalDiffusionInventoryBudgetTerms {
+    pub quantity_before: f64,
+    pub quantity_after: f64,
+    pub lower_boundary_change: f64,
+    pub upper_boundary_change: f64,
+}
+
+pub fn vertical_diffusion_inventory_ledger(
+    identity: BudgetIdentity,
+    partition_id: impl Into<String>,
+    terms: VerticalDiffusionInventoryBudgetTerms,
+) -> Result<ExtensiveBudgetLedger, PhysicalBudgetAdapterError> {
+    let mut ledger = ExtensiveBudgetLedger::new(
+        identity,
+        partition_id,
+        terms.quantity_before,
+        terms.quantity_after,
+    )?;
+    ledger.record(
+        BudgetContribution::new(
+            BudgetTermClass::BoundaryFlux,
+            "vertical_diffusion.inventory.lower_boundary",
+            terms.lower_boundary_change,
+        )
+        .with_boundary_classification("lower_boundary"),
+    )?;
+    ledger.record(
+        BudgetContribution::new(
+            BudgetTermClass::BoundaryFlux,
+            "vertical_diffusion.inventory.upper_boundary",
+            terms.upper_boundary_change,
+        )
+        .with_boundary_classification("upper_boundary"),
+    )?;
+    Ok(ledger)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct VerticalDiffusionQuadraticBudgetTerms {
+    pub quantity_before: f64,
+    pub quantity_after: f64,
+    pub lower_boundary_exchange: f64,
+    pub upper_boundary_exchange: f64,
+    pub interior_dissipation: f64,
+}
+
+pub fn vertical_diffusion_quadratic_ledger(
+    identity: BudgetIdentity,
+    partition_id: impl Into<String>,
+    terms: VerticalDiffusionQuadraticBudgetTerms,
+) -> Result<ExtensiveBudgetLedger, PhysicalBudgetAdapterError> {
+    let mut ledger = ExtensiveBudgetLedger::new(
+        identity,
+        partition_id,
+        terms.quantity_before,
+        terms.quantity_after,
+    )?;
+    ledger.record(
+        BudgetContribution::new(
+            BudgetTermClass::BoundaryFlux,
+            "vertical_diffusion.quadratic.lower_boundary",
+            terms.lower_boundary_exchange,
+        )
+        .with_boundary_classification("lower_boundary"),
+    )?;
+    ledger.record(
+        BudgetContribution::new(
+            BudgetTermClass::BoundaryFlux,
+            "vertical_diffusion.quadratic.upper_boundary",
+            terms.upper_boundary_exchange,
+        )
+        .with_boundary_classification("upper_boundary"),
+    )?;
+    ledger.record(BudgetContribution::new(
+        BudgetTermClass::ResolvedDissipation,
+        "vertical_diffusion.quadratic.interior",
+        terms.interior_dissipation,
+    ))?;
+    Ok(ledger)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PressureEnergyExchangeTerms {
     pub kinetic_pressure_gradient_power_w_kg: f64,
     pub enthalpy_pressure_work_w_kg: f64,
@@ -273,6 +355,75 @@ mod tests {
         let report = ledger.report();
         approx(report.accounted_change, 0.02);
         approx(report.unexplained_residual, 0.0);
+    }
+
+    #[test]
+    fn vertical_diffusion_inventory_records_only_boundary_exchange() {
+        let ledger = vertical_diffusion_inventory_ledger(
+            identity("column_scalar_inventory", "scalar m"),
+            "column-0",
+            VerticalDiffusionInventoryBudgetTerms {
+                quantity_before: 10.0,
+                quantity_after: 11.5,
+                lower_boundary_change: 2.0,
+                upper_boundary_change: -0.5,
+            },
+        )
+        .unwrap();
+        let report = ledger.report();
+        approx(report.actual_change, 1.5);
+        approx(report.accounted_change, 1.5);
+        approx(report.unexplained_residual, 0.0);
+        assert_eq!(report.class_totals.len(), 1);
+        assert_eq!(report.class_totals[0].class, BudgetTermClass::BoundaryFlux);
+    }
+
+    #[test]
+    fn vertical_diffusion_quadratic_keeps_dissipation_separate_from_boundaries() {
+        let ledger = vertical_diffusion_quadratic_ledger(
+            identity("weighted_scalar_quadratic", "scalar^2 m"),
+            "column-0",
+            VerticalDiffusionQuadraticBudgetTerms {
+                quantity_before: 10.0,
+                quantity_after: 8.5,
+                lower_boundary_exchange: 1.0,
+                upper_boundary_exchange: -0.5,
+                interior_dissipation: -2.0,
+            },
+        )
+        .unwrap();
+        let report = ledger.report();
+        approx(report.actual_change, -1.5);
+        approx(report.accounted_change, -1.5);
+        approx(report.unexplained_residual, 0.0);
+        let dissipation = report
+            .class_totals
+            .iter()
+            .find(|item| item.class == BudgetTermClass::ResolvedDissipation)
+            .unwrap();
+        approx(dissipation.signed_amount, -2.0);
+    }
+
+    #[test]
+    fn vertical_diffusion_positive_dissipation_fails_closed() {
+        let error = vertical_diffusion_quadratic_ledger(
+            identity("weighted_scalar_quadratic", "scalar^2 m"),
+            "column-0",
+            VerticalDiffusionQuadraticBudgetTerms {
+                quantity_before: 1.0,
+                quantity_after: 1.0,
+                lower_boundary_exchange: 0.0,
+                upper_boundary_exchange: 0.0,
+                interior_dissipation: 0.1,
+            },
+        )
+        .unwrap_err();
+        assert!(matches!(
+            error,
+            PhysicalBudgetAdapterError::Budget(
+                BudgetError::DissipationHasPositiveSign { .. }
+            )
+        ));
     }
 
     #[test]

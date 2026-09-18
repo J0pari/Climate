@@ -51,13 +51,13 @@
       "family": "streaming_extensive_budget_accounting",
       "language": "rust",
       "maturity": "runnable",
-      "intended_role": "canonical streaming sidecar ledger for extensive physical quantities, with one signed accounting convention, typed boundary/source/sink/exchange/correction/solver channels, compensated accumulation, explicit unexplained residuals, and duplicate-safe partition merging without requiring a global climate-state materialization",
+      "intended_role": "canonical streaming sidecar ledger for extensive physical or explicitly declared diagnostic quantities, with one signed accounting convention, typed boundary/source/sink/dissipation/exchange/correction/solver channels, compensated accumulation, explicit unexplained residuals, and duplicate-safe partition merging without requiring a global climate-state materialization",
       "known_gaps": [
         "physical kernels must still emit correctly signed process contributions; the ledger cannot infer conservation semantics from state mutations",
         "partition IDs prevent accidental duplicate counting but callers remain responsible for defining non-overlapping extensive partitions",
         "Neumaier compensation improves floating-point accumulation but does not promise bitwise merge-order invariance across arbitrary distributed reduction trees",
         "unit compatibility is declared by exact ledger identity strings rather than a dimensional-analysis type system",
-        "carrier-mass, tracer-mass, and pressure-energy diagnostics have narrow canonical adapters; dissipative-operator, water-cycle, and broader coupled-reservoir integrations remain open"
+        "carrier-mass, tracer-mass, pressure-energy, and vertical-diffusion diagnostics have narrow canonical adapters; water-cycle and broader coupled-reservoir integrations remain open"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false
@@ -67,10 +67,11 @@
       "family": "physical_kernel_budget_adapters",
       "language": "rust",
       "maturity": "runnable",
-      "intended_role": "narrow climate-specific semantic adapters from decomposed conservative-transport and pressure-coordinate energy diagnostics into the generic streaming extensive-quantity ledger, preserving boundary/source/sink/internal/coupling distinctions without duplicating solver implementations",
+      "intended_role": "narrow climate-specific semantic adapters from decomposed conservative-transport, pressure-coordinate energy, and vertical-diffusion diagnostics into the generic streaming extensive-quantity ledger, preserving boundary/source/sink/dissipation/internal/coupling distinctions without duplicating solver implementations",
       "known_gaps": [
         "the adapters consume language-neutral scalar diagnostics and do not themselves provide a Fortran/Rust FFI or orchestration layer",
-        "vertical diffusion and other dissipative operators still require a quantity-specific extensive budget mapping before the streaming-budget planning obligation is complete",
+        "vertical-diffusion rate diagnostics must be integrated consistently with the caller's time integrator before they become finite-interval ledger amounts",
+        "the diffusion quadratic adapter accounts only a caller-declared weighted scalar quadratic quantity; it must not be relabeled as physical energy without an independently declared physical weighting",
         "broader water-cycle and coupled-reservoir accounting remains outside the current adapter surface"
       ],
       "authority_kind": "canonical_implementation",
@@ -383,13 +384,14 @@
       "family": "vertical_diffusion_operator",
       "language": "fortran",
       "maturity": "runnable",
-      "intended_role": "canonical geometric-height finite-volume diffusion operator with explicit nonuniform layer geometry, face diffusivity, caller-declared boundary-condition semantics, conservation diagnostics, and solver-independent tridiagonal bands",
+      "intended_role": "canonical geometric-height finite-volume diffusion operator with explicit nonuniform layer geometry, face diffusivity, caller-declared boundary-condition semantics, conservation diagnostics, exact thickness-weighted inventory/boundary budget rates, sign-definite interior quadratic dissipation, and solver-independent tridiagonal bands",
       "known_gaps": [
         "this operator is explicitly geometric-height based and must not be reused for pressure, sigma, hybrid, or mass coordinates without the corresponding metric and mass factors",
         "face diffusivities and their provenance remain caller-owned scientific inputs",
         "transported-variable thermodynamic weights such as density or heat capacity are not silently assumed and require a distinct physically specified operator when needed",
         "boundary conditions are required caller choices; zero flux, prescribed upward flux, and prescribed value are supported but none is an implicit default",
-        "operator correctness does not validate any climate closure, timestep, or diffusivity parameterization"
+        "the weighted scalar quadratic budget is a mathematical dissipation diagnostic, not a claim of physical energy unless the caller supplies the required physical weighting and units",
+        "operator correctness and instantaneous budget-rate closure do not validate any climate closure, timestep, or diffusivity parameterization"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false

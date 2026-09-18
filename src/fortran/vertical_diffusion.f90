@@ -43,6 +43,20 @@ module climate_vertical_diffusion
         logical :: conservative_homogeneous_operator_expected = .false.
     end type height_diffusion_diagnostics
 
+    type, public :: height_diffusion_budget_rate
+        ! Inventory is integral(phi dz) per unit horizontal area. The first
+        ! four fields therefore carry scalar_unit*m/s. The quadratic fields
+        ! refer to 1/2 integral(phi^2 dz) and carry scalar_unit^2*m/s.
+        real(dp) :: inventory_tendency = 0.0_dp
+        real(dp) :: lower_boundary_flux = 0.0_dp
+        real(dp) :: upper_boundary_flux = 0.0_dp
+        real(dp) :: inventory_closure_residual = 0.0_dp
+        real(dp) :: quadratic_tendency = 0.0_dp
+        real(dp) :: interior_quadratic_dissipation = 0.0_dp
+        real(dp) :: boundary_quadratic_exchange = 0.0_dp
+        real(dp) :: quadratic_closure_residual = 0.0_dp
+    end type height_diffusion_budget_rate
+
     type, public :: height_diffusion_operator
         integer :: n = 0
         ! Geometric-height finite volumes, per unit horizontal area.
@@ -61,6 +75,7 @@ module climate_vertical_diffusion
 
     public :: build_height_diffusion_operator
     public :: evaluate_height_diffusion
+    public :: evaluate_height_diffusion_budget
 
 contains
 
@@ -272,5 +287,96 @@ contains
             ierr = VDIFF_ERR_NONFINITE
         end if
     end subroutine evaluate_height_diffusion
+
+
+    subroutine evaluate_height_diffusion_budget(operator, state, budget, ierr)
+        type(height_diffusion_operator), intent(in) :: operator
+        real(dp), intent(in) :: state(:)
+        type(height_diffusion_budget_rate), intent(out) :: budget
+        integer, intent(out) :: ierr
+
+        real(dp), allocatable :: tendency(:)
+        real(dp) :: bottom_flux, top_flux, center_distance_m
+        real(dp) :: conductance_m_s, delta
+        integer :: i, n
+
+        budget = height_diffusion_budget_rate()
+        call evaluate_height_diffusion(operator, state, tendency, ierr)
+        if (ierr /= VDIFF_OK) return
+
+        n = operator%n
+        if (.not. allocated(operator%layer_thickness_m) .or. &
+            .not. allocated(operator%face_diffusivity_m2_s) .or. &
+            size(operator%layer_thickness_m) /= n .or. &
+            size(operator%face_diffusivity_m2_s) /= n + 1 .or. &
+            .not. valid_boundary(operator%bottom_boundary) .or. &
+            .not. valid_boundary(operator%top_boundary)) then
+            budget = height_diffusion_budget_rate()
+            ierr = VDIFF_ERR_OPERATOR
+            return
+        end if
+
+        bottom_flux = 0.0_dp
+        select case (operator%bottom_boundary%kind)
+        case (VBC_ZERO_FLUX)
+            continue
+        case (VBC_PRESCRIBED_FLUX)
+            bottom_flux = operator%bottom_boundary%value
+        case (VBC_PRESCRIBED_VALUE)
+            center_distance_m = 0.5_dp * operator%layer_thickness_m(1)
+            conductance_m_s = operator%face_diffusivity_m2_s(1) / center_distance_m
+            bottom_flux = conductance_m_s * (operator%bottom_boundary%value - state(1))
+        case default
+            ierr = VDIFF_ERR_OPERATOR
+            return
+        end select
+
+        top_flux = 0.0_dp
+        select case (operator%top_boundary%kind)
+        case (VBC_ZERO_FLUX)
+            continue
+        case (VBC_PRESCRIBED_FLUX)
+            top_flux = operator%top_boundary%value
+        case (VBC_PRESCRIBED_VALUE)
+            center_distance_m = 0.5_dp * operator%layer_thickness_m(n)
+            conductance_m_s = operator%face_diffusivity_m2_s(n + 1) / center_distance_m
+            top_flux = conductance_m_s * (state(n) - operator%top_boundary%value)
+        case default
+            ierr = VDIFF_ERR_OPERATOR
+            return
+        end select
+
+        budget%lower_boundary_flux = bottom_flux
+        budget%upper_boundary_flux = top_flux
+        budget%inventory_tendency = dot_product(operator%layer_thickness_m, tendency)
+        budget%inventory_closure_residual = budget%inventory_tendency - (bottom_flux - top_flux)
+
+        budget%quadratic_tendency = &
+            dot_product(operator%layer_thickness_m * state, tendency)
+        budget%interior_quadratic_dissipation = 0.0_dp
+        do i = 1, n - 1
+            center_distance_m = 0.5_dp * ( &
+                operator%layer_thickness_m(i) + operator%layer_thickness_m(i + 1))
+            conductance_m_s = operator%face_diffusivity_m2_s(i + 1) / center_distance_m
+            delta = state(i + 1) - state(i)
+            budget%interior_quadratic_dissipation = &
+                budget%interior_quadratic_dissipation - conductance_m_s * delta * delta
+        end do
+        budget%boundary_quadratic_exchange = state(1) * bottom_flux - state(n) * top_flux
+        budget%quadratic_closure_residual = budget%quadratic_tendency - ( &
+            budget%interior_quadratic_dissipation + budget%boundary_quadratic_exchange)
+
+        if (.not. ieee_is_finite(budget%inventory_tendency) .or. &
+            .not. ieee_is_finite(budget%lower_boundary_flux) .or. &
+            .not. ieee_is_finite(budget%upper_boundary_flux) .or. &
+            .not. ieee_is_finite(budget%inventory_closure_residual) .or. &
+            .not. ieee_is_finite(budget%quadratic_tendency) .or. &
+            .not. ieee_is_finite(budget%interior_quadratic_dissipation) .or. &
+            .not. ieee_is_finite(budget%boundary_quadratic_exchange) .or. &
+            .not. ieee_is_finite(budget%quadratic_closure_residual)) then
+            budget = height_diffusion_budget_rate()
+            ierr = VDIFF_ERR_NONFINITE
+        end if
+    end subroutine evaluate_height_diffusion_budget
 
 end module climate_vertical_diffusion

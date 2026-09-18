@@ -82,6 +82,7 @@ pub enum BudgetTermClass {
     BoundaryFlux,
     ResolvedPhysicalSource,
     ResolvedPhysicalSink,
+    ResolvedDissipation,
     InternalExchange,
     CouplingExchange,
     NumericalCorrection,
@@ -146,6 +147,12 @@ impl BudgetContribution {
         }
         if self.class == BudgetTermClass::ResolvedPhysicalSink && self.signed_amount > 0.0 {
             return Err(BudgetError::SinkHasPositiveSign {
+                process_id: self.process_id.clone(),
+                amount: self.signed_amount,
+            });
+        }
+        if self.class == BudgetTermClass::ResolvedDissipation && self.signed_amount > 0.0 {
+            return Err(BudgetError::DissipationHasPositiveSign {
                 process_id: self.process_id.clone(),
                 amount: self.signed_amount,
             });
@@ -438,6 +445,8 @@ pub enum BudgetError {
     SourceHasNegativeSign { process_id: String, amount: f64 },
     #[error("physical sink {process_id:?} must have nonpositive signed amount; got {amount}")]
     SinkHasPositiveSign { process_id: String, amount: f64 },
+    #[error("resolved dissipation {process_id:?} must have nonpositive signed amount; got {amount}")]
+    DissipationHasPositiveSign { process_id: String, amount: f64 },
     #[error("boundary flux requires a nonempty boundary classification")]
     MissingBoundaryClassification,
     #[error("boundary classification must not be empty")]
@@ -561,6 +570,68 @@ mod tests {
     }
 
     #[test]
+    fn coupled_channels_keep_exchange_forcing_dissipation_and_correction_distinct() {
+        let mut ledger =
+            ExtensiveBudgetLedger::new(identity(), "column-0", 100.0, 106.75).unwrap();
+        ledger
+            .record(BudgetContribution::new(
+                BudgetTermClass::InternalExchange,
+                "pressure_work.kinetic",
+                -5.0,
+            ))
+            .unwrap();
+        ledger
+            .record(BudgetContribution::new(
+                BudgetTermClass::InternalExchange,
+                "pressure_work.thermodynamic",
+                5.0,
+            ))
+            .unwrap();
+        ledger
+            .record(
+                BudgetContribution::new(
+                    BudgetTermClass::BoundaryFlux,
+                    "surface_forcing",
+                    10.0,
+                )
+                .with_boundary_classification("lower_boundary"),
+            )
+            .unwrap();
+        ledger
+            .record(BudgetContribution::new(
+                BudgetTermClass::ResolvedDissipation,
+                "vertical_diffusion.quadratic",
+                -3.0,
+            ))
+            .unwrap();
+        ledger
+            .record(BudgetContribution::new(
+                BudgetTermClass::NumericalCorrection,
+                "positivity_repair",
+                -0.25,
+            ))
+            .unwrap();
+
+        let report = ledger.report();
+        approx(report.actual_change, 6.75);
+        approx(report.accounted_change, 6.75);
+        approx(report.unexplained_residual, 0.0);
+        for (class, expected) in [
+            (BudgetTermClass::InternalExchange, 0.0),
+            (BudgetTermClass::BoundaryFlux, 10.0),
+            (BudgetTermClass::ResolvedDissipation, -3.0),
+            (BudgetTermClass::NumericalCorrection, -0.25),
+        ] {
+            let total = report
+                .class_totals
+                .iter()
+                .find(|item| item.class == class)
+                .unwrap();
+            approx(total.signed_amount, expected);
+        }
+    }
+
+    #[test]
     fn unexplained_residual_is_reported_not_repaired() {
         let ledger =
             ExtensiveBudgetLedger::new(identity(), "column-0", 10.0, 10.125).unwrap();
@@ -679,6 +750,14 @@ mod tests {
                 1.0,
             )),
             Err(BudgetError::MissingBoundaryClassification)
+        ));
+        assert!(matches!(
+            ledger.record(BudgetContribution::new(
+                BudgetTermClass::ResolvedDissipation,
+                "diffusion",
+                1.0,
+            )),
+            Err(BudgetError::DissipationHasPositiveSign { .. })
         ));
     }
 }

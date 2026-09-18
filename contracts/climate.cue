@@ -238,7 +238,7 @@ package climate
 }
 
 #BudgetTermClass: "boundary_flux" | "resolved_physical_source" | "resolved_physical_sink" |
-	"internal_exchange" | "coupling_exchange" | "numerical_correction" |
+	"resolved_dissipation" | "internal_exchange" | "coupling_exchange" | "numerical_correction" |
 	"solver_residual_effect" | "roundoff_estimate"
 
 #BudgetIdentity: {
@@ -266,6 +266,9 @@ package climate
 		signed_amount: number & >=0
 	}
 	if class == "resolved_physical_sink" {
+		signed_amount: number & <=0
+	}
+	if class == "resolved_dissipation" {
 		signed_amount: number & <=0
 	}
 }
