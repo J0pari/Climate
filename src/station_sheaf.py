@@ -7,7 +7,7 @@ or linear-algebra implementation.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterator, Sequence
+from typing import Iterator, Mapping, Sequence
 
 import numpy as np
 from pyproj import Geod
@@ -229,19 +229,37 @@ class SparseRipsComplex:
         return cls(ids, matrix)
 
     @property
+    def vertex_count(self) -> int:
+        return len(self.station_ids)
+
+    @property
     def edge_count(self) -> int:
         return int(self.adjacency.nnz // 2)
 
-    def iter_simplices(self, degree: int) -> Iterator[tuple[int, ...]]:
+    def iter_simplices(
+        self,
+        degree: int,
+        *,
+        owner_start: int = 0,
+        owner_stop: int | None = None,
+    ) -> Iterator[tuple[int, ...]]:
+        """Yield simplices with deterministic ownership by smallest vertex."""
         if degree < 0:
             return
         target = degree + 1
-        n = len(self.station_ids)
+        n = self.vertex_count
+        stop_owner = n if owner_stop is None else owner_stop
+        if owner_start < 0 or stop_owner < owner_start or stop_owner > n:
+            raise ValueError(
+                "owner range must satisfy 0 <= owner_start <= owner_stop <= vertex_count"
+            )
+
         if target == 1:
-            for vertex in range(n):
+            for vertex in range(owner_start, stop_owner):
                 yield (vertex,)
             return
-        forward = []
+
+        forward: list[np.ndarray] = []
         for vertex in range(n):
             start, stop = self.adjacency.indptr[vertex : vertex + 2]
             neighbors = self.adjacency.indices[start:stop]
@@ -259,11 +277,14 @@ class SparseRipsComplex:
                     yield (*prefix, int(vertex))
                 else:
                     common = np.intersect1d(
-                        remainder, forward[int(vertex)], assume_unique=True
+                        remainder,
+                        forward[int(vertex)],
+                        assume_unique=True,
                     )
                     yield from extend((*prefix, int(vertex)), common)
 
-        yield from extend((), np.arange(n, dtype=np.int64))
+        for first in range(owner_start, stop_owner):
+            yield from extend((first,), forward[first])
 
 
 @dataclass(frozen=True)
