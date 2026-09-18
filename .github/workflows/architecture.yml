@@ -115,6 +115,8 @@ jobs:
           fi
       - name: Vet eligible execution identity
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ExecutionResolution" contracts/climate.cue contracts/testdata/execution.good.json'
+      - name: Vet ineligible failed-run receipt
+        run: '"$(go env GOPATH)/bin/cue" vet -d "#RunManifest" contracts/climate.cue contracts/testdata/run-manifest.ineligible-output.good.json'
       - name: Vet fail-closed execution identity
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ExecutionResolution" contracts/climate.cue contracts/testdata/execution.ineligible.good.json'
       - name: Reject execution implementation substitution

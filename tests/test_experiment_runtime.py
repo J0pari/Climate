@@ -3,11 +3,20 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import subprocess
+import sys
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
-from src.experiment_runtime import DEFAULT_EXPERIMENT, ROOT, run_experiment
+from src.experiment_runtime import (
+    DEFAULT_EXPERIMENT,
+    ROOT,
+    MethodProcessFailure,
+    _run_process,
+    run_experiment,
+)
 
 
 FORCING_EXPERIMENT = ROOT / "experiments" / "two-layer-ebm-forcing-protocols.v1.json"
@@ -27,6 +36,125 @@ REGIME_FEEDBACK_EXPERIMENT = (
 
 
 class ExperimentRuntimeTests(unittest.TestCase):
+    def assert_failed_run(
+        self,
+        output: Path,
+        *,
+        failure_class: str,
+        failure_stage: str,
+        exit_code: int | None,
+    ) -> dict:
+        payload = json.loads((output / "run-baseline.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["execution"]["status"], "ineligible")
+        self.assertEqual(payload["execution"]["failure"], failure_class)
+        self.assertFalse(payload["scientific_output_eligible"])
+        self.assertEqual(payload["failure_stage"], failure_stage)
+        self.assertTrue(payload["failure_detail"])
+        self.assertEqual(len(payload["commands"]), 1)
+        self.assertTrue(payload["stdout_digest"].startswith("sha256:"))
+        self.assertTrue(payload["stderr_digest"].startswith("sha256:"))
+        self.assertEqual(payload.get("exit_code"), exit_code)
+        self.assertEqual(payload["artifacts"], [])
+        return payload
+
+    def test_nonzero_process_exit_persists_ineligible_run_receipt(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=["fixture"],
+            returncode=17,
+            stdout=b"",
+            stderr=b"dependency import failed\n",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            with mock.patch(
+                "src.experiment_runtime.subprocess.run",
+                return_value=completed,
+            ):
+                with self.assertRaises(MethodProcessFailure):
+                    run_experiment(
+                        experiment_path=DEFAULT_EXPERIMENT,
+                        output_dir=output,
+                        repository_revision="1" * 40,
+                        run_scope="failed-exit",
+                    )
+            manifest = self.assert_failed_run(
+                output,
+                failure_class="process_failed",
+                failure_stage="process_exit",
+                exit_code=17,
+            )
+            self.assertEqual(
+                manifest["execution"]["requested"]["method_id"],
+                "physics.two_layer_ebm.exact_modes_v1",
+            )
+            self.assertEqual(len(manifest["resolved_dataset_digests"]), 1)
+
+    def test_invalid_json_with_zero_exit_persists_truthful_failure_receipt(self) -> None:
+        completed = subprocess.CompletedProcess(
+            args=["fixture"],
+            returncode=0,
+            stdout=b"not-json\n",
+            stderr=b"",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            with mock.patch(
+                "src.experiment_runtime.subprocess.run",
+                return_value=completed,
+            ):
+                with self.assertRaises(MethodProcessFailure):
+                    run_experiment(
+                        experiment_path=DEFAULT_EXPERIMENT,
+                        output_dir=output,
+                        repository_revision="2" * 40,
+                        run_scope="invalid-output",
+                    )
+            self.assert_failed_run(
+                output,
+                failure_class="output_invalid",
+                failure_stage="output_decode",
+                exit_code=0,
+            )
+
+    def test_process_launch_failure_has_no_invented_exit_code(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            with mock.patch(
+                "src.experiment_runtime.subprocess.run",
+                side_effect=FileNotFoundError("missing executable"),
+            ):
+                with self.assertRaises(MethodProcessFailure):
+                    run_experiment(
+                        experiment_path=DEFAULT_EXPERIMENT,
+                        output_dir=output,
+                        repository_revision="3" * 40,
+                        run_scope="missing-implementation",
+                    )
+            self.assert_failed_run(
+                output,
+                failure_class="implementation_unavailable",
+                failure_stage="process_launch",
+                exit_code=None,
+            )
+
+    def test_process_receipt_classifies_invalid_json_without_losing_digests(self) -> None:
+        with self.assertRaises(MethodProcessFailure) as caught:
+            _run_process(
+                (
+                    sys.executable,
+                    "-c",
+                    "import sys; sys.stdout.write('not-json')",
+                ),
+                method_id="fixture.method",
+                backend_id="python",
+            )
+        receipt = caught.exception.receipt
+        self.assertEqual(receipt["exit_code"], 0)
+        self.assertEqual(receipt["failure_class"], "output_invalid")
+        self.assertEqual(receipt["failure_stage"], "output_decode")
+        self.assertTrue(receipt["stdout_digest"].startswith("sha256:"))
+        self.assertTrue(receipt["stderr_digest"].startswith("sha256:"))
+
     def assert_portable_json_tree(self, path: Path) -> None:
         def assert_finite_numbers(value):
             if isinstance(value, float):

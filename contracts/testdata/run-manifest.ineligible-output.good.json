@@ -1,0 +1,44 @@
+{
+  "run_id": "fixture.run.failed",
+  "experiment_id": "fixture.experiment",
+  "experiment_spec_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "repository_revision": "fixture-revision",
+  "producer_build": "fixture-revision",
+  "method_builds": {
+    "fixture.method": "source-sha256:fixture"
+  },
+  "execution": {
+    "requested": {
+      "method_id": "fixture.method",
+      "implementation_id": "fixture.method",
+      "implementation_build": "source-sha256:fixture",
+      "backend_id": "python",
+      "precision": "FP64",
+      "resource_class": "R1_portable_cpu"
+    },
+    "status": "ineligible",
+    "failure": "output_invalid"
+  },
+  "scientific_output_eligible": false,
+  "resolved_dataset_digests": [],
+  "resolved_configuration": {},
+  "seeds": [],
+  "environment": {
+    "toolchains": {
+      "python": "3.12"
+    },
+    "libraries": {}
+  },
+  "hardware": {
+    "cpu": "fixture-cpu"
+  },
+  "commands": [
+    "python fixture.py"
+  ],
+  "exit_code": 0,
+  "failure_stage": "output_decode",
+  "failure_detail": "method process output is not valid canonical JSON",
+  "stdout_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "stderr_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "artifacts": []
+}

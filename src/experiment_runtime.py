@@ -221,32 +221,112 @@ def _require_methods(
     return baseline, candidate
 
 
-def _run_process(command: Sequence[str]) -> dict[str, Any]:
+class MethodProcessFailure(RuntimeError):
+    """A method subprocess failed after its provenance receipt was captured."""
+
+    def __init__(
+        self,
+        *,
+        method_id: str,
+        backend_id: str,
+        receipt: Mapping[str, Any],
+    ) -> None:
+        self.method_id = method_id
+        self.backend_id = backend_id
+        self.receipt = dict(receipt)
+        detail = str(self.receipt.get("failure_detail", "method execution failed"))
+        super().__init__(f"{method_id}: {detail}")
+
+
+def _run_process(
+    command: Sequence[str],
+    *,
+    method_id: str,
+    backend_id: str,
+) -> dict[str, Any]:
+    if not method_id or not backend_id:
+        raise ValueError("method_id and backend_id must be explicit for process provenance")
+    argv = [str(item) for item in command]
     started = datetime.now(timezone.utc)
-    process = subprocess.run(
-        list(command), cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False
-    )
-    ended = datetime.now(timezone.utc)
-    if process.returncode != 0:
-        raise RuntimeError(
-            f"method process failed with exit code {process.returncode}: "
-            + process.stderr.decode("utf-8", errors="replace")
-        )
     try:
-        payload = json.loads(process.stdout.decode("utf-8"))
-    except json.JSONDecodeError as exc:
-        raise RuntimeError("method process did not emit valid JSON") from exc
-    if not isinstance(payload, dict):
-        raise RuntimeError("method process JSON output must be an object")
-    _canonical_json_bytes(payload)
-    return {
-        "payload": payload,
-        "command": shlex.join(command),
+        process = subprocess.run(
+            argv,
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+    except OSError as exc:
+        ended = datetime.now(timezone.utc)
+        receipt = {
+            "argv": argv,
+            "command": shlex.join(argv),
+            "started_at": started.isoformat(),
+            "ended_at": ended.isoformat(),
+            "stdout_digest": _sha256_bytes(b""),
+            "stderr_digest": _sha256_bytes(b""),
+            "failure_class": "implementation_unavailable",
+            "failure_stage": "process_launch",
+            "failure_detail": (
+                f"subprocess could not be launched: {type(exc).__name__}: {exc}"
+            ),
+        }
+        raise MethodProcessFailure(
+            method_id=method_id,
+            backend_id=backend_id,
+            receipt=receipt,
+        ) from exc
+
+    ended = datetime.now(timezone.utc)
+    receipt: dict[str, Any] = {
+        "argv": argv,
+        "command": shlex.join(argv),
+        "exit_code": int(process.returncode),
         "started_at": started.isoformat(),
         "ended_at": ended.isoformat(),
         "stdout_digest": _sha256_bytes(process.stdout),
         "stderr_digest": _sha256_bytes(process.stderr),
     }
+    if process.returncode != 0:
+        receipt.update(
+            {
+                "failure_class": "process_failed",
+                "failure_stage": "process_exit",
+                "failure_detail": (
+                    f"subprocess exited with status {process.returncode}"
+                ),
+            }
+        )
+        raise MethodProcessFailure(
+            method_id=method_id,
+            backend_id=backend_id,
+            receipt=receipt,
+        )
+
+    try:
+        payload = json.loads(process.stdout.decode("utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError("method process JSON output must be an object")
+        _canonical_json_bytes(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+        receipt.update(
+            {
+                "failure_class": "output_invalid",
+                "failure_stage": "output_decode",
+                "failure_detail": (
+                    f"method process output is not valid canonical JSON: "
+                    f"{type(exc).__name__}: {exc}"
+                ),
+            }
+        )
+        raise MethodProcessFailure(
+            method_id=method_id,
+            backend_id=backend_id,
+            receipt=receipt,
+        ) from exc
+
+    receipt["payload"] = payload
+    return receipt
 
 
 def _artifact_ref(artifact_id: str, schema: str, filename: str, data: bytes) -> dict[str, Any]:
@@ -805,7 +885,30 @@ def _run_manifest(
         and len(experiment_spec_digest) == 71
     ):
         raise ValueError("experiment_spec_digest must be a SHA-256 identity")
-    return {
+
+    failure_class = receipt.get("failure_class")
+    if failure_class is None:
+        execution = {
+            "requested": dict(execution_identity),
+            "status": "eligible",
+            "resolved": dict(execution_identity),
+        }
+        scientific_output_eligible = True
+    else:
+        failure_stage = receipt.get("failure_stage")
+        failure_detail = receipt.get("failure_detail")
+        if not isinstance(failure_stage, str) or not failure_stage:
+            raise ValueError("failed process receipt requires failure_stage")
+        if not isinstance(failure_detail, str) or not failure_detail:
+            raise ValueError("failed process receipt requires failure_detail")
+        execution = {
+            "requested": dict(execution_identity),
+            "status": "ineligible",
+            "failure": str(failure_class),
+        }
+        scientific_output_eligible = False
+
+    manifest: dict[str, Any] = {
         "run_id": run_id,
         "experiment_id": experiment_id,
         "experiment_spec_digest": experiment_spec_digest,
@@ -813,12 +916,8 @@ def _run_manifest(
         "producer_build": revision,
         "contract_fingerprint": hashlib.sha256(CONTRACT.read_bytes()).hexdigest(),
         "method_builds": dict(method_builds),
-        "execution": {
-            "requested": dict(execution_identity),
-            "status": "eligible",
-            "resolved": dict(execution_identity),
-        },
-        "scientific_output_eligible": True,
+        "execution": execution,
+        "scientific_output_eligible": scientific_output_eligible,
         "resolved_dataset_digests": list(dataset_digests),
         "resolved_configuration": dict(resolved_configuration),
         "seeds": list(seeds),
@@ -830,13 +929,18 @@ def _run_manifest(
         },
         "hardware": {"cpu": platform.processor() or platform.machine() or "unknown-cpu"},
         "commands": [receipt["command"]],
-        "exit_code": 0,
         "started_at": receipt["started_at"],
         "ended_at": receipt["ended_at"],
         "stdout_digest": receipt["stdout_digest"],
         "stderr_digest": receipt["stderr_digest"],
         "artifacts": [dict(item) for item in artifacts],
     }
+    if "exit_code" in receipt:
+        manifest["exit_code"] = int(receipt["exit_code"])
+    if failure_class is not None:
+        manifest["failure_stage"] = receipt["failure_stage"]
+        manifest["failure_detail"] = receipt["failure_detail"]
+    return manifest
 
 
 def _run_ebm_dynamics_adapter(
@@ -881,7 +985,9 @@ def _run_ebm_dynamics_adapter(
             "--fixture",
             str(fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_BASELINE_METHOD,
+        backend_id="scipy",
     )
     candidate_receipt = _run_process(
         (
@@ -892,7 +998,9 @@ def _run_ebm_dynamics_adapter(
             "--dt-years",
             repr(dt_years),
             "--json",
-        )
+        ),
+        method_id=EBM_DYNAMICS_CANDIDATE_METHOD,
+        backend_id="pydmd",
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1043,7 +1151,9 @@ def _run_ebm_forcing_adapter(
             "--fixture",
             str(ebm_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_BASELINE_METHOD,
+        backend_id="scipy",
     )
     candidate_receipt = _run_process(
         (
@@ -1054,7 +1164,9 @@ def _run_ebm_forcing_adapter(
             "--protocol-fixture",
             str(protocol_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_FORCING_CANDIDATE_METHOD,
+        backend_id="scipy",
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1202,7 +1314,9 @@ def _run_ebm_forced_ood_adapter(
             "--protocol-fixture",
             str(protocol_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_FORCING_CANDIDATE_METHOD,
+        backend_id="scipy",
     )
     candidate_receipt = _run_process(
         (
@@ -1215,7 +1329,9 @@ def _run_ebm_forced_ood_adapter(
             "--training-fixture",
             str(training_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_FORCED_OOD_CANDIDATE_METHOD,
+        backend_id="numpy.linalg",
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1381,7 +1497,9 @@ def _run_ebm_observation_degradation_adapter(
             "--protocol-fixture",
             str(protocol_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_FORCING_CANDIDATE_METHOD,
+        backend_id="scipy",
     )
     candidate_receipt = _run_process(
         (
@@ -1396,7 +1514,9 @@ def _run_ebm_observation_degradation_adapter(
             "--observation-fixture",
             str(observation_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_FORCED_OOD_CANDIDATE_METHOD,
+        backend_id="numpy.linalg",
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1578,7 +1698,9 @@ def _run_ebm_parameter_identifiability_adapter(
             "--protocol-fixture",
             str(protocol_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_FORCING_CANDIDATE_METHOD,
+        backend_id="scipy",
     )
     candidate_receipt = _run_process(
         (
@@ -1591,7 +1713,9 @@ def _run_ebm_parameter_identifiability_adapter(
             "--parameter-fixture",
             str(parameter_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_PARAMETER_SENSITIVITY_METHOD,
+        backend_id="numpy.linalg+scipy",
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1762,7 +1886,9 @@ def _run_ebm_stochastic_statistics_adapter(
             "--stochastic-fixture",
             str(stochastic_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_STOCHASTIC_BASELINE_METHOD,
+        backend_id="numpy.random+scipy",
     )
     candidate_receipt = _run_process(
         (
@@ -1777,7 +1903,9 @@ def _run_ebm_stochastic_statistics_adapter(
             "--stochastic-fixture",
             str(stochastic_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_STOCHASTIC_STATISTICS_METHOD,
+        backend_id="numpy.linalg+scipy",
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -1946,7 +2074,9 @@ def _run_ebm_regime_feedback_adapter(
             "--regime-fixture",
             str(regime_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_REGIME_BASELINE_METHOD,
+        backend_id="numpy+scipy",
     )
     candidate_receipt = _run_process(
         (
@@ -1957,7 +2087,9 @@ def _run_ebm_regime_feedback_adapter(
             "--regime-fixture",
             str(regime_fixture_path),
             "--json",
-        )
+        ),
+        method_id=EBM_REGIME_GATED_METHOD,
+        backend_id="numpy.linalg+scipy",
     )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
@@ -2083,21 +2215,125 @@ def _run_ebm_regime_feedback_adapter(
     return outcome
 
 
-def run_experiment(
+def _available_runtime_libraries() -> dict[str, str]:
+    versions: dict[str, str] = {}
+    for package in ("numpy", "scipy", "pydmd"):
+        try:
+            versions[package] = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError:
+            continue
+    return versions
+
+
+def _method_builds_for_failed_run(
+    experiment: Mapping[str, Any],
+    methods: Mapping[str, Mapping[str, Any]],
+    failed_method_id: str,
+) -> dict[str, str]:
+    baseline = experiment.get("baseline_methods", [])
+    candidate = experiment.get("candidate_methods", [])
+    if not isinstance(baseline, list) or not isinstance(candidate, list):
+        raise ValueError("experiment method lists must be arrays")
+    if failed_method_id in baseline:
+        ordered = list(baseline)
+    elif failed_method_id in candidate:
+        ordered = [*baseline, *candidate]
+    else:
+        raise ValueError(
+            f"failed method {failed_method_id!r} is not declared by experiment"
+        )
+
+    builds: dict[str, str] = {}
+    for method_id in ordered:
+        descriptor = methods.get(method_id)
+        if descriptor is None:
+            raise ValueError(f"failed-run method does not resolve: {method_id}")
+        builds[method_id] = _resolved_method_build(method_id, descriptor)
+    return builds
+
+
+def _dataset_digests_for_failed_command(
+    experiment: Mapping[str, Any],
+    receipt: Mapping[str, Any],
+) -> list[str]:
+    argv = receipt.get("argv", [])
+    if not isinstance(argv, list):
+        raise ValueError("failed process receipt lacks argv")
+    tokens = {str(item) for item in argv}
+    digests: list[str] = []
+    for dataset, path in _resolve_datasets(experiment):
+        if str(path) in tokens:
+            digests.append(str(dataset["digest"]))
+    return digests
+
+
+def _persist_failed_method_run(
     *,
-    experiment_path: Path,
+    failure: MethodProcessFailure,
+    experiment: Mapping[str, Any],
     output_dir: Path,
     repository_revision: str,
     run_scope: str,
-) -> dict[str, Any]:
-    experiment = _load_json(experiment_path)
-    experiment["_runtime_spec_digest"] = _sha256_file(experiment_path)
+    methods: Mapping[str, Mapping[str, Any]],
+    resolved_configuration: Mapping[str, Any],
+) -> Path:
     experiment_id = experiment.get("experiment_id")
-    if not repository_revision.strip() or not run_scope.strip():
-        raise ValueError("repository_revision and run_scope must be explicit")
+    if not isinstance(experiment_id, str) or not experiment_id:
+        raise ValueError("failed-run provenance requires experiment_id")
 
-    methods = _method_map()
-    resolved_configuration, configuration_records = _resolve_configuration(experiment)
+    method_builds = _method_builds_for_failed_run(
+        experiment,
+        methods,
+        failure.method_id,
+    )
+    identity = _execution_identity(
+        failure.method_id,
+        method_builds[failure.method_id],
+        failure.backend_id,
+    )
+    manifest = _run_manifest(
+        run_id=_scoped_run_id(run_scope, experiment_id, failure.method_id),
+        experiment_id=experiment_id,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
+        revision=repository_revision,
+        method_builds=method_builds,
+        execution_identity=identity,
+        dataset_digests=_dataset_digests_for_failed_command(
+            experiment,
+            failure.receipt,
+        ),
+        resolved_configuration=resolved_configuration,
+        seeds=_validated_seeds(experiment),
+        libraries=_available_runtime_libraries(),
+        receipt=failure.receipt,
+        artifacts=[],
+    )
+
+    baseline = experiment.get("baseline_methods", [])
+    candidate = experiment.get("candidate_methods", [])
+    if failure.method_id in baseline:
+        filename = "run-baseline.json"
+    elif failure.method_id in candidate:
+        filename = "run-candidate.json"
+    else:
+        filename = "run-failed.json"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / filename
+    _write_json(path, manifest)
+    return path
+
+
+def _dispatch_experiment(
+    *,
+    experiment: Mapping[str, Any],
+    output_dir: Path,
+    repository_revision: str,
+    run_scope: str,
+    methods: Mapping[str, Mapping[str, Any]],
+    resolved_configuration: Mapping[str, Any],
+    configuration_records: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    experiment_id = experiment.get("experiment_id")
     if experiment_id == EBM_DYNAMICS_EXPERIMENT:
         return _run_ebm_dynamics_adapter(
             experiment=experiment,
@@ -2171,6 +2407,43 @@ def run_experiment(
         f"{EBM_STOCHASTIC_STATISTICS_EXPERIMENT}, "
         f"{EBM_REGIME_FEEDBACK_EXPERIMENT}"
     )
+
+
+def run_experiment(
+    *,
+    experiment_path: Path,
+    output_dir: Path,
+    repository_revision: str,
+    run_scope: str,
+) -> dict[str, Any]:
+    experiment = _load_json(experiment_path)
+    experiment["_runtime_spec_digest"] = _sha256_file(experiment_path)
+    if not repository_revision.strip() or not run_scope.strip():
+        raise ValueError("repository_revision and run_scope must be explicit")
+
+    methods = _method_map()
+    resolved_configuration, configuration_records = _resolve_configuration(experiment)
+    try:
+        return _dispatch_experiment(
+            experiment=experiment,
+            output_dir=output_dir,
+            repository_revision=repository_revision,
+            run_scope=run_scope,
+            methods=methods,
+            resolved_configuration=resolved_configuration,
+            configuration_records=configuration_records,
+        )
+    except MethodProcessFailure as failure:
+        _persist_failed_method_run(
+            failure=failure,
+            experiment=experiment,
+            output_dir=output_dir,
+            repository_revision=repository_revision,
+            run_scope=run_scope,
+            methods=methods,
+            resolved_configuration=resolved_configuration,
+        )
+        raise
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="run a registered Climate CPU experiment")

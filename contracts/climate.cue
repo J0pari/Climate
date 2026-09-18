@@ -26,7 +26,8 @@ package climate
 	digest?: #Sha256
 }
 #ExecutionClass: "R0_static" | "R1_portable_cpu" | "R2_toolchain_ci" | "R3_cuda_device" | "R4_integrated_system" | "R5_large_data"
-#ExecutionFailureClass: "capability_unavailable" | "required_input_missing" | "configuration_invalid" | "implementation_unavailable" | "implementation_substituted" | "backend_mismatch" | "precision_mismatch" | "resource_mismatch" | "dataset_mismatch" | "undeclared_default"
+#ExecutionFailureClass: "capability_unavailable" | "required_input_missing" | "configuration_invalid" | "implementation_unavailable" | "implementation_substituted" | "backend_mismatch" | "precision_mismatch" | "resource_mismatch" | "dataset_mismatch" | "undeclared_default" | "process_failed" | "output_invalid"
+#RunFailureStage: "identity_resolution" | "input_resolution" | "process_launch" | "process_exit" | "output_decode" | "evaluation" | "artifact_materialization"
 
 #ResourceEnvelope: {
 	cpu_cores?:      number & >0
@@ -365,7 +366,9 @@ package climate
 	environment:         #ResolvedEnvironment
 	hardware:            #HardwareRecord
 	commands:            [...string] & [_, ...]
-	exit_code:           int
+	exit_code?:          int
+	failure_stage?:      #RunFailureStage
+	failure_detail?:     string & !=""
 	started_at?:         string
 	ended_at?:           string
 	stdout_digest?:      #Sha256
@@ -385,9 +388,15 @@ package climate
 		exit_code: 0
 	}
 
+	if execution.status == "eligible" {
+		failure_stage?:  _|_
+		failure_detail?: _|_
+	}
+
 	if execution.status == "ineligible" {
 		scientific_output_eligible: false
-		exit_code: int & !=0
+		failure_stage:  #RunFailureStage
+		failure_detail: string & !=""
 	}
 }
 
