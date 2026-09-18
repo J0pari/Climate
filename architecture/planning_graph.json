@@ -562,7 +562,9 @@
         "tests/test_station_sheaf.py",
         "docs/SHEAF-REALIZATION.md",
         "data/ncei_ghcnd_bulk.py",
-        "tests/test_ncei_ghcnd_bulk.py"
+        "data/ncei_ghcnd_parquet.py",
+        "tests/test_ncei_ghcnd_bulk.py",
+        "tests/test_ncei_ghcnd_parquet.py"
       ]
     },
     {

@@ -6,7 +6,9 @@ on:
       - 'src/station_sheaf.py'
       - 'src/station_federation.py'
       - 'data/ncei_ghcnd_bulk.py'
+      - 'data/ncei_ghcnd_parquet.py'
       - 'tests/test_ncei_ghcnd_bulk.py'
+      - 'tests/test_ncei_ghcnd_parquet.py'
       - 'architecture/station_providers.json'
       - 'tests/test_station_federation.py'
       - 'src/sheaf.rs'
@@ -31,5 +33,6 @@ jobs:
       - name: Run global sparse station substrate witnesses
         run: |
           python -m unittest tests.test_ncei_ghcnd_bulk -v
+          python -m unittest tests.test_ncei_ghcnd_parquet -v
           python -m unittest tests.test_station_federation -v
           python -m unittest tests.test_station_sheaf -v
