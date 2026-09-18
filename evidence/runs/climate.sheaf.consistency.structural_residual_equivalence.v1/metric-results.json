@@ -1,0 +1,65 @@
+{
+  "metrics": [
+    {
+      "metric": {
+        "aggregation_domain": "all synthetic cases comparing assembled-coboundary energy to independently computed edge-local restriction residual energy",
+        "direction": "target",
+        "metric_id": "sheaf.local_energy.max_abs_difference",
+        "missing_data_policy": "any missing case or unavailable comparison is experiment failure",
+        "semantic_version": "0.1.0",
+        "target": 0.0,
+        "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance",
+        "units": "dimensionless squared residual"
+      },
+      "reference_population": "synthetic-linear-v1 deterministic fixture suite",
+      "status": "finite",
+      "value": 0.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "rank-one identity-restriction fixtures compared with the ordinary scalar graph Laplacian",
+        "direction": "target",
+        "metric_id": "sheaf.identity_graph.laplacian_max_abs_difference",
+        "missing_data_policy": "absence of the identity-restriction collapse witness is experiment failure",
+        "semantic_version": "0.1.0",
+        "target": 0.0,
+        "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance",
+        "units": "dimensionless matrix entry"
+      },
+      "reference_population": "synthetic-linear-v1 deterministic fixture suite",
+      "status": "finite",
+      "value": 0.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "each fixture before and after reversing every edge orientation while swapping endpoint restriction maps",
+        "direction": "target",
+        "metric_id": "sheaf.orientation.laplacian_max_abs_difference",
+        "missing_data_policy": "any fixture without its orientation metamorphic witness is experiment failure",
+        "semantic_version": "0.1.0",
+        "target": 0.0,
+        "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance",
+        "units": "dimensionless matrix entry"
+      },
+      "reference_population": "synthetic-linear-v1 deterministic fixture suite",
+      "status": "finite",
+      "value": 0.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "declared fixture perturbations known analytically to lie in ker(D)",
+        "direction": "target",
+        "metric_id": "sheaf.kernel_translation.residual_max_abs_difference",
+        "missing_data_policy": "missing or malformed kernel perturbation witness is experiment failure",
+        "semantic_version": "0.1.0",
+        "target": 0.0,
+        "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance",
+        "units": "dimensionless residual coordinate"
+      },
+      "reference_population": "synthetic-linear-v1 deterministic fixture suite",
+      "status": "finite",
+      "value": 0.0
+    }
+  ],
+  "schema_version": 1
+}

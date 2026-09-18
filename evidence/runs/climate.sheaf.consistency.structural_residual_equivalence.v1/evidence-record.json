@@ -1,0 +1,89 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "climate.sheaf.consistency.structural_residual_equivalence.metrics",
+      "bytes": 2888,
+      "digest": "sha256:d4e0aca9bce2a62c016c1ae191a9c299c9603ec96b6f30364425b327b5a6f67c",
+      "media_type": "application/json",
+      "schema": "metric_results/v1",
+      "uri": "metric-results.json"
+    }
+  ],
+  "claim_id": "climate.sheaf.consistency",
+  "evidence_class": "simulated",
+  "evidence_id": "climate.sheaf.consistency.structural_residual_equivalence.v1",
+  "metrics": [
+    {
+      "metric": {
+        "aggregation_domain": "all synthetic cases comparing assembled-coboundary energy to independently computed edge-local restriction residual energy",
+        "direction": "target",
+        "metric_id": "sheaf.local_energy.max_abs_difference",
+        "missing_data_policy": "any missing case or unavailable comparison is experiment failure",
+        "semantic_version": "0.1.0",
+        "target": 0.0,
+        "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance",
+        "units": "dimensionless squared residual"
+      },
+      "reference_population": "synthetic-linear-v1 deterministic fixture suite",
+      "status": "finite",
+      "value": 0.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "rank-one identity-restriction fixtures compared with the ordinary scalar graph Laplacian",
+        "direction": "target",
+        "metric_id": "sheaf.identity_graph.laplacian_max_abs_difference",
+        "missing_data_policy": "absence of the identity-restriction collapse witness is experiment failure",
+        "semantic_version": "0.1.0",
+        "target": 0.0,
+        "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance",
+        "units": "dimensionless matrix entry"
+      },
+      "reference_population": "synthetic-linear-v1 deterministic fixture suite",
+      "status": "finite",
+      "value": 0.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "each fixture before and after reversing every edge orientation while swapping endpoint restriction maps",
+        "direction": "target",
+        "metric_id": "sheaf.orientation.laplacian_max_abs_difference",
+        "missing_data_policy": "any fixture without its orientation metamorphic witness is experiment failure",
+        "semantic_version": "0.1.0",
+        "target": 0.0,
+        "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance",
+        "units": "dimensionless matrix entry"
+      },
+      "reference_population": "synthetic-linear-v1 deterministic fixture suite",
+      "status": "finite",
+      "value": 0.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "declared fixture perturbations known analytically to lie in ker(D)",
+        "direction": "target",
+        "metric_id": "sheaf.kernel_translation.residual_max_abs_difference",
+        "missing_data_policy": "missing or malformed kernel perturbation witness is experiment failure",
+        "semantic_version": "0.1.0",
+        "target": 0.0,
+        "uncertainty_method": "deterministic FP64 equality within a declared numerical tolerance",
+        "units": "dimensionless residual coordinate"
+      },
+      "reference_population": "synthetic-linear-v1 deterministic fixture suite",
+      "status": "finite",
+      "value": 0.0
+    }
+  ],
+  "notes": "If every preregistered primary structural metric is at its zero target within 1e-12 and the experiment command succeeds, register attacking evidence because the candidate sheaf compatibility energy carries no incremental local-residual information over the strong independent residual baseline on these fixtures. Do not infer anything about computational efficiency, kriging or QC baselines, higher-order sheaf quantities, or real climate-data fault detection.",
+  "relation": "attacks",
+  "run_id": "github-35396065931-1.sheaf.structural_ablation.v1.sheaf.real.spectral_v1",
+  "scope": "Deterministic finite real-valued linear-network fixtures only; this evidence concerns local compatibility-energy information relative to an independently computed local-residual baseline and does not evaluate real station networks.",
+  "threats_to_validity": [
+    "The fixtures are deterministic finite linear networks, not observed climate station networks.",
+    "The strong local-residual baseline receives the same restriction maps as the candidate, so this evaluates incremental local compatibility information rather than restriction-map discovery.",
+    "The evaluation does not compare computational efficiency, kriging, interpolation, or standard quality-control procedures.",
+    "Degree-zero compatibility energy does not exhaust higher cochain, cohomological, spectral, or reconstruction quantities.",
+    "A null incremental-information result on these fixtures does not imply that richer sheaf structure lacks value on other preregistered tasks."
+  ],
+  "verification": "verified"
+}

@@ -63,7 +63,9 @@
         "comparison with graph, residual, kriging, and standard QC baselines"
       ],
       "supporting_evidence": [],
-      "attacking_evidence": [],
+      "attacking_evidence": [
+        "climate.sheaf.consistency.structural_residual_equivalence.v1"
+      ],
       "unresolved_falsifiers": [
         "topological quantities do not correspond to the intended mathematical invariants",
         "simpler QC baselines match or exceed detection/reconstruction performance"

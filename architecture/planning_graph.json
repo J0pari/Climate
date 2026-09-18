@@ -762,7 +762,7 @@
     {
       "id": "experimentation.claim_evidence_vertical_slice",
       "title": "Close one claim-to-evidence scientific loop",
-      "status": "active",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
       "summary": "Exercise the epistemic architecture end to end on one narrowly scoped existing claim using a preregistered claim mapping, baselines, controls, immutable run receipts, metrics, threat analysis, and an explicit supporting, attacking, or inconclusive evidence record. A null or attacking result satisfies the architecture more honestly than manufacturing a positive result.",
@@ -775,20 +775,29 @@
         "The resulting runs bind exact ExperimentSpec, transitive method-source closure, datasets/configuration, environment, commands, artifacts, and either a verified checkout revision/dirty state or an explicitly identified immutable source bundle.",
         "At least one EvidenceRecord is registered with verification status, relation, scope, threats to validity, metric lineage, and run/artifact identity; an attacking or inconclusive record is acceptable.",
         "Claim maturity changes only if its declared evidence requirements are actually satisfied; successful execution alone cannot promote the claim."
+      ],
+      "evidence": [
+        "evaluations/sheaf-consistency-structural-residual-equivalence.v1.json",
+        "reference/sheaf_claim_evidence.py",
+        "tests/sheaf_claim_metrics.rs",
+        ".github/workflows/sheaf-claim-evidence.yml",
+        "evidence/runs/climate.sheaf.consistency.structural_residual_equivalence.v1/run-candidate.json",
+        "evidence/runs/climate.sheaf.consistency.structural_residual_equivalence.v1/metric-results.json",
+        "evidence/runs/climate.sheaf.consistency.structural_residual_equivalence.v1/evidence-record.json",
+        "evidence/runs/climate.sheaf.consistency.structural_residual_equivalence.v1/outcome.json",
+        "evidence/registry.json",
+        "claims/registry.json"
       ]
     },
     {
       "id": "experimentation.runtime_protocol_decomposition",
       "title": "Decompose experiment runtime into composable execution protocols",
-      "status": "blocked",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
       "summary": "After one complete claim/evidence vertical slice exposes the stable seams, separate generic experiment resolution, method execution, receipt materialization, and metric/evaluator protocols from experiment-family logic so new experiments become primarily declarative without hiding scientific semantics in a universal plugin framework.",
       "depends_on": [
         "experimentation.claim_evidence_vertical_slice"
-      ],
-      "blockers": [
-        "Premature abstraction would risk generalizing from structural controls before the evidence lifecycle has exercised failure, threat, and claim semantics end to end."
       ],
       "completion": [
         "Generic resolution/execution/receipt phases no longer grow one large branch per experiment ID.",

@@ -1,0 +1,73 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "climate.sheaf.consistency.structural_residual_equivalence.metrics",
+      "bytes": 2888,
+      "digest": "sha256:d4e0aca9bce2a62c016c1ae191a9c299c9603ec96b6f30364425b327b5a6f67c",
+      "media_type": "application/json",
+      "schema": "metric_results/v1",
+      "uri": "metric-results.json"
+    }
+  ],
+  "commands": [
+    "cargo test --quiet --test sheaf_claim_metrics -- --nocapture"
+  ],
+  "contract_fingerprint": "d5eb41f4afc6f0702a6288d3311b24defb40369eb0e2a301d07c11a7044fabd2",
+  "ended_at": "2026-09-18T21:19:19.229253+00:00",
+  "environment": {
+    "arch": "x86_64",
+    "libraries": {},
+    "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "toolchains": {
+      "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+      "git_dirty": "false",
+      "git_head": "90b18420e90e33ea9e2b25d5a5050b910f5dfe03",
+      "python": "3.12.3",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)"
+    }
+  },
+  "execution": {
+    "requested": {
+      "backend_id": "rust-cargo-test",
+      "implementation_build": "source-sha256:9e37f06ce5711490a7bfa9af49768bd7482175a762ad9cdf7d1927ebbde33717",
+      "implementation_id": "sheaf.real.spectral_v1",
+      "method_id": "sheaf.real.spectral_v1",
+      "precision": "FP64",
+      "resource_class": "R2_toolchain_ci"
+    },
+    "resolved": {
+      "backend_id": "rust-cargo-test",
+      "implementation_build": "source-sha256:9e37f06ce5711490a7bfa9af49768bd7482175a762ad9cdf7d1927ebbde33717",
+      "implementation_id": "sheaf.real.spectral_v1",
+      "method_id": "sheaf.real.spectral_v1",
+      "precision": "FP64",
+      "resource_class": "R2_toolchain_ci"
+    },
+    "status": "eligible"
+  },
+  "exit_code": 0,
+  "experiment_id": "sheaf.structural_ablation.v1",
+  "experiment_spec_digest": "sha256:aff5b6e28eaa19f63e38c378b24567842c6db78b32d9a592fd816bcfa33f3e57",
+  "hardware": {
+    "cpu": "x86_64"
+  },
+  "method_builds": {
+    "graph.scalar_laplacian_v1": "source-sha256:0599bbd06a2ff98996d69b0615c1567c0a63ba917a9a3fb4dc8e0d564f4adea1",
+    "sheaf.real.local_residual_v1": "source-sha256:0599bbd06a2ff98996d69b0615c1567c0a63ba917a9a3fb4dc8e0d564f4adea1",
+    "sheaf.real.spectral_v1": "source-sha256:9e37f06ce5711490a7bfa9af49768bd7482175a762ad9cdf7d1927ebbde33717"
+  },
+  "producer_build": "90b18420e90e33ea9e2b25d5a5050b910f5dfe03",
+  "repository_revision": "90b18420e90e33ea9e2b25d5a5050b910f5dfe03",
+  "resolved_configuration": {},
+  "resolved_dataset_digests": [
+    "sha256:f37c0322198c535bfa2bfc216f18b80cfd9809e2b4bc6f3a826840394a260f9c"
+  ],
+  "run_id": "github-35396065931-1.sheaf.structural_ablation.v1.sheaf.real.spectral_v1",
+  "scientific_output_eligible": true,
+  "seeds": [
+    0
+  ],
+  "started_at": "2026-09-18T21:18:52.558865+00:00",
+  "stderr_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_digest": "sha256:eef06784b30f451310805edf8dd8f043426207af48caf7346999452ea752fa29"
+}

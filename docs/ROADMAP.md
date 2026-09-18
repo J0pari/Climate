@@ -9,8 +9,8 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 - Active: 3
 - Ready: 15
-- Blocked: 10
-- Done: 13
+- Blocked: 9
+- Done: 14
 - Dropped: 0
 
 ## Graph projection
@@ -18,7 +18,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
-| `experimentation.claim_evidence_vertical_slice` — Close one claim-to-evidence scientific loop | `active` | `P0` | `R2_toolchain_ci` | `experimentation.failure_provenance` |
+| `experimentation.runtime_protocol_decomposition` — Decompose experiment runtime into composable execution protocols | `active` | `P1` | `R2_toolchain_ci` | `experimentation.claim_evidence_vertical_slice` |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
@@ -36,7 +36,6 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` | `sheaf.climate_data_semantics`, `data.global_free_station_federation` |
-| `experimentation.runtime_protocol_decomposition` — Decompose experiment runtime into composable execution protocols | `blocked` | `P1` | `R2_toolchain_ci` | `experimentation.claim_evidence_vertical_slice` |
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `blocked` | `P1` | `R4_integrated_system` | — |
 | `orchestration.external_artifact_evaluation` — Evaluate external model artifacts through Climate-owned tasks | `blocked` | `P1` | `R4_integrated_system` | `orchestration.commons_read_execution` |
@@ -50,6 +49,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `architecture.reference_values` — Focused atmospheric reference-value authority | `done` | `P0` | `R2_toolchain_ci` | — |
 | `data.external_authority_audit` — Externalize hardcoded climate data and assumptions | `done` | `P0` | `R1_portable_cpu` | — |
 | `data.immutable_observational_projection` — Create one immutable observational or reanalysis projection | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `state.typed_physical_state` |
+| `experimentation.claim_evidence_vertical_slice` — Close one claim-to-evidence scientific loop | `done` | `P0` | `R2_toolchain_ci` | `experimentation.failure_provenance` |
 | `experimentation.climate_representation_ladder` — Build a climate-representation benchmark ladder | `done` | `P0` | `R2_toolchain_ci` | `experimentation.common_cpu_runtime` |
 | `experimentation.common_cpu_runtime` — Run one contract-valid CPU experiment end to end | `done` | `P0` | `R1_portable_cpu` | — |
 | `experimentation.failure_provenance` — Persist structured provenance for failed experiment execution | `done` | `P0` | `R2_toolchain_ci` | `experimentation.common_cpu_runtime` |
