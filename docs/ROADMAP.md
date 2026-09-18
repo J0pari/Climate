@@ -7,10 +7,10 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 ## Planning summary
 
-- Active: 5
+- Active: 4
 - Ready: 13
 - Blocked: 7
-- Done: 9
+- Done: 10
 - Dropped: 0
 
 ## Graph projection
@@ -20,7 +20,6 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
 | `experimentation.climate_representation_ladder` — Build a climate-representation benchmark ladder | `active` | `P0` | `R2_toolchain_ci` | `experimentation.common_cpu_runtime` |
 | `physics.streaming_budget_accounting` — Compose physical kernels through a streaming budget ledger | `active` | `P0` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
-| `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `active` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |
@@ -50,6 +49,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `experimentation.common_cpu_runtime` — Run one contract-valid CPU experiment end to end | `done` | `P0` | `R1_portable_cpu` | — |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `done` | `P0` | `R2_toolchain_ci` | — |
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
+| `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 
 Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.

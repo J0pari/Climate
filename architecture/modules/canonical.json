@@ -514,14 +514,14 @@
       "family": "global_station_sheaf_substrate",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-neutral global station substrate using WGS84 indexed radius neighborhoods, deterministic shard ownership, locality-generated Rips simplices, sparse CSR degree-zero identity restrictions, and explicit observation missingness",
+      "intended_role": "canonical provider-neutral global station sheaf substrate using WGS84 indexed locality, deterministic partition ownership, locality-generated higher simplices, heterogeneous coordinate-selection stalk/restriction maps, partition-local sparse higher coboundaries, explicit observation missingness, and component-local global-section extension without dense global nullspace assembly",
       "claim_ids": [
         "climate.sheaf.consistency"
       ],
       "known_gaps": [
         "the repository has not yet federated every eligible freely accessible station provider into one immutable global catalog",
-        "the station-specialized sheaf currently implements same-variable identity restrictions; heterogeneous non-identity climate restriction maps remain an open realization obligation",
-        "higher-dimensional sparse climate cochains and scalable global-section/cohomology solvers remain open"
+        "current heterogeneous climate restrictions are coordinate-selection maps induced by station variable support; physically transformed cross-variable restrictions require their own declared semantics and witnesses",
+        "worldwide multi-year execution and empirical incremental value remain separate scale/evaluation obligations rather than consequences of the local sparse algebra"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false
