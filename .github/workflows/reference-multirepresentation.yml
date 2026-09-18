@@ -4,7 +4,9 @@ on:
   push:
     paths:
       - 'reference/multirepresentation_common.py'
+      - 'reference/multirepresentation_worlds.py'
       - 'tests/reference/test_multirepresentation_common.py'
+      - 'tests/reference/test_multirepresentation_worlds.py'
       - 'fixtures/multirepresentation/**'
       - 'requirements/reference-multirepresentation.txt'
       - '.github/workflows/reference-multirepresentation.yml'
@@ -13,7 +15,9 @@ on:
   pull_request:
     paths:
       - 'reference/multirepresentation_common.py'
+      - 'reference/multirepresentation_worlds.py'
       - 'tests/reference/test_multirepresentation_common.py'
+      - 'tests/reference/test_multirepresentation_worlds.py'
       - 'fixtures/multirepresentation/**'
       - 'requirements/reference-multirepresentation.txt'
       - '.github/workflows/reference-multirepresentation.yml'
@@ -37,6 +41,10 @@ jobs:
       - name: Record resolved numerical environment
         run: python -m pip freeze
       - name: Run multirepresentation witnesses
-        run: python -m unittest tests.reference.test_multirepresentation_common -v
+        run: |
+          python -m unittest tests.reference.test_multirepresentation_common -v
+          python -m unittest tests.reference.test_multirepresentation_worlds -v
+      - name: Materialize structural-world ground truth
+        run: python reference/multirepresentation_worlds.py | tee multirepresentation-worlds.json
       - name: Run registered reference experiment
         run: python reference/multirepresentation_common.py --json | tee multirepresentation-result.json

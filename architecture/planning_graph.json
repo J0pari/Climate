@@ -356,15 +356,24 @@
     {
       "id": "multirepresentation.structure_baselines",
       "title": "Test multirepresentation structure against simpler baselines",
-      "status": "ready",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Evaluate common-manifold, product, fibered, quotient, local-atlas, graph, and deliberately non-Riemannian relationships on systems with known latent structure before climate interpretation.",
+      "summary": "Turn multirepresentation structure into a falsifiable benchmark program: deterministic ground-truth worlds cover common-manifold, product, fibered, quotient/noninjective, stratified, nuisance-dominated, and null relationships, including cases that static paired data cannot identify. Candidate methods must recover supported structure, expose uncertainty, or abstain rather than manufacture a universal geometry.",
       "depends_on": [],
       "completion": [
-        "Synthetic systems distinguish shared, private, coupled, and non-manifold latent structure with known ground truth.",
-        "Candidate geometry is compared against raw concatenation, PCA/CCA, graph, state-space, and standard latent-representation baselines with matched information.",
-        "Dimension selection and topology claims use maintained linear algebra/statistics and mathematically exact invariants rather than local power iteration or heuristic thresholds."
+        "Synthetic systems distinguish shared, private, coupled, quotient/noninjective, stratified, nuisance-dominated, and null structure with immutable known ground truth and explicit identifiability limits.",
+        "Candidate methods are evaluated for both recovery and calibrated abstention across the full world suite; no method is required to emit a structure when the observation model cannot identify one.",
+        "Candidate geometry is compared against raw concatenation, PCA/CCA, graph, state-space, independence/testing, and standard latent-representation baselines with matched information.",
+        "Dimension selection and topology claims use maintained linear algebra/statistics and mathematically exact invariants rather than local power iteration or heuristic thresholds.",
+        "Confirmation seeds/world variants are isolated from discovery/tuning so a successful structural classifier cannot be credited for fixture memorization."
+      ],
+      "evidence": [
+        "fixtures/multirepresentation/structural-worlds-v1.json",
+        "reference/multirepresentation_worlds.py",
+        "tests/reference/test_multirepresentation_worlds.py",
+        "reference/multirepresentation_common.py",
+        "experiments/multirepresentation-common.v1.json"
       ]
     },
     {

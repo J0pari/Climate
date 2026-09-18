@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "fixture_id": "multirepresentation.structural-worlds.v1",
+  "description": "Deterministic synthetic ground-truth worlds for testing which relationship, if any, is justified between paired representations. The suite includes identifiable and deliberately non-identifiable cases; it is not a climate model.",
+  "sample_count": 512,
+  "worlds": [
+    {
+      "world_id": "shared_manifold",
+      "seed": 1101,
+      "relationship": "common_manifold",
+      "static_identifiability": "identifiable",
+      "shared_dimension": 1,
+      "private_dimensions": [0, 0]
+    },
+    {
+      "world_id": "product",
+      "seed": 1102,
+      "relationship": "product",
+      "static_identifiability": "not_identifiable_from_cross_view_dependence_alone",
+      "shared_dimension": 0,
+      "private_dimensions": [1, 1]
+    },
+    {
+      "world_id": "fibered",
+      "seed": 1103,
+      "relationship": "fibered",
+      "static_identifiability": "identifiable_shared_base_with_private_fibers",
+      "shared_dimension": 1,
+      "private_dimensions": [1, 1]
+    },
+    {
+      "world_id": "quotient_noninjective",
+      "seed": 1104,
+      "relationship": "quotient_noninjective",
+      "static_identifiability": "only_quotient_coordinate_identifiable_across_views",
+      "shared_dimension": 1,
+      "private_dimensions": [1, 1]
+    },
+    {
+      "world_id": "stratified_regime",
+      "seed": 1105,
+      "relationship": "stratified",
+      "static_identifiability": "piecewise_relation_with_declared_stratum_labels",
+      "shared_dimension": 1,
+      "private_dimensions": [1, 1]
+    },
+    {
+      "world_id": "nuisance_dominated",
+      "seed": 1106,
+      "relationship": "common_base_with_dominant_private_nuisance",
+      "static_identifiability": "identifiable_but_variance_is_misleading",
+      "shared_dimension": 1,
+      "private_dimensions": [2, 2]
+    },
+    {
+      "world_id": "independent_null",
+      "seed": 1107,
+      "relationship": "no_shared_structure",
+      "static_identifiability": "null",
+      "shared_dimension": 0,
+      "private_dimensions": [2, 2]
+    }
+  ],
+  "generation_policy": {
+    "latent_bounds": [-1.0, 1.0],
+    "nuisance_scale": 5.0,
+    "stratified_boundary": 0.0,
+    "minimum_samples": 128
+  }
+}

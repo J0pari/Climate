@@ -63,6 +63,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/multirepresentation_worlds.py",
+      "family": "reference_multirepresentation_structural_worlds",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "deterministic ground-truth substrate spanning shared-manifold, product, fibered, quotient/noninjective, stratified, nuisance-dominated, and independent-null paired representations, including explicitly non-identifiable cases where downstream methods should abstain rather than force a shared geometry",
+      "known_gaps": [
+        "this module generates ground-truth worlds and does not select, rank, or endorse a representation method",
+        "static paired samples cannot identify every declared generative relationship; non-identifiability is an intended benchmark outcome rather than a defect to regularize away",
+        "the current suite is low-dimensional and synthetic; dynamical worlds, observational missingness, forcing shifts, and climate-data confirmation fixtures remain open",
+        "method comparison and structure-selection calibration remain separate experiment obligations"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/ncei_ghcnd_projection.py",
       "family": "reference_ncei_ghcnd_cf_projection",
       "language": "python",

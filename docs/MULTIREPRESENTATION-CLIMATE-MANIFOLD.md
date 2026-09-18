@@ -108,6 +108,24 @@ There is no requirement that the useful climate representation have one global c
 
 If dimension or smooth structure genuinely changes across regimes, a stratified or piecewise-smooth representation may be more truthful than forcing a globally smooth Riemannian model.
 
+## Structural-world benchmark as the primary falsification program
+
+The multirepresentation program must not be organized around one successful common-coordinate fixture. Its primary synthetic laboratory is a battery of worlds whose true relationships are deliberately different:
+
+- **common manifold** — both views are injective functions of one shared latent coordinate;
+- **product** — the paired realization contains view-specific factors but no shared coordinate, and static cross-view dependence alone cannot prove the generative product semantics;
+- **fibered** — a shared base is accompanied by private view-specific fibers;
+- **quotient/noninjective** — one view discards information, so only a quotient coordinate is common and the lost direction cannot be reconstructed by a joint method;
+- **stratified/regime** — the observation relationship changes across declared strata rather than admitting one globally smooth chart;
+- **nuisance-dominated** — a real shared coordinate exists but high-variance private nuisance is an adversary to variance-based fusion;
+- **independent null** — there is no cross-view shared state to recover.
+
+`fixtures/multirepresentation/structural-worlds-v1.json` and `reference/multirepresentation_worlds.py` are ground-truth authorities for these worlds. They are not a structure-selection algorithm.
+
+A valid method is therefore allowed to **abstain**. In some worlds the requested generative distinction is not identifiable from the supplied static paired observations. The benchmark must reward calibrated refusal in those cases rather than forcing every method to return a manifold label, embedding, or score. A claimed structural identification needs an observation model that makes that distinction identifiable.
+
+The existing jointly-smooth common-coordinate fixture remains useful as one positive control, but it no longer defines the research program. A method that succeeds only on the shared-manifold case and hallucinates shared structure in product or null worlds has failed the larger experiment.
+
 ## 4. What “orthogonal representations” should mean
 
 `Orthogonal` is useful only after the inner product or other separation criterion is declared.

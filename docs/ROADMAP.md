@@ -7,8 +7,8 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 ## Planning summary
 
-- Active: 1
-- Ready: 15
+- Active: 2
+- Ready: 14
 - Blocked: 6
 - Done: 9
 - Dropped: 0
@@ -18,12 +18,12 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
 | `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `active` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
+| `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `ready` | `P0` | `R5_large_data` | `data.external_authority_audit` |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `geometry.independent_derivative_route` — Add a second independent metric-derivative route | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `information_geometry.recovery_validation` — Validate information-geometry primitives on explicit statistical models | `ready` | `P1` | `R2_toolchain_ci` | — |
-| `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `numerics.conditioning_guardrails` — Define library-backed numerical conditioning guardrails | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `ready` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 | `physics.vertical_coordinate_contract` — Define pressure, sigma, and hybrid vertical-coordinate semantics | `ready` | `P1` | `R2_toolchain_ci` | `architecture.reference_values` |
