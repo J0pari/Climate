@@ -237,6 +237,61 @@ package climate
 	uri?:        string
 }
 
+#BudgetTermClass: "boundary_flux" | "resolved_physical_source" | "resolved_physical_sink" |
+	"internal_exchange" | "coupling_exchange" | "numerical_correction" |
+	"solver_residual_effect" | "roundoff_estimate"
+
+#BudgetIdentity: {
+	budget_id:           string & !=""
+	quantity_id:         string & !=""
+	units:               string & !=""
+	domain_id:           string & !=""
+	interval_start_ns:   int
+	interval_end_ns:     int
+	precision:           string & !=""
+	accumulation_method: string & !=""
+
+	if interval_end_ns <= interval_start_ns {
+		_|_: "budget interval must satisfy end > start"
+	}
+}
+
+#BudgetTermTotal: {
+	class:                   #BudgetTermClass
+	process_id:              string & !=""
+	boundary_classification?: string & !=""
+	signed_amount:           number
+	absolute_uncertainty_bound?: number & >=0
+
+	if class == "boundary_flux" {
+		boundary_classification: string & !=""
+	}
+	if class == "resolved_physical_source" {
+		signed_amount: number & >=0
+	}
+	if class == "resolved_physical_sink" {
+		signed_amount: number & <=0
+	}
+}
+
+#BudgetClassTotal: {
+	class:         #BudgetTermClass
+	signed_amount: number
+}
+
+#BudgetReport: {
+	identity:    #BudgetIdentity
+	partition_count: int & >=1
+	quantity_before: number
+	quantity_after:  number
+	actual_change:   number
+	accounted_change: number
+	unexplained_residual: number
+	conservative_absolute_uncertainty_bound?: number & >=0
+	class_totals: [...#BudgetClassTotal]
+	term_totals:  [...#BudgetTermTotal]
+}
+
 #MetricResultSet: {
 	schema_version: 1
 	metrics: [...#MetricResult] & [_, ...]

@@ -158,7 +158,7 @@ For a forced system, closure means the measured state change agrees with the ind
 
 The ledger uses one sign convention—every recorded term is a signed contribution to `Q_after - Q_before`—and never invents a balancing process. Boundary fluxes require explicit boundary classification; physical source/sink sign errors fail closed; numerical correction and solver-residual effects have distinct channels; and the unexplained residual remains visible.
 
-Partition merge requires identical quantity/domain/time/precision identity and rejects repeated partition IDs before double counting. This is the production-facing scaling contract for accounting: state fields need not be gathered globally merely to close a budget. Integrating individual physical kernels into the ledger remains an active obligation rather than something inferred from the ledger's existence.
+Partition merge requires identical quantity/domain/time/precision identity and rejects repeated partition IDs before double counting. This is the production-facing scaling contract for accounting: state fields need not be gathered globally merely to close a budget. `#BudgetReport` in `contracts/climate.cue` is the language-neutral artifact boundary so Fortran, Python, Rust, and external model wrappers can emit the same accounting semantics without sharing an implementation language. Integrating individual physical kernels into the ledger remains an active obligation rather than something inferred from the ledger's existence.
 
 ### Required ledger properties
 

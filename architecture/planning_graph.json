@@ -643,7 +643,8 @@
         "docs/PHYSICAL-INVARIANTS-REALIZATION.md",
         "src/fortran/conservative_transport.f90",
         "src/fortran/pressure_energy_exchange.f90",
-        "src/fortran/vertical_diffusion.f90"
+        "src/fortran/vertical_diffusion.f90",
+        "contracts/climate.cue"
       ]
     }
   ]

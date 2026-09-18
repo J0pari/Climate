@@ -191,13 +191,20 @@ impl From<&BudgetContribution> for ContributionKey {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 struct CompensatedSum {
     sum: f64,
     correction: f64,
 }
 
 impl CompensatedSum {
+    fn zero() -> Self {
+        Self {
+            sum: 0.0,
+            correction: 0.0,
+        }
+    }
+
     fn add(&mut self, value: f64) {
         let next = self.sum + value;
         if self.sum.abs() >= value.abs() {
@@ -213,7 +220,7 @@ impl CompensatedSum {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 struct ContributionAccumulator {
     amount: CompensatedSum,
     uncertainty_bound: CompensatedSum,
@@ -221,6 +228,14 @@ struct ContributionAccumulator {
 }
 
 impl ContributionAccumulator {
+    fn zero() -> Self {
+        Self {
+            amount: CompensatedSum::zero(),
+            uncertainty_bound: CompensatedSum::zero(),
+            has_uncertainty: false,
+        }
+    }
+
     fn add(&mut self, amount: f64, uncertainty: Option<f64>) {
         self.amount.add(amount);
         if let Some(bound) = uncertainty {
@@ -288,9 +303,9 @@ impl ExtensiveBudgetLedger {
         }
         let mut partition_ids = BTreeSet::new();
         partition_ids.insert(partition_id);
-        let mut before = CompensatedSum::default();
+        let mut before = CompensatedSum::zero();
         before.add(quantity_before);
-        let mut after = CompensatedSum::default();
+        let mut after = CompensatedSum::zero();
         after.add(quantity_after);
         Ok(Self {
             identity,
@@ -304,7 +319,7 @@ impl ExtensiveBudgetLedger {
     pub fn record(&mut self, contribution: BudgetContribution) -> Result<(), BudgetError> {
         contribution.validate()?;
         let key = ContributionKey::from(&contribution);
-        self.contributions.entry(key).or_default().add(
+        self.contributions.entry(key).or_insert_with(ContributionAccumulator::zero).add(
             contribution.signed_amount,
             contribution.absolute_uncertainty_bound,
         );
@@ -335,7 +350,7 @@ impl ExtensiveBudgetLedger {
         self.partition_ids.extend(other.partition_ids.iter().cloned());
 
         for (key, accumulator) in &other.contributions {
-            let target = self.contributions.entry(key.clone()).or_default();
+            let target = self.contributions.entry(key.clone()).or_insert_with(ContributionAccumulator::zero);
             target.amount.add(accumulator.amount.total());
             if accumulator.has_uncertainty {
                 target
@@ -352,8 +367,8 @@ impl ExtensiveBudgetLedger {
         let quantity_after = self.quantity_after.total();
         let actual_change = quantity_after - quantity_before;
 
-        let mut accounted = CompensatedSum::default();
-        let mut uncertainty = CompensatedSum::default();
+        let mut accounted = CompensatedSum::zero();
+        let mut uncertainty = CompensatedSum::zero();
         let mut has_uncertainty = false;
         let mut by_class: BTreeMap<BudgetTermClass, CompensatedSum> = BTreeMap::new();
         let mut term_totals = Vec::with_capacity(self.contributions.len());
@@ -361,7 +376,10 @@ impl ExtensiveBudgetLedger {
         for (key, value) in &self.contributions {
             let amount = value.amount.total();
             accounted.add(amount);
-            by_class.entry(key.class).or_default().add(amount);
+            by_class
+                .entry(key.class)
+                .or_insert_with(CompensatedSum::zero)
+                .add(amount);
             let uncertainty_bound = if value.has_uncertainty {
                 let bound = value.uncertainty_bound.total();
                 uncertainty.add(bound);

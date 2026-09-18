@@ -115,6 +115,14 @@ jobs:
             echo 'rank-deficient metric encoded a fake finite value' >&2
             exit 1
           fi
+      - name: Vet physical budget report semantics
+        run: '"$(go env GOPATH)/bin/cue" vet -d "#BudgetReport" contracts/climate.cue contracts/testdata/budget-report.good.json'
+      - name: Reject invalid physical budget semantics
+        run: |
+          if "$(go env GOPATH)/bin/cue" vet -d '#BudgetReport' contracts/climate.cue contracts/testdata/budget-report.bad.json; then
+            echo 'invalid physical budget report was accepted' >&2
+            exit 1
+          fi
       - name: Vet valid experiment fixture
         run: '"$(go env GOPATH)/bin/cue" vet -d "#ExperimentSpec" contracts/climate.cue contracts/testdata/experiment.good.json'
       - name: Reject invalid experiment fixture

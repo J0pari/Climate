@@ -1,0 +1,52 @@
+{
+  "identity": {
+    "budget_id": "dry_energy.step.0001",
+    "quantity_id": "dry_total_energy",
+    "units": "J",
+    "domain_id": "global_atmosphere",
+    "interval_start_ns": 0,
+    "interval_end_ns": 300000000000,
+    "precision": "fp64",
+    "accumulation_method": "neumaier_compensated_f64"
+  },
+  "partition_count": 2,
+  "quantity_before": 100,
+  "quantity_after": 111,
+  "actual_change": 11,
+  "accounted_change": 11,
+  "unexplained_residual": 0,
+  "conservative_absolute_uncertainty_bound": 0.1,
+  "class_totals": [
+    {
+      "class": "boundary_flux",
+      "signed_amount": 10
+    },
+    {
+      "class": "resolved_physical_source",
+      "signed_amount": 2
+    },
+    {
+      "class": "resolved_physical_sink",
+      "signed_amount": -1
+    }
+  ],
+  "term_totals": [
+    {
+      "class": "boundary_flux",
+      "process_id": "surface.sensible_heat",
+      "boundary_classification": "lower_boundary",
+      "signed_amount": 10,
+      "absolute_uncertainty_bound": 0.1
+    },
+    {
+      "class": "resolved_physical_source",
+      "process_id": "radiation.shortwave_absorption",
+      "signed_amount": 2
+    },
+    {
+      "class": "resolved_physical_sink",
+      "process_id": "radiation.longwave_export",
+      "signed_amount": -1
+    }
+  ]
+}
