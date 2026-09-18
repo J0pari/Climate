@@ -91,6 +91,49 @@
       }
     },
     {
+      "method_id": "dynamics.regime_gated_lstsq.numpy_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "regime_semantic_feature_gating",
+      "input_contracts": [
+        "two_regime_state_transition_samples/v1",
+        "regime_labels/v1"
+      ],
+      "output_contracts": [
+        "regime_representation_diagnostics/v1"
+      ],
+      "assumptions": [
+        "raw and gated candidates use identical no-intercept numpy.linalg.lstsq semantics with no regularization",
+        "the regime-gated map receives only the declared cold/warm label and separate copies of the same raw state/forcing features",
+        "all fitting samples come from the immutable discovery split while confirmation samples remain held out",
+        "both raw and gated design ranks are surfaced explicitly"
+      ],
+      "known_limitations": [
+        "the method assumes an externally supplied correct regime label and does not infer regimes from data",
+        "exact gated recovery is expected because each declared regime is locally linear in the benchmark",
+        "success does not establish usefulness of discrete regime gating for real climate dynamics",
+        "threshold-crossing dynamics, regime uncertainty, and smooth state-dependent feedback require distinct method identities"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "physics.two_layer_ebm.regime_feedback_local_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_regime_feedback.py",
+          "reference/two_layer_regime_representation.py"
+        ]
+      }
+    },
+    {
       "method_id": "geometry.candidate.gpu_batched_v1",
       "semantic_version": "0.1.0",
       "maturity": "concept",
@@ -537,6 +580,48 @@
           "reference/two_layer_energy_balance.py",
           "reference/two_layer_forcing_protocols.py",
           "reference/two_layer_parameter_identifiability.py"
+        ]
+      }
+    },
+    {
+      "method_id": "physics.two_layer_ebm.regime_feedback_local_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "two_layer_local_regime_feedback_reference",
+      "input_contracts": [
+        "two_layer_ebm_fixture/v1",
+        "two_regime_feedback_fixture/v1"
+      ],
+      "output_contracts": [
+        "two_layer_regime_feedback_samples/v1"
+      ],
+      "assumptions": [
+        "cold and warm regimes use fixture-declared positive climate-feedback coefficients with all other EBM parameters fixed",
+        "every accepted transition remains on one side of the surface-temperature threshold by at least the declared margin at all validation substeps",
+        "within an accepted transition the standard exact constant-forcing linear EBM propagation is valid for the regime-fixed feedback coefficient",
+        "discovery and confirmation state/forcing domains and seeds are immutable"
+      ],
+      "known_limitations": [
+        "the benchmark deliberately excludes threshold-crossing trajectories and is not a global solver for discontinuous state-dependent feedback",
+        "feedback coefficients, threshold, and sample domains are synthetic structural controls rather than calibrated climate values",
+        "two discrete local regimes are a minimal model-class witness rather than a realistic feedback law",
+        "correct local propagation does not establish empirical regime behavior in the Earth system"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "physics.two_layer_ebm.affine_forcing_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_regime_feedback.py"
         ]
       }
     },

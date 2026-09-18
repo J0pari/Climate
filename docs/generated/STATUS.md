@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **58**.
+Registered modules: **60**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 35 |
-| `reference` | 23 |
+| `reference` | 25 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 56 |
+| `runnable` | 58 |
 
 ### Canonical and reference modules
 
@@ -77,6 +77,8 @@ Registered modules: **58**.
 | `reference` | `independent_reference` | `reference/two_layer_observation_design.py` | `reference_two_layer_observation_design` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_observation_information.py` | `reference_two_layer_observation_information` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_parameter_identifiability.py` | `reference_two_layer_local_parameter_identifiability` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_regime_feedback.py` | `reference_two_layer_regime_feedback` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_regime_representation.py` | `reference_two_layer_regime_representation` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_stochastic_representation_statistics.py` | `reference_two_layer_stochastic_representation_statistics` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_stochastic_variability.py` | `reference_two_layer_stochastic_internal_variability` | `runnable` | no |
@@ -99,7 +101,7 @@ Registered claims: **5**.
 
 ## Registered experiments
 
-Experiment specifications: **9**.
+Experiment specifications: **10**.
 
 | Experiment | File |
 | --- | --- |
@@ -108,6 +110,7 @@ Experiment specifications: **9**.
 | `multirepresentation.ebm_dynamics.v1` | `experiments/multirepresentation-ebm-dynamics.v1.json` |
 | `multirepresentation.ebm_forced_ood.v1` | `experiments/multirepresentation-ebm-forced-ood.v1.json` |
 | `multirepresentation.ebm_observation_degradation.v1` | `experiments/multirepresentation-ebm-observation-degradation.v1.json` |
+| `multirepresentation.ebm_regime_feedback.v1` | `experiments/multirepresentation-ebm-regime-feedback.v1.json` |
 | `multirepresentation.ebm_stochastic_statistics.v1` | `experiments/multirepresentation-ebm-stochastic-statistics.v1.json` |
 | `sheaf.structural_ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
 | `physics.two_layer_ebm.forcing_protocols.v1` | `experiments/two-layer-ebm-forcing-protocols.v1.json` |

@@ -13,21 +13,26 @@ on:
       - 'reference/two_layer_parameter_identifiability.py'
       - 'reference/two_layer_stochastic_variability.py'
       - 'reference/two_layer_stochastic_representation_statistics.py'
+      - 'reference/two_layer_regime_feedback.py'
+      - 'reference/two_layer_regime_representation.py'
       - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
       - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
       - 'fixtures/physics/two-layer-ebm-forced-representation-v1.json'
       - 'fixtures/physics/two-layer-ebm-observation-degradation-v1.json'
       - 'fixtures/physics/two-layer-ebm-parameter-identifiability-v1.json'
       - 'fixtures/physics/two-layer-ebm-stochastic-internal-variability-v1.json'
+      - 'fixtures/physics/two-layer-ebm-regime-feedback-v1.json'
       - 'experiments/multirepresentation-ebm-dynamics.v1.json'
       - 'experiments/two-layer-ebm-forcing-protocols.v1.json'
       - 'experiments/multirepresentation-ebm-forced-ood.v1.json'
       - 'experiments/multirepresentation-ebm-observation-degradation.v1.json'
       - 'experiments/two-layer-ebm-parameter-identifiability.v1.json'
       - 'experiments/multirepresentation-ebm-stochastic-statistics.v1.json'
+      - 'experiments/multirepresentation-ebm-regime-feedback.v1.json'
       - 'tests/reference/test_two_layer_observation_degradation.py'
       - 'tests/reference/test_two_layer_parameter_identifiability.py'
       - 'tests/reference/test_two_layer_stochastic_statistics.py'
+      - 'tests/reference/test_two_layer_regime_representation.py'
       - 'configurations/numerical/multirepresentation-ebm-dynamics.v1.json'
       - 'methods/registry.json'
       - 'contracts/climate.cue'
@@ -57,6 +62,7 @@ jobs:
           python -m unittest tests.reference.test_two_layer_observation_degradation -v
           python -m unittest tests.reference.test_two_layer_parameter_identifiability -v
           python -m unittest tests.reference.test_two_layer_stochastic_statistics -v
+          python -m unittest tests.reference.test_two_layer_regime_representation -v
       - name: Execute registered EBM experiments
         env:
           CLIMATE_RUN_SCOPE: github-${{ github.run_id }}-${{ github.run_attempt }}
@@ -85,6 +91,10 @@ jobs:
             --experiment experiments/multirepresentation-ebm-stochastic-statistics.v1.json \
             --output-dir run-artifacts/ebm-stochastic-statistics \
             --repository-revision "$GITHUB_SHA"
+          python src/experiment_runtime.py \
+            --experiment experiments/multirepresentation-ebm-regime-feedback.v1.json \
+            --output-dir run-artifacts/ebm-regime-feedback \
+            --repository-revision "$GITHUB_SHA"
       - name: Install CUE
         run: go install cuelang.org/go/cmd/cue@v0.17.1
       - name: Vet common experiment outcomes
@@ -95,9 +105,10 @@ jobs:
           "$(go env GOPATH)/bin/cue" vet -d '#ExperimentOutcome' contracts/climate.cue run-artifacts/ebm-observation-degradation/outcome.json
           "$(go env GOPATH)/bin/cue" vet -d '#ExperimentOutcome' contracts/climate.cue run-artifacts/ebm-parameter-identifiability/outcome.json
           "$(go env GOPATH)/bin/cue" vet -d '#ExperimentOutcome' contracts/climate.cue run-artifacts/ebm-stochastic-statistics/outcome.json
+          "$(go env GOPATH)/bin/cue" vet -d '#ExperimentOutcome' contracts/climate.cue run-artifacts/ebm-regime-feedback/outcome.json
       - name: Vet run receipts
         run: |
-          for directory in run-artifacts/ebm-dynamics run-artifacts/ebm-forcing run-artifacts/ebm-forced-ood run-artifacts/ebm-observation-degradation run-artifacts/ebm-parameter-identifiability run-artifacts/ebm-stochastic-statistics; do
+          for directory in run-artifacts/ebm-dynamics run-artifacts/ebm-forcing run-artifacts/ebm-forced-ood run-artifacts/ebm-observation-degradation run-artifacts/ebm-parameter-identifiability run-artifacts/ebm-stochastic-statistics run-artifacts/ebm-regime-feedback; do
             "$(go env GOPATH)/bin/cue" vet -d '#RunManifest' contracts/climate.cue "$directory/run-baseline.json"
             "$(go env GOPATH)/bin/cue" vet -d '#RunManifest' contracts/climate.cue "$directory/run-candidate.json"
           done

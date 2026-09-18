@@ -239,7 +239,7 @@
         "the observation-noise magnitude and linear maps are synthetic structural controls rather than calibrated instrument, reanalysis, or retrieval-error models",
         "instantaneous fixed-pseudoinverse reconstruction deliberately does not exploit known dynamics to infer an unobserved state component",
         "the exactly duplicated noisy surface channel tests coordinate redundancy, not the benefit of independent repeated sensors",
-        "regime-dependent feedback remains a separate immutable benchmark rung"
+        "threshold-crossing nonlinear feedback, observational calibration, and learned hidden-state reconstruction remain outside this rung"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -290,6 +290,36 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/two_layer_regime_feedback.py",
+      "family": "reference_two_layer_regime_feedback",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "immutable exact local two-regime feedback reference for the two-layer EBM, generating separately seeded discovery and confirmation transitions under cold/warm feedback coefficients, requiring every validation substep to remain outside a fixed threshold margin, and binding the resulting sample set to a deterministic digest without introducing a threshold-crossing solver",
+      "known_gaps": [
+        "the synthetic feedback coefficients and temperature threshold are structural controls rather than calibrated climate values or a claimed Earth-system tipping threshold",
+        "accepted transitions deliberately exclude threshold crossing, hysteresis, regime uncertainty, and smooth state-dependent feedback",
+        "the two local regimes remain linear, global-mean, deterministic, and spatially unresolved",
+        "exact local propagation does not establish empirical regime behavior in the real climate system"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/two_layer_regime_representation.py",
+      "family": "reference_two_layer_regime_representation",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "controlled representation benchmark for the exact local two-regime EBM, comparing one raw global state/forcing least-squares map with a regime-gated feature map under identical solver semantics and held-out confirmation samples, including an explicit swapped-label negative control",
+      "known_gaps": [
+        "the gated method receives the correct fixture-declared regime label and does not infer regimes from data",
+        "near-exact gated recovery is expected because each accepted regime is locally linear under the declared feature map",
+        "the benchmark does not cover threshold-crossing integration, uncertain labels, smooth nonlinear feedback, or learned regime discovery",
+        "success on this synthetic control does not establish value of discrete regime gating for real climate prediction"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/two_layer_representation_dynamics.py",
       "family": "reference_two_layer_representation_dynamics",
       "language": "python",
@@ -315,7 +345,7 @@
         "statistics are measured on one synthetic seeded trajectory rather than observational or reanalysis climate statistics",
         "fixed linear pseudoinverse decoding does not test learned state inference, delay embedding, nonlinear representation learning, or generative forecasting",
         "surface-only information loss under this decoder is not a theorem that scalar time series cannot recover hidden state dynamically",
-        "regime-dependent feedback and nonlinear stochastic climate statistics remain separate benchmark work"
+        "nonlinear stochastic coupling and threshold-crossing regime dynamics remain outside this fixed-statistics rung"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false

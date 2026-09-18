@@ -1,0 +1,187 @@
+{
+  "experiment_id": "multirepresentation.ebm_regime_feedback.v1",
+  "semantic_version": "0.1.0",
+  "question": "When the same two-layer EBM has distinct cold- and warm-regime climate-feedback coefficients, does a raw global state/forcing representation expose model-class mismatch while an explicitly regime-gated representation recovers the exact local dynamics without changing the least-squares solver?",
+  "hypothesis": "A single no-intercept linear map on [surface temperature, deep temperature, forcing] cannot exactly represent both feedback regimes and therefore retains nonzero discovery and confirmation error. A regime-gated feature map with separate cold and warm copies of those same three inputs is full rank and recovers both local linear transitions to floating-point precision. Swapping the regime labels at confirmation destroys that advantage.",
+  "candidate_methods": [
+    "dynamics.regime_gated_lstsq.numpy_v1"
+  ],
+  "baseline_methods": [
+    "physics.two_layer_ebm.regime_feedback_local_v1"
+  ],
+  "datasets": [
+    {
+      "id": "physics.two_layer_ebm.geoffroy_mean.v1",
+      "digest": "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9",
+      "source_family": "literature_parameterized_two_layer_energy_balance_reference",
+      "source_version": "1",
+      "variables": [
+        "surface_temperature_anomaly_k",
+        "deep_temperature_anomaly_k",
+        "surface_heat_capacity_w_yr_m2_k",
+        "deep_heat_capacity_w_yr_m2_k",
+        "ocean_heat_exchange_w_m2_k"
+      ],
+      "spatial_domain": "global mean two-reservoir climate control",
+      "grid": "not spatially resolved",
+      "units_metadata": {
+        "temperature": "K anomaly",
+        "heat_capacity": "W yr m^-2 K^-1",
+        "ocean_heat_exchange": "W m^-2 K^-1"
+      },
+      "quality_control_policy": "non-feedback physical parameters remain the literature-fixed positive reference values",
+      "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.regime_feedback.v1",
+      "digest": "sha256:2562cc597d7bd9dd403e5d94e89ae1c5b0383c3e8ded0740bde8aa6912fa875e",
+      "source_family": "synthetic_two_regime_feedback_fixture",
+      "source_version": "1",
+      "variables": [
+        "surface_temperature_threshold_k",
+        "cold_climate_feedback_w_m2_k",
+        "warm_climate_feedback_w_m2_k",
+        "regime_label",
+        "forcing_w_m2"
+      ],
+      "time_domain": "fixed 0.25-year local transitions with separate immutable discovery and confirmation sample domains",
+      "temporal_resolution": "0.25 year transition",
+      "units_metadata": {
+        "temperature": "K anomaly",
+        "feedback": "W m^-2 K^-1",
+        "forcing": "W m^-2"
+      },
+      "quality_control_policy": "feedback coefficients, threshold, minimum regime margin, exact validation substeps, split domains, sample counts, seeds, and fitting policy are immutable; any transition approaching the threshold closer than the declared margin fails closed",
+      "citation": "fixtures/physics/two-layer-ebm-regime-feedback-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.regime.raw_global_confirmation_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "higher",
+      "target": 0.004,
+      "aggregation_domain": "all cold and warm confirmation next-state samples predicted by one global raw state/forcing linear map fit only on discovery samples",
+      "missing_data_policy": "both regimes and all confirmation samples are required",
+      "uncertainty_method": "deterministic seeded structural control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.regime.gated_confirmation_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "all confirmation next-state samples predicted by the regime-gated feature map fit only on discovery samples",
+      "missing_data_policy": "both regimes and all confirmation samples are required",
+      "uncertainty_method": "deterministic exact local-piecewise control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.regime.confirmation_error_reduction",
+      "semantic_version": "0.1.0",
+      "units": "relative-error difference",
+      "direction": "higher",
+      "target": 0.004,
+      "aggregation_domain": "raw-global confirmation relative error minus regime-gated confirmation relative error",
+      "missing_data_policy": "both confirmation errors are required",
+      "uncertainty_method": "deterministic representation ablation"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.regime.raw_global_training_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "higher",
+      "target": 0.003,
+      "aggregation_domain": "combined cold/warm discovery samples fit by one raw state/forcing linear map",
+      "missing_data_policy": "all discovery samples are required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.regime.gated_training_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "combined cold/warm discovery samples fit by the regime-gated map",
+      "missing_data_policy": "all discovery samples are required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.regime.raw_design_rank",
+      "semantic_version": "0.1.0",
+      "units": "rank",
+      "direction": "target",
+      "target": 3,
+      "aggregation_domain": "discovery design rank for [surface temperature, deep temperature, forcing]",
+      "missing_data_policy": "complete raw discovery design is required",
+      "uncertainty_method": "machine-scaled numerical rank"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.regime.gated_design_rank",
+      "semantic_version": "0.1.0",
+      "units": "rank",
+      "direction": "target",
+      "target": 6,
+      "aggregation_domain": "discovery design rank for separate cold and warm copies of the same three raw features",
+      "missing_data_policy": "complete gated discovery design is required",
+      "uncertainty_method": "machine-scaled numerical rank"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.regime.swapped_label_confirmation_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "higher",
+      "target": 0.02,
+      "aggregation_domain": "confirmation error of the fitted gated map when every cold/warm semantic label is intentionally swapped",
+      "missing_data_policy": "all confirmation samples and the fitted gated map are required",
+      "uncertainty_method": "deterministic semantic-label negative control"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.regime.observed_minimum_regime_margin_k",
+      "semantic_version": "0.1.0",
+      "units": "K",
+      "direction": "higher",
+      "target": 0.5,
+      "aggregation_domain": "minimum distance from the feedback threshold across every exact validation substep of every discovery and confirmation transition",
+      "missing_data_policy": "all validation substeps are required",
+      "uncertainty_method": "deterministic admissibility witness"
+    }
+  ],
+  "negative_controls": [
+    "raw-global and regime-gated candidates use the same numpy.linalg.lstsq solver, no intercept, no regularization, the same physical targets, and the same discovery/confirmation samples",
+    "accepted physical transitions remain at least 0.5 K from the feedback threshold at all 64 validation substeps, so the local regime feedback coefficient is unambiguous and exact fixed-regime propagation applies",
+    "the gated representation only duplicates the same state/forcing features into cold and warm blocks; it receives no exact transition matrix or target coefficients",
+    "confirmation samples never enter fitting or feature selection",
+    "swapped cold/warm labels preserve gated feature dimension while deliberately destroying regime semantics"
+  ],
+  "falsifiers": [
+    "any accepted physical transition approaches the feedback threshold inside the declared safety margin",
+    "the raw global map becomes effectively exact across both distinct feedback regimes",
+    "the correctly gated representation fails to recover confirmation transitions to floating-point tolerance despite full discovery design rank",
+    "swapped regime labels retain the correctly gated confirmation performance",
+    "the synthetic threshold or feedback coefficients are interpreted as an empirical real-climate tipping threshold or calibrated state dependence"
+  ],
+  "split_policy": "Fit both raw and gated maps only on fixture-pinned discovery samples from both regimes. Evaluate on separately seeded confirmation domains that are broader but remain safely inside their respective regimes.",
+  "preprocessing": "No scaling or learned preprocessing. The raw feature vector is [surface temperature, deep temperature, forcing]. The gated representation concatenates cold-selected and warm-selected copies of that same raw vector.",
+  "seeds": [
+    731,
+    732,
+    1731,
+    1732
+  ],
+  "stopping_rule": "Report both model classes and the swapped-label negative control. The rung is internally consistent only if raw global mismatch remains visible, gated discovery/confirmation error is near floating-point precision, both design ranks are explicit, and every physical transition satisfies the regime margin.",
+  "multiple_comparison_policy": "Both regimes, all domains, all four seeds, feedback coefficients, threshold, margin, feature maps, and solver policy are fixed by this experiment version.",
+  "expected_artifact_types": [
+    "two_layer_regime_feedback_samples/v1",
+    "regime_representation_diagnostics/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 1,
+    "memory_bytes": 536870912,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 120
+  }
+}

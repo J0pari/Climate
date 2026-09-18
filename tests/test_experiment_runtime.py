@@ -21,6 +21,9 @@ PARAMETER_IDENTIFIABILITY_EXPERIMENT = (
 STOCHASTIC_STATISTICS_EXPERIMENT = (
     ROOT / "experiments" / "multirepresentation-ebm-stochastic-statistics.v1.json"
 )
+REGIME_FEEDBACK_EXPERIMENT = (
+    ROOT / "experiments" / "multirepresentation-ebm-regime-feedback.v1.json"
+)
 
 
 class ExperimentRuntimeTests(unittest.TestCase):
@@ -485,6 +488,107 @@ class ExperimentRuntimeTests(unittest.TestCase):
             for filename in (
                 "baseline-stochastic-variability.json",
                 "candidate-stochastic-statistics.json",
+                "metric-results.json",
+                "run-baseline.json",
+                "run-candidate.json",
+                "outcome.json",
+            ):
+                self.assert_portable_json_tree(output / filename)
+
+    def test_regime_feedback_experiment_uses_same_runtime_spine(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            outcome = run_experiment(
+                experiment_path=REGIME_FEEDBACK_EXPERIMENT,
+                output_dir=output,
+                repository_revision="h" * 40,
+                run_scope="regime-feedback-fixture-run",
+            )
+            self.assertEqual(
+                outcome["experiment_id"],
+                "multirepresentation.ebm_regime_feedback.v1",
+            )
+            self.assertEqual(outcome["evidence"], [])
+            self.assertEqual(len(outcome["runs"]), 2)
+            self.assertTrue(
+                all(
+                    "multirepresentation.ebm_regime_feedback.v1"
+                    in run["run_id"]
+                    for run in outcome["runs"]
+                )
+            )
+
+            metric_values = {
+                item["metric"]["metric_id"]: item["value"]
+                for item in outcome["metrics"]
+            }
+            self.assertGreater(
+                metric_values[
+                    "multirepresentation.ebm.regime.raw_global_confirmation_relative_error"
+                ],
+                0.004,
+            )
+            self.assertLess(
+                metric_values[
+                    "multirepresentation.ebm.regime.gated_confirmation_relative_error"
+                ],
+                1e-12,
+            )
+            self.assertGreater(
+                metric_values[
+                    "multirepresentation.ebm.regime.confirmation_error_reduction"
+                ],
+                0.004,
+            )
+            self.assertGreater(
+                metric_values[
+                    "multirepresentation.ebm.regime.raw_global_training_relative_error"
+                ],
+                0.003,
+            )
+            self.assertLess(
+                metric_values[
+                    "multirepresentation.ebm.regime.gated_training_relative_error"
+                ],
+                1e-12,
+            )
+            self.assertEqual(
+                metric_values["multirepresentation.ebm.regime.raw_design_rank"],
+                3,
+            )
+            self.assertEqual(
+                metric_values["multirepresentation.ebm.regime.gated_design_rank"],
+                6,
+            )
+            self.assertGreater(
+                metric_values[
+                    "multirepresentation.ebm.regime.swapped_label_confirmation_relative_error"
+                ],
+                0.02,
+            )
+            self.assertGreaterEqual(
+                metric_values[
+                    "physics.two_layer_ebm.regime.observed_minimum_regime_margin_k"
+                ],
+                0.5,
+            )
+
+            baseline, candidate = outcome["runs"]
+            self.assertEqual(len(baseline["resolved_dataset_digests"]), 2)
+            self.assertEqual(len(candidate["resolved_dataset_digests"]), 2)
+            self.assertEqual(
+                baseline["execution"]["resolved"]["method_id"],
+                "physics.two_layer_ebm.regime_feedback_local_v1",
+            )
+            self.assertEqual(
+                candidate["execution"]["resolved"]["method_id"],
+                "dynamics.regime_gated_lstsq.numpy_v1",
+            )
+
+            self.assert_artifact_digests(outcome, output)
+            for filename in (
+                "baseline-regime-feedback.json",
+                "candidate-regime-representation.json",
                 "metric-results.json",
                 "run-baseline.json",
                 "run-candidate.json",

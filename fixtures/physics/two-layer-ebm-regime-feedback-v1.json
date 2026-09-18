@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "fixture_id": "physics.two-layer-ebm-regime-feedback.v1",
+  "description": "Immutable two-regime feedback control for the two-layer EBM. Cold and warm surface-temperature regimes use different positive climate-feedback coefficients; every sampled finite transition is required to remain safely inside its starting regime so exact fixed-regime matrix-exponential propagation is valid.",
+  "surface_temperature_threshold_k": 1.0,
+  "minimum_regime_margin_k": 0.5,
+  "transition_dt_years": 0.25,
+  "validation_substeps": 64,
+  "regimes": {
+    "cold": {
+      "climate_feedback_w_m2_k": 1.6,
+      "side": "below"
+    },
+    "warm": {
+      "climate_feedback_w_m2_k": 0.6,
+      "side": "above"
+    }
+  },
+  "discovery_sample_count_per_regime": 256,
+  "confirmation_sample_count_per_regime": 256,
+  "discovery_seeds": {
+    "cold": 731,
+    "warm": 732
+  },
+  "confirmation_seeds": {
+    "cold": 1731,
+    "warm": 1732
+  },
+  "discovery_domains": {
+    "cold": {
+      "surface_temperature_k": [
+        -1.0,
+        0.0
+      ],
+      "deep_temperature_k": [
+        -0.5,
+        0.2
+      ],
+      "forcing_w_m2": [
+        -1.0,
+        0.5
+      ]
+    },
+    "warm": {
+      "surface_temperature_k": [
+        2.0,
+        3.0
+      ],
+      "deep_temperature_k": [
+        1.5,
+        2.5
+      ],
+      "forcing_w_m2": [
+        2.5,
+        5.0
+      ]
+    }
+  },
+  "confirmation_domains": {
+    "cold": {
+      "surface_temperature_k": [
+        -1.25,
+        0.25
+      ],
+      "deep_temperature_k": [
+        -0.75,
+        0.35
+      ],
+      "forcing_w_m2": [
+        -1.5,
+        0.75
+      ]
+    },
+    "warm": {
+      "surface_temperature_k": [
+        1.75,
+        3.25
+      ],
+      "deep_temperature_k": [
+        1.25,
+        2.75
+      ],
+      "forcing_w_m2": [
+        2.0,
+        5.5
+      ]
+    }
+  },
+  "fit_policy": "Fit one no-intercept linear map from [surface temperature, deep temperature, forcing] to next state as the raw global control. Fit a second no-intercept map on regime-gated blocks [cold*x, warm*x], where x is the same three-column state/forcing vector. Both use numpy.linalg.lstsq with no regularization.",
+  "interpretation_boundary": "The feedback discontinuity is never traversed by an accepted transition. This rung tests local regime-dependent dynamics and representation of regime semantics; it is not a solver for threshold-crossing climate dynamics or evidence for a real feedback threshold."
+}

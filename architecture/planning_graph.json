@@ -615,10 +615,10 @@
     {
       "id": "experimentation.climate_representation_ladder",
       "title": "Build a climate-representation benchmark ladder",
-      "status": "active",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Use exact and progressively less idealized climate controls to test what information representations preserve under forcing shifts, sparse/noisy observations, parameter degeneracy, stochastic variability, and regime dependence. The current ladder contains exact piecewise-affine forcing, discovery-trained controlled-linear OOD closure, immutable observation degradation, local log-parameter sensitivity rank, and a seeded internal-variability rung that scores covariance and lag-covariance preservation separately across full, scalar, and exactly redundant representations.",
+      "summary": "Complete immutable two-layer EBM representation benchmark ladder spanning exact forcing controls, discovery-trained OOD closure, sparse/noisy and exactly redundant observations, local parameter degeneracy/identifiability, seeded internal variability with climate-statistics preservation, and a simple regime-dependent feedback control. State reconstruction, forced response, parameter sensitivity, statistics preservation, and OOD behavior remain separate metric families and every executable rung uses the common run/artifact/metric spine without manufacturing claim evidence.",
       "depends_on": [
         "experimentation.common_cpu_runtime"
       ],
@@ -654,7 +654,12 @@
         "reference/two_layer_stochastic_representation_statistics.py",
         "fixtures/physics/two-layer-ebm-stochastic-internal-variability-v1.json",
         "experiments/multirepresentation-ebm-stochastic-statistics.v1.json",
-        "tests/reference/test_two_layer_stochastic_statistics.py"
+        "tests/reference/test_two_layer_stochastic_statistics.py",
+        "reference/two_layer_regime_feedback.py",
+        "reference/two_layer_regime_representation.py",
+        "fixtures/physics/two-layer-ebm-regime-feedback-v1.json",
+        "experiments/multirepresentation-ebm-regime-feedback.v1.json",
+        "tests/reference/test_two_layer_regime_representation.py"
       ]
     },
     {
