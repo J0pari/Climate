@@ -2,6 +2,34 @@
   "schema_version": 2,
   "modules": [
     {
+      "path": "reference/dmd_common.py",
+      "family": "reference_shared_dmd_adapter",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "shared implementation-only PyDMD adapter used by task-specific reference methods so exact DMD fitting, prediction, and relative-error semantics do not fork between EBM and multirepresentation benchmarks",
+      "known_gaps": [
+        "this module owns generic numerical mechanics only and carries no climate, world, representation, rank-selection, or scientific interpretation semantics",
+        "task-specific method identities remain responsible for declaring rank policy, inputs, targets, controls, and interpretation boundaries",
+        "PyDMD 2025.8.1 remains the external implementation dependency"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/external_contract_reasoning.py",
+      "family": "reference_external_model_contract_reasoning",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "pure reference scorer for digest-bound external-model structured choices on Climate's immutable repository-contract reasoning task set, including the declared permuted-answer-key negative control",
+      "known_gaps": [
+        "the scorer does not load or execute Training model artifacts; climate.external-model-runtime/v1 remains the separate response-production boundary",
+        "the task set measures Climate repository-contract reasoning only and does not measure climate prediction, observational skill, physical validity, or model promotion suitability",
+        "a scored prediction artifact is not a Commons evaluation attestation and carries no Training acceptance or deployment authority"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/geometry_sympy.py",
       "family": "reference_geometry",
       "language": "python",
@@ -48,20 +76,6 @@
       "scientific_evidence_eligible": false
     },
     {
-      "path": "reference/dmd_common.py",
-      "family": "reference_shared_dmd_adapter",
-      "language": "python",
-      "maturity": "runnable",
-      "intended_role": "shared implementation-only PyDMD adapter used by task-specific reference methods so exact DMD fitting, prediction, and relative-error semantics do not fork between EBM and multirepresentation benchmarks",
-      "known_gaps": [
-        "this module owns generic numerical mechanics only and carries no climate, world, representation, rank-selection, or scientific interpretation semantics",
-        "task-specific method identities remain responsible for declaring rank policy, inputs, targets, controls, and interpretation boundaries",
-        "PyDMD 2025.8.1 remains the external implementation dependency"
-      ],
-      "authority_kind": "independent_reference",
-      "scientific_evidence_eligible": false
-    },
-    {
       "path": "reference/multirepresentation_baselines.py",
       "family": "reference_multirepresentation_fitted_baselines",
       "language": "python",
@@ -71,21 +85,6 @@
         "contains only maintained simple fitted representation transforms and no structural-world semantics or method-selection policy",
         "spectral and jointly-smooth coordinates are excluded because their current registered implementations do not expose the same maintained out-of-sample transform contract",
         "dimension and topology selection remain separate open benchmark work"
-      ],
-      "authority_kind": "independent_reference",
-      "scientific_evidence_eligible": false
-    },
-    {
-      "path": "reference/multirepresentation_state_space.py",
-      "family": "reference_multirepresentation_state_space_baseline",
-      "language": "python",
-      "maturity": "runnable",
-      "intended_role": "temporal structural-world evaluation comparing discovery-fitted raw, PCA, CCA, and factor-analysis representations under one shared PyDMD one-step state-space baseline, using separately seeded confirmation trajectories and the existing matched-information target probe only where the world authority exposes a shared evaluation target",
-      "known_gaps": [
-        "the temporal processes are role-based synthetic AR(1) controls rather than climate dynamics",
-        "linear DMD is a simple state-space baseline rather than a nonlinear or probabilistic state-space model",
-        "state prediction and downstream shared-target forecast are reported separately and no aggregate representation score is produced",
-        "dimension/topology selection and full structural relationship classification remain open"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -101,6 +100,21 @@
         "covers one shared scalar coordinate rather than product, fibered, stratified, or local-atlas structure",
         "uses datafold 2.0.2 and scikit-learn 1.2.2 as maintained algorithm implementations",
         "success on this fixture does not establish that a real climate representation has a common manifold or that jointly smooth functions are generally superior"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/multirepresentation_state_space.py",
+      "family": "reference_multirepresentation_state_space_baseline",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "temporal structural-world evaluation comparing discovery-fitted raw, PCA, CCA, and factor-analysis representations under one shared PyDMD one-step state-space baseline, using separately seeded confirmation trajectories and the existing matched-information target probe only where the world authority exposes a shared evaluation target",
+      "known_gaps": [
+        "the temporal processes are role-based synthetic AR(1) controls rather than climate dynamics",
+        "linear DMD is a simple state-space baseline rather than a nonlinear or probabilistic state-space model",
+        "state prediction and downstream shared-target forecast are reported separately and no aggregate representation score is produced",
+        "dimension/topology selection and full structural relationship classification remain open"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -190,6 +204,23 @@
         "the adapter covers hemisphere-wide monthly extent/area files rather than gridded concentration products",
         "the maintained provider file can be revised, so evidence requires a captured artifact digest and access identity",
         "sea-ice extent is not albedo and does not by itself define an ice-albedo feedback observation"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/sheaf_claim_evidence.py",
+      "family": "reference_sheaf_claim_evidence_runtime",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "preregistered claim-scoped evaluator that verifies checkout/input/method identity, executes the finite sheaf structural-ablation witness, applies a predeclared interpretation rule, and emits contract-shaped candidate run/metric/evidence records without directly mutating claim authority",
+      "claim_ids": [
+        "climate.sheaf.consistency"
+      ],
+      "known_gaps": [
+        "the evaluator covers only the deterministic synthetic structural-ablation experiment and is not a real-data sheaf benchmark",
+        "the preregistered attacking interpretation concerns local compatibility-energy equivalence to a strong residual baseline, not computational efficiency or all sheaf/cohomological quantities",
+        "candidate evidence becomes durable scientific authority only after explicit review and registration in evidence/registry.json"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -421,20 +452,6 @@
         "one pinned realization supports deterministic regression and representation diagnostics but not uncertainty quantification",
         "the reference remains global-mean, linear, Gaussian-forced, and spatially unresolved",
         "correct internal budget cancellation does not validate the stochastic process as Earth-system physics"
-      ],
-      "authority_kind": "independent_reference",
-      "scientific_evidence_eligible": false
-    },
-    {
-      "path": "reference/external_contract_reasoning.py",
-      "family": "reference_external_model_contract_reasoning",
-      "language": "python",
-      "maturity": "runnable",
-      "intended_role": "pure reference scorer for digest-bound external-model structured choices on Climate's immutable repository-contract reasoning task set, including the declared permuted-answer-key negative control",
-      "known_gaps": [
-        "the scorer does not load or execute Training model artifacts; climate.external-model-runtime/v1 remains the separate response-production boundary",
-        "the task set measures Climate repository-contract reasoning only and does not measure climate prediction, observational skill, physical validity, or model promotion suitability",
-        "a scored prediction artifact is not a Commons evaluation attestation and carries no Training acceptance or deployment authority"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false

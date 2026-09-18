@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "evaluation_id": "climate.sheaf.consistency.structural_residual_equivalence.v1",
+  "evidence_id": "climate.sheaf.consistency.structural_residual_equivalence.v1",
+  "claim_id": "climate.sheaf.consistency",
+  "experiment_id": "sheaf.structural_ablation.v1",
+  "experiment_path": "experiments/sheaf-structural-ablation.v1.json",
+  "executor_path": "reference/sheaf_claim_evidence.py",
+  "relation_on_success": "attacks",
+  "verification_on_success": "verified",
+  "evidence_class": "simulated",
+  "claim_maturity_effect": "unchanged",
+  "scope": "Deterministic finite real-valued linear-network fixtures only; this evidence concerns local compatibility-energy information relative to an independently computed local-residual baseline and does not evaluate real station networks.",
+  "interpretation_rule": "If every preregistered primary structural metric is at its zero target within 1e-12 and the experiment command succeeds, register attacking evidence because the candidate sheaf compatibility energy carries no incremental local-residual information over the strong independent residual baseline on these fixtures. Do not infer anything about computational efficiency, kriging or QC baselines, higher-order sheaf quantities, or real climate-data fault detection.",
+  "required_metric_targets": [
+    {
+      "metric_id": "sheaf.local_energy.max_abs_difference",
+      "target": 0,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "metric_id": "sheaf.identity_graph.laplacian_max_abs_difference",
+      "target": 0,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "metric_id": "sheaf.orientation.laplacian_max_abs_difference",
+      "target": 0,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "metric_id": "sheaf.kernel_translation.residual_max_abs_difference",
+      "target": 0,
+      "absolute_tolerance": 1e-12
+    }
+  ],
+  "threats_to_validity": [
+    "The fixtures are deterministic finite linear networks, not observed climate station networks.",
+    "The strong local-residual baseline receives the same restriction maps as the candidate, so this evaluates incremental local compatibility information rather than restriction-map discovery.",
+    "The evaluation does not compare computational efficiency, kriging, interpolation, or standard quality-control procedures.",
+    "Degree-zero compatibility energy does not exhaust higher cochain, cohomological, spectral, or reconstruction quantities.",
+    "A null incremental-information result on these fixtures does not imply that richer sheaf structure lacks value on other preregistered tasks."
+  ]
+}

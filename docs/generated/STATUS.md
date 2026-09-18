@@ -8,17 +8,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **64**.
+Registered modules: **65**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 35 |
-| `reference` | 29 |
+| `reference` | 30 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 62 |
+| `runnable` | 63 |
 
 ### Canonical and reference modules
 
@@ -74,6 +74,7 @@ Registered modules: **64**.
 | `reference` | `independent_reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/nsidc_sea_ice_index.py` | `reference_nsidc_sea_ice_index_access` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/sheaf_claim_evidence.py` | `reference_sheaf_claim_evidence_runtime` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/station_temperature_sheaf.py` | `reference_station_temperature_sheaf` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |

@@ -256,7 +256,8 @@
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
-          "tests/sheaf_ablation.rs"
+          "tests/sheaf_ablation.rs",
+          "tests/sheaf_claim_metrics.rs"
         ]
       }
     },
@@ -883,7 +884,8 @@
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
-          "tests/sheaf_ablation.rs"
+          "tests/sheaf_ablation.rs",
+          "tests/sheaf_claim_metrics.rs"
         ]
       }
     },

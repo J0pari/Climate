@@ -400,6 +400,30 @@ package climate
 	}
 }
 
+#ClaimEvaluationMetricTarget: {
+	metric_id:          #Id
+	target:             number
+	absolute_tolerance: number & >=0
+}
+
+#ClaimEvaluationSpec: {
+	schema_version:          1
+	evaluation_id:           #Id
+	evidence_id:             #Id
+	claim_id:                #Id
+	experiment_id:           #Id
+	experiment_path:         string & =~"^experiments/[A-Za-z0-9._/-]+\\.json$"
+	executor_path:           string & =~"^(reference|src)/[A-Za-z0-9._/-]+\\.py$"
+	relation_on_success:     #EvidenceRelation
+	verification_on_success: #VerificationStatus
+	evidence_class:          #EvidenceClass
+	claim_maturity_effect:   "unchanged"
+	scope:                   string & !=""
+	interpretation_rule:     string & !=""
+	required_metric_targets: [...#ClaimEvaluationMetricTarget] & [_, ...]
+	threats_to_validity:     [...string & !=""] & [_, ...]
+}
+
 #EvidenceRecord: {
 	evidence_id:      #Id
 	claim_id:         #Id
