@@ -115,8 +115,12 @@
       "obligation_id": "restriction_functoriality",
       "layer": "SH3",
       "statement": "Canonical higher-dimensional climate stalks and nontrivial restriction maps satisfy identity and composition laws on the production locality complex.",
-      "status": "open",
-      "witnesses": []
+      "status": "canonical_realized",
+      "witnesses": [
+        "src/station_sheaf.py",
+        "tests/test_station_sheaf.py",
+        ".github/workflows/station-sheaf.yml"
+      ]
     },
     {
       "obligation_id": "sparse_degree0_coboundary",
@@ -134,15 +138,23 @@
       "obligation_id": "higher_cochain_d_squared_zero",
       "layer": "SH3",
       "statement": "Canonical sparse higher-degree climate cochain differentials are assembled from production restriction maps and satisfy d_(k+1) o d_k = 0 without dense global matrices or global tuple enumeration.",
-      "status": "open",
-      "witnesses": []
+      "status": "canonical_realized",
+      "witnesses": [
+        "src/station_sheaf.py",
+        "tests/test_station_sheaf.py",
+        ".github/workflows/station-sheaf.yml"
+      ]
     },
     {
       "obligation_id": "global_section_and_gluing",
       "layer": "SH4",
       "statement": "Climate-data compatibility, global-section existence/nullspace structure, and any reconstruction/gluing semantics are computed through scalable sparse or matrix-free operators on the actual canonical restrictions; incompatibility is not silently merged away.",
-      "status": "open",
-      "witnesses": []
+      "status": "canonical_realized",
+      "witnesses": [
+        "src/station_sheaf.py",
+        "tests/test_station_sheaf.py",
+        ".github/workflows/station-sheaf.yml"
+      ]
     },
     {
       "obligation_id": "synthetic_fault_falsification",

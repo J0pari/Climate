@@ -107,22 +107,19 @@ Experiment specifications: **6**.
 
 ## Sheaf realization frontier
 
-Obligations: **12 realized / 4 open / 16 total** (7 reference, 5 canonical, 0 validated).
+Obligations: **15 realized / 1 open / 16 total** (7 reference, 8 canonical, 0 validated).
 
 | Layer | Reference | Canonical | Validated | Open |
 | --- | ---: | ---: | ---: | ---: |
 | `SH1` | 3 | 0 | 0 | 0 |
 | `SH2` | 4 | 1 | 0 | 0 |
-| `SH3` | 0 | 3 | 0 | 2 |
-| `SH4` | 0 | 0 | 0 | 1 |
+| `SH3` | 0 | 5 | 0 | 0 |
+| `SH4` | 0 | 1 | 0 | 0 |
 | `SH5` | 0 | 1 | 0 | 0 |
 | `SH6` | 0 | 0 | 0 | 1 |
 
 Open obligations:
 
-- `restriction_functoriality` (`SH3`): Canonical higher-dimensional climate stalks and nontrivial restriction maps satisfy identity and composition laws on the production locality complex.
-- `higher_cochain_d_squared_zero` (`SH3`): Canonical sparse higher-degree climate cochain differentials are assembled from production restriction maps and satisfy d_(k+1) o d_k = 0 without dense global matrices or global tuple enumeration.
-- `global_section_and_gluing` (`SH4`): Climate-data compatibility, global-section existence/nullspace structure, and any reconstruction/gluing semantics are computed through scalable sparse or matrix-free operators on the actual canonical restrictions; incompatibility is not silently merged away.
 - `baseline_and_real_data_incremental_value` (`SH6`): Task-scoped real-data evaluation demonstrates incremental value, if any, over graph residual, QC, interpolation, and other declared baselines.
 
 ## Interpretation boundary
