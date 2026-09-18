@@ -1,2 +1,3 @@
 datafold==2.0.2
 scikit-learn==1.2.2
+pydmd==2025.8.1

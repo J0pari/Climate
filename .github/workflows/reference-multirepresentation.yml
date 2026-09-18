@@ -6,10 +6,14 @@ on:
       - 'reference/multirepresentation_common.py'
       - 'reference/multirepresentation_worlds.py'
       - 'reference/multirepresentation_structure_evaluation.py'
+      - 'reference/multirepresentation_baselines.py'
+      - 'reference/multirepresentation_state_space.py'
+      - 'reference/dmd_common.py'
       - 'tests/reference/test_multirepresentation_common.py'
       - 'tests/reference/test_multirepresentation_structure_evaluation.py'
       - 'tests/reference/test_multirepresentation_worlds.py'
       - 'tests/reference/test_multirepresentation_world_dynamics.py'
+      - 'tests/reference/test_multirepresentation_state_space.py'
       - 'fixtures/multirepresentation/**'
       - 'requirements/reference-multirepresentation.txt'
       - '.github/workflows/reference-multirepresentation.yml'
@@ -20,10 +24,14 @@ on:
       - 'reference/multirepresentation_common.py'
       - 'reference/multirepresentation_worlds.py'
       - 'reference/multirepresentation_structure_evaluation.py'
+      - 'reference/multirepresentation_baselines.py'
+      - 'reference/multirepresentation_state_space.py'
+      - 'reference/dmd_common.py'
       - 'tests/reference/test_multirepresentation_common.py'
       - 'tests/reference/test_multirepresentation_structure_evaluation.py'
       - 'tests/reference/test_multirepresentation_worlds.py'
       - 'tests/reference/test_multirepresentation_world_dynamics.py'
+      - 'tests/reference/test_multirepresentation_state_space.py'
       - 'fixtures/multirepresentation/**'
       - 'requirements/reference-multirepresentation.txt'
       - '.github/workflows/reference-multirepresentation.yml'
@@ -52,9 +60,12 @@ jobs:
           python -m unittest tests.reference.test_multirepresentation_worlds -v
           python -m unittest tests.reference.test_multirepresentation_world_dynamics -v
           python -m unittest tests.reference.test_multirepresentation_structure_evaluation -v
+          python -m unittest tests.reference.test_multirepresentation_state_space -v
       - name: Materialize structural-world ground truth
         run: python reference/multirepresentation_worlds.py | tee multirepresentation-worlds.json
       - name: Run registered reference experiment
         run: python reference/multirepresentation_common.py --json | tee multirepresentation-result.json
       - name: Evaluate structural-world confirmation suite
         run: python reference/multirepresentation_structure_evaluation.py --json | tee multirepresentation-structure-evaluation.json
+      - name: Evaluate temporal state-space baselines
+        run: python reference/multirepresentation_state_space.py --json | tee multirepresentation-state-space.json

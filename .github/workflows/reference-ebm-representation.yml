@@ -5,6 +5,7 @@ on:
     paths:
       - 'reference/two_layer_energy_balance.py'
       - 'reference/two_layer_representation_dynamics.py'
+      - 'reference/dmd_common.py'
       - 'reference/two_layer_dynamic_observability.py'
       - 'tests/reference/test_two_layer_representation_dynamics.py'
       - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'reference/two_layer_energy_balance.py'
       - 'reference/two_layer_representation_dynamics.py'
+      - 'reference/dmd_common.py'
       - 'reference/two_layer_dynamic_observability.py'
       - 'tests/reference/test_two_layer_representation_dynamics.py'
       - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'

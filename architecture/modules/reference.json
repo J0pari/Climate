@@ -48,6 +48,49 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/dmd_common.py",
+      "family": "reference_shared_dmd_adapter",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "shared implementation-only PyDMD adapter used by task-specific reference methods so exact DMD fitting, prediction, and relative-error semantics do not fork between EBM and multirepresentation benchmarks",
+      "known_gaps": [
+        "this module owns generic numerical mechanics only and carries no climate, world, representation, rank-selection, or scientific interpretation semantics",
+        "task-specific method identities remain responsible for declaring rank policy, inputs, targets, controls, and interpretation boundaries",
+        "PyDMD 2025.8.1 remains the external implementation dependency"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/multirepresentation_baselines.py",
+      "family": "reference_multirepresentation_fitted_baselines",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "shared implementation layer for discovery-fitted standardized raw, PCA, CCA, and factor-analysis representations used consistently by static matched-information and temporal state-space evaluations without embedding structural-world truth",
+      "known_gaps": [
+        "contains only maintained simple fitted representation transforms and no structural-world semantics or method-selection policy",
+        "spectral and jointly-smooth coordinates are excluded because their current registered implementations do not expose the same maintained out-of-sample transform contract",
+        "dimension and topology selection remain separate open benchmark work"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/multirepresentation_state_space.py",
+      "family": "reference_multirepresentation_state_space_baseline",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "temporal structural-world evaluation comparing discovery-fitted raw, PCA, CCA, and factor-analysis representations under one shared PyDMD one-step state-space baseline, using separately seeded confirmation trajectories and the existing matched-information target probe only where the world authority exposes a shared evaluation target",
+      "known_gaps": [
+        "the temporal processes are role-based synthetic AR(1) controls rather than climate dynamics",
+        "linear DMD is a simple state-space baseline rather than a nonlinear or probabilistic state-space model",
+        "state prediction and downstream shared-target forecast are reported separately and no aggregate representation score is produced",
+        "dimension/topology selection and full structural relationship classification remain open"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/multirepresentation_common.py",
       "family": "reference_multirepresentation_common_manifold",
       "language": "python",

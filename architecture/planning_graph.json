@@ -367,7 +367,7 @@
       "status": "active",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Use structural-worlds-v1 and multirepresentation_worlds.py as the sole authority for world relationships, observation maps, and shared-target semantics. Static evaluation is byte-bound to that authority, uses separately seeded confirmation worlds, calibrated abstention, existing PCA/CCA/spectral/JSF plus factor analysis, and a common downstream probe for raw/PCA/CCA/factor representations. A role-based temporal policy now derives discovery/confirmation trajectories through the same world renderer without a second world table; the next open step is the actual state-space baseline, followed by maintained dimension/topology-selection witnesses.",
+      "summary": "Use structural-worlds-v1 and multirepresentation_worlds.py as the sole authority for world relationships, observation maps, and shared-target semantics. Static evaluation is byte-bound to that authority, uses separately seeded confirmation worlds, calibrated abstention, existing PCA/CCA/spectral/JSF plus factor analysis, and a common downstream probe for raw/PCA/CCA/factor representations. The role-based temporal extension now has an explicit PyDMD state-space baseline using the same discovery-fitted representation transforms and separately seeded confirmation trajectories. Maintained dimension/topology-selection witnesses and fuller structural relationship selection remain open.",
       "depends_on": [],
       "completion": [
         "Synthetic systems distinguish shared, private, coupled, quotient/noninjective, stratified, nuisance-dominated, and null structure with immutable known ground truth and explicit identifiability limits.",
@@ -388,7 +388,12 @@
         "methods/registry.json",
         ".github/workflows/reference-multirepresentation.yml",
         "fixtures/multirepresentation/structural-world-dynamics-v1.json",
-        "tests/reference/test_multirepresentation_world_dynamics.py"
+        "tests/reference/test_multirepresentation_world_dynamics.py",
+        "reference/dmd_common.py",
+        "reference/multirepresentation_baselines.py",
+        "reference/multirepresentation_state_space.py",
+        "tests/reference/test_multirepresentation_state_space.py",
+        "requirements/reference-multirepresentation.txt"
       ]
     },
     {

@@ -21,8 +21,8 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(ROOT))
 
 import numpy as np
-from pydmd import DMD
 
+from reference.dmd_common import fit_exact_dmd
 from reference.two_layer_energy_balance import (
     advance_constant_forcing,
     equilibrium_state_k,
@@ -138,25 +138,8 @@ def _fit_dmd(
     *,
     rank: int,
 ) -> tuple[np.ndarray, float]:
-    x = np.asarray(x_samples, dtype=float)
-    y = np.asarray(y_samples, dtype=float)
-    if x.shape != y.shape or x.ndim != 2 or x.shape[0] < 2:
-        raise ValueError("DMD samples must be matched two-dimensional arrays")
-    if not np.isfinite(x).all() or not np.isfinite(y).all():
-        raise ValueError("DMD samples must be finite")
-    if rank < 1 or rank > min(x.shape):
-        raise ValueError("DMD rank is incompatible with sample matrix shape")
-
-    model = DMD(svd_rank=rank, exact=True, tlsq_rank=0)
-    model.fit(x.T, y.T)
-    eigenvalues = np.asarray(model.eigs)
-    predicted = np.asarray(model.predict(x.T)).T
-    denominator = max(float(np.linalg.norm(y)), np.finfo(float).tiny)
-    relative_error = float(np.linalg.norm(predicted - y) / denominator)
-    if not np.isfinite(relative_error) or not np.isfinite(eigenvalues).all():
-        raise RuntimeError("DMD produced non-finite diagnostics")
-    return eigenvalues, relative_error
-
+    fit = fit_exact_dmd(x_samples, y_samples, rank=rank)
+    return fit.eigenvalues, fit.training_relative_error
 
 def decay_timescales_years(eigenvalues: np.ndarray, dt_years: float) -> np.ndarray:
     dt = float(dt_years)

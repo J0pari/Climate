@@ -27,12 +27,14 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(ROOT))
 
 import numpy as np
-from sklearn.cross_decomposition import CCA
-from sklearn.decomposition import FactorAnalysis, PCA
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler
 
+from reference.multirepresentation_baselines import (
+    discovery_fitted_representations,
+    factor_analysis_coordinate,
+)
 from reference.multirepresentation_common import (
     abs_spearman,
     concat_pca,
@@ -198,21 +200,6 @@ def dependence_selector(
     }
 
 
-def _factor_analysis_coordinate(
-    view_a: np.ndarray,
-    view_b: np.ndarray,
-    config: dict[str, Any],
-) -> np.ndarray:
-    joined = np.column_stack([_standardize(view_a), _standardize(view_b)])
-    coordinate = FactorAnalysis(
-        n_components=1,
-        svd_method=str(config["svd_method"]),
-    ).fit_transform(joined)[:, 0]
-    if not np.isfinite(coordinate).all():
-        raise RuntimeError("factor analysis returned non-finite values")
-    return coordinate
-
-
 def _coordinate_methods(
     world: StructuralWorld,
     config: dict[str, Any],
@@ -229,7 +216,7 @@ def _coordinate_methods(
             n_neighbors=int(spectral["n_neighbors"]),
             random_state=int(spectral["random_state"]),
         ),
-        "factor_analysis": lambda: _factor_analysis_coordinate(
+        "factor_analysis": lambda: factor_analysis_coordinate(
             world.view_a,
             world.view_b,
             factor,
@@ -240,72 +227,6 @@ def _coordinate_methods(
             jsf,
         ),
     }
-
-
-def _discovery_fitted_representations(
-    discovery: StructuralWorld,
-    confirmation: StructuralWorld,
-    baseline_config: dict[str, Any],
-) -> dict[str, tuple[np.ndarray, np.ndarray]]:
-    scaler_a = StandardScaler().fit(discovery.view_a)
-    scaler_b = StandardScaler().fit(discovery.view_b)
-    discovery_a = scaler_a.transform(discovery.view_a)
-    discovery_b = scaler_b.transform(discovery.view_b)
-    confirmation_a = scaler_a.transform(confirmation.view_a)
-    confirmation_b = scaler_b.transform(confirmation.view_b)
-    discovery_raw = np.column_stack([discovery_a, discovery_b])
-    confirmation_raw = np.column_stack([confirmation_a, confirmation_b])
-
-    pca = PCA(n_components=1, svd_solver="full")
-    discovery_pca = pca.fit_transform(discovery_raw)
-    confirmation_pca = pca.transform(confirmation_raw)
-
-    factor_config = baseline_config["factor_analysis"]
-    factor = FactorAnalysis(
-        n_components=1,
-        svd_method=str(factor_config["svd_method"]),
-    )
-    discovery_factor = factor.fit_transform(discovery_raw)
-    confirmation_factor = factor.transform(confirmation_raw)
-
-    cca = CCA(n_components=1, scale=False, max_iter=2000, tol=1e-10)
-    discovery_cca_a, discovery_cca_b = cca.fit_transform(
-        discovery_a,
-        discovery_b,
-    )
-    confirmation_cca_a, confirmation_cca_b = cca.transform(
-        confirmation_a,
-        confirmation_b,
-    )
-    score_scaler_a = StandardScaler().fit(discovery_cca_a)
-    score_scaler_b = StandardScaler().fit(discovery_cca_b)
-    discovery_score_a = score_scaler_a.transform(discovery_cca_a)[:, 0]
-    discovery_score_b = score_scaler_b.transform(discovery_cca_b)[:, 0]
-    confirmation_score_a = score_scaler_a.transform(confirmation_cca_a)[:, 0]
-    confirmation_score_b = score_scaler_b.transform(confirmation_cca_b)[:, 0]
-    if float(np.dot(discovery_score_a, discovery_score_b)) < 0.0:
-        discovery_score_b = -discovery_score_b
-        confirmation_score_b = -confirmation_score_b
-    discovery_cca = (0.5 * (discovery_score_a + discovery_score_b))[:, None]
-    confirmation_cca = (0.5 * (confirmation_score_a + confirmation_score_b))[:, None]
-
-    representations = {
-        "raw_concat": (discovery_raw, confirmation_raw),
-        "concat_pca": (discovery_pca, confirmation_pca),
-        "linear_cca": (discovery_cca, confirmation_cca),
-        "factor_analysis": (discovery_factor, confirmation_factor),
-    }
-    for name, (train, test) in representations.items():
-        if (
-            train.ndim != 2
-            or test.ndim != 2
-            or train.shape[0] != discovery.view_a.shape[0]
-            or test.shape[0] != confirmation.view_a.shape[0]
-            or not np.isfinite(train).all()
-            or not np.isfinite(test).all()
-        ):
-            raise RuntimeError(f"invalid discovery-fitted representation {name}")
-    return representations
 
 
 def _matched_information_probe(
@@ -337,7 +258,7 @@ def _matched_information_probe(
     if not math.isfinite(target_scale) or target_scale <= 0.0:
         raise ValueError("confirmation target scale must be finite and positive")
 
-    representations = _discovery_fitted_representations(
+    representations = discovery_fitted_representations(
         discovery,
         confirmation,
         baseline_config,

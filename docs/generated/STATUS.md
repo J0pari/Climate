@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **61**.
+Registered modules: **64**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 35 |
-| `reference` | 26 |
+| `reference` | 29 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 59 |
+| `runnable` | 62 |
 
 ### Canonical and reference modules
 
@@ -57,11 +57,14 @@ Registered modules: **61**.
 | `canonical` | `canonical_implementation` | `src/sheaf.rs` | `sheaf_numerics` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/station_federation.py` | `global_station_data_federation` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/station_sheaf.py` | `global_station_sheaf_substrate` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/dmd_common.py` | `reference_shared_dmd_adapter` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/external_contract_reasoning.py` | `reference_external_model_contract_reasoning` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/multirepresentation_baselines.py` | `reference_multirepresentation_fitted_baselines` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/multirepresentation_common.py` | `reference_multirepresentation_common_manifold` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/multirepresentation_state_space.py` | `reference_multirepresentation_state_space_baseline` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/multirepresentation_structure_evaluation.py` | `reference_multirepresentation_structure_evaluation` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/multirepresentation_worlds.py` | `reference_multirepresentation_structural_worlds` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/ncei_ghcnd.py` | `reference_ncei_ghcnd_access` | `runnable` | no |
