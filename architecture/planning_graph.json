@@ -382,28 +382,30 @@
     },
     {
       "id": "sheaf.climate_data_semantics",
-      "title": "Realize station-cover sheaf semantics",
-      "status": "done",
+      "title": "Realize scale-native climate-data sheaf semantics",
+      "status": "active",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Realize a climate-data sheaf over provider-backed station identities, coordinates, observations, and explicit geographic coverage semantics, with typed stalks/restrictions and falsification against simpler same-information baselines.",
+      "summary": "Build climate-data sheaf semantics on the actual production path: provider-neutral station identity and chunked observations, global geodesic locality, sparse/matrix-free restrictions and cochains, deterministic partition ownership, and scalable gluing/nullspace operations. Tiny fixtures exercise this path but cannot substitute for it.",
       "depends_on": [
         "data.external_authority_audit",
         "data.immutable_observational_projection"
       ],
       "completion": [
-        "Station or coverage rules generate a declared nerve and typed restriction maps.",
-        "Restriction identity and composition have executable witnesses.",
-        "Injected-fault and withheld-data fixtures compare sheaf quantities against same-information residual, QC, graph, and interpolation baselines.",
-        "Station identities, coordinates, and observations used by the climate-data sheaf come from registered external authorities with captured artifact identity; synthetic stations may be used only as explicitly synthetic controls.",
-        "Injected-fault and withheld-data experiments alter or mask captured source-backed observations explicitly rather than replacing unavailable real data with synthetic defaults."
+        "Provider-backed fixtures enter the same provider-neutral StationCatalog and StationSection contracts intended for large station networks.",
+        "Station locality uses global geodesic semantics with indexed neighbor discovery, deterministic shard ownership, and no global projected-CRS assumption or all-pairs scan.",
+        "Canonical restriction operators and degree-zero coboundaries are sparse or matrix-free; dense global cochain matrices are not an execution prerequisite.",
+        "Canonical higher-dimensional climate restrictions satisfy identity/composition and sparse consecutive coboundaries satisfy d_(k+1) o d_k = 0.",
+        "Global-section compatibility and nullspace/gluing operations have a sparse or matrix-free solver path whose memory scales with partitions and local incidence rather than a dense global matrix.",
+        "Reference finite-complex machinery remains an independent mathematical oracle and cannot by itself satisfy production climate-data realization."
       ],
       "evidence": [
+        "src/station_sheaf.py",
+        "src/sheaf.rs",
+        "tests/test_station_sheaf.py",
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
-        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        "methods/sheaf-realization.v1.json",
-        ".github/workflows/reference-sheaf-climate.yml"
+        "methods/sheaf-realization.v1.json"
       ]
     },
     {
@@ -514,6 +516,44 @@
         "CPU/reference fixtures and stage-level tolerances exist before device optimization.",
         "Real-device tests cover execution identity, conditioning, determinism, transfers, VRAM, and differential agreement.",
         "No compatibility shim can satisfy a requested CUDA/NCCL/tensor-core identity."
+      ]
+    },
+    {
+      "id": "data.global_free_station_federation",
+      "title": "Federate freely accessible worldwide station observations",
+      "status": "ready",
+      "priority": "P0",
+      "resource_class": "R5_large_data",
+      "summary": "Build an extensible station-data federation whose target population is every station worldwide that can be lawfully and reproducibly accessed without paid data access, while retaining provider identity, revision history, quality flags, units, location history, and explicit cross-provider alias/deduplication lineage.",
+      "depends_on": [
+        "data.external_authority_audit"
+      ],
+      "completion": [
+        "Provider discovery and registration is extensible and records access, licensing, update, and revision semantics rather than embedding a closed hand-selected station list.",
+        "Every ingested station has a stable canonical identity plus provider aliases and location/history metadata; cross-provider deduplication is explicit and reversible rather than proximity-only guessing.",
+        "Observation storage is immutable/versioned and partitioned by bounded dimensions such as provider, time, variable, and spatial shard so no workflow requires all stations or all times in memory.",
+        "Incremental ingestion is idempotent and resumable, records source revisions or tombstones and artifact digests, and preserves provider quality/source flags without silent imputation.",
+        "Coverage manifests expose station, variable, temporal, geographic, and provider availability so gaps are observable rather than hidden by defaults.",
+        "Additional freely accessible station authorities can enter without changing canonical sheaf topology/operator interfaces or adding provider-specific branches to numerical kernels."
+      ]
+    },
+    {
+      "id": "sheaf.global_station_scale",
+      "title": "Exercise sheaf substrate at worldwide station scale",
+      "status": "blocked",
+      "priority": "P0",
+      "resource_class": "R5_large_data",
+      "summary": "Run the canonical sparse/local sheaf substrate over the federated worldwide free-station catalog and granular multi-year observation partitions, demonstrating bounded-memory partition equivalence and useful higher-order local-to-global structure without changing implementation identity.",
+      "depends_on": [
+        "sheaf.climate_data_semantics",
+        "data.global_free_station_federation"
+      ],
+      "completion": [
+        "Worldwide station topology is constructed from the canonical indexed geodesic locality path with no all-pairs or powerset construction.",
+        "Observation processing spans granular multi-year partitions without loading the full station-by-time tensor into memory.",
+        "Partitioned or sharded residual and cochain results agree with single-partition fixtures under the declared equivalence relation.",
+        "Peak memory and work are characterized in terms of station vertices, local incidence, requested simplex degree, variables, and observation chunk size rather than dense global dimensions.",
+        "Higher-order sheaf operations used at this scale execute through sparse or matrix-free backends and fail explicitly when resource envelopes are exceeded."
       ]
     }
   ]

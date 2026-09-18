@@ -7,16 +7,18 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 ## Planning summary
 
-- Active: 0
-- Ready: 14
-- Blocked: 5
-- Done: 9
+- Active: 1
+- Ready: 15
+- Blocked: 6
+- Done: 8
 - Dropped: 0
 
 ## Graph projection
 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
+| `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `active` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
+| `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `ready` | `P0` | `R5_large_data` | `data.external_authority_audit` |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `geometry.independent_derivative_route` — Add a second independent metric-derivative route | `ready` | `P1` | `R2_toolchain_ci` | — |
@@ -31,6 +33,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` | — |
+| `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` | `sheaf.climate_data_semantics`, `data.global_free_station_federation` |
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `blocked` | `P1` | `R4_integrated_system` | — |
 | `experimental.clifford_task` — Give Clifford representations a falsifiable climate task | `blocked` | `P2` | `R2_toolchain_ci` | `diagnostics.spectral_oscillation_contracts` |
@@ -43,7 +46,6 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `data.immutable_observational_projection` — Create one immutable observational or reanalysis projection | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `state.typed_physical_state` |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `done` | `P0` | `R2_toolchain_ci` | — |
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
-| `sheaf.climate_data_semantics` — Realize station-cover sheaf semantics | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 
 Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.
