@@ -2,7 +2,7 @@
   "schema_version": 1,
   "method_id": "climate.sheaf.consistency",
   "claim_statement_pin": "Sheaf/cohomological obstruction measures may identify cross-source climate-data inconsistencies or coverage defects not captured as efficiently by simpler graph and residual diagnostics.",
-  "realization_rule": "Open obligations are permitted. A realized obligation requires executable witnesses. The overall method must not be described as realized sheaf cohomology while any required structural obligation remains open.",
+  "realization_rule": "Reference-realized obligations are independent correctness oracles only. Production climate-data obligations are discharged only by canonical-realized or validated implementations whose witnesses include canonical source. Open production obligations prevent the method from being described as realized climate-data sheaf/cohomology.",
   "obligations": [
     {
       "obligation_id": "finite_cochain_complex",
@@ -67,11 +67,12 @@
     {
       "obligation_id": "real_degree0_sheaf_operator",
       "layer": "SH2",
-      "statement": "A real-valued finite cellular sheaf on a graph constructs an explicit degree-zero coboundary from declared restriction matrices, computes compatibility residuals and L0=d0^T d0, and derives numerical nullity/gap diagnostics without interpretive thresholds.",
-      "status": "reference_realized",
+      "statement": "The canonical real cellular-sheaf operator applies degree-zero restrictions and L0=d0^T d0 without requiring dense global assembly, exports sparse coboundary entries for library backends, and retains bounded dense spectral diagnostics only for verification fixtures.",
+      "status": "canonical_realized",
       "witnesses": [
         "src/sheaf.rs",
         "tests/sheaf_fixture.rs",
+        "tests/sheaf_ablation.rs",
         "fixtures/sheaf/synthetic-linear-v1.json"
       ]
     },
@@ -86,73 +87,70 @@
       ]
     },
     {
-      "obligation_id": "station_cover_nerve",
+      "obligation_id": "station_locality_complex",
       "layer": "SH3",
-      "statement": "Station simplices are derived from a scientifically declared geographic coverage/intersection rule rather than arbitrary station tuples.",
-      "status": "reference_realized",
+      "statement": "Provider-backed station vertices form a declared global-geodesic locality complex whose edges use indexed WGS84 neighborhoods and whose requested higher simplices are generated from sparse local adjacency rather than arbitrary tuples or a global powerset.",
+      "status": "canonical_realized",
       "witnesses": [
+        "src/station_sheaf.py",
+        "tests/test_station_sheaf.py",
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
-        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        ".github/workflows/reference-sheaf-climate.yml"
+        ".github/workflows/station-sheaf.yml"
       ]
     },
     {
       "obligation_id": "climate_stalks_and_restrictions",
       "layer": "SH3",
-      "statement": "A concrete climate-data stalk model and restriction maps are defined with units and missing-data semantics.",
-      "status": "reference_realized",
+      "statement": "A provider-neutral station section carries explicit variable identities, units, observed/missing masks, and canonical same-variable identity restrictions over local station edges without imputing unavailable observations.",
+      "status": "canonical_realized",
       "witnesses": [
+        "src/station_sheaf.py",
+        "tests/test_station_sheaf.py",
         "reference/station_temperature_sheaf.py",
-        "tests/reference/test_station_temperature_sheaf.py",
-        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        ".github/workflows/reference-sheaf-climate.yml"
+        "tests/reference/test_station_temperature_sheaf.py"
       ]
     },
     {
       "obligation_id": "restriction_functoriality",
       "layer": "SH3",
-      "statement": "Identity and composition laws for the actual climate-data restrictions are executable invariants.",
-      "status": "reference_realized",
+      "statement": "Canonical higher-dimensional climate stalks and nontrivial restriction maps satisfy identity and composition laws on the production locality complex.",
+      "status": "open",
+      "witnesses": []
+    },
+    {
+      "obligation_id": "sparse_degree0_coboundary",
+      "layer": "SH3",
+      "statement": "The canonical station degree-zero coboundary is assembled as sparse CSR or applied locally without dense global materialization, with deterministic structural row identity under observation missingness.",
+      "status": "canonical_realized",
       "witnesses": [
-        "reference/sheaf_cohomology.py",
-        "reference/station_temperature_sheaf.py",
-        "tests/reference/test_station_temperature_sheaf.py",
-        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        ".github/workflows/reference-sheaf-climate.yml"
+        "src/station_sheaf.py",
+        "src/sheaf.rs",
+        "tests/test_station_sheaf.py",
+        "tests/sheaf_ablation.rs"
       ]
     },
     {
-      "obligation_id": "data_sheaf_coboundary",
+      "obligation_id": "higher_cochain_d_squared_zero",
       "layer": "SH3",
-      "statement": "The climate-data cochain differential is constructed from the declared restriction maps and independently satisfies d^2 = 0.",
-      "status": "reference_realized",
-      "witnesses": [
-        "reference/sheaf_cohomology.py",
-        "reference/station_temperature_sheaf.py",
-        "tests/reference/test_station_temperature_sheaf.py",
-        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        ".github/workflows/reference-sheaf-climate.yml"
-      ]
+      "statement": "Canonical sparse higher-degree climate cochain differentials are assembled from production restriction maps and satisfy d_(k+1) o d_k = 0 without dense global matrices or global tuple enumeration.",
+      "status": "open",
+      "witnesses": []
     },
     {
       "obligation_id": "global_section_and_gluing",
       "layer": "SH4",
-      "statement": "Compatibility, existence, uniqueness, and any reconstruction semantics for climate-data global sections are implemented against the actual restrictions; incompatibility is not silently merged away.",
-      "status": "reference_realized",
-      "witnesses": [
-        "reference/station_temperature_sheaf.py",
-        "tests/reference/test_station_temperature_sheaf.py",
-        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        ".github/workflows/reference-sheaf-climate.yml"
-      ]
+      "statement": "Climate-data compatibility, global-section existence/nullspace structure, and any reconstruction/gluing semantics are computed through scalable sparse or matrix-free operators on the actual canonical restrictions; incompatibility is not silently merged away.",
+      "status": "open",
+      "witnesses": []
     },
     {
       "obligation_id": "synthetic_fault_falsification",
       "layer": "SH5",
       "statement": "Known-topology, injected-fault, withheld-data, and negative-control experiments test whether the sheaf quantities detect what they claim to detect.",
-      "status": "reference_realized",
+      "status": "canonical_realized",
       "witnesses": [
+        "src/station_sheaf.py",
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
         "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
