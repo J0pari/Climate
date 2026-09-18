@@ -88,15 +88,16 @@ def render_status(root: Path = ROOT) -> str:
         "",
         "### Canonical and reference modules",
         "",
-        "| Lifecycle | Path | Family | Maturity | Evidence eligible |",
-        "| --- | --- | --- | --- | --- |",
+        "| Registry | Authority | Path | Family | Maturity | Scientific evidence eligible |",
+        "| --- | --- | --- | --- | --- | --- |",
     ])
     for lifecycle, record in sorted(modules, key=lambda item: (item[0], item[1]["path"])):
         if lifecycle not in {"canonical", "reference"}:
             continue
-        eligible = "yes" if record.get("evidence_eligible") else "no"
+        eligible = "yes" if record.get("scientific_evidence_eligible") else "no"
         lines.append(
-            f"| `{lifecycle}` | `{record['path']}` | `{record.get('family', '')}` | "
+            f"| `{lifecycle}` | `{record.get('authority_kind', 'unknown')}` | "
+            f"`{record['path']}` | `{record.get('family', '')}` | "
             f"`{record.get('maturity', 'unknown')}` | {eligible} |"
         )
 

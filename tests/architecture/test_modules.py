@@ -19,7 +19,8 @@ def module(path: str, **overrides):
         "family": "fixture",
         "language": check_modules.SOURCE_SUFFIXES.get(Path(path).suffix, "unknown"),
         "maturity": "prototype",
-        "evidence_eligible": False,
+        "authority_kind": "canonical_implementation",
+        "scientific_evidence_eligible": False,
         "intended_role": "fixture",
         "known_gaps": ["not verified"],
     }
@@ -126,6 +127,31 @@ class ModuleIntegrityTests(unittest.TestCase):
             )
             self.assertIn("modules.language_mismatch", {f.code for f in findings})
 
+    def test_missing_authority_kind_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "x.rs").write_text("fn main() {}\n", encoding="utf-8")
+            record = module("x.rs")
+            del record["authority_kind"]
+            findings = check_modules.check(root, {"modules": [record]}, claims())
+            self.assertIn("modules.authority_kind_missing", {f.code for f in findings})
+
+    def test_reference_authority_kind_must_match_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "reference" / "x.py"
+            path.parent.mkdir(parents=True)
+            path.write_text("pass\n", encoding="utf-8")
+            findings = check_modules.check(
+                root,
+                {"modules": [module(
+                    "reference/x.py",
+                    authority_kind="canonical_implementation",
+                )]},
+                claims(),
+            )
+            self.assertIn("modules.authority_kind_mismatch", {f.code for f in findings})
+
     def test_missing_claim_reference_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -156,7 +182,7 @@ class ModuleIntegrityTests(unittest.TestCase):
                 root,
                 {"modules": [module(
                     "x.rs",
-                    evidence_eligible=True,
+                    scientific_evidence_eligible=True,
                     claim_ids=["c"],
                 )]},
                 claims("c"),
@@ -172,7 +198,7 @@ class ModuleIntegrityTests(unittest.TestCase):
                 {"modules": [module(
                     "x.rs",
                     maturity="verified",
-                    evidence_eligible=True,
+                    scientific_evidence_eligible=True,
                     known_gaps=[],
                 )]},
                 claims(),

@@ -26,6 +26,8 @@ DEFAULT_MODULES = ROOT / "architecture" / "modules"
 DEFAULT_CLAIMS = ROOT / "claims" / "registry.json"
 SOURCE_SUFFIXES = source_surface.SOURCE_LANGUAGES
 
+AUTHORITY_KINDS = {"canonical_implementation", "independent_reference"}
+
 MATURITY_RANK = {
     "concept": 0,
     "prototype": 1,
@@ -164,6 +166,26 @@ def check(
                 path=path,
             ))
 
+        authority_kind = module.get("authority_kind")
+        if authority_kind not in AUTHORITY_KINDS:
+            findings.append(Finding(
+                "modules.authority_kind_missing",
+                "authority_kind must explicitly distinguish canonical implementation from independent reference",
+                path=path,
+            ))
+        elif path.startswith("reference/") and authority_kind != "independent_reference":
+            findings.append(Finding(
+                "modules.authority_kind_mismatch",
+                "reference/ modules must declare independent_reference authority",
+                path=path,
+            ))
+        elif not path.startswith("reference/") and authority_kind != "canonical_implementation":
+            findings.append(Finding(
+                "modules.authority_kind_mismatch",
+                "non-reference modules must declare canonical_implementation authority",
+                path=path,
+            ))
+
         maturity = module.get("maturity")
         if maturity not in MATURITY_RANK:
             findings.append(Finding(
@@ -197,12 +219,12 @@ def check(
                 path=path,
             ))
 
-        eligible = module.get("evidence_eligible")
+        eligible = module.get("scientific_evidence_eligible")
         if eligible is True:
             if MATURITY_RANK.get(maturity, -1) < MATURITY_RANK["verified"]:
                 findings.append(Finding(
                     "modules.evidence_eligibility_too_early",
-                    "evidence_eligible=true requires verified or higher maturity",
+                    "scientific_evidence_eligible=true requires verified or higher maturity",
                     path=path,
                 ))
             if not claim_ids:
@@ -214,7 +236,7 @@ def check(
         elif eligible is not False:
             findings.append(Finding(
                 "modules.evidence_eligibility_missing",
-                "evidence_eligible must be an explicit boolean",
+                "scientific_evidence_eligible must be an explicit boolean",
                 path=path,
             ))
 

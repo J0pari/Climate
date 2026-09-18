@@ -20,53 +20,53 @@ Registered modules: **45**.
 
 ### Canonical and reference modules
 
-| Lifecycle | Path | Family | Maturity | Evidence eligible |
-| --- | --- | --- | --- | --- |
-| `canonical` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_sensitivity_numerics` | `prototype` | no |
-| `canonical` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
-| `canonical` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
-| `canonical` | `src/experiment_runtime.py` | `experiment_runtime` | `runnable` | no |
-| `canonical` | `src/fortran/conservative_transport.f90` | `conservative_mass_tracer_transport` | `runnable` | no |
-| `canonical` | `src/fortran/coriolis_rotation.f90` | `coriolis_rotation_operator` | `runnable` | no |
-| `canonical` | `src/fortran/dry_thermodynamics.f90` | `dry_thermodynamics` | `runnable` | no |
-| `canonical` | `src/fortran/geophysical_reference_values.f90` | `geophysical_reference_values` | `runnable` | no |
-| `canonical` | `src/fortran/lapack_tridiagonal.f90` | `lapack_tridiagonal_backend` | `runnable` | no |
-| `canonical` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
-| `canonical` | `src/fortran/moist_vapor_algebra.f90` | `moist_vapor_algebra` | `runnable` | no |
-| `canonical` | `src/fortran/pressure_coordinate_continuity.f90` | `pressure_coordinate_continuity` | `runnable` | no |
-| `canonical` | `src/fortran/pressure_coordinate_grid.f90` | `pressure_coordinate_grid_contract` | `runnable` | no |
-| `canonical` | `src/fortran/pressure_coordinate_hydrostatics.f90` | `pressure_coordinate_hydrostatics` | `runnable` | no |
-| `canonical` | `src/fortran/pressure_energy_exchange.f90` | `pressure_coordinate_energy_exchange` | `runnable` | no |
-| `canonical` | `src/fortran/pressure_flux_coupling.f90` | `pressure_coordinate_mass_flux_coupling` | `runnable` | no |
-| `canonical` | `src/fortran/saturation_moisture.f90` | `saturation_moisture_composition` | `runnable` | no |
-| `canonical` | `src/fortran/saturation_vapor_pressure.f90` | `saturation_vapor_pressure` | `runnable` | no |
-| `canonical` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
-| `canonical` | `src/fortran/thermodynamic_reference_values.f90` | `thermodynamic_reference_values` | `runnable` | no |
-| `canonical` | `src/fortran/time_integration.f90` | `time_integration_reference` | `runnable` | no |
-| `canonical` | `src/fortran/vertical_diffusion.f90` | `vertical_diffusion_operator` | `runnable` | no |
-| `canonical` | `src/geometry.rs` | `riemannian_geometry_reference` | `runnable` | no |
-| `canonical` | `src/inference.rs` | `information_geometry_numerics` | `runnable` | no |
-| `canonical` | `src/modal.rs` | `modal_logic_reference` | `runnable` | no |
-| `canonical` | `src/numerics.rs` | `numerics` | `prototype` | no |
-| `canonical` | `src/padic.rs` | `ultrametric_reference` | `runnable` | no |
-| `canonical` | `src/physical_state.rs` | `typed_physical_state_boundary` | `runnable` | no |
-| `canonical` | `src/sheaf.rs` | `sheaf_numerics` | `runnable` | no |
-| `canonical` | `src/station_sheaf.py` | `global_station_sheaf_substrate` | `runnable` | no |
-| `reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |
-| `reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
-| `reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
-| `reference` | `reference/multirepresentation_common.py` | `reference_multirepresentation_common_manifold` | `runnable` | no |
-| `reference` | `reference/ncei_ghcnd.py` | `reference_ncei_ghcnd_access` | `runnable` | no |
-| `reference` | `reference/ncei_ghcnd_projection.py` | `reference_ncei_ghcnd_cf_projection` | `runnable` | no |
-| `reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
-| `reference` | `reference/nsidc_sea_ice_index.py` | `reference_nsidc_sea_ice_index_access` | `runnable` | no |
-| `reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
-| `reference` | `reference/station_temperature_sheaf.py` | `reference_station_temperature_sheaf` | `runnable` | no |
-| `reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
-| `reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
-| `reference` | `reference/two_layer_observation_design.py` | `reference_two_layer_observation_design` | `runnable` | no |
-| `reference` | `reference/two_layer_observation_information.py` | `reference_two_layer_observation_information` | `runnable` | no |
-| `reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
+| Registry | Authority | Path | Family | Maturity | Scientific evidence eligible |
+| --- | --- | --- | --- | --- | --- |
+| `canonical` | `canonical_implementation` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_sensitivity_numerics` | `prototype` | no |
+| `canonical` | `canonical_implementation` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/experiment_runtime.py` | `experiment_runtime` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/conservative_transport.f90` | `conservative_mass_tracer_transport` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/coriolis_rotation.f90` | `coriolis_rotation_operator` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/dry_thermodynamics.f90` | `dry_thermodynamics` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/geophysical_reference_values.f90` | `geophysical_reference_values` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/lapack_tridiagonal.f90` | `lapack_tridiagonal_backend` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/linear_implicit.f90` | `linear_implicit_reference` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/moist_vapor_algebra.f90` | `moist_vapor_algebra` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/pressure_coordinate_continuity.f90` | `pressure_coordinate_continuity` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/pressure_coordinate_grid.f90` | `pressure_coordinate_grid_contract` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/pressure_coordinate_hydrostatics.f90` | `pressure_coordinate_hydrostatics` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/pressure_energy_exchange.f90` | `pressure_coordinate_energy_exchange` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/pressure_flux_coupling.f90` | `pressure_coordinate_mass_flux_coupling` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/saturation_moisture.f90` | `saturation_moisture_composition` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/saturation_vapor_pressure.f90` | `saturation_vapor_pressure` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/spectral_reference.f90` | `spectral_reference` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/thermodynamic_reference_values.f90` | `thermodynamic_reference_values` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/time_integration.f90` | `time_integration_reference` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/fortran/vertical_diffusion.f90` | `vertical_diffusion_operator` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/geometry.rs` | `riemannian_geometry_reference` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/inference.rs` | `information_geometry_numerics` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/modal.rs` | `modal_logic_reference` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/numerics.rs` | `numerics` | `prototype` | no |
+| `canonical` | `canonical_implementation` | `src/padic.rs` | `ultrametric_reference` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/physical_state.rs` | `typed_physical_state_boundary` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/sheaf.rs` | `sheaf_numerics` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/station_sheaf.py` | `global_station_sheaf_substrate` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/multirepresentation_common.py` | `reference_multirepresentation_common_manifold` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/ncei_ghcnd.py` | `reference_ncei_ghcnd_access` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/ncei_ghcnd_projection.py` | `reference_ncei_ghcnd_cf_projection` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/nsidc_sea_ice_index.py` | `reference_nsidc_sea_ice_index_access` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/station_temperature_sheaf.py` | `reference_station_temperature_sheaf` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_observation_design.py` | `reference_two_layer_observation_design` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_observation_information.py` | `reference_two_layer_observation_information` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
 
 ## Scientific claims
 
@@ -117,4 +117,4 @@ Open obligations:
 
 ## Interpretation boundary
 
-This projection reports declared repository structure only. A module listed as runnable is not thereby verified; reference-realized obligations are independent correctness oracles rather than production completion; canonical realization is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity.
+This projection reports declared repository structure only. `canonical_implementation` means repository authority for the declared object, not scientific endorsement. A module listed as runnable is not thereby verified; reference-realized obligations are independent correctness oracles rather than production completion; canonical realization is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity.

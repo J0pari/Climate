@@ -2,6 +2,8 @@
 
 Climate is an experimental research repository for climate dynamics, mathematical representations of climate state, and the numerical structures needed to study them rigorously.
 
+
+**Canonical implementation does not mean scientifically endorsed method.** It means the repository has one authoritative implementation of a declared object; scientific claims advance only through claim-scoped evidence and falsifiable experiments.
 The central scientific goal is not to collect unusual mathematics for its own sake. It is to determine whether physically grounded, statistically grounded, and mathematically distinct representations of the climate system can be integrated into a useful description of climate state and evolution.
 
 Two research programs meet at that point:

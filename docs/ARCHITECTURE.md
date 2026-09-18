@@ -64,6 +64,12 @@ validation status by claim
 
 A method descriptor does **not** state that the method is scientifically correct. It states what implementation and interpretation are being evaluated.
 
+### Implementation authority is not scientific endorsement
+
+Module authority and scientific evidence are orthogonal. A `canonical_implementation` is the repository's authoritative implementation of its narrowly declared mathematical, numerical, physical, data-boundary, or runtime object. An `independent_reference` is a separately maintained witness or adapter used to challenge that implementation. Neither label says the represented climate hypothesis is useful, true, predictive, causal, or decision-worthy.
+
+Scientific endorsement can advance only through claim-scoped evidence. The module registry therefore uses the explicit field `scientific_evidence_eligible`; canonicality, runnability, mathematical correctness, and successful execution cannot substitute for it.
+
 ### `ExperimentSpec`
 
 Defines a falsifiable comparison rather than just a command.
