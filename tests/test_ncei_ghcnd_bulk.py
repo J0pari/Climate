@@ -1,0 +1,94 @@
+from __future__ import annotations
+
+import unittest
+
+from data.ncei_ghcnd_bulk import (
+    adaptive_catalog_shards,
+    build_federated_stations,
+    by_year_url,
+    by_year_urls,
+    catalog_shard_refs,
+    parse_inventory,
+    parse_station_catalog,
+)
+
+
+def station_line(station_id, lat, lon, elev, name, state="", wmo=""):
+    return (
+        f"{station_id:<11} {lat:8.4f} {lon:9.4f} {elev:6.1f} "
+        f"{state:<2} {name:<30} {'':<3} {'':<3} {wmo:<5}"
+    ).rstrip() + "\n"
+
+
+def inventory_line(station_id, lat, lon, element, first, last):
+    return (
+        f"{station_id:<11} {lat:8.4f} {lon:9.4f} "
+        f"{element:<4} {first:4d} {last:4d}\n"
+    )
+
+
+class GHCNBulkFederationTests(unittest.TestCase):
+    def payloads(self):
+        catalog = (
+            station_line("USW00000001", 40.0, -75.0, 10.0, "ALPHA", "PA", "12345")
+            + station_line("USW00000002", -33.9, 151.2, 5.0, "BETA")
+            + station_line("USW00000003", 51.5, -0.1, -999.9, "GAMMA")
+        ).encode("ascii")
+        inventory = (
+            inventory_line("USW00000001", 40.0, -75.0, "TMAX", 1900, 2026)
+            + inventory_line("USW00000001", 40.0, -75.0, "PRCP", 1900, 2026)
+            + inventory_line("USW00000002", -33.9, 151.2, "TMIN", 1950, 2026)
+            + inventory_line("USW00000003", 51.5, -0.1, "TAVG", 1880, 2026)
+        ).encode("ascii")
+        return parse_station_catalog(catalog), parse_inventory(inventory)
+
+    def test_provider_fixed_width_catalog_and_inventory_parse(self):
+        catalog, inventory = self.payloads()
+        self.assertEqual(len(catalog.records), 3)
+        self.assertEqual(catalog.records[0].wmo_id, "12345")
+        self.assertIsNone(catalog.records[2].elevation_m)
+        self.assertEqual(len(inventory.records), 4)
+        self.assertTrue(catalog.sha256.startswith("sha256:"))
+        self.assertTrue(inventory.sha256.startswith("sha256:"))
+
+    def test_bulk_metadata_enters_federation_without_historical_location_guess(self):
+        catalog, inventory = self.payloads()
+        stations = build_federated_stations(
+            catalog, inventory, metadata_effective_date="2026-09-18"
+        )
+        self.assertEqual(stations[0].variable_ids, ("PRCP", "TMAX"))
+        self.assertIsNone(stations[0].location_at("2000-01-01"))
+        self.assertIsNotNone(stations[0].location_at("2026-09-18"))
+
+    def test_adaptive_shards_are_bounded_and_content_addressed(self):
+        catalog, inventory = self.payloads()
+        stations = build_federated_stations(
+            catalog, inventory, metadata_effective_date="2026-09-18"
+        )
+        shards = adaptive_catalog_shards(
+            stations,
+            metadata_effective_date="2026-09-18",
+            max_station_records=1,
+        )
+        self.assertEqual(sum(len(shard.stations) for shard in shards), 3)
+        self.assertTrue(all(len(shard.stations) <= 1 for shard in shards))
+        refs = catalog_shard_refs(shards)
+        self.assertEqual(len(refs), len(shards))
+        self.assertTrue(all(ref.digest.startswith("sha256:") for ref in refs))
+
+    def test_by_year_urls_are_provider_bulk_artifacts_not_station_requests(self):
+        self.assertEqual(
+            by_year_url(2024),
+            "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_year/2024.csv.gz",
+        )
+        self.assertEqual(
+            by_year_urls(2023, 2024),
+            (
+                "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_year/2023.csv.gz",
+                "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_year/2024.csv.gz",
+            ),
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

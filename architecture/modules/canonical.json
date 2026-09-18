@@ -2,6 +2,21 @@
   "schema_version": 2,
   "modules": [
     {
+      "path": "data/ncei_ghcnd_bulk.py",
+      "family": "ncei_ghcnd_bulk_station_federation_adapter",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "canonical provider-specific bulk discovery and normalization adapter for complete GHCN-Daily station/inventory authorities, producing bounded content-addressed federation catalog shards and bulk yearly artifact identities without per-station REST enumeration",
+      "known_gaps": [
+        "the adapter identifies provider by-year artifacts but does not yet download, verify, and publish those observation bytes into immutable federation observation partitions",
+        "ghcnd-stations.txt is treated as a provider metadata snapshot effective at the captured date; the adapter does not back-project current coordinates into unobserved historical relocation epochs",
+        "observation rows from by-year artifacts are not yet repartitioned into bounded spatial/variable chunks for the federation manifest",
+        "cross-provider station crosswalks remain federation-level evidence obligations and are never inferred from location proximity"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/albedo_temperature_sensitivity.rs",
       "family": "albedo_temperature_trajectory_secant_numerics",
       "language": "rust",

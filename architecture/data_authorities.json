@@ -424,6 +424,21 @@
       "rationale": "the CF-aware projection consumes an exact digested GHCN-Daily provider payload, preserves missing observations and provider attributes, and does not synthesize climatology or fallback station values",
       "witness_path": "tests/reference/test_ncei_ghcnd_projection.py",
       "witness_anchor": "test_netcdf_roundtrip_preserves_projection_identity"
+    },
+    {
+      "usage_id": "data.ncei_ghcnd_bulk_federation_boundary",
+      "scope": "current",
+      "path": "data/ncei_ghcnd_bulk.py",
+      "anchor": "GHCN_STATION_CATALOG_URL",
+      "authority_boundary": "parse_station_catalog",
+      "ownership_class": "external_api",
+      "disposition": "externalize",
+      "source_ids": [
+        "ncei.ghcnd.v3"
+      ],
+      "rationale": "worldwide GHCN-Daily provider discovery consumes the complete provider station/inventory artifacts and identifies bulk by-year observation artifacts; the scale path neither embeds a selected station list nor enumerates per-station REST requests",
+      "witness_path": "tests/test_ncei_ghcnd_bulk.py",
+      "witness_anchor": "test_provider_fixed_width_catalog_and_inventory_parse"
     }
   ]
 }

@@ -21,8 +21,11 @@
       "geographic_scope": "global",
       "station_identity_namespace": "GHCN-Daily STATION",
       "discovery_mode": "provider_catalog",
-      "scale_path": "provider bulk/catalog acquisition feeding bounded immutable shards; subset REST is a reference adapter, not the worldwide ingestion loop",
+      "scale_path": "complete ghcnd-stations.txt and ghcnd-inventory.txt provider artifacts feed bounded content-addressed catalog shards; yearly observation acquisition uses the provider by_year archive, while subset REST remains a captured-fixture/reference path rather than the worldwide ingestion loop",
       "current_boundaries": [
+        "data/ncei_ghcnd_bulk.py::parse_station_catalog",
+        "data/ncei_ghcnd_bulk.py::parse_inventory",
+        "data/ncei_ghcnd_bulk.py::adaptive_catalog_shards",
         "reference/ncei_ghcnd.py::DailySummariesPayload",
         "reference/station_temperature_sheaf.py::to_station_catalog"
       ]

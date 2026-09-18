@@ -6,22 +6,23 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **51**.
+Registered modules: **52**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 32 |
+| `canonical` | 33 |
 | `reference` | 19 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 49 |
+| `runnable` | 50 |
 
 ### Canonical and reference modules
 
 | Registry | Authority | Path | Family | Maturity | Scientific evidence eligible |
 | --- | --- | --- | --- | --- | --- |
+| `canonical` | `canonical_implementation` | `data/ncei_ghcnd_bulk.py` | `ncei_ghcnd_bulk_station_federation_adapter` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_trajectory_secant_numerics` | `prototype` | no |
 | `canonical` | `canonical_implementation` | `src/budget_ledger.rs` | `streaming_extensive_budget_accounting` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |

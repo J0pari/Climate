@@ -560,7 +560,9 @@
         "src/station_sheaf.py",
         "tests/test_station_federation.py",
         "tests/test_station_sheaf.py",
-        "docs/SHEAF-REALIZATION.md"
+        "docs/SHEAF-REALIZATION.md",
+        "data/ncei_ghcnd_bulk.py",
+        "tests/test_ncei_ghcnd_bulk.py"
       ]
     },
     {
