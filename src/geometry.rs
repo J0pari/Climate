@@ -1,10 +1,11 @@
 //! Canonical local Levi-Civita geometry from explicit metric jets.
 //!
-//! A caller supplies a symmetric nondegenerate metric and its first/second
+//! A caller supplies a symmetric positive-definite metric and its first/second
 //! coordinate derivatives at one point. This module derives the connection and
 //! curvature tensors only. It does not construct a climate metric and does not
 //! attach physical, probabilistic, or tipping-point meaning to curvature.
 
+use crate::numerics::{conditioning_report, ConditioningError, ConditioningPolicy, ConditioningReport};
 use nalgebra::DMatrix;
 use thiserror::Error;
 
@@ -65,13 +66,27 @@ pub enum GeometryError {
         reverse: f64,
         tolerance: f64,
     },
-    #[error("metric is singular or numerically non-invertible")]
+    #[error("metric is not positive definite and therefore is not Riemannian")]
+    NotPositiveDefiniteMetric,
+    #[error(
+        "metric is numerically rank deficient: rank {numerical_rank}/{dimension}, sigma_min={sigma_min:e}, tolerance={tolerance:e}"
+    )]
+    NumericallyRankDeficientMetric {
+        numerical_rank: usize,
+        dimension: usize,
+        sigma_min: f64,
+        tolerance: f64,
+    },
+    #[error(transparent)]
+    Conditioning(#[from] ConditioningError),
+    #[error("accepted Riemannian metric unexpectedly became non-invertible")]
     SingularMetric,
 }
 
 #[derive(Debug, Clone)]
 pub struct MetricJet {
     metric: DMatrix<f64>,
+    conditioning: ConditioningReport,
     /// `first[k][(i,j)] = ∂_k g_ij`.
     first: Vec<DMatrix<f64>>,
     /// `second[k][l][(i,j)] = ∂_k ∂_l g_ij`.
@@ -150,6 +165,19 @@ impl MetricJet {
             }
         }
 
+        if metric.clone().cholesky().is_none() {
+            return Err(GeometryError::NotPositiveDefiniteMetric);
+        }
+        let conditioning = conditioning_report(&matrix_rows(&metric))?;
+        if conditioning.is_rank_deficient() {
+            return Err(GeometryError::NumericallyRankDeficientMetric {
+                numerical_rank: conditioning.numerical_rank,
+                dimension: n,
+                sigma_min: conditioning.sigma_min,
+                tolerance: conditioning.numerical_rank_tolerance,
+            });
+        }
+
         if first.len() != n {
             return Err(GeometryError::DerivativeCount {
                 order: "first",
@@ -211,6 +239,7 @@ impl MetricJet {
 
         Ok(Self {
             metric,
+            conditioning,
             first,
             second,
         })
@@ -224,9 +253,38 @@ impl MetricJet {
         &self.metric
     }
 
+    pub fn conditioning_report(&self) -> &ConditioningReport {
+        &self.conditioning
+    }
+
+    pub fn new_with_conditioning_policy(
+        metric: DMatrix<f64>,
+        first: Vec<DMatrix<f64>>,
+        second: Vec<Vec<DMatrix<f64>>>,
+        policy: ConditioningPolicy,
+    ) -> Result<Self, GeometryError> {
+        let policy = ConditioningPolicy::new(policy.max_condition_number_2)?;
+        let jet = Self::new(metric, first, second)?;
+        if jet.conditioning.condition_number_2 > policy.max_condition_number_2 {
+            return Err(GeometryError::Conditioning(
+                ConditioningError::ConditionNumberExceeded {
+                    measured: jet.conditioning.condition_number_2,
+                    maximum: policy.max_condition_number_2,
+                },
+            ));
+        }
+        Ok(jet)
+    }
+
     pub fn first_derivative(&self, coordinate: usize) -> &DMatrix<f64> {
         &self.first[coordinate]
     }
+}
+
+fn matrix_rows(matrix: &DMatrix<f64>) -> Vec<Vec<f64>> {
+    (0..matrix.nrows())
+        .map(|row| (0..matrix.ncols()).map(|col| matrix[(row, col)]).collect())
+        .collect()
 }
 
 fn validate_matrix(
@@ -301,8 +359,9 @@ pub fn levi_civita_from_jet(jet: &MetricJet) -> Result<GeometryAtPoint, Geometry
     let inverse = jet
         .metric
         .clone()
-        .try_inverse()
-        .ok_or(GeometryError::SingularMetric)?;
+        .cholesky()
+        .ok_or(GeometryError::SingularMetric)?
+        .inverse();
 
     let mut christoffel = vec![0.0; n * n * n];
     for upper in 0..n {
@@ -592,15 +651,40 @@ mod tests {
             Err(GeometryError::NonSymmetricMetric { .. })
         ));
 
-        let singular = MetricJet::new(
-            DMatrix::from_row_slice(2, 2, &[1.0, 0.0, 0.0, 0.0]),
-            vec![zeros(2), zeros(2)],
-            vec![vec![zeros(2), zeros(2)], vec![zeros(2), zeros(2)]],
-        )
-        .unwrap();
         assert!(matches!(
-            levi_civita_from_jet(&singular),
-            Err(GeometryError::SingularMetric)
+            MetricJet::new(
+                DMatrix::from_row_slice(2, 2, &[1.0, 0.0, 0.0, 0.0]),
+                vec![zeros(2), zeros(2)],
+                vec![vec![zeros(2), zeros(2)], vec![zeros(2), zeros(2)]],
+            ),
+            Err(GeometryError::NotPositiveDefiniteMetric)
+        ));
+
+        assert!(matches!(
+            MetricJet::new(
+                DMatrix::from_row_slice(2, 2, &[1.0, 0.0, 0.0, -1.0]),
+                vec![zeros(2), zeros(2)],
+                vec![vec![zeros(2), zeros(2)], vec![zeros(2), zeros(2)]],
+            ),
+            Err(GeometryError::NotPositiveDefiniteMetric)
+        ));
+    }
+
+    #[test]
+    fn conditioning_is_measured_and_policy_is_explicit() {
+        let metric = DMatrix::from_row_slice(2, 2, &[1.0, 0.0, 0.0, 1.0e-8]);
+        let first = vec![zeros(2), zeros(2)];
+        let second = vec![vec![zeros(2), zeros(2)], vec![zeros(2), zeros(2)]];
+
+        let jet = MetricJet::new(metric.clone(), first.clone(), second.clone()).unwrap();
+        assert!(jet.conditioning_report().condition_number_2 > 9.0e7);
+
+        let strict = ConditioningPolicy::new(1.0e6).unwrap();
+        assert!(matches!(
+            MetricJet::new_with_conditioning_policy(metric, first, second, strict),
+            Err(GeometryError::Conditioning(
+                ConditioningError::ConditionNumberExceeded { .. }
+            ))
         ));
     }
 

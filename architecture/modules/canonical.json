@@ -339,13 +339,14 @@
       "family": "riemannian_geometry_reference",
       "language": "rust",
       "maturity": "runnable",
-      "intended_role": "canonical CPU Levi-Civita geometry kernel from explicit local metric jets for Christoffel, Riemann, Ricci, scalar-curvature, and accelerator differential verification",
+      "intended_role": "canonical Riemannian Levi-Civita geometry from explicit SPD metric jets, with structural tensor validation, measured SVD conditioning, caller-owned conditioning policy, and Cholesky-based inversion",
       "claim_ids": [
         "climate.geometry.regime_indicator"
       ],
       "known_gaps": [
-        "does not define or validate a climate metric",
+        "does not define or validate a climate metric or the scientific meaning of any coordinate system",
         "local metric derivatives are caller-supplied and require independent AD/finite-difference witnesses",
+        "conditioning is measured and explicit policy is available, but no universal climate-task condition threshold is asserted",
         "correct geometric tensors do not justify curvature-to-tipping probability or timescale interpretations",
         "GPU equivalence remains unverified"
       ],
