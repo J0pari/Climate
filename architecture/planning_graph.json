@@ -665,7 +665,7 @@
         "orchestration.commons_read_execution"
       ],
       "blockers": [
-        "The Climate contract-reasoning evaluator, immutable task set, metrics, controls, and falsifiers are registered, but climate.external-model-runtime/v1 is unavailable; no Training artifact can execute and no evaluation attestation can be issued until that adapter binds the requested full artifact digest to a real model runtime."
+        "Climate can validate and score a digest-bound prediction artifact against the registered contract-reasoning task set, but climate.external-model-runtime/v1 is unavailable; the remaining blocker is producing those predictions from the exact requested Training artifact under a real runtime receipt."
       ],
       "completion": [
         "A versioned Climate evaluation specification declares the model-artifact input contract, climate task, metrics, controls, resource class, and falsifiers.",
@@ -679,7 +679,9 @@
         "fixtures/evaluation/climate-contract-reasoning-v1.json",
         "architecture/commons_control.py",
         "architecture/check_external_evaluations.py",
-        "docs/COMMONS-INTEGRATION.md"
+        "docs/COMMONS-INTEGRATION.md",
+        "reference/external_contract_reasoning.py",
+        "tests/reference/test_external_contract_reasoning.py"
       ]
     }
   ]

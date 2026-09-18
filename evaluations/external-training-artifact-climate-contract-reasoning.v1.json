@@ -68,5 +68,7 @@
   "issuance": {
     "requires_adapter_available": true,
     "promotion_authority": "none"
-  }
+  },
+  "prediction_contract": "climate-contract-reasoning-predictions/v1",
+  "result_contract": "climate-contract-reasoning-result/v1"
 }

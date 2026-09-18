@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **49**.
+Registered modules: **50**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 31 |
-| `reference` | 18 |
+| `reference` | 19 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 47 |
+| `runnable` | 48 |
 
 ### Canonical and reference modules
 
@@ -53,6 +53,7 @@ Registered modules: **49**.
 | `canonical` | `canonical_implementation` | `src/physical_state.rs` | `typed_physical_state_boundary` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/sheaf.rs` | `sheaf_numerics` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/station_sheaf.py` | `global_station_sheaf_substrate` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/external_contract_reasoning.py` | `reference_external_model_contract_reasoning` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |

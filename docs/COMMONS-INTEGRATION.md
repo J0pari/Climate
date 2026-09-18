@@ -346,11 +346,21 @@ The evaluator is behavioral only; its specification explicitly excludes
 climate prediction, observational skill, physical validity, and Training
 promotion.
 
-The evaluator runtime remains unavailable. `architecture/commons_control.py`
+The evaluation semantics are executable independently of model serving.
+`reference/external_contract_reasoning.py` accepts a structured prediction
+artifact only when it names the registered evaluation, carries a full Training
+subject digest, and repeats that digest in its runtime identity. It requires
+exact task coverage, computes the declared behavioral metrics, and runs the
+permuted-answer-key negative control. Its result binds the task-set and
+prediction digests.
+
+The model runtime remains unavailable. `architecture/commons_control.py`
 resolves the registered specification and then fails closed because
-`climate.external-model-runtime/v1` is not yet implemented. That is the
-remaining execution blocker; no attestation is issued without a runtime that
-binds the exact requested Training artifact digest.
+`climate.external-model-runtime/v1` is not yet implemented. The remaining
+execution blocker is therefore narrow: produce the structured choices from the
+exact requested Training artifact under a digest-binding runtime receipt. A
+scored prediction artifact is not by itself a Commons attestation or a Training
+promotion decision.
 
 Any eventual evaluation attestation is evidence about the immutable model
 artifact. It does not mutate that artifact and cannot accept, reject, deploy,

@@ -499,6 +499,8 @@ package climate
 	semantic_version: #Semver
 	evaluator_repository: "J0pari/Climate"
 	subject_contract: "training.model-artifact/v1"
+	prediction_contract: "climate-contract-reasoning-predictions/v1"
+	result_contract: "climate-contract-reasoning-result/v1"
 	adapter: {
 		interface: "climate.external-model-runtime/v1"
 		status: #ExternalModelRuntimeStatus
@@ -525,5 +527,46 @@ package climate
 	issuance: {
 		requires_adapter_available: true
 		promotion_authority: "none"
+	}
+}
+
+
+#ContractReasoningPrediction: {
+	task_id: #Id
+	choice: "A" | "B" | "C"
+}
+
+#ExternalContractReasoningPredictions: {
+	schema: "climate-contract-reasoning-predictions/v1"
+	evaluation_id: "external.training_artifact.climate_contract_reasoning.v1"
+	subject_digest: #Fingerprint
+	runtime: {
+		interface: "climate.external-model-runtime/v1"
+		implementation: string & !=""
+		subject_digest: #Fingerprint
+	}
+	responses: [...#ContractReasoningPrediction] & [_, ...]
+}
+
+#ExternalContractReasoningResult: {
+	schema: "climate-contract-reasoning-result/v1"
+	evaluation_id: "external.training_artifact.climate_contract_reasoning.v1"
+	subject_digest: #Fingerprint
+	task_set_digest: #Sha256
+	prediction_digest: #Sha256
+	metrics: {
+		contract_choice_accuracy: number & >=0 & <=1
+		unsafe_semantic_upgrade_rate: number & >=0 & <=1
+	}
+	negative_controls: {
+		permuted_answer_key: {
+			accuracy: number & >=0 & <=1
+			delta_vs_observed: number & >=-1 & <=1
+		}
+	}
+	evidence: {
+		evidence_class: "behavioral"
+		verification: "verified"
+		scope: string & !=""
 	}
 }

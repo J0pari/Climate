@@ -291,7 +291,7 @@ Local orchestration may still be needed for:
 
 Workspace-level scheduling, cross-repository dependencies, global GPU leases, experiment DAGs, run identity, and cross-repo lineage should align with Commons rather than duplicate it.
 
-The current boundary is explicit: `work-scheduler/v1` is the resource-generic execution waist used for Climate CPU submissions, while `evaluation-exchange/v1` carries immutable cross-repository artifact and evaluation identity without carrying acceptance or promotion decisions. Climate retains experiment, metric, evidence-class, interpretation, and claim authority. The first registered external-artifact evaluator is a behavioral Climate-contract reasoning task set; it is intentionally narrower than climate prediction or physical validation, and it remains execution-ineligible until a digest-binding external model runtime exists.
+The current boundary is explicit: `work-scheduler/v1` is the resource-generic execution waist used for Climate CPU submissions, while `evaluation-exchange/v1` carries immutable cross-repository artifact and evaluation identity without carrying acceptance or promotion decisions. Climate retains experiment, metric, evidence-class, interpretation, and claim authority. The first registered external-artifact evaluator is a behavioral Climate-contract reasoning task set; its pure reference scorer validates digest-bound prediction artifacts and the declared negative control independently of serving. The evaluator remains end-to-end execution-ineligible until a digest-binding external model runtime produces those predictions, and the task is intentionally narrower than climate prediction or physical validation.
 
 ## 4. Physical state versus research artifacts
 

@@ -273,6 +273,20 @@
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/external_contract_reasoning.py",
+      "family": "reference_external_model_contract_reasoning",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "pure reference scorer for digest-bound external-model structured choices on Climate's immutable repository-contract reasoning task set, including the declared permuted-answer-key negative control",
+      "known_gaps": [
+        "the scorer does not load or execute Training model artifacts; climate.external-model-runtime/v1 remains the separate response-production boundary",
+        "the task set measures Climate repository-contract reasoning only and does not measure climate prediction, observational skill, physical validity, or model promotion suitability",
+        "a scored prediction artifact is not a Commons evaluation attestation and carries no Training acceptance or deployment authority"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
     }
   ]
 }
