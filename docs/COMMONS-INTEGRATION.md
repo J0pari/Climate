@@ -1,6 +1,6 @@
 # Commons integration contract
 
-Status: **contract-ready read integration**. Climate can now submit its existing CPU experiment runtime through Commons `work-scheduler/v1`; live R4 completion still requires a real machine cutover/daemon witness.
+Climate integrates with Commons through the pinned resource-generic `work-scheduler/v1` execution boundary and `evaluation-exchange/v1` artifact-evidence boundary. These interfaces preserve Climate-owned scientific semantics and grant neither source-write nor promotion authority.
 
 The purpose of this interface is to let Commons coordinate Climate without owning Climate's scientific semantics or silently upgrading the strength of its evidence.
 
@@ -70,7 +70,7 @@ Climate does not use feature branches or PR staging as its repository-write mech
 
 ## 3. Required Climate-facing descriptors
 
-The first stable machine-readable surface should eventually include:
+The machine-readable integration contract uses the following descriptor shapes:
 
 ### Repository descriptor
 
@@ -211,7 +211,7 @@ dataset locality requirement
 
 Commons may translate these declarations into concrete leases. Climate should not assume a particular machine, GPU id, or cluster topology in its scientific spec.
 
-`work-scheduler/v1` now represents the current CPU experiment honestly: the Climate adapter submits `resourceClass=cpu`, a positive RAM declaration, the exact Climate experiment spec, explicit repository revision and run scope, and writes only beneath `run-artifacts/commons/`. CPU submission carries zero GPU claim and must not depend on GPU availability. The older `gpu-scheduler/v1` pin remains compatibility history, not the Climate execution route.
+`work-scheduler/v1` represents Climate CPU experiment submission: the adapter submits `resourceClass=cpu`, a positive RAM declaration, the exact Climate experiment spec, explicit repository revision and run scope, and writes only beneath `run-artifacts/commons/`. CPU submission carries zero GPU claim and must not depend on GPU availability. The older `gpu-scheduler/v1` pin remains compatibility history, not the Climate execution route.
 
 ## 8. Sandboxing
 
@@ -261,7 +261,7 @@ climate summarize-run <run-manifest>
 
 These names are illustrative. The important property is stable semantics and machine-readable outputs.
 
-The first implemented entrypoint should likely be `inspect`: report repository/build structural truth, known placeholders, available toolchains, and declared methods without executing science workloads.
+An `inspect` entrypoint is the minimal read-only surface: it reports repository/build structural truth, known placeholders, available toolchains, and declared methods without executing science workloads.
 
 ## 11. Integration gates
 
@@ -329,7 +329,7 @@ Once Commons provides these facilities, Climate should avoid building separate i
 
 Climate may retain local component scheduling where it is scientifically/numerically part of a simulation, but that distinction must be explicit.
 
-## 7. External artifact evaluation
+## 14. External artifact evaluation
 
 Climate pins Commons `evaluation-exchange/v1` as an interoperability boundary,
 not as scientific authority. A Training model artifact can be presented as an
@@ -338,7 +338,7 @@ producer-local alias, full SHA-256 identity, and artifact contract. The local
 16-character Training alias is metadata; it is never the cross-repository
 identity.
 
-Climate now registers a first deliberately narrow evaluator for
+Climate registers the deliberately narrow evaluator for
 `training.model-artifact/v1`: `external.training_artifact.climate_contract_reasoning.v1`.
 Its immutable task set checks reasoning over Climate's binding evidence,
 execution-identity, contamination, and cross-repository promotion boundaries.
@@ -354,20 +354,18 @@ exact task coverage, computes the declared behavioral metrics, and runs the
 permuted-answer-key negative control. Its result binds the task-set and
 prediction digests.
 
-The model runtime remains unavailable. `architecture/commons_control.py`
-resolves the registered specification and then fails closed because
-`climate.external-model-runtime/v1` is not yet implemented. The remaining
-execution blocker is therefore narrow: produce the structured choices from the
-exact requested Training artifact under a digest-binding runtime receipt. A
-scored prediction artifact is not by itself a Commons attestation or a Training
-promotion decision.
+`architecture/commons_control.py` resolves the registered specification and fails
+closed unless a `climate.external-model-runtime/v1` adapter produces the
+structured choices from the exact requested Training artifact under a runtime
+receipt bound to the full subject digest. A scored prediction artifact is not
+by itself a Commons attestation or a Training promotion decision.
 
 Any eventual evaluation attestation is evidence about the immutable model
 artifact. It does not mutate that artifact and cannot accept, reject, deploy,
 or promote it; Training retains those decisions.
 
 
-## 8. Live read-execution witness
+## 15. Live read-execution witness
 
 The R4 integration witness is executable rather than a prose checklist:
 
@@ -384,6 +382,6 @@ The witness submits through `work-scheduler/v1`, polls only the public
 that Climate's `outcome.json` has the requested experiment identity and
 repository revision. It never reads Commons private queue/state files.
 
-A passing mocked/CI witness proves the harness semantics only. R4 completion
-still requires this command to succeed against the machine-local Commons
+A passing mocked/CI witness proves the harness semantics only. Integrated-system
+R4 evidence requires this command to succeed against the machine-local Commons
 daemon after the one-writer scheduler-state cutover.

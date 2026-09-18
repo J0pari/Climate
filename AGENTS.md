@@ -13,7 +13,7 @@ This file is the binding contributor/agent contract. `README.md` is descriptive.
 5. **Novelty is neither a defect nor evidence.** Unusual methods must receive fair baselines and falsifiable tests; they receive no exemption from them.
 6. **Physical, statistical, and interpretive claims are distinct.** Do not turn a numerical indicator into a physical probability, tipping threshold, causal mechanism, irreversibility claim, or confidence score without an explicitly validated mapping.
 7. **No silent placeholders.** Stubs, heuristic constants, synthetic data, fallback values, incomplete derivatives, approximate solvers, and unimplemented branches must be machine-discoverable or clearly labeled at the point of use.
-8. **No architecture-by-prose.** Claimed paths, commands, interfaces, datasets, and generated artifacts must eventually be machine checked. Structural drift is a defect, not precedent.
+8. **No architecture-by-prose.** Claimed paths, commands, interfaces, datasets, and generated artifacts require machine checks. Structural drift is a defect, not precedent.
 9. **Reproducibility is part of correctness.** Results intended as evidence must bind code revision, method/config versions, dataset identities, preprocessing, random seeds, environment, command, artifacts, and metric definitions.
 10. **Commons is a control/evidence boundary, not a scientific authority.** Commons may schedule, fingerprint, trace, and compare Climate experiments. It must not convert experimental Climate output into stronger evidence classes than Climate earned.
 11. **Performance is not scientific evidence by itself.** A faster GPU path does not strengthen a scientific claim unless it preserves the declared numerical semantics and passes the same validation contract.
@@ -88,7 +88,7 @@ A new research method should declare, before promotion beyond prototype:
 - reproducibility inputs;
 - criteria for retain/revise/reject.
 
-Do not add a bespoke orchestration path for each mathematical idea. Methods should eventually conform to the common experiment interfaces in `docs/ARCHITECTURE.md`.
+Do not add a bespoke orchestration path for each mathematical idea. Methods use the common experiment interfaces in `docs/ARCHITECTURE.md` unless a method-specific contract requires a narrower boundary.
 
 ## 6. Numerical and scientific correctness
 
@@ -195,6 +195,6 @@ Architecture documents may describe intended contracts that are not yet fully re
 
 Climate's Commons posture is **experimental / read execution** through the pinned `work-scheduler/v1` boundary. Commons may enqueue explicitly declared Climate work into Climate-owned artifact output paths, but it does not gain source-write or scientific-promotion authority.
 
-Repository write authority is not granted by the scheduler or evaluation-exchange contracts. Any future write authority would still have to obey this contract's direct-`main`, small-coherent-commit, current-file-reread, and no-history-rewrite rules; Commons must not introduce a branch/PR workflow that conflicts with them.
+Repository write authority is not granted by the scheduler or evaluation-exchange contracts. If Commons is granted source-write authority, that authority must obey this contract's direct-`main`, small-coherent-commit, current-file-reread, and no-history-rewrite rules; Commons must not introduce a branch/PR workflow that conflicts with them.
 
-For GPU work, Commons may eventually own cross-repository resource leases and run identity; Climate owns device-local numerical execution, streams, layouts, kernels, numerical checkpoint semantics, and hardware-specific correctness tests.
+For GPU work, Commons owns cross-repository resource leases and run identity at the shared execution boundary; Climate owns device-local numerical execution, streams, layouts, kernels, numerical checkpoint semantics, and hardware-specific correctness tests.

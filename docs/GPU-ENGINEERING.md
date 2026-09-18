@@ -414,7 +414,7 @@ Compile-time `REQUIRE_REAL_*` checks are useful, but runtime provenance must sti
 
 ## 18. Resource envelopes
 
-Every accelerated `MethodDescriptor` should eventually declare an estimable resource envelope:
+The accelerated-method contract includes an estimable resource envelope:
 
 ```text
 min_compute_capability
