@@ -2,6 +2,52 @@
   "schema_version": 2,
   "methods": [
     {
+      "method_id": "dynamics.affine_control_lstsq.numpy_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "controlled_linear_representation_closure_baseline",
+      "input_contracts": [
+        "paired_state_transition_samples/v1",
+        "affine_forcing_controls/v1",
+        "discovery_confirmation_partition/v1"
+      ],
+      "output_contracts": [
+        "controlled_linear_map/v1",
+        "representation_closure_diagnostics/v1",
+        "ood_forcing_response_metrics/v1"
+      ],
+      "assumptions": [
+        "a fixed transition interval is used for fitting and confirmation",
+        "forcing is represented by its interval-start value and affine rate over the interval",
+        "ordinary least squares uses numpy.linalg.lstsq with no intercept and no hidden target-derived feature selection",
+        "all fit samples come from the declared discovery forcing domain while confirmation protocols remain held out"
+      ],
+      "known_limitations": [
+        "the baseline is linear and cannot represent nonlinear or regime-dependent dynamics without changing method identity",
+        "full-state success in a truly linear two-layer control is expected and does not establish real-climate OOD skill",
+        "surface-temperature failure diagnoses missing-state Markov closure under this model class rather than Kalman unobservability",
+        "coefficient interpretation requires full design rank; rank deficiency must be surfaced rather than silently regularized"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "physics.two_layer_ebm.affine_forcing_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_forcing_protocols.py",
+          "reference/two_layer_forced_representation.py"
+        ]
+      }
+    },
+    {
       "method_id": "dynamics.dmd.pydmd_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",

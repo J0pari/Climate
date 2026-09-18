@@ -5,10 +5,13 @@ on:
     paths:
       - 'reference/two_layer_energy_balance.py'
       - 'reference/two_layer_forcing_protocols.py'
+      - 'reference/two_layer_forced_representation.py'
       - 'tests/reference/test_two_layer_energy_balance.py'
       - 'tests/reference/test_two_layer_forcing_protocols.py'
+      - 'tests/reference/test_two_layer_forced_representation.py'
       - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
       - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
+      - 'fixtures/physics/two-layer-ebm-forced-representation-v1.json'
       - 'requirements/reference-two-layer-ebm.txt'
       - '.github/workflows/reference-two-layer-ebm.yml'
       - 'architecture/modules/reference.json'
@@ -41,7 +44,9 @@ jobs:
         run: |
           python -m unittest tests.reference.test_two_layer_energy_balance -v
           python -m unittest tests.reference.test_two_layer_forcing_protocols -v
+          python -m unittest tests.reference.test_two_layer_forced_representation -v
       - name: Emit reference summaries
         run: |
           python reference/two_layer_energy_balance.py --json
           python reference/two_layer_forcing_protocols.py --json
+          python reference/two_layer_forced_representation.py --json

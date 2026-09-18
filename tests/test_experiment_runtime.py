@@ -11,6 +11,7 @@ from src.experiment_runtime import DEFAULT_EXPERIMENT, ROOT, run_experiment
 
 
 FORCING_EXPERIMENT = ROOT / "experiments" / "two-layer-ebm-forcing-protocols.v1.json"
+FORCED_OOD_EXPERIMENT = ROOT / "experiments" / "multirepresentation-ebm-forced-ood.v1.json"
 
 
 class ExperimentRuntimeTests(unittest.TestCase):
@@ -129,6 +130,63 @@ class ExperimentRuntimeTests(unittest.TestCase):
             ):
                 self.assert_portable_json_tree(output / filename)
 
+
+    def test_ebm_forced_ood_experiment_uses_same_runtime_spine(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            outcome = run_experiment(
+                experiment_path=FORCED_OOD_EXPERIMENT,
+                output_dir=output,
+                repository_revision="c" * 40,
+                run_scope="forced-ood-fixture-run",
+            )
+            self.assertEqual(
+                outcome["experiment_id"], "multirepresentation.ebm_forced_ood.v1"
+            )
+            self.assertEqual(outcome["evidence"], [])
+            self.assertEqual(len(outcome["runs"]), 2)
+
+            metric_values = {
+                metric["metric"]["metric_id"]: metric["value"]
+                for metric in outcome["metrics"]
+            }
+            self.assertLess(
+                metric_values[
+                    "multirepresentation.ebm.ood.full_state_confirmation_relative_error"
+                ],
+                1e-12,
+            )
+            self.assertGreater(
+                metric_values[
+                    "multirepresentation.ebm.ood.surface_scalar_confirmation_relative_error"
+                ],
+                0.02,
+            )
+            self.assertGreater(
+                metric_values[
+                    "multirepresentation.ebm.ood.closure_gap_confirmation_relative_error"
+                ],
+                0.02,
+            )
+
+            baseline, candidate = outcome["runs"]
+            self.assertEqual(len(baseline["resolved_dataset_digests"]), 2)
+            self.assertEqual(len(candidate["resolved_dataset_digests"]), 3)
+            self.assertEqual(
+                candidate["execution"]["resolved"]["method_id"],
+                "dynamics.affine_control_lstsq.numpy_v1",
+            )
+
+            self.assert_artifact_digests(outcome, output)
+            for filename in (
+                "baseline-forcing-protocols.json",
+                "candidate-forced-ood.json",
+                "metric-results.json",
+                "run-baseline.json",
+                "run-candidate.json",
+                "outcome.json",
+            ):
+                self.assert_portable_json_tree(output / filename)
 
 if __name__ == "__main__":
     unittest.main()

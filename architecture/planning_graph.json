@@ -596,7 +596,7 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Use exact and progressively less idealized climate controls to test what information representations preserve under forcing shifts, sparse/noisy observations, parameter degeneracy, stochastic variability, and regime dependence. The first rung is an exact two-layer EBM with immutable discovery versus confirmation forcing domains and step, ramp, overshoot/reversal, and sign-reversal protocols executed through the common experiment/evidence spine.",
+      "summary": "Use exact and progressively less idealized climate controls to test what information representations preserve under forcing shifts, sparse/noisy observations, parameter degeneracy, stochastic variability, and regime dependence. The current ladder contains an exact piecewise-affine forcing reference plus a discovery-trained controlled-linear OOD rung in which full state succeeds and a surface scalar fails Markov closure under identical controls.",
       "depends_on": [
         "experimentation.common_cpu_runtime"
       ],
@@ -613,7 +613,11 @@
         "fixtures/physics/two-layer-ebm-forcing-protocols-v1.json",
         "experiments/two-layer-ebm-forcing-protocols.v1.json",
         "src/experiment_runtime.py",
-        ".github/workflows/experiment-ebm-runtime.yml"
+        ".github/workflows/experiment-ebm-runtime.yml",
+        "reference/two_layer_forced_representation.py",
+        "fixtures/physics/two-layer-ebm-forced-representation-v1.json",
+        "experiments/multirepresentation-ebm-forced-ood.v1.json",
+        "tests/reference/test_two_layer_forced_representation.py"
       ]
     }
   ]

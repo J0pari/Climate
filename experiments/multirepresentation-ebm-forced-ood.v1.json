@@ -1,0 +1,162 @@
+{
+  "experiment_id": "multirepresentation.ebm_forced_ood.v1",
+  "semantic_version": "0.1.0",
+  "question": "Can the same discovery-trained controlled-linear method extrapolate the exact two-layer EBM response to held-out forcing amplitudes and forcing histories when given a Markov-closed full state, while exposing failure when given only a non-closed surface-temperature scalar?",
+  "hypothesis": "With identical forcing controls and no confirmation leakage, the full two-layer temperature state identifies the exact fixed-step affine controlled transition and extrapolates to held-out step, ramp, overshoot/reversal, and sign-reversal protocols, whereas the surface-temperature scalar retains irreducible one-step error because the deep-reservoir state is omitted.",
+  "candidate_methods": [
+    "dynamics.affine_control_lstsq.numpy_v1"
+  ],
+  "baseline_methods": [
+    "physics.two_layer_ebm.affine_forcing_v1"
+  ],
+  "datasets": [
+    {
+      "id": "physics.two_layer_ebm.geoffroy_mean.v1",
+      "digest": "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9",
+      "source_family": "literature_parameterized_two_layer_energy_balance_reference",
+      "source_version": "1",
+      "variables": [
+        "surface_temperature_anomaly_k",
+        "deep_temperature_anomaly_k"
+      ],
+      "spatial_domain": "global mean two-reservoir climate control",
+      "grid": "not spatially resolved",
+      "units_metadata": {
+        "temperature": "K anomaly"
+      },
+      "quality_control_policy": "physical parameters must be finite and positive; malformed states fail closed",
+      "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.forcing_protocols.v1",
+      "digest": "sha256:8c761934353feef7563c8a57a96863afbd08ab547d88fc88228a240c9fa16743",
+      "source_family": "deterministic_synthetic_forcing_protocol_fixture",
+      "source_version": "1",
+      "variables": [
+        "forcing_w_m2",
+        "discovery_forcing_domain_w_m2",
+        "confirmation_forcing_domain_w_m2"
+      ],
+      "time_domain": "discovery forcing interval plus held-out step, ramp, overshoot/reversal, and sign-reversal confirmation protocols",
+      "units_metadata": {
+        "forcing": "W m^-2",
+        "time": "years"
+      },
+      "quality_control_policy": "confirmation domain contains discovery domain and all confirmation protocols are immutable experiment inputs",
+      "citation": "fixtures/physics/two-layer-ebm-forcing-protocols-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.forced_representation.v1",
+      "digest": "sha256:d53b3dbbd84b110b78720ed46903863df64b3cfe2496a91f8ef4d6a2f1093aaf",
+      "source_family": "deterministic_synthetic_discovery_transition_design",
+      "source_version": "1",
+      "variables": [
+        "temperature_state",
+        "surface_temperature_scalar",
+        "forcing_start_w_m2",
+        "forcing_rate_w_m2_per_year"
+      ],
+      "time_domain": "fixed one-year transition samples for discovery fitting",
+      "temporal_resolution": "1 year",
+      "units_metadata": {
+        "temperature": "K anomaly",
+        "forcing": "W m^-2",
+        "forcing_rate": "W m^-2 yr^-1"
+      },
+      "quality_control_policy": "training forcing endpoints are sampled only inside the declared discovery domain; confirmation protocol identities are fixed before execution",
+      "citation": "fixtures/physics/two-layer-ebm-forced-representation-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.ood.full_state_confirmation_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "all held-out confirmation transitions across step, ramp, overshoot/reversal, and sign-reversal forcing using the full two-layer temperature state",
+      "missing_data_policy": "every declared confirmation protocol and both state coordinates are required",
+      "uncertainty_method": "deterministic synthetic structural control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.ood.surface_scalar_confirmation_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "higher",
+      "target": 0.02,
+      "aggregation_domain": "all held-out confirmation transitions using only surface-temperature scalar plus the same forcing controls",
+      "missing_data_policy": "every declared confirmation protocol is required",
+      "uncertainty_method": "deterministic synthetic structural control"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.ood.closure_gap_confirmation_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative-error difference",
+      "direction": "higher",
+      "target": 0.02,
+      "aggregation_domain": "surface-scalar confirmation relative error minus full-state confirmation relative error under identical controls and confirmation transitions",
+      "missing_data_policy": "both full-state and scalar confirmation errors are required",
+      "uncertainty_method": "deterministic representation ablation"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "multirepresentation.ebm.ood.full_state_training_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "discovery-domain training transitions for the full two-layer temperature state",
+      "missing_data_policy": "all discovery training transitions are required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.ood.surface_scalar_training_relative_error",
+      "semantic_version": "0.1.0",
+      "units": "relative error",
+      "direction": "higher",
+      "target": 0.05,
+      "aggregation_domain": "discovery-domain training transitions for surface-temperature scalar under the same controls",
+      "missing_data_policy": "all discovery training transitions are required"
+    },
+    {
+      "metric_id": "multirepresentation.ebm.ood.held_out_absolute_forcing_margin_w_m2",
+      "semantic_version": "0.1.0",
+      "units": "W m^-2",
+      "direction": "descriptive",
+      "aggregation_domain": "maximum absolute confirmation forcing minus maximum absolute discovery forcing",
+      "missing_data_policy": "discovery and confirmation forcing domains are required"
+    }
+  ],
+  "negative_controls": [
+    "the same least-squares method and forcing-control columns are used for full-state and scalar representations",
+    "training forcing endpoints are sampled only from the discovery domain and confirmation protocol identities are immutable",
+    "confirmation includes non-monotone overshoot/reversal and sign-reversal forcing rather than amplitude scaling alone",
+    "surface-temperature scalar is allowed to fail; no delay embedding, hidden-state reconstruction, or regularization is introduced under the same method identity"
+  ],
+  "falsifiers": [
+    "full-state training or confirmation error exceeds the declared tolerance despite a full-rank controlled-linear design",
+    "surface-temperature scalar becomes effectively exact without adding the omitted deep state, delays, or another declared source of information",
+    "any confirmation forcing transition is used during fitting or hyperparameter selection",
+    "rank-deficient design is treated as uniquely identified without an explicit rank diagnostic",
+    "successful full-state extrapolation is reported as evidence that a nonlinear real-climate emulator will generalize out of distribution"
+  ],
+  "split_policy": "Fit only on the deterministic discovery transition design whose forcing endpoints lie inside the declared discovery forcing interval. The four confirmation protocols are held out in full and may not influence method choice, controls, solver policy, or thresholds.",
+  "preprocessing": "No target-informed preprocessing. Representations are direct projections of the same physical state and both receive identical forcing-start and forcing-rate controls.",
+  "seeds": [
+    73119
+  ],
+  "stopping_rule": "Report every declared metric. The structural control is considered internally consistent only when full-state fit/confirmation errors remain near floating-point precision and scalar errors remain materially nonzero under the same controls.",
+  "multiple_comparison_policy": "Both representation conditions and all four confirmation protocols are fixed by this experiment version; no post hoc removal or alternate representation is permitted.",
+  "expected_artifact_types": [
+    "controlled_linear_representation_ood/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 1,
+    "memory_bytes": 536870912,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 120
+  }
+}

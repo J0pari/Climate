@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "fixture_id": "physics.two-layer-ebm-forced-representation.v1",
+  "description": "Deterministic discovery-domain transition design for fitting controlled linear representation models before evaluation on held-out forcing protocols.",
+  "seed": 73119,
+  "training_sample_count": 256,
+  "transition_dt_years": 1.0,
+  "state_bounds_k": [-1.5, 1.5],
+  "representations": [
+    "temperature_state",
+    "surface_temperature_scalar"
+  ],
+  "confirmation_protocol_ids": [
+    "held_out_step",
+    "held_out_ramp",
+    "overshoot_reversal",
+    "sign_reversal"
+  ],
+  "fit_policy": {
+    "control_columns": [
+      "forcing_start_w_m2",
+      "forcing_rate_w_m2_per_year"
+    ],
+    "intercept": false,
+    "solver": "numpy.linalg.lstsq",
+    "rcond": null
+  }
+}

@@ -199,6 +199,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/two_layer_forced_representation.py",
+      "family": "reference_two_layer_forced_representation_ood",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "discovery-trained controlled-linear representation benchmark for the exact two-layer EBM, comparing Markov-closed full-state dynamics against a surface-temperature scalar under identical forcing controls and held-out forcing amplitudes/histories",
+      "known_gaps": [
+        "the benchmark uses a linear model on a truly linear two-layer physical control and therefore tests representation closure rather than realistic emulator capacity",
+        "discovery states and forcing are synthetic deterministic samples rather than observational trajectories",
+        "surface-temperature failure is a missing-state Markov-closure result and must not be mislabeled dynamic unobservability",
+        "noise, sparse observations, parameter uncertainty, stochastic variability, and regime-dependent feedback remain later benchmark rungs"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/two_layer_forcing_protocols.py",
       "family": "reference_two_layer_forcing_protocols",
       "language": "python",
