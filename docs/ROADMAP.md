@@ -9,7 +9,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 - Active: 3
 - Ready: 15
-- Blocked: 10
+- Blocked: 11
 - Done: 12
 - Dropped: 0
 
@@ -44,6 +44,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `data.logical_materialization_identity` — Separate logical observation identity from storage realization | `blocked` | `P2` | `R2_toolchain_ci` | `data.global_free_station_federation` |
 | `experimental.clifford_task` — Give Clifford representations a falsifiable climate task | `blocked` | `P2` | `R2_toolchain_ci` | `diagnostics.spectral_oscillation_contracts` |
 | `gpu.justified_geometry_acceleration` — Prepare GPU differential execution only for a justified workload | `blocked` | `P2` | `R3_cuda_device` | `geometry.nonlinear_coordinate_witness`, `geometry.independent_derivative_route` |
+| `multirepresentation.neighborhood_geometry` — Make neighborhood geometry a first-class representation evaluator | `blocked` | `P2` | `R2_toolchain_ci` | `multirepresentation.structure_baselines`, `experimentation.claim_evidence_vertical_slice` |
 | `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `blocked` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
 | `architecture.layered_configuration` — Define layered runtime configuration contracts | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `architecture.legacy_source_depletion` — Deplete and delete legacy root monoliths | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |

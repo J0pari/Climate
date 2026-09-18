@@ -840,6 +840,27 @@
         "Physical materialization identity separately binds format, compression, library/version, fragments, and bytes.",
         "Tests show equivalent logical records can preserve logical identity across a changed Parquet realization while corruption or changed observations alter the appropriate identity."
       ]
+    },
+    {
+      "id": "multirepresentation.neighborhood_geometry",
+      "title": "Make neighborhood geometry a first-class representation evaluator",
+      "status": "blocked",
+      "priority": "P2",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Promote k-nearest-neighbor relations from an implicit substrate of spectral embedding, JSF kernels, mutual-information estimation, and downstream kNN probes into an implementation-independent evaluation layer. Establish neighborhood preservation, cross-view consensus, perturbation stability, nuisance retention, and dynamic-neighbor behavior on controlled worlds before adding UMAP as one discovery-fitted nonlinear baseline; visualization alone is never evidence.",
+      "depends_on": [
+        "multirepresentation.structure_baselines",
+        "experimentation.claim_evidence_vertical_slice"
+      ],
+      "completion": [
+        "A method-independent neighborhood evaluator defines exact neighbor sets over a preregistered range of k and reports directional precision/recall or overlap rather than selecting one flattering neighborhood size.",
+        "Trustworthiness and complementary continuity or missing-neighbor diagnostics are implemented with explicit reference spaces and are validated on known structural worlds independently of any candidate method objective.",
+        "Cross-view consensus-neighbor recovery measures whether a candidate representation preferentially preserves relationships shared by both views rather than modality-specific or nuisance neighborhoods.",
+        "Neighborhood stability is evaluated under separately seeded realizations and declared perturbations such as observation noise, missingness, training subsampling, and small method-hyperparameter changes.",
+        "UMAP, if registered, is fit only on discovery data and uses its maintained out-of-sample transform for confirmation data; two-dimensional visual separation is diagnostic only and cannot satisfy scientific evidence criteria.",
+        "EBM extensions distinguish Euclidean, physically weighted, observation/information-geometric, and dynamical neighborhood notions only where each metric has an explicit authority and units; dynamic-neighbor divergence under true forcing is reported separately from static embedding quality.",
+        "No neighborhood-derived quantity is connected to climate.geometry.regime_indicator until controlled worlds show correct behavior and incremental information beyond simpler registered diagnostics."
+      ]
     }
   ]
 }
