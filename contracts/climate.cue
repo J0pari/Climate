@@ -246,14 +246,10 @@ package climate
 	quantity_id:         string & !=""
 	units:               string & !=""
 	domain_id:           string & !=""
-	interval_start_ns:   int
-	interval_end_ns:     int
+	interval_start_ns:   int & <interval_end_ns
+	interval_end_ns:     int & >interval_start_ns
 	precision:           string & !=""
 	accumulation_method: string & !=""
-
-	if interval_end_ns <= interval_start_ns {
-		_|_: "budget interval must satisfy end > start"
-	}
 }
 
 #BudgetTermTotal: {
