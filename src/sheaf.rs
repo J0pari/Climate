@@ -63,6 +63,13 @@ impl EdgeRestriction {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SparseMatrixEntry {
+    pub row: usize,
+    pub column: usize,
+    pub value: f64,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct SheafSpectrumReport {
     pub vertex_degrees_of_freedom: usize,
@@ -123,6 +130,10 @@ pub enum SheafError {
     SectionDimension { expected: usize, actual: usize },
     #[error("section contains non-finite value at index {index}: {value}")]
     NonFiniteSection { index: usize, value: f64 },
+    #[error("edge cochain has length {actual}; expected {expected} edge degrees of freedom")]
+    EdgeCochainDimension { expected: usize, actual: usize },
+    #[error("edge cochain contains non-finite value at index {index}: {value}")]
+    NonFiniteEdgeCochain { index: usize, value: f64 },
 }
 
 #[derive(Debug, Clone)]
@@ -279,12 +290,48 @@ impl RealCellularSheaf {
         &self.edges
     }
 
-    /// Construct the oriented degree-zero coboundary D.
+    /// Sparse triplets for the oriented degree-zero coboundary D.
     ///
-    /// For edge e = (tail -> head), the edge block is
-    ///     -R_tail * x_tail + R_head * x_head.
-    /// Reversing edge orientation multiplies that row block by -1 and therefore
-    /// leaves D^T D and all singular values invariant.
+    /// This is the scalable assembly boundary for sparse-library backends.
+    /// Only structurally nonzero local restriction entries are emitted.
+    pub fn coboundary_0_entries(&self) -> Vec<SparseMatrixEntry> {
+        let mut entries = Vec::new();
+        let mut row_offset = 0usize;
+        for edge in &self.edges {
+            let tail_offset = self.vertex_offsets[&edge.tail];
+            let head_offset = self.vertex_offsets[&edge.head];
+            let tail_dimension = self.vertex_dimensions[&edge.tail];
+            let head_dimension = self.vertex_dimensions[&edge.head];
+            for row in 0..edge.edge_dimension {
+                for col in 0..tail_dimension {
+                    let value = -edge.tail_to_edge[(row, col)];
+                    if value != 0.0 {
+                        entries.push(SparseMatrixEntry {
+                            row: row_offset + row,
+                            column: tail_offset + col,
+                            value,
+                        });
+                    }
+                }
+                for col in 0..head_dimension {
+                    let value = edge.head_to_edge[(row, col)];
+                    if value != 0.0 {
+                        entries.push(SparseMatrixEntry {
+                            row: row_offset + row,
+                            column: head_offset + col,
+                            value,
+                        });
+                    }
+                }
+            }
+            row_offset += edge.edge_dimension;
+        }
+        entries
+    }
+
+    /// Dense materialization for bounded verification fixtures.
+    ///
+    /// Production residual application does not use this path.
     pub fn coboundary_0(&self) -> DMatrix<f64> {
         let mut matrix = DMatrix::<f64>::zeros(self.edge_dof, self.vertex_dof);
         let mut row_offset = 0usize;
@@ -331,9 +378,75 @@ impl RealCellularSheaf {
     }
 
     /// Exact numerical compatibility residual D x for a supplied local section.
+    ///
+    /// The global coboundary is not materialized: each local restriction block
+    /// is applied directly, so memory grows with the section and residual rather
+    /// than with a dense edge-DOF by vertex-DOF matrix.
     pub fn compatibility_residual(&self, section: &[f64]) -> Result<DVector<f64>, SheafError> {
         let section = self.validated_section(section)?;
-        Ok(self.coboundary_0() * section)
+        let mut residual = DVector::<f64>::zeros(self.edge_dof);
+        let mut row_offset = 0usize;
+        for edge in &self.edges {
+            let tail_offset = self.vertex_offsets[&edge.tail];
+            let head_offset = self.vertex_offsets[&edge.head];
+            let tail_dimension = self.vertex_dimensions[&edge.tail];
+            let head_dimension = self.vertex_dimensions[&edge.head];
+            for row in 0..edge.edge_dimension {
+                let mut value = 0.0;
+                for col in 0..tail_dimension {
+                    value -= edge.tail_to_edge[(row, col)] * section[tail_offset + col];
+                }
+                for col in 0..head_dimension {
+                    value += edge.head_to_edge[(row, col)] * section[head_offset + col];
+                }
+                residual[row_offset + row] = value;
+            }
+            row_offset += edge.edge_dimension;
+        }
+        Ok(residual)
+    }
+
+    /// Apply D^T without materializing D.
+    pub fn apply_coboundary_0_transpose(
+        &self,
+        edge_cochain: &[f64],
+    ) -> Result<DVector<f64>, SheafError> {
+        if edge_cochain.len() != self.edge_dof {
+            return Err(SheafError::EdgeCochainDimension {
+                expected: self.edge_dof,
+                actual: edge_cochain.len(),
+            });
+        }
+        for (index, &value) in edge_cochain.iter().enumerate() {
+            if !value.is_finite() {
+                return Err(SheafError::NonFiniteEdgeCochain { index, value });
+            }
+        }
+        let mut output = DVector::<f64>::zeros(self.vertex_dof);
+        let mut row_offset = 0usize;
+        for edge in &self.edges {
+            let tail_offset = self.vertex_offsets[&edge.tail];
+            let head_offset = self.vertex_offsets[&edge.head];
+            let tail_dimension = self.vertex_dimensions[&edge.tail];
+            let head_dimension = self.vertex_dimensions[&edge.head];
+            for row in 0..edge.edge_dimension {
+                let value = edge_cochain[row_offset + row];
+                for col in 0..tail_dimension {
+                    output[tail_offset + col] -= edge.tail_to_edge[(row, col)] * value;
+                }
+                for col in 0..head_dimension {
+                    output[head_offset + col] += edge.head_to_edge[(row, col)] * value;
+                }
+            }
+            row_offset += edge.edge_dimension;
+        }
+        Ok(output)
+    }
+
+    /// Matrix-free application of L0 x = D^T D x.
+    pub fn apply_laplacian_0(&self, section: &[f64]) -> Result<DVector<f64>, SheafError> {
+        let residual = self.compatibility_residual(section)?;
+        self.apply_coboundary_0_transpose(residual.as_slice())
     }
 
     /// Squared residual norm ||D x||^2. This is a measured incompatibility
