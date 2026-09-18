@@ -466,6 +466,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/station_federation.py",
+      "family": "global_station_data_federation",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, explicit evidence-bound provider aliases, resolved location epochs, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
+      "known_gaps": [
+        "the current provider registry realizes NCEI GHCN-Daily only; additional lawfully accessible no-fee providers remain a data-integration obligation rather than hardcoded kernel branches",
+        "provider bulk acquisition, durable external object-store publication, and resumable downloader state are not yet implemented by this module",
+        "cross-provider alias bindings require explicit upstream crosswalk evidence; no cross-provider crosswalk adapter is registered yet",
+        "catalog-record counts in manifest coverage are shard record totals, not a claim that unresolved aliases across different shards have already been deduplicated"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/station_sheaf.py",
       "family": "global_station_sheaf_substrate",
       "language": "python",

@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Validate the worldwide no-fee station provider registry."""
+from __future__ import annotations
+
+import json
+from dataclasses import asdict, dataclass
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+REGISTRY = ROOT / "architecture" / "station_providers.json"
+DATA_AUTHORITIES = ROOT / "architecture" / "data_authorities.json"
+
+
+@dataclass(frozen=True)
+class Finding:
+    code: str
+    path: str
+    message: str
+
+
+def check(root: Path = ROOT) -> list[Finding]:
+    registry = json.loads((root / "architecture/station_providers.json").read_text())
+    authorities = json.loads((root / "architecture/data_authorities.json").read_text())
+    source_ids = {item.get("source_id") for item in authorities.get("sources", [])}
+    findings: list[Finding] = []
+    if registry.get("schema_version") != 1:
+        findings.append(Finding("station_providers.schema", "architecture/station_providers.json", "schema_version must be 1"))
+    target = registry.get("target_population")
+    if not isinstance(target, str) or "without paid data access" not in target:
+        findings.append(Finding("station_providers.target", "architecture/station_providers.json", "target population must retain the worldwide no-paid-access boundary"))
+    providers = registry.get("providers")
+    if not isinstance(providers, list) or not providers:
+        return findings + [Finding("station_providers.empty", "architecture/station_providers.json", "providers must be non-empty")]
+    seen = set()
+    for index, provider in enumerate(providers):
+        path = f"architecture/station_providers.json:providers[{index}]"
+        provider_id = provider.get("provider_id")
+        if not isinstance(provider_id, str) or not provider_id:
+            findings.append(Finding("station_providers.id", path, "provider_id must be non-empty"))
+        elif provider_id in seen:
+            findings.append(Finding("station_providers.duplicate", path, f"duplicate provider_id {provider_id!r}"))
+        else:
+            seen.add(provider_id)
+        if provider.get("source_id") not in source_ids:
+            findings.append(Finding("station_providers.source", path, "source_id must resolve in data_authorities.json"))
+        if provider.get("access_cost") != "no_fee":
+            findings.append(Finding("station_providers.cost", path, "station federation providers must require no paid data access"))
+        if provider.get("status") not in {"current", "planned"}:
+            findings.append(Finding("station_providers.status", path, "status must be current or planned"))
+        if provider.get("discovery_mode") != "provider_catalog":
+            findings.append(Finding("station_providers.discovery", path, "provider discovery must come from a provider catalog, not a hand-selected station list"))
+        if "station_ids" in provider:
+            findings.append(Finding("station_providers.fixed_station_list", path, "provider registry must not encode a fixed station list"))
+        if provider.get("status") == "current":
+            boundaries = provider.get("current_boundaries")
+            if not isinstance(boundaries, list) or not boundaries:
+                findings.append(Finding("station_providers.boundary", path, "current provider requires executable adapter boundaries"))
+                continue
+            for boundary in boundaries:
+                if not isinstance(boundary, str) or "::" not in boundary:
+                    findings.append(Finding("station_providers.boundary", path, "boundary must be path::anchor"))
+                    continue
+                rel, anchor = boundary.split("::", 1)
+                candidate = root / rel
+                if not candidate.is_file() or anchor not in candidate.read_text(encoding="utf-8"):
+                    findings.append(Finding("station_providers.boundary_missing", path, f"boundary does not resolve: {boundary}"))
+    return findings
+
+
+def main() -> int:
+    findings = check()
+    if findings:
+        for finding in findings:
+            print(f"{finding.code}: {finding.path}: {finding.message}")
+        return 1
+    print("station provider federation registry: integrity ok")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

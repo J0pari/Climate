@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "target_population": "every station worldwide that can be lawfully and reproducibly accessed without paid data access",
+  "identity_policy": {
+    "canonical_station_id": "stable opaque identity derived from one immutable root provider alias; later provider aliases are explicit crosswalk bindings and do not mutate the canonical id",
+    "cross_provider_deduplication": "explicit provider crosswalk/evidence only; geographic proximity is never sufficient identity evidence",
+    "location_history": "resolved non-overlapping epochs with source alias and source-artifact digest; conflicting provider locations remain unresolved upstream"
+  },
+  "storage_policy": {
+    "catalog": "content-addressed bounded catalog shards referenced by manifest; no global station table is required in memory",
+    "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones",
+    "ingestion": "idempotent by artifact digest; source revisions append lineage rather than overwrite prior artifacts",
+    "coverage": "derived from active manifest references so station/provider/variable/time/spatial gaps remain observable"
+  },
+  "providers": [
+    {
+      "provider_id": "ncei.ghcnd.v3",
+      "source_id": "ncei.ghcnd.v3",
+      "status": "current",
+      "access_cost": "no_fee",
+      "geographic_scope": "global",
+      "station_identity_namespace": "GHCN-Daily STATION",
+      "discovery_mode": "provider_catalog",
+      "scale_path": "provider bulk/catalog acquisition feeding bounded immutable shards; subset REST is a reference adapter, not the worldwide ingestion loop",
+      "current_boundaries": [
+        "reference/ncei_ghcnd.py::DailySummariesPayload",
+        "reference/station_temperature_sheaf.py::to_station_catalog"
+      ]
+    }
+  ]
+}

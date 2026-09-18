@@ -24,6 +24,8 @@ jobs:
         run: python architecture/check_planning.py
       - name: Climate data authority integrity
         run: python architecture/check_data_authorities.py
+      - name: Worldwide station provider registry integrity
+        run: python architecture/check_station_providers.py
       - name: Configuration provenance integrity
         run: python architecture/check_configurations.py
       - name: Semantic input default integrity

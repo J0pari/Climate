@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'src/station_sheaf.py'
+      - 'src/station_federation.py'
+      - 'architecture/station_providers.json'
+      - 'tests/test_station_federation.py'
       - 'src/sheaf.rs'
       - 'tests/test_station_sheaf.py'
       - 'requirements/station-sheaf.txt'
@@ -24,4 +27,6 @@ jobs:
       - name: Install station substrate dependencies
         run: python -m pip install --disable-pip-version-check -r requirements/station-sheaf.txt
       - name: Run global sparse station substrate witnesses
-        run: python -m unittest tests.test_station_sheaf -v
+        run: |
+          python -m unittest tests.test_station_federation -v
+          python -m unittest tests.test_station_sheaf -v

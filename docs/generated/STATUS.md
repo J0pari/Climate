@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **50**.
+Registered modules: **51**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 31 |
+| `canonical` | 32 |
 | `reference` | 19 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 48 |
+| `runnable` | 49 |
 
 ### Canonical and reference modules
 
@@ -52,6 +52,7 @@ Registered modules: **50**.
 | `canonical` | `canonical_implementation` | `src/padic.rs` | `ultrametric_reference` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/physical_state.rs` | `typed_physical_state_boundary` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/sheaf.rs` | `sheaf_numerics` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/station_federation.py` | `global_station_data_federation` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/station_sheaf.py` | `global_station_sheaf_substrate` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/external_contract_reasoning.py` | `reference_external_model_contract_reasoning` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |

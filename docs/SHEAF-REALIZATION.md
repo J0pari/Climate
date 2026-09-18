@@ -47,6 +47,8 @@ The three-station artifact is only a provider/provenance regression fixture. It 
 
 The data architecture targets a federation of every station worldwide that can be lawfully and reproducibly accessed without paid data access. Provider aliases, relocation/history, revisions, quality/source flags, access/license semantics, and cross-provider deduplication remain explicit data semantics. Numerical kernels do not encode a fixed provider list.
 
+`architecture/station_providers.json` is the provider-discovery authority and explicitly prohibits a hand-selected station list. `src/station_federation.py` owns the provider-neutral identity/storage seam: one immutable root alias gives a stable canonical station id; later aliases require evidence-bound crosswalks and do not mutate that id; resolved location epochs preserve their source artifact; global manifests reference bounded content-addressed catalog shards and provider/time/variable/spatial observation partitions rather than embedding the station-by-time tensor. Provider revisions append explicit supersession or tombstone lineage instead of overwriting prior observations, and coverage summaries are derived from active manifest references so gaps remain observable.
+
 ## Independent mathematical references
 
 `reference/sheaf_cohomology.py` retains exact finite-complex, finite-cover nerve, GF(2) cellular-sheaf, cohomology-dimension, and functoriality witnesses. Its powerset enumeration and dense exact matrices are useful because the fixtures are deliberately bounded and independently inspectable; they are not a station-network scaling path.

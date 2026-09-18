@@ -538,7 +538,7 @@
     {
       "id": "data.global_free_station_federation",
       "title": "Federate freely accessible worldwide station observations",
-      "status": "ready",
+      "status": "active",
       "priority": "P0",
       "resource_class": "R5_large_data",
       "summary": "Build an extensible station-data federation whose target population is every station worldwide that can be lawfully and reproducibly accessed without paid data access, while retaining provider identity, revision history, quality flags, units, location history, and explicit cross-provider alias/deduplication lineage.",
@@ -552,6 +552,15 @@
         "Incremental ingestion is idempotent and resumable, records source revisions or tombstones and artifact digests, and preserves provider quality/source flags without silent imputation.",
         "Coverage manifests expose station, variable, temporal, geographic, and provider availability so gaps are observable rather than hidden by defaults.",
         "Additional freely accessible station authorities can enter without changing canonical sheaf topology/operator interfaces or adding provider-specific branches to numerical kernels."
+      ],
+      "evidence": [
+        "architecture/station_providers.json",
+        "architecture/check_station_providers.py",
+        "src/station_federation.py",
+        "src/station_sheaf.py",
+        "tests/test_station_federation.py",
+        "tests/test_station_sheaf.py",
+        "docs/SHEAF-REALIZATION.md"
       ]
     },
     {
