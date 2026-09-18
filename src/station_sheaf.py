@@ -12,6 +12,7 @@ from typing import Iterator, Sequence
 import numpy as np
 from pyproj import Geod
 from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
 
@@ -421,6 +422,18 @@ class CochainIndex:
             raise ValueError(f"simplex {simplex!r} is absent from cochain index") from exc
 
 
+@dataclass(frozen=True)
+class GlobalSectionReport:
+    """Exact extension state for a partial station section."""
+
+    exists: bool
+    unique: bool
+    structural_dimension: int
+    determined_components: int
+    free_components: int
+    conflicting_components: int
+
+
 class StationSchemaSheaf:
     """Heterogeneous station-variable sheaf over a sparse locality complex.
 
@@ -549,6 +562,74 @@ class StationSchemaSheaf:
         ).tocsr()
         matrix.sort_indices()
         return matrix
+
+
+    def global_section_report(
+        self,
+        complex_: SparseRipsComplex,
+        section: StationSection,
+    ) -> GlobalSectionReport:
+        """Evaluate exact global-section extension without dense nullspace algebra.
+
+        For coordinate-selection restrictions, each normalized variable forms
+        an identity sheaf on the induced subgraph of stations that structurally
+        support it. Kernel dimension is therefore the number of connected
+        components over those variable-specific subgraphs. A partial observed
+        section extends exactly when observed values agree inside every such
+        component. Components with no observed anchor remain free rather than
+        being filled by interpolation or a default.
+        """
+        if section.station_count != self.station_count:
+            raise ValueError("section station dimension does not match sheaf")
+        if section.variables != self.variables:
+            raise ValueError("section variable schema does not match sheaf")
+        if complex_.vertex_count != self.station_count:
+            raise ValueError("complex vertex count does not match sheaf")
+
+        determined = 0
+        free = 0
+        conflicts = 0
+        dimension = 0
+
+        for variable_index in range(len(self.variables)):
+            supported = np.asarray(
+                [variable_index in basis for basis in self.station_bases],
+                dtype=bool,
+            )
+            if np.any(section.observed[:, variable_index] & ~supported):
+                raise ValueError(
+                    "section marks an observation present where the station schema "
+                    "does not support that variable"
+                )
+            vertices = np.flatnonzero(supported)
+            if vertices.size == 0:
+                continue
+            subgraph = complex_.adjacency[vertices][:, vertices]
+            component_count, labels = connected_components(
+                subgraph,
+                directed=False,
+                return_labels=True,
+            )
+            dimension += int(component_count)
+            for component in range(component_count):
+                members = vertices[labels == component]
+                mask = section.observed[members, variable_index]
+                values = section.values[members[mask], variable_index]
+                if values.size == 0:
+                    free += 1
+                elif np.all(values == values[0]):
+                    determined += 1
+                else:
+                    conflicts += 1
+
+        return GlobalSectionReport(
+            exists=conflicts == 0,
+            unique=conflicts == 0 and free == 0,
+            structural_dimension=dimension,
+            determined_components=determined,
+            free_components=free,
+            conflicting_components=conflicts,
+        )
 
     def degree_operator(
         self,

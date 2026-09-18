@@ -147,10 +147,83 @@ class GlobalStationSheafTests(unittest.TestCase):
         c0, c1, d0 = sheaf.degree_operator(complex_, 0)
         lower1, c2, d1 = sheaf.degree_operator(complex_, 1)
         self.assertEqual(c1.simplices, lower1.simplices)
-        self.assertEqual(d0.nnz, 8)
+        self.assertEqual(d0.nnz, 10)
         self.assertEqual(d1.nnz, 3)
         composite = d1 @ d0
         self.assertEqual(composite.nnz, 0)
+
+
+    def test_global_section_extension_is_component_local_and_never_imputes(self):
+        catalog = StationCatalog(
+            station_ids=("a", "b", "c"),
+            latitude_deg=np.array([0.0, 0.0, 0.05]),
+            longitude_deg=np.array([0.0, 0.05, 0.0]),
+        )
+        chunks = list(GlobalRadiusIndex(catalog).iter_edges(max_distance_m=9_000.0))
+        complex_ = SparseRipsComplex.from_edge_chunks(catalog.station_ids, chunks)
+        variables = (
+            StationVariable("temperature", "K"),
+            StationVariable("precipitation", "mm"),
+            StationVariable("pressure", "Pa"),
+        )
+        sheaf = StationSchemaSheaf(
+            variables=variables,
+            station_variable_ids=(
+                ("temperature", "precipitation"),
+                ("temperature", "precipitation", "pressure"),
+                ("temperature", "pressure"),
+            ),
+        )
+        compatible = StationSection(
+            variables=variables,
+            values=np.array(
+                [
+                    [280.0, 1.0, 0.0],
+                    [280.0, 1.0, 100000.0],
+                    [280.0, 0.0, 100000.0],
+                ]
+            ),
+            observed=np.array(
+                [
+                    [True, True, False],
+                    [True, True, True],
+                    [True, False, True],
+                ]
+            ),
+        )
+        report = sheaf.global_section_report(complex_, compatible)
+        self.assertTrue(report.exists)
+        self.assertTrue(report.unique)
+        self.assertEqual(report.structural_dimension, 3)
+        self.assertEqual(report.determined_components, 3)
+        self.assertEqual(report.free_components, 0)
+
+        unanchored = StationSection(
+            variables=variables,
+            values=compatible.values,
+            observed=np.array(
+                [
+                    [True, True, False],
+                    [True, True, False],
+                    [True, False, False],
+                ]
+            ),
+        )
+        report = sheaf.global_section_report(complex_, unanchored)
+        self.assertTrue(report.exists)
+        self.assertFalse(report.unique)
+        self.assertEqual(report.free_components, 1)
+
+        conflicting_values = np.array(compatible.values, copy=True)
+        conflicting_values[2, 0] = 281.0
+        conflicting = StationSection(
+            variables=variables,
+            values=conflicting_values,
+            observed=compatible.observed,
+        )
+        report = sheaf.global_section_report(complex_, conflicting)
+        self.assertFalse(report.exists)
+        self.assertEqual(report.conflicting_components, 1)
 
 if __name__ == "__main__":
     unittest.main()
