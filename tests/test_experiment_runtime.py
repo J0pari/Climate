@@ -15,6 +15,7 @@ from src.experiment_runtime import (
     ROOT,
     MethodProcessFailure,
     _experiment_adapters,
+    _resolve_experiment_context,
     _run_process,
     run_experiment,
 )
@@ -50,6 +51,45 @@ class ExperimentRuntimeTests(unittest.TestCase):
                 "multirepresentation.ebm_regime_feedback.v1",
             },
         )
+
+    def test_resolution_context_binds_inputs_before_family_dispatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            context = _resolve_experiment_context(
+                experiment_path=DEFAULT_EXPERIMENT,
+                output_dir=Path(tmp),
+                repository_revision="9" * 40,
+                run_scope="resolution-witness",
+            )
+            self.assertEqual(
+                context.experiment["experiment_id"],
+                "multirepresentation.ebm_dynamics.v1",
+            )
+            self.assertTrue(
+                context.experiment["_runtime_spec_digest"].startswith("sha256:")
+            )
+            self.assertEqual(context.repository_revision, "9" * 40)
+            self.assertEqual(context.run_scope, "resolution-witness")
+            self.assertIn(
+                "physics.two_layer_ebm.exact_modes_v1",
+                context.methods,
+            )
+
+    def test_resolution_context_rejects_implicit_run_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "repository_revision"):
+                _resolve_experiment_context(
+                    experiment_path=DEFAULT_EXPERIMENT,
+                    output_dir=Path(tmp),
+                    repository_revision="",
+                    run_scope="scope",
+                )
+            with self.assertRaisesRegex(ValueError, "run_scope"):
+                _resolve_experiment_context(
+                    experiment_path=DEFAULT_EXPERIMENT,
+                    output_dir=Path(tmp),
+                    repository_revision="9" * 40,
+                    run_scope="",
+                )
 
     def assert_failed_run(
         self,

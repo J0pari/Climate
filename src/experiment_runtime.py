@@ -13,6 +13,7 @@ invoked without changing their semantics.
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import hashlib
 import importlib.metadata
 import json
@@ -2231,6 +2232,44 @@ def _available_runtime_libraries() -> dict[str, str]:
     return versions
 
 
+@dataclass(frozen=True)
+class ResolvedExperimentContext:
+    experiment: Mapping[str, Any]
+    output_dir: Path
+    repository_revision: str
+    run_scope: str
+    methods: Mapping[str, Mapping[str, Any]]
+    resolved_configuration: Mapping[str, Any]
+    configuration_records: Mapping[str, Mapping[str, Any]]
+
+
+def _resolve_experiment_context(
+    *,
+    experiment_path: Path,
+    output_dir: Path,
+    repository_revision: str,
+    run_scope: str,
+) -> ResolvedExperimentContext:
+    if not isinstance(repository_revision, str) or not repository_revision.strip():
+        raise ValueError("repository_revision must be explicit")
+    if not isinstance(run_scope, str) or not run_scope.strip():
+        raise ValueError("run_scope must be explicit")
+
+    experiment = _load_json(experiment_path)
+    experiment["_runtime_spec_digest"] = _sha256_file(experiment_path)
+    methods = _method_map()
+    resolved_configuration, configuration_records = _resolve_configuration(experiment)
+    return ResolvedExperimentContext(
+        experiment=experiment,
+        output_dir=output_dir,
+        repository_revision=repository_revision,
+        run_scope=run_scope,
+        methods=methods,
+        resolved_configuration=resolved_configuration,
+        configuration_records=configuration_records,
+    )
+
+
 def _method_builds_for_failed_run(
     experiment: Mapping[str, Any],
     methods: Mapping[str, Mapping[str, Any]],
@@ -2276,20 +2315,16 @@ def _dataset_digests_for_failed_command(
 def _persist_failed_method_run(
     *,
     failure: MethodProcessFailure,
-    experiment: Mapping[str, Any],
-    output_dir: Path,
-    repository_revision: str,
-    run_scope: str,
-    methods: Mapping[str, Mapping[str, Any]],
-    resolved_configuration: Mapping[str, Any],
+    context: ResolvedExperimentContext,
 ) -> Path:
+    experiment = context.experiment
     experiment_id = experiment.get("experiment_id")
     if not isinstance(experiment_id, str) or not experiment_id:
         raise ValueError("failed-run provenance requires experiment_id")
 
     method_builds = _method_builds_for_failed_run(
         experiment,
-        methods,
+        context.methods,
         failure.method_id,
     )
     identity = _execution_identity(
@@ -2298,17 +2333,17 @@ def _persist_failed_method_run(
         failure.backend_id,
     )
     manifest = _run_manifest(
-        run_id=_scoped_run_id(run_scope, experiment_id, failure.method_id),
+        run_id=_scoped_run_id(context.run_scope, experiment_id, failure.method_id),
         experiment_id=experiment_id,
         experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
-        revision=repository_revision,
+        revision=context.repository_revision,
         method_builds=method_builds,
         execution_identity=identity,
         dataset_digests=_dataset_digests_for_failed_command(
             experiment,
             failure.receipt,
         ),
-        resolved_configuration=resolved_configuration,
+        resolved_configuration=context.resolved_configuration,
         seeds=_validated_seeds(experiment),
         libraries=_available_runtime_libraries(),
         receipt=failure.receipt,
@@ -2323,8 +2358,8 @@ def _persist_failed_method_run(
         filename = "run-candidate.json"
     else:
         filename = "run-failed.json"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / filename
+    context.output_dir.mkdir(parents=True, exist_ok=True)
+    path = context.output_dir / filename
     _write_json(path, manifest)
     return path
 
@@ -2351,16 +2386,9 @@ def _experiment_adapters() -> dict[str, ExperimentAdapter]:
 
 
 def _dispatch_experiment(
-    *,
-    experiment: Mapping[str, Any],
-    output_dir: Path,
-    repository_revision: str,
-    run_scope: str,
-    methods: Mapping[str, Mapping[str, Any]],
-    resolved_configuration: Mapping[str, Any],
-    configuration_records: Mapping[str, Mapping[str, Any]],
+    context: ResolvedExperimentContext,
 ) -> dict[str, Any]:
-    experiment_id = experiment.get("experiment_id")
+    experiment_id = context.experiment.get("experiment_id")
     adapters = _experiment_adapters()
     if not isinstance(experiment_id, str) or experiment_id not in adapters:
         supported = ", ".join(sorted(adapters))
@@ -2370,13 +2398,13 @@ def _dispatch_experiment(
         )
     adapter = adapters[experiment_id]
     return adapter(
-        experiment=experiment,
-        output_dir=output_dir,
-        repository_revision=repository_revision,
-        run_scope=run_scope,
-        methods=methods,
-        resolved_configuration=resolved_configuration,
-        configuration_records=configuration_records,
+        experiment=context.experiment,
+        output_dir=context.output_dir,
+        repository_revision=context.repository_revision,
+        run_scope=context.run_scope,
+        methods=context.methods,
+        resolved_configuration=context.resolved_configuration,
+        configuration_records=context.configuration_records,
     )
 
 
@@ -2387,34 +2415,21 @@ def run_experiment(
     repository_revision: str,
     run_scope: str,
 ) -> dict[str, Any]:
-    experiment = _load_json(experiment_path)
-    experiment["_runtime_spec_digest"] = _sha256_file(experiment_path)
-    if not repository_revision.strip() or not run_scope.strip():
-        raise ValueError("repository_revision and run_scope must be explicit")
-
-    methods = _method_map()
-    resolved_configuration, configuration_records = _resolve_configuration(experiment)
+    context = _resolve_experiment_context(
+        experiment_path=experiment_path,
+        output_dir=output_dir,
+        repository_revision=repository_revision,
+        run_scope=run_scope,
+    )
     try:
-        return _dispatch_experiment(
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
-            configuration_records=configuration_records,
-        )
+        return _dispatch_experiment(context)
     except MethodProcessFailure as failure:
         _persist_failed_method_run(
             failure=failure,
-            experiment=experiment,
-            output_dir=output_dir,
-            repository_revision=repository_revision,
-            run_scope=run_scope,
-            methods=methods,
-            resolved_configuration=resolved_configuration,
+            context=context,
         )
         raise
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="run a registered Climate CPU experiment")
