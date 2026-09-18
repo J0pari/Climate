@@ -1,7 +1,7 @@
 use climate_geometric_framework::physical_state::{
-    assimilated_prognostic_field, Availability, ExperimentalRepresentation, FieldDescriptor,
-    InitializationProvenance, ObservationProvenance, ObservedField, PrognosticField,
-    StateBoundaryError,
+    assimilated_prognostic_field, AssimilationAdapterContract, Availability,
+    ExperimentalRepresentation, FieldDescriptor, InitializationProvenance,
+    ObservationProvenance, ObservedField, PrognosticField, StateBoundaryError,
 };
 
 const NCEI_DIGEST: &str =
@@ -24,15 +24,21 @@ fn observed_temperature(availability: Availability<f64>) -> ObservedField<f64> {
     .unwrap()
 }
 
+fn adapter() -> AssimilationAdapterContract {
+    AssimilationAdapterContract::new(
+        "assimilation.station_to_model_grid",
+        "1.0.0",
+        "air_temperature",
+        "surface_air_temperature",
+    )
+    .unwrap()
+}
+
 #[test]
 fn zero_missing_and_unavailable_are_distinct_states() {
     let zero = Availability::present(0.0_f64);
-    let missing = Availability::<f64>::Missing {
-        reason: "provider missing value".to_string(),
-    };
-    let unavailable = Availability::<f64>::Unavailable {
-        reason: "field was not requested".to_string(),
-    };
+    let missing = Availability::<f64>::missing("provider missing value").unwrap();
+    let unavailable = Availability::<f64>::unavailable("field was not requested").unwrap();
 
     assert_eq!(zero.value(), Some(&0.0));
     assert_eq!(missing.value(), None);
@@ -44,9 +50,25 @@ fn zero_missing_and_unavailable_are_distinct_states() {
     assert_eq!(zero_json["status"], "present");
     assert_eq!(zero_json["value"], 0.0);
     assert_eq!(missing_json["status"], "missing");
+    assert_eq!(missing_json["reason"], "provider missing value");
     assert!(missing_json.get("value").is_none());
     assert_eq!(unavailable_json["status"], "unavailable");
+    assert_eq!(unavailable_json["reason"], "field was not requested");
     assert!(unavailable_json.get("value").is_none());
+}
+
+#[test]
+fn empty_absence_reasons_are_unrepresentable_through_api_or_serde() {
+    assert_eq!(
+        Availability::<f64>::missing("  "),
+        Err(StateBoundaryError::EmptyAvailabilityReason)
+    );
+    assert_eq!(
+        Availability::<f64>::unavailable(""),
+        Err(StateBoundaryError::EmptyAvailabilityReason)
+    );
+    let malformed = r#"{"status":"missing","reason":""}"#;
+    assert!(serde_json::from_str::<Availability<f64>>(malformed).is_err());
 }
 
 #[test]
@@ -62,8 +84,9 @@ fn observation_requires_dataset_artifact_identity() {
 }
 
 #[test]
-fn assimilation_is_explicit_and_preserves_observation_provenance() {
+fn assimilation_is_versioned_and_preserves_observation_provenance() {
     let observation = observed_temperature(Availability::present(281.45));
+    let contract = adapter();
     let prognostic = assimilated_prognostic_field(
         FieldDescriptor {
             field_id: "surface_air_temperature".to_string(),
@@ -72,7 +95,7 @@ fn assimilation_is_explicit_and_preserves_observation_provenance() {
         },
         vec![281.1, 281.8],
         &observation,
-        "assimilation.station_to_model_grid.v1",
+        &contract,
     )
     .unwrap();
 
@@ -80,23 +103,75 @@ fn assimilation_is_explicit_and_preserves_observation_provenance() {
     assert_eq!(
         prognostic.initialization,
         InitializationProvenance::AssimilatedObservation {
-            adapter_id: "assimilation.station_to_model_grid.v1".to_string(),
+            adapter_id: "assimilation.station_to_model_grid".to_string(),
+            adapter_version: "1.0.0".to_string(),
             source_id: "ncei.ghcnd.v3".to_string(),
             source_artifact_digest: NCEI_DIGEST.to_string(),
+            source_field_id: "air_temperature".to_string(),
         }
     );
 }
 
 #[test]
+fn assimilation_adapter_contract_rejects_field_mismatch() {
+    let observation = observed_temperature(Availability::present(281.45));
+
+    let wrong_input = AssimilationAdapterContract::new(
+        "assimilation.bad_input",
+        "1.0.0",
+        "sea_surface_temperature",
+        "surface_air_temperature",
+    )
+    .unwrap();
+    assert!(matches!(
+        assimilated_prognostic_field(
+            FieldDescriptor {
+                field_id: "surface_air_temperature".to_string(),
+                units: "K".to_string(),
+                coordinates: "model_grid".to_string(),
+            },
+            281.0,
+            &observation,
+            &wrong_input,
+        ),
+        Err(StateBoundaryError::AssimilationInputFieldMismatch { .. })
+    ));
+
+    let wrong_output = AssimilationAdapterContract::new(
+        "assimilation.bad_output",
+        "1.0.0",
+        "air_temperature",
+        "deep_ocean_temperature",
+    )
+    .unwrap();
+    assert!(matches!(
+        assimilated_prognostic_field(
+            FieldDescriptor {
+                field_id: "surface_air_temperature".to_string(),
+                units: "K".to_string(),
+                coordinates: "model_grid".to_string(),
+            },
+            281.0,
+            &observation,
+            &wrong_output,
+        ),
+        Err(StateBoundaryError::AssimilationOutputFieldMismatch { .. })
+    ));
+}
+
+#[test]
 fn missing_observation_cannot_initialize_prognostic_state() {
-    let observation = observed_temperature(Availability::Missing {
-        reason: "no report".to_string(),
-    });
+    let observation =
+        observed_temperature(Availability::missing("no report").unwrap());
     let result = assimilated_prognostic_field(
-        temperature_descriptor(),
+        FieldDescriptor {
+            field_id: "surface_air_temperature".to_string(),
+            units: "K".to_string(),
+            coordinates: "model_grid".to_string(),
+        },
         280.0,
         &observation,
-        "assimilation.station_scalar.v1",
+        &adapter(),
     );
     assert_eq!(result, Err(StateBoundaryError::ObservationNotPresent));
 }
@@ -126,7 +201,7 @@ fn explicit_and_restart_initialization_remain_distinct() {
 }
 
 #[test]
-fn experimental_representation_is_a_separate_typed_artifact() {
+fn experimental_representation_requires_unique_nonempty_sources() {
     let representation = ExperimentalRepresentation::new(
         "geometry.latent_coordinate.v1",
         vec!["surface_air_temperature".to_string()],
@@ -134,5 +209,20 @@ fn experimental_representation_is_a_separate_typed_artifact() {
     )
     .unwrap();
     assert_eq!(representation.source_field_ids.len(), 1);
-    assert_eq!(representation.value, vec![0.25, -0.1]);
+
+    assert_eq!(
+        ExperimentalRepresentation::new("geometry.empty.v1", vec![], vec![0.0]),
+        Err(StateBoundaryError::EmptyRepresentationSources)
+    );
+    assert!(matches!(
+        ExperimentalRepresentation::new(
+            "geometry.duplicate.v1",
+            vec![
+                "surface_air_temperature".to_string(),
+                "surface_air_temperature".to_string(),
+            ],
+            vec![0.0],
+        ),
+        Err(StateBoundaryError::DuplicateSourceFieldId { .. })
+    ));
 }

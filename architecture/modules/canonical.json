@@ -421,11 +421,12 @@
       "family": "typed_physical_state_boundary",
       "language": "rust",
       "maturity": "runnable",
-      "intended_role": "canonical role and provenance boundary separating observed fields, authoritative prognostic fields, and experimental representations with explicit present, missing, and unavailable semantics plus explicit observation-assimilation identity",
+      "intended_role": "canonical role, availability, provenance, and adapter-compatibility boundary separating observed fields, authoritative prognostic fields, and experimental representations with validated nonempty missing/unavailable reasons, unique representation-source identity, and versioned observation-assimilation input/output contracts",
       "known_gaps": [
         "this module does not define a global climate state container or field-specific numerical validity",
         "units and coordinate strings are semantic declarations; domain kernels and CF-aware data adapters remain responsible for interpreting and validating their concrete conventions",
-        "assimilation algorithms remain external; this boundary records that an explicit adapter produced prognostic values and preserves source artifact identity",
+        "assimilation algorithms remain external; the typed adapter contract pins adapter identity/version and source/output field compatibility while preserving source artifact identity",
+        "adapter contracts currently pin field identities rather than a richer schema of units, coordinate transforms, uncertainty propagation, or array shape; those belong in versioned adapter-specific contracts as concrete assimilation paths are realized",
         "array layout, storage, and cross-language FFI remain separate obligations"
       ],
       "authority_kind": "canonical_implementation",

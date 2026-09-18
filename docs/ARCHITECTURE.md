@@ -357,7 +357,7 @@ No language is authoritative by chronology or provenance. Authority comes from t
 - Prefer explicit schema/version fields to inferred semantics.
 - Units are part of types/contracts at important boundaries.
 - Grids/calendars/time bases are part of dataset identity.
-- Missingness is data, not a silent default.
+- Missingness is data, not a silent default. Missing and unavailable states require nonempty reasons at construction and deserialization boundaries; a semantically empty absence is invalid. Observation assimilation crosses a versioned adapter contract that pins input and output field identities, and experimental representations must name a nonempty unique set of source fields.
 - Randomness is seeded and recorded.
 - Approximation level is explicit.
 - Requested and resolved execution identities must agree for an eligible run; unavailable requirements fail closed rather than selecting an alternate implementation.
