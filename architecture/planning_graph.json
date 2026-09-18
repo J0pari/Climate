@@ -402,9 +402,8 @@
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
         "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        ".github/workflows/reference-sheaf-climate.yml",
         "methods/sheaf-realization.v1.json",
-        "architecture/data_authorities.json"
+        ".github/workflows/reference-sheaf-climate.yml"
       ]
     },
     {

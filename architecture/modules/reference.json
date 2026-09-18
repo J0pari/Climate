@@ -140,8 +140,8 @@
       "known_gaps": [
         "the 20 km station support radius and EPSG:32618 projection are explicit fixture policy for the NYC reference experiment rather than universal station representativeness",
         "the current stalk basis covers daily TMAX/TMIN only and does not homogenize stations or reinterpret provider quality flags",
-        "the current real-data fixture contains three stations over three days and is a semantic/falsification witness rather than evidence of incremental climate-data value",
-        "the same-information compatibility residual reduces to an ordinary graph residual on complete shared temperature stalks, so no sheaf advantage is claimed from that case"
+        "the current provider-backed fixture contains three stations over three days and establishes semantics/falsification behavior rather than incremental climate-data value",
+        "on complete shared temperature stalks the compatibility residual equals the ordinary graph residual, so no sheaf advantage is claimed from that case"
       ]
     },
     {

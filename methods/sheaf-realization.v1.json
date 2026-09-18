@@ -94,8 +94,7 @@
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
         "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        ".github/workflows/reference-sheaf-climate.yml",
-        "reference/sheaf_cohomology.py"
+        ".github/workflows/reference-sheaf-climate.yml"
       ]
     },
     {
@@ -116,6 +115,7 @@
       "statement": "Identity and composition laws for the actual climate-data restrictions are executable invariants.",
       "status": "reference_realized",
       "witnesses": [
+        "reference/sheaf_cohomology.py",
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
         "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
@@ -128,6 +128,7 @@
       "statement": "The climate-data cochain differential is constructed from the declared restriction maps and independently satisfies d^2 = 0.",
       "status": "reference_realized",
       "witnesses": [
+        "reference/sheaf_cohomology.py",
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
         "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
