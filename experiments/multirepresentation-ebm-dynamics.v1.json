@@ -92,7 +92,7 @@
       "units": "dimensionless",
       "direction": "descriptive",
       "aggregation_domain": "sample-matrix condition number reported separately for each redundant concatenated representation",
-      "missing_data_policy": "finite or infinite condition number is reported explicitly; it is not silently regularized"
+      "missing_data_policy": "each redundant concatenation reports rank_deficient or a finite condition number explicitly; no Infinity, NaN, regularization, or finite sentinel is allowed"
     }
   ],
   "negative_controls": [

@@ -50,12 +50,21 @@ class TwoLayerRepresentationDynamicsTests(unittest.TestCase):
         self.assertEqual(temperature_flux["dimension"], 4)
         self.assertEqual(temperature_flux["matrix_rank"], 2)
         self.assertEqual(temperature_flux["redundant_dimension_count"], 2)
-        self.assertGreater(temperature_flux["condition_number"], 1e12)
+        self.assertEqual(temperature_flux["condition_number_status"], "rank_deficient")
+        self.assertNotIn("condition_number", temperature_flux)
 
         self.assertEqual(all_views["dimension"], 6)
         self.assertEqual(all_views["matrix_rank"], 2)
         self.assertEqual(all_views["redundant_dimension_count"], 4)
-        self.assertGreater(all_views["condition_number"], 1e12)
+        self.assertEqual(all_views["condition_number_status"], "rank_deficient")
+        self.assertNotIn("condition_number", all_views)
+
+    def test_serialized_diagnostics_do_not_use_nonstandard_nonfinite_numbers(self) -> None:
+        import json
+
+        encoded = json.dumps(self.result, allow_nan=False, sort_keys=True)
+        self.assertNotIn("Infinity", encoded)
+        self.assertNotIn("NaN", encoded)
 
     def test_scalar_views_are_structurally_unable_to_resolve_two_modes(self) -> None:
         for name in ("surface_temperature_scalar", "toa_imbalance_scalar"):

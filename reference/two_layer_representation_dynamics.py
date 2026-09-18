@@ -174,16 +174,33 @@ def decay_timescales_years(eigenvalues: np.ndarray, dt_years: float) -> np.ndarr
     return np.sort(np.asarray(timescales, dtype=float))
 
 
-def _representation_structure(samples: np.ndarray) -> dict[str, int | float]:
+def _representation_structure(samples: np.ndarray) -> dict[str, Any]:
     x = np.asarray(samples, dtype=float)
     rank = int(np.linalg.matrix_rank(x))
     dimension = int(x.shape[1])
-    return {
+    structure: dict[str, Any] = {
         "dimension": dimension,
         "matrix_rank": rank,
         "redundant_dimension_count": dimension - rank,
-        "condition_number": float(np.linalg.cond(x)),
     }
+    if rank < dimension:
+        structure["condition_number_status"] = "rank_deficient"
+        structure["condition_number_detail"] = (
+            f"sample matrix has structural rank {rank} below observed dimension {dimension}"
+        )
+        return structure
+
+    condition = float(np.linalg.cond(x))
+    if not math.isfinite(condition):
+        structure["condition_number_status"] = "undefined"
+        structure["condition_number_detail"] = (
+            "condition number became non-finite despite full structural rank"
+        )
+        return structure
+
+    structure["condition_number_status"] = "finite"
+    structure["condition_number"] = condition
+    return structure
 
 
 def analyze_representations(
