@@ -17,7 +17,7 @@ def station_line(station_id, lat, lon, elev, name, state="", wmo=""):
     return (
         f"{station_id:<11} {lat:8.4f} {lon:9.4f} {elev:6.1f} "
         f"{state:<2} {name:<30} {'':<3} {'':<3} {wmo:<5}"
-    ).rstrip() + "\n"
+    ) + "\n"
 
 
 def inventory_line(station_id, lat, lon, element, first, last):
