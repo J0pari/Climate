@@ -8,8 +8,8 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 ## Planning summary
 
 - Active: 3
-- Ready: 16
-- Blocked: 9
+- Ready: 15
+- Blocked: 10
 - Done: 12
 - Dropped: 0
 
@@ -31,7 +31,6 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `sheaf.observation_uncertainty_compatibility` — Define uncertainty-aware sheaf observation compatibility | `ready` | `P1` | `R2_toolchain_ci` | `sheaf.climate_data_semantics`, `data.immutable_observational_projection` |
 | `simulation.reproducible_restart` — Define reproducible integration and restart state | `ready` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition`, `state.typed_physical_state` |
 | `adapters.versioned_array_ffi` — Define narrow versioned array FFI contracts | `ready` | `P2` | `R2_toolchain_ci` | `state.typed_physical_state` |
-| `data.logical_materialization_identity` — Separate logical observation identity from storage realization | `ready` | `P2` | `R2_toolchain_ci` | `data.global_free_station_federation` |
 | `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_toolchain_ci` | `data.immutable_observational_projection` |
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
@@ -42,6 +41,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `blocked` | `P1` | `R4_integrated_system` | — |
 | `orchestration.external_artifact_evaluation` — Evaluate external model artifacts through Climate-owned tasks | `blocked` | `P1` | `R4_integrated_system` | `orchestration.commons_read_execution` |
+| `data.logical_materialization_identity` — Separate logical observation identity from storage realization | `blocked` | `P2` | `R2_toolchain_ci` | `data.global_free_station_federation` |
 | `experimental.clifford_task` — Give Clifford representations a falsifiable climate task | `blocked` | `P2` | `R2_toolchain_ci` | `diagnostics.spectral_oscillation_contracts` |
 | `gpu.justified_geometry_acceleration` — Prepare GPU differential execution only for a justified workload | `blocked` | `P2` | `R3_cuda_device` | `geometry.nonlinear_coordinate_witness`, `geometry.independent_derivative_route` |
 | `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `blocked` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
