@@ -41,7 +41,7 @@ license/citation
 materialized artifact digest(s)
 ```
 
-For climate data, CF metadata should be preferred over project-local reinterpretations where CF can express the concept. CF 1.12 is a useful current baseline: https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html
+For climate data, CF metadata should be preferred over project-local reinterpretations where CF can express the concept. The repository currently targets **CF 1.12 as a pinned compatibility baseline**; this is a project compatibility choice, not a claim that 1.12 is the latest CF release: https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html
 
 ### `MethodDescriptor`
 
@@ -64,7 +64,7 @@ validation status by claim
 
 A method descriptor does **not** state that the method is scientifically correct. It states what implementation and interpretation are being evaluated.
 
-Actual `implementation_build` is a run-time receipt, not an authored registry fact. Runnable local methods declare `build_identity.policy = source_digest_at_run` plus the source files that define the implementation. The runtime hashes those sources and records resolved library/toolchain versions separately, preventing stale hand-maintained commit strings from surviving source edits.
+Actual `implementation_build` is a run-time receipt, not an authored registry fact. Runnable local methods declare `build_identity.policy = source_digest_at_run` plus the source files that define the implementation. For local Python methods, architecture checks require that declaration to include the transitive repository-local import closure, not only the entry point. The runtime hashes the declared closure and records resolved library/toolchain versions separately, preventing helper edits or stale hand-maintained commit strings from escaping build identity.
 
 ### Implementation authority is not scientific endorsement
 
@@ -114,7 +114,7 @@ Records what actually happened.
 
 ```text
 run_id
-experiment_id
+experiment_id + exact ExperimentSpec digest
 repository revision
 method implementation build(s)
 contract fingerprints
@@ -134,11 +134,11 @@ produced artifact refs
 parent/causation ids
 ```
 
-`#ExecutionResolution` in `contracts/climate.cue` is the machine authority for execution identity. An eligible execution must resolve exactly the requested method/implementation/build/backend/precision/resource-class identity. If that request cannot be satisfied, resolution is ineligible and records a typed failure without a replacement implementation. An alternate backend or algorithm is a separate request, not a runtime downgrade of another request.
+`#ExecutionResolution` in `contracts/climate.cue` is the machine authority for execution identity. An eligible execution must resolve exactly the requested method/implementation/build/backend/precision/resource-class identity. If that request cannot be satisfied, resolution is ineligible and records a typed failure without a replacement implementation. An alternate backend or algorithm is a separate request, not a runtime downgrade of another request. `scientific_output_eligible` in the current v1 run contract means that execution produced output eligible to enter the scientific evaluation pipeline; it is **not** a claim-evidence verdict. Only an explicit `EvidenceRecord` can connect a run to a scientific claim. For evidence-eligible execution, repository source identity should be verified against checkout metadata and dirty state when VCS metadata is available; archive/no-VCS execution must instead bind an explicit immutable source-bundle identity rather than treating a caller-supplied revision string as independently verified.
 
 ### `ArtifactRef`
 
-Large arrays, checkpoints, NetCDF/Zarr outputs, logs, figures, and reports should live outside event envelopes and be referenced by digest plus media/schema metadata.
+Large arrays, checkpoints, NetCDF/Zarr outputs, logs, figures, and reports should live outside event envelopes and be referenced by digest plus media/schema metadata. Retention-limited GitHub Actions upload artifacts are not a durable scientific authority for this repository; CI may generate and vet receipts ephemerally, while durable authority must be committed by identity/digest or persisted in an explicitly declared immutable external store.
 
 ### `EvidenceRecord`
 
@@ -279,7 +279,7 @@ Externally owned climate data use a separate authority chain. `architecture/data
 
 Climate should expose work; it should not become its own distributed control plane if Commons owns that role.
 
-The canonical local CPU experiment runtime is deliberately a thin execution/evidence waist rather than a scheduler. It resolves immutable experiment, method, dataset, and configuration identities; executes a declared local adapter without capability substitution; and emits content-addressed artifacts, typed metrics, run receipts, and an experiment outcome that can be vetted independently. The first adapter is the two-layer EBM representation-dynamics control; additional adapters should enter only when their method semantics are already trustworthy enough to compare.
+The canonical local CPU experiment runtime is deliberately an execution/evidence waist rather than a scheduler. It resolves immutable experiment, method, dataset, and configuration identities; executes declared local adapters without capability substitution; and emits content-addressed artifacts, typed metrics, run receipts, and experiment outcomes that can be vetted independently. The current EBM ladder uses explicit experiment-family adapters because that remains auditable at its present scale. This is not the long-term orchestration target: once a claim-scoped vertical evidence path has exercised the full lifecycle, common resolution/execution/receipt phases should be separated from family-specific evaluators so experiment growth does not create one large dispatcher per scientific comparison.
 
 Local orchestration may still be needed for:
 

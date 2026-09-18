@@ -113,9 +113,3 @@ jobs:
             "$(go env GOPATH)/bin/cue" vet -d '#RunManifest' contracts/climate.cue "$directory/run-baseline.json"
             "$(go env GOPATH)/bin/cue" vet -d '#RunManifest' contracts/climate.cue "$directory/run-candidate.json"
           done
-      - name: Persist experiment receipts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ebm-runtime-${{ github.sha }}
-          path: run-artifacts/
-          if-no-files-found: error

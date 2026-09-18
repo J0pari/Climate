@@ -26,6 +26,27 @@ class WorkflowArtifactTests(unittest.TestCase):
                 ["workflow.ephemeral_artifact_upload"],
             )
 
+    def test_named_upload_artifact_step_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            workflows = root / ".github" / "workflows"
+            workflows.mkdir(parents=True)
+            (workflows / "bad.yml").write_text(
+                "jobs:\n"
+                "  test:\n"
+                "    steps:\n"
+                "      - name: Persist experiment receipts\n"
+                "        uses: actions/upload-artifact@v4\n"
+                "        with:\n"
+                "          path: run-artifacts/\n",
+                encoding="utf-8",
+            )
+            findings = check_workflow_artifacts.check(root)
+            self.assertEqual(
+                [item.code for item in findings],
+                ["workflow.ephemeral_artifact_upload"],
+            )
+
     def test_temporary_generation_without_upload_is_allowed(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

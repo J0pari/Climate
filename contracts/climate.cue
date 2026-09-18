@@ -352,6 +352,7 @@ package climate
 	correlation_id?:     string
 	causation_id?:       string
 	experiment_id:       #Id
+	experiment_spec_digest: #Sha256
 	repository_revision: string & !=""
 	producer_build:      string & !=""
 	contract_fingerprint?: #Fingerprint

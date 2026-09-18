@@ -9,6 +9,7 @@ build strings are deliberately not authority.
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -41,6 +42,72 @@ def load_json(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError(f"{path} must contain a JSON object")
     return data
+
+
+def _module_file(root: Path, module: str) -> Path | None:
+    if not module or module.startswith("."):
+        return None
+    relative = Path(*module.split("."))
+    for candidate in (
+        root / relative.with_suffix(".py"),
+        root / relative / "__init__.py",
+    ):
+        if candidate.is_file():
+            return candidate.resolve()
+    return None
+
+
+def _local_python_imports(root: Path, source: Path) -> set[Path]:
+    try:
+        tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
+    except (OSError, SyntaxError):
+        return set()
+
+    imports: set[Path] = set()
+    for node in ast.walk(tree):
+        module: str | None = None
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                candidate = _module_file(root, alias.name)
+                if candidate is not None:
+                    imports.add(candidate)
+            continue
+        if isinstance(node, ast.ImportFrom):
+            if node.level != 0:
+                # Runnable repository methods currently use absolute local imports.
+                # Relative imports are left to Python packaging rather than guessed.
+                continue
+            module = node.module
+        if module:
+            candidate = _module_file(root, module)
+            if candidate is not None:
+                imports.add(candidate)
+    return imports
+
+
+def _python_dependency_closure(root: Path, sources: list[str]) -> set[str]:
+    root = root.resolve()
+    queue = [
+        (root / source).resolve()
+        for source in sources
+        if isinstance(source, str) and source.endswith(".py")
+    ]
+    seen: set[Path] = set()
+    dependencies: set[str] = set()
+    while queue:
+        source = queue.pop()
+        if source in seen or not source.is_file():
+            continue
+        seen.add(source)
+        for dependency in _local_python_imports(root, source):
+            try:
+                relative = dependency.relative_to(root).as_posix()
+            except ValueError:
+                continue
+            dependencies.add(relative)
+            if dependency not in seen:
+                queue.append(dependency)
+    return dependencies
 
 
 def check(root: Path, registry: dict[str, Any]) -> list[Finding]:
@@ -118,6 +185,20 @@ def check(root: Path, registry: dict[str, Any]) -> list[Finding]:
                 continue
             if not candidate.is_file():
                 findings.append(Finding("methods.build_source_missing", "declared build source does not exist", method_id, source))
+
+        declared_sources = {
+            source for source in sources if isinstance(source, str) and source
+        }
+        for dependency in sorted(
+            _python_dependency_closure(root, list(declared_sources))
+            - declared_sources
+        ):
+            findings.append(Finding(
+                "methods.build_source_dependency_missing",
+                "source-bound build identity omits a transitive local Python dependency",
+                method_id,
+                dependency,
+            ))
 
     known = set(records)
     for method_id, method in records.items():

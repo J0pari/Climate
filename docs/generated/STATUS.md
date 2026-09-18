@@ -4,6 +4,8 @@
 
 This file is a deterministic projection of repository-local authorities. It does **not** infer CI success, empirical validation, GPU correctness, or scientific priority from file presence.
 
+**Validated claims: 0 · Registered evidence records: 0**
+
 ## Module authority
 
 Registered modules: **64**.

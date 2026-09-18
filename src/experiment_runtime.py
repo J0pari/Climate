@@ -788,6 +788,7 @@ def _run_manifest(
     *,
     run_id: str,
     experiment_id: str,
+    experiment_spec_digest: str,
     revision: str,
     method_builds: Mapping[str, str],
     execution_identity: Mapping[str, Any],
@@ -798,9 +799,16 @@ def _run_manifest(
     receipt: Mapping[str, Any],
     artifacts: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:
+    if not (
+        isinstance(experiment_spec_digest, str)
+        and experiment_spec_digest.startswith("sha256:")
+        and len(experiment_spec_digest) == 71
+    ):
+        raise ValueError("experiment_spec_digest must be a SHA-256 identity")
     return {
         "run_id": run_id,
         "experiment_id": experiment_id,
+        "experiment_spec_digest": experiment_spec_digest,
         "repository_revision": revision,
         "producer_build": revision,
         "contract_fingerprint": hashlib.sha256(CONTRACT.read_bytes()).hexdigest(),
@@ -948,6 +956,7 @@ def _run_ebm_dynamics_adapter(
     baseline_run = _run_manifest(
         run_id=_scoped_run_id(run_scope, EBM_DYNAMICS_EXPERIMENT, EBM_BASELINE_METHOD),
         experiment_id=EBM_DYNAMICS_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={EBM_BASELINE_METHOD: baseline_build},
         execution_identity=baseline_identity,
@@ -963,6 +972,7 @@ def _run_ebm_dynamics_adapter(
             run_scope, EBM_DYNAMICS_EXPERIMENT, EBM_DYNAMICS_CANDIDATE_METHOD
         ),
         experiment_id=EBM_DYNAMICS_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={
             EBM_BASELINE_METHOD: baseline_build,
@@ -1098,6 +1108,7 @@ def _run_ebm_forcing_adapter(
     baseline_run = _run_manifest(
         run_id=_scoped_run_id(run_scope, EBM_FORCING_EXPERIMENT, EBM_BASELINE_METHOD),
         experiment_id=EBM_FORCING_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={EBM_BASELINE_METHOD: baseline_build},
         execution_identity=baseline_identity,
@@ -1113,6 +1124,7 @@ def _run_ebm_forcing_adapter(
             run_scope, EBM_FORCING_EXPERIMENT, EBM_FORCING_CANDIDATE_METHOD
         ),
         experiment_id=EBM_FORCING_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={
             EBM_BASELINE_METHOD: baseline_build,
@@ -1266,6 +1278,7 @@ def _run_ebm_forced_ood_adapter(
             run_scope, EBM_FORCED_OOD_EXPERIMENT, EBM_FORCING_CANDIDATE_METHOD
         ),
         experiment_id=EBM_FORCED_OOD_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
         execution_identity=baseline_identity,
@@ -1281,6 +1294,7 @@ def _run_ebm_forced_ood_adapter(
             run_scope, EBM_FORCED_OOD_EXPERIMENT, EBM_FORCED_OOD_CANDIDATE_METHOD
         ),
         experiment_id=EBM_FORCED_OOD_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={
             EBM_FORCING_CANDIDATE_METHOD: baseline_build,
@@ -1461,6 +1475,7 @@ def _run_ebm_observation_degradation_adapter(
             EBM_FORCING_CANDIDATE_METHOD,
         ),
         experiment_id=EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
         execution_identity=baseline_identity,
@@ -1478,6 +1493,7 @@ def _run_ebm_observation_degradation_adapter(
             EBM_FORCED_OOD_CANDIDATE_METHOD,
         ),
         experiment_id=EBM_OBSERVATION_DEGRADATION_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={
             EBM_FORCING_CANDIDATE_METHOD: baseline_build,
@@ -1647,6 +1663,7 @@ def _run_ebm_parameter_identifiability_adapter(
             EBM_FORCING_CANDIDATE_METHOD,
         ),
         experiment_id=EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={EBM_FORCING_CANDIDATE_METHOD: baseline_build},
         execution_identity=baseline_identity,
@@ -1664,6 +1681,7 @@ def _run_ebm_parameter_identifiability_adapter(
             EBM_PARAMETER_SENSITIVITY_METHOD,
         ),
         experiment_id=EBM_PARAMETER_IDENTIFIABILITY_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={
             EBM_FORCING_CANDIDATE_METHOD: baseline_build,
@@ -1835,6 +1853,7 @@ def _run_ebm_stochastic_statistics_adapter(
             EBM_STOCHASTIC_BASELINE_METHOD,
         ),
         experiment_id=EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={EBM_STOCHASTIC_BASELINE_METHOD: baseline_build},
         execution_identity=baseline_identity,
@@ -1852,6 +1871,7 @@ def _run_ebm_stochastic_statistics_adapter(
             EBM_STOCHASTIC_STATISTICS_METHOD,
         ),
         experiment_id=EBM_STOCHASTIC_STATISTICS_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={
             EBM_STOCHASTIC_BASELINE_METHOD: baseline_build,
@@ -2016,6 +2036,7 @@ def _run_ebm_regime_feedback_adapter(
             EBM_REGIME_BASELINE_METHOD,
         ),
         experiment_id=EBM_REGIME_FEEDBACK_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={EBM_REGIME_BASELINE_METHOD: baseline_build},
         execution_identity=baseline_identity,
@@ -2033,6 +2054,7 @@ def _run_ebm_regime_feedback_adapter(
             EBM_REGIME_GATED_METHOD,
         ),
         experiment_id=EBM_REGIME_FEEDBACK_EXPERIMENT,
+        experiment_spec_digest=str(experiment["_runtime_spec_digest"]),
         revision=repository_revision,
         method_builds={
             EBM_REGIME_BASELINE_METHOD: baseline_build,
@@ -2069,6 +2091,7 @@ def run_experiment(
     run_scope: str,
 ) -> dict[str, Any]:
     experiment = _load_json(experiment_path)
+    experiment["_runtime_spec_digest"] = _sha256_file(experiment_path)
     experiment_id = experiment.get("experiment_id")
     if not repository_revision.strip() or not run_scope.strip():
         raise ValueError("repository_revision and run_scope must be explicit")

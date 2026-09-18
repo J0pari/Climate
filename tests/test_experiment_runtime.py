@@ -41,6 +41,10 @@ class ExperimentRuntimeTests(unittest.TestCase):
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert_finite_numbers(payload)
 
+    def assert_experiment_spec_digest(self, run: dict, experiment_path: Path) -> None:
+        expected = "sha256:" + hashlib.sha256(experiment_path.read_bytes()).hexdigest()
+        self.assertEqual(run["experiment_spec_digest"], expected)
+
     def assert_artifact_digests(self, outcome: dict, output: Path) -> None:
         for artifact in outcome["artifacts"]:
             data = (output / artifact["uri"]).read_bytes()
@@ -69,6 +73,8 @@ class ExperimentRuntimeTests(unittest.TestCase):
             )
             self.assertTrue(all(run["scientific_output_eligible"] for run in outcome["runs"]))
             self.assertTrue(all(run["execution"]["status"] == "eligible" for run in outcome["runs"]))
+            for run in outcome["runs"]:
+                self.assert_experiment_spec_digest(run, DEFAULT_EXPERIMENT)
 
             condition = [
                 metric
@@ -90,6 +96,32 @@ class ExperimentRuntimeTests(unittest.TestCase):
                 "outcome.json",
             ):
                 self.assert_portable_json_tree(output / filename)
+
+    def test_experiment_spec_digest_changes_for_same_id_with_different_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            variant_payload = json.loads(DEFAULT_EXPERIMENT.read_text(encoding="utf-8"))
+            variant_payload["question"] = variant_payload["question"] + " "
+            variant = root / "variant.json"
+            variant.write_text(json.dumps(variant_payload, indent=2) + "\n", encoding="utf-8")
+
+            original = run_experiment(
+                experiment_path=DEFAULT_EXPERIMENT,
+                output_dir=root / "original",
+                repository_revision="a" * 40,
+                run_scope="digest-original",
+            )
+            changed = run_experiment(
+                experiment_path=variant,
+                output_dir=root / "changed",
+                repository_revision="a" * 40,
+                run_scope="digest-changed",
+            )
+            self.assertEqual(original["experiment_id"], changed["experiment_id"])
+            self.assertNotEqual(
+                original["runs"][0]["experiment_spec_digest"],
+                changed["runs"][0]["experiment_spec_digest"],
+            )
 
     def test_ebm_forcing_experiment_uses_same_runtime_spine(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

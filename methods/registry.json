@@ -349,8 +349,10 @@
         "sources": [
           "reference/dmd_common.py",
           "reference/multirepresentation_baselines.py",
-          "reference/multirepresentation_worlds.py",
-          "reference/multirepresentation_state_space.py"
+          "reference/multirepresentation_common.py",
+          "reference/multirepresentation_state_space.py",
+          "reference/multirepresentation_structure_evaluation.py",
+          "reference/multirepresentation_worlds.py"
         ]
       }
     },
@@ -388,7 +390,9 @@
         "policy": "source_digest_at_run",
         "sources": [
           "reference/multirepresentation_baselines.py",
-          "reference/multirepresentation_structure_evaluation.py"
+          "reference/multirepresentation_common.py",
+          "reference/multirepresentation_structure_evaluation.py",
+          "reference/multirepresentation_worlds.py"
         ]
       }
     },
@@ -426,7 +430,9 @@
         "policy": "source_digest_at_run",
         "sources": [
           "reference/multirepresentation_baselines.py",
-          "reference/multirepresentation_structure_evaluation.py"
+          "reference/multirepresentation_common.py",
+          "reference/multirepresentation_structure_evaluation.py",
+          "reference/multirepresentation_worlds.py"
         ]
       }
     },
@@ -466,8 +472,10 @@
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
-          "reference/multirepresentation_worlds.py",
-          "reference/multirepresentation_structure_evaluation.py"
+          "reference/multirepresentation_baselines.py",
+          "reference/multirepresentation_common.py",
+          "reference/multirepresentation_structure_evaluation.py",
+          "reference/multirepresentation_worlds.py"
         ]
       }
     },
@@ -504,8 +512,9 @@
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
+          "reference/multirepresentation_baselines.py",
           "reference/multirepresentation_common.py",
-          "reference/multirepresentation_baselines.py"
+          "reference/multirepresentation_worlds.py"
         ]
       }
     },
@@ -622,8 +631,9 @@
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
+          "reference/multirepresentation_baselines.py",
           "reference/multirepresentation_common.py",
-          "reference/multirepresentation_baselines.py"
+          "reference/multirepresentation_worlds.py"
         ]
       }
     },

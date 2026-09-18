@@ -54,6 +54,34 @@ class MethodIntegrityTests(unittest.TestCase):
         }))
         self.assertIn("methods.build_source_missing", {f.code for f in findings})
 
+    def test_transitive_local_python_dependency_must_be_declared(self):
+        (self.root / "helper.py").write_text("VALUE = 1\n", encoding="utf-8")
+        (self.root / "implementation.py").write_text(
+            "from helper import VALUE\n",
+            encoding="utf-8",
+        )
+        findings = self.check(method())
+        self.assertIn(
+            "methods.build_source_dependency_missing",
+            {f.code for f in findings},
+        )
+        self.assertEqual(
+            [f.reference for f in findings if f.code == "methods.build_source_dependency_missing"],
+            ["helper.py"],
+        )
+
+    def test_declared_transitive_local_python_dependency_passes(self):
+        (self.root / "helper.py").write_text("VALUE = 1\n", encoding="utf-8")
+        (self.root / "implementation.py").write_text(
+            "from helper import VALUE\n",
+            encoding="utf-8",
+        )
+        record = method(build_identity={
+            "policy": "source_digest_at_run",
+            "sources": ["implementation.py", "helper.py"],
+        })
+        self.assertEqual(self.check(record), [])
+
     def test_reference_must_resolve(self):
         findings = self.check(method(reference_methods=["missing.method"]))
         self.assertIn("methods.reference_missing", {f.code for f in findings})
