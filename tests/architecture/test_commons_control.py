@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src import commons_control
+from architecture import commons_control
 
 
 class CommonsControlTests(unittest.TestCase):

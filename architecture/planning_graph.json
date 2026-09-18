@@ -325,7 +325,7 @@
       "evidence": [
         "contracts/gpu-scheduler-pin.json",
         "architecture/commons_interface.json",
-        "src/commons_control.py",
+        "architecture/commons_control.py",
         "docs/COMMONS-INTEGRATION.md"
       ]
     },

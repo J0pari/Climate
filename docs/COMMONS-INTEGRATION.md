@@ -211,7 +211,7 @@ dataset locality requirement
 
 Commons may translate these declarations into concrete leases. Climate should not assume a particular machine, GPU id, or cluster topology in its scientific spec.
 
-The currently pinned `gpu-scheduler/v1` contract is specifically a GPU arbiter. It must not be used to encode a CPU-only Climate experiment as a nominal GPU job merely to obtain orchestration. `src/commons_control.py` therefore exposes contract/status/inspection only. A resource-generic Commons execution contract is required before the current CPU experiment runtime can cross Gate B/C without semantic substitution.
+The currently pinned `gpu-scheduler/v1` contract is specifically a GPU arbiter. It must not be used to encode a CPU-only Climate experiment as a nominal GPU job merely to obtain orchestration. `architecture/commons_control.py` therefore exposes contract/status/inspection only. A resource-generic Commons execution contract is required before the current CPU experiment runtime can cross Gate B/C without semantic substitution.
 
 ## 8. Sandboxing
 
