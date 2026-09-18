@@ -78,6 +78,7 @@ def inspect_required_architecture_files(root: Path) -> list[Finding]:
         "contracts/work-scheduler-pin.json",
         "contracts/evaluation-exchange-pin.json",
         "architecture/commons_interface.json",
+        "architecture/commons_live_witness.py",
         "evaluations/external-training-artifact-climate-contract-reasoning.v1.json",
         "fixtures/evaluation/climate-contract-reasoning-v1.json",
     )

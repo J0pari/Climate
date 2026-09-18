@@ -136,5 +136,12 @@ class CommonsControlTests(unittest.TestCase):
         with self.assertRaises(commons_control.ExternalEvaluationUnavailable):
             commons_control.load_external_evaluation_spec("missing.evaluator.v1")
 
+    def test_cli_status_entrypoint_dispatches(self):
+        with patch.object(
+            commons_control, "scheduler_status", return_value={"ok": True}
+        ):
+            self.assertEqual(commons_control.main(["status"]), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

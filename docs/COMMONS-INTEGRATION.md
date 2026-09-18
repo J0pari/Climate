@@ -355,3 +355,25 @@ binds the exact requested Training artifact digest.
 Any eventual evaluation attestation is evidence about the immutable model
 artifact. It does not mutate that artifact and cannot accept, reject, deploy,
 or promote it; Training retains those decisions.
+
+
+## 8. Live read-execution witness
+
+The R4 integration witness is executable rather than a prose checklist:
+
+```text
+python architecture/commons_live_witness.py \
+  --experiment experiments/multirepresentation-ebm-dynamics.v1.json \
+  --repository-revision <current-Climate-git-sha> \
+  --run-scope <unique-scope> \
+  --ram <MiB>
+```
+
+The witness submits through `work-scheduler/v1`, polls only the public
+`inspect --job` lifecycle, requires a successful terminal job, then validates
+that Climate's `outcome.json` has the requested experiment identity and
+repository revision. It never reads Commons private queue/state files.
+
+A passing mocked/CI witness proves the harness semantics only. R4 completion
+still requires this command to succeed against the machine-local Commons
+daemon after the one-writer scheduler-state cutover.

@@ -448,6 +448,7 @@ package climate
 		inspect:           [...string & !=""] & [_, ...]
 		run_experiment:    [...string & !=""] & [_, ...]
 		submit_experiment: [...string & !=""] & [_, ...]
+		live_read_witness: [...string & !=""] & [_, ...]
 	}
 	produces: [...string & !=""] & [_, ...]
 	accepts:  [...string & !=""] & [_, ...]

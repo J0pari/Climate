@@ -7,6 +7,7 @@ source writes or scientific evidence-promotion authority.
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -250,3 +251,48 @@ def require_external_evaluator(
             f"adapter {adapter.get('interface')!r} is unavailable; "
             "no attestation was issued")
     return spec
+
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Climate client for the Commons work scheduler")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    sub.add_parser("status")
+    inspect_parser = sub.add_parser("inspect")
+    inspect_parser.add_argument("--job", required=True)
+
+    submit_parser = sub.add_parser("submit-cpu")
+    submit_parser.add_argument("--experiment", type=Path, required=True)
+    submit_parser.add_argument("--repository-revision", required=True)
+    submit_parser.add_argument("--run-scope", required=True)
+    submit_parser.add_argument("--ram", type=int, required=True, dest="ram_mib")
+    submit_parser.add_argument("--max-minutes", type=float, default=30.0)
+    submit_parser.add_argument("--priority", type=int, default=0)
+
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "status":
+            result = scheduler_status()
+        elif args.command == "inspect":
+            result = inspect_job(args.job)
+        else:
+            result = submit_cpu_experiment(
+                experiment_path=args.experiment,
+                repository_revision=args.repository_revision,
+                run_scope=args.run_scope,
+                ram_mib=args.ram_mib,
+                max_minutes=args.max_minutes,
+                priority=args.priority,
+            )
+    except CommonsControlError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

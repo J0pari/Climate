@@ -315,7 +315,7 @@
       "summary": "Run one sandboxed Climate experiment through Commons while preserving run, trace, causation, build, artifact, and evidence identity without creating a second scheduler in Climate.",
       "depends_on": [],
       "blockers": [
-        "A real R4 witness still requires the machine-local Commons scheduler state cutover/daemon and one successful Commons-run Climate experiment with preserved run/artifact identity."
+        "The executable R4 witness is committed, but completion still requires the machine-local Commons scheduler state cutover/daemon and one successful commons_live_witness.py run against that real daemon."
       ],
       "completion": [
         "One real read-only or sandboxed execution preserves Climate scientific semantics and end-to-end lineage.",
@@ -325,7 +325,8 @@
         "contracts/work-scheduler-pin.json",
         "architecture/commons_interface.json",
         "architecture/commons_control.py",
-        "docs/COMMONS-INTEGRATION.md"
+        "docs/COMMONS-INTEGRATION.md",
+        "architecture/commons_live_witness.py"
       ]
     },
     {

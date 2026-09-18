@@ -25,7 +25,27 @@
     "submit_experiment": [
       "python",
       "architecture/commons_control.py",
-      "submit_cpu_experiment"
+      "submit-cpu",
+      "--experiment",
+      "<experiment-spec>",
+      "--repository-revision",
+      "<git-sha>",
+      "--run-scope",
+      "<run-scope>",
+      "--ram",
+      "<MiB>"
+    ],
+    "live_read_witness": [
+      "python",
+      "architecture/commons_live_witness.py",
+      "--experiment",
+      "<experiment-spec>",
+      "--repository-revision",
+      "<git-sha>",
+      "--run-scope",
+      "<run-scope>",
+      "--ram",
+      "<MiB>"
     ]
   },
   "produces": [
@@ -51,8 +71,7 @@
   },
   "limitations": [
     "work-scheduler/v1 contract compatibility does not itself satisfy the R4 live integrated-execution witness",
-    "contract compatibility is not R4 integrated execution evidence",
     "Commons does not own Climate scientific interpretation or evidence promotion",
-    "No Training-model Climate evaluator is registered yet; external artifact references validate, but attestation issuance fails closed."
+    "The registered Training-artifact contract-reasoning evaluator cannot execute until climate.external-model-runtime/v1 is available."
   ]
 }
