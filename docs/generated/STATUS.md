@@ -73,8 +73,8 @@ Registered modules: **65**.
 | `reference` | `independent_reference` | `reference/ncei_ghcnd_projection.py` | `reference_ncei_ghcnd_cf_projection` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/nsidc_sea_ice_index.py` | `reference_nsidc_sea_ice_index_access` | `runnable` | no |
-| `reference` | `independent_reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/sheaf_claim_evidence.py` | `reference_sheaf_claim_evidence_runtime` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/station_temperature_sheaf.py` | `reference_station_temperature_sheaf` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
