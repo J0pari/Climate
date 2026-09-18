@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **53**.
+Registered modules: **54**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 34 |
+| `canonical` | 35 |
 | `reference` | 19 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 51 |
+| `runnable` | 52 |
 
 ### Canonical and reference modules
 
@@ -26,6 +26,7 @@ Registered modules: **53**.
 | `canonical` | `canonical_implementation` | `data/ncei_ghcnd_parquet.py` | `ncei_ghcnd_parquet_partition_publication` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_trajectory_secant_numerics` | `prototype` | no |
 | `canonical` | `canonical_implementation` | `src/budget_ledger.rs` | `streaming_extensive_budget_accounting` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `src/physical_budget_adapters.rs` | `physical_kernel_budget_adapters` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/experiment_runtime.py` | `experiment_runtime` | `runnable` | no |

@@ -126,7 +126,23 @@ contains
         call assert_true(ierr == TRANSPORT_OK, 'boundary/source status')
         call assert_array_close(next_mass, [11.2_real64, 10.1_real64], 1.0e-14_real64, 'boundary/source mass')
         call assert_array_close(next_tracer, [1.04_real64, 1.98_real64], 1.0e-14_real64, 'boundary/source tracer')
+        call assert_close(budget%lower_boundary_mass_change_kg, 2.0_real64, 1.0e-14_real64, &
+                          'lower boundary mass contribution')
+        call assert_close(budget%upper_boundary_mass_change_kg, -0.5_real64, 1.0e-14_real64, &
+                          'upper boundary mass contribution')
+        call assert_close(budget%resolved_mass_source_change_kg, 0.2_real64, 1.0e-14_real64, &
+                          'resolved positive mass source')
+        call assert_close(budget%resolved_mass_sink_change_kg, -0.4_real64, 1.0e-14_real64, &
+                          'resolved negative mass sink')
         call assert_close(budget%expected_mass_change_kg, 1.3_real64, 1.0e-14_real64, 'expected mass budget')
+        call assert_close(budget%lower_boundary_tracer_change_kg, 0.4_real64, 1.0e-14_real64, &
+                          'lower boundary tracer contribution')
+        call assert_close(budget%upper_boundary_tracer_change_kg, -0.4_real64, 1.0e-14_real64, &
+                          'upper boundary tracer contribution')
+        call assert_close(budget%resolved_tracer_source_change_kg, 0.04_real64, 1.0e-14_real64, &
+                          'resolved positive tracer source')
+        call assert_close(budget%resolved_tracer_sink_change_kg, -0.02_real64, 1.0e-14_real64, &
+                          'resolved negative tracer sink')
         call assert_close(budget%expected_tracer_change_kg, 0.02_real64, 1.0e-14_real64, 'expected tracer budget')
         call assert_close(budget%mass_balance_residual_kg, 0.0_real64, 2.0e-14_real64, 'boundary mass residual')
         call assert_close(budget%tracer_balance_residual_kg, 0.0_real64, 2.0e-14_real64, 'boundary tracer residual')

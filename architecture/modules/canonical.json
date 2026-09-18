@@ -57,7 +57,21 @@
         "partition IDs prevent accidental duplicate counting but callers remain responsible for defining non-overlapping extensive partitions",
         "Neumaier compensation improves floating-point accumulation but does not promise bitwise merge-order invariance across arbitrary distributed reduction trees",
         "unit compatibility is declared by exact ledger identity strings rather than a dimensional-analysis type system",
-        "mass, energy, water, tracer, and coupled-reservoir integrations remain to be wired through this common ledger before system-level budget closure is realized"
+        "carrier-mass, tracer-mass, and pressure-energy diagnostics have narrow canonical adapters; dissipative-operator, water-cycle, and broader coupled-reservoir integrations remain open"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "src/physical_budget_adapters.rs",
+      "family": "physical_kernel_budget_adapters",
+      "language": "rust",
+      "maturity": "runnable",
+      "intended_role": "narrow climate-specific semantic adapters from decomposed conservative-transport and pressure-coordinate energy diagnostics into the generic streaming extensive-quantity ledger, preserving boundary/source/sink/internal/coupling distinctions without duplicating solver implementations",
+      "known_gaps": [
+        "the adapters consume language-neutral scalar diagnostics and do not themselves provide a Fortran/Rust FFI or orchestration layer",
+        "vertical diffusion and other dissipative operators still require a quantity-specific extensive budget mapping before the streaming-budget planning obligation is complete",
+        "broader water-cycle and coupled-reservoir accounting remains outside the current adapter surface"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false

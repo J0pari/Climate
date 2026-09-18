@@ -13,4 +13,5 @@ pub mod modal;
 pub mod numerics;
 pub mod padic;
 pub mod physical_state;
+pub mod physical_budget_adapters;
 pub mod sheaf;

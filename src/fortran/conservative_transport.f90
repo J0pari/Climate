@@ -17,10 +17,18 @@ module climate_conservative_transport
     type, public :: transport_budget
         real(dp) :: mass_before_kg = 0.0_dp
         real(dp) :: mass_after_kg = 0.0_dp
+        real(dp) :: lower_boundary_mass_change_kg = 0.0_dp
+        real(dp) :: upper_boundary_mass_change_kg = 0.0_dp
+        real(dp) :: resolved_mass_source_change_kg = 0.0_dp
+        real(dp) :: resolved_mass_sink_change_kg = 0.0_dp
         real(dp) :: expected_mass_change_kg = 0.0_dp
         real(dp) :: mass_balance_residual_kg = 0.0_dp
         real(dp) :: tracer_before_kg = 0.0_dp
         real(dp) :: tracer_after_kg = 0.0_dp
+        real(dp) :: lower_boundary_tracer_change_kg = 0.0_dp
+        real(dp) :: upper_boundary_tracer_change_kg = 0.0_dp
+        real(dp) :: resolved_tracer_source_change_kg = 0.0_dp
+        real(dp) :: resolved_tracer_sink_change_kg = 0.0_dp
         real(dp) :: expected_tracer_change_kg = 0.0_dp
         real(dp) :: tracer_balance_residual_kg = 0.0_dp
         real(dp) :: min_cell_mass_kg = 0.0_dp
@@ -121,12 +129,23 @@ contains
             return
         end if
 
-        expected_mass_change = dt_s * (face_mass_flux_kg_s(1) - face_mass_flux_kg_s(n + 1) + &
-                                                sum(cell_mass_source_kg_s))
-        expected_tracer_change = dt_s * ( &
-            face_mass_flux_kg_s(1) * face_tracer_mass_fraction(1) - &
-            face_mass_flux_kg_s(n + 1) * face_tracer_mass_fraction(n + 1) + &
-            sum(tracer_mass_source_kg_s))
+        budget%lower_boundary_mass_change_kg = dt_s * face_mass_flux_kg_s(1)
+        budget%upper_boundary_mass_change_kg = -dt_s * face_mass_flux_kg_s(n + 1)
+        budget%resolved_mass_source_change_kg = dt_s * sum(max(cell_mass_source_kg_s, 0.0_dp))
+        budget%resolved_mass_sink_change_kg = dt_s * sum(min(cell_mass_source_kg_s, 0.0_dp))
+        expected_mass_change = budget%lower_boundary_mass_change_kg + &
+            budget%upper_boundary_mass_change_kg + &
+            budget%resolved_mass_source_change_kg + budget%resolved_mass_sink_change_kg
+
+        budget%lower_boundary_tracer_change_kg = &
+            dt_s * face_mass_flux_kg_s(1) * face_tracer_mass_fraction(1)
+        budget%upper_boundary_tracer_change_kg = &
+            -dt_s * face_mass_flux_kg_s(n + 1) * face_tracer_mass_fraction(n + 1)
+        budget%resolved_tracer_source_change_kg = dt_s * sum(max(tracer_mass_source_kg_s, 0.0_dp))
+        budget%resolved_tracer_sink_change_kg = dt_s * sum(min(tracer_mass_source_kg_s, 0.0_dp))
+        expected_tracer_change = budget%lower_boundary_tracer_change_kg + &
+            budget%upper_boundary_tracer_change_kg + &
+            budget%resolved_tracer_source_change_kg + budget%resolved_tracer_sink_change_kg
 
         budget%mass_before_kg = sum(cell_mass_kg)
         budget%mass_after_kg = sum(candidate_mass)

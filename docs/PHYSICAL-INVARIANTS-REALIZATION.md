@@ -160,6 +160,8 @@ The ledger uses one sign convention—every recorded term is a signed contributi
 
 Partition merge requires identical quantity/domain/time/precision identity and rejects repeated partition IDs before double counting. This is the production-facing scaling contract for accounting: state fields need not be gathered globally merely to close a budget. `#BudgetReport` in `contracts/climate.cue` is the language-neutral artifact boundary so Fortran, Python, Rust, and external model wrappers can emit the same accounting semantics without sharing an implementation language. Budget closure through the common ledger is established only by explicit kernel integrations and their witnesses; the ledger's existence alone does not establish system-level closure.
 
+`src/physical_budget_adapters.rs` is the narrow semantic bridge from physical-kernel diagnostics to that ledger. Conservative transport exposes lower/upper boundary contributions and separates nonnegative resolved sources from nonpositive resolved sinks for carrier and tracer mass; the adapter records those terms without reconstructing them from state deltas. Pressure-coordinate energy diagnostics are converted from specific power to extensive energy with explicit mass and timestep: kinetic pressure-gradient work, enthalpy pressure work, and the nonlocal part of geopotential material tendency are internal exchanges, while an explicit local geopotential tendency remains a separate coupling term. Any mismatch in the kernel closure survives as the ledger's unexplained residual rather than being relabeled. Dissipative-operator accounting remains quantity-specific and is not inferred from generic diffusion merely because the operator reduces a norm.
+
 ### Required ledger properties
 
 Each term carries:

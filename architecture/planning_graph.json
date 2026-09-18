@@ -665,7 +665,10 @@
         "src/fortran/conservative_transport.f90",
         "src/fortran/pressure_energy_exchange.f90",
         "src/fortran/vertical_diffusion.f90",
-        "contracts/climate.cue"
+        "contracts/climate.cue",
+        "src/physical_budget_adapters.rs",
+        "tests/fortran/test_conservative_transport.f90",
+        "tests/fortran/test_pressure_energy_exchange.f90"
       ]
     },
     {
