@@ -555,6 +555,31 @@
         "Peak memory and work are characterized in terms of station vertices, local incidence, requested simplex degree, variables, and observation chunk size rather than dense global dimensions.",
         "Higher-order sheaf operations used at this scale execute through sparse or matrix-free backends and fail explicitly when resource envelopes are exceeded."
       ]
+    },
+    {
+      "id": "experimentation.common_cpu_runtime",
+      "title": "Run one contract-valid CPU experiment end to end",
+      "status": "done",
+      "priority": "P0",
+      "resource_class": "R1_portable_cpu",
+      "summary": "Provide a narrow canonical local runtime that proves the common research spine by resolving a registered experiment, methods, immutable dataset and numerical configuration; executing the exact two-layer EBM baseline and PyDMD candidate as separate processes; and emitting content-addressed artifacts, typed metrics, exact execution receipts, and a contract-valid experiment outcome without manufacturing scientific evidence.",
+      "depends_on": [],
+      "completion": [
+        "The runtime resolves method descriptors and refuses unknown or non-runnable requested methods rather than substituting another implementation.",
+        "The EBM fixture and numerical configuration are verified against immutable content digests before execution.",
+        "Baseline and candidate execute as distinct subprocess identities with exact commands, repository revision, environment/library versions, stdout/stderr digests, and generated source-bound build identities recorded.",
+        "Artifacts and metric results are JSON-portable, content-addressed, and represent rank deficiency explicitly rather than using NaN, Infinity, regularization, or sentinels.",
+        "RunManifest and ExperimentOutcome outputs pass the CUE contract in CI and are persisted as workflow artifacts.",
+        "No EvidenceRecord is emitted for this structural control until a claim mapping is declared; successful execution alone does not strengthen a scientific claim."
+      ],
+      "evidence": [
+        "src/experiment_runtime.py",
+        "tests/test_experiment_runtime.py",
+        ".github/workflows/experiment-ebm-runtime.yml",
+        "configurations/numerical/multirepresentation-ebm-dynamics.v1.json",
+        "experiments/multirepresentation-ebm-dynamics.v1.json",
+        "contracts/climate.cue"
+      ]
     }
   ]
 }

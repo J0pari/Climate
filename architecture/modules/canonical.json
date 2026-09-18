@@ -43,6 +43,19 @@
       ]
     },
     {
+      "path": "src/experiment_runtime.py",
+      "family": "experiment_runtime",
+      "language": "python",
+      "maturity": "runnable",
+      "evidence_eligible": false,
+      "intended_role": "canonical local CPU runtime that resolves registered experiment/method/configuration identities, verifies immutable dataset digests, executes declared methods without substitution, and emits content-addressed artifacts, typed metrics, run manifests, and a common experiment outcome",
+      "known_gaps": [
+        "the first executable adapter is intentionally limited to multirepresentation.ebm_dynamics.v1 rather than pretending every method already shares an execution adapter",
+        "evidence remains empty when an experiment has no claim mapping; successful execution does not manufacture supporting scientific evidence",
+        "workspace scheduling, cross-repository resource arbitration, and durable global run identity remain Commons responsibilities"
+      ]
+    },
+    {
       "path": "src/fortran/conservative_transport.f90",
       "family": "conservative_mass_tracer_transport",
       "language": "fortran",

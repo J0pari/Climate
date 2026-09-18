@@ -269,6 +269,8 @@ Externally owned climate data use a separate authority chain. `architecture/data
 
 Climate should expose work; it should not become its own distributed control plane if Commons owns that role.
 
+The canonical local CPU experiment runtime is deliberately a thin execution/evidence waist rather than a scheduler. It resolves immutable experiment, method, dataset, and configuration identities; executes a declared local adapter without capability substitution; and emits content-addressed artifacts, typed metrics, run receipts, and an experiment outcome that can be vetted independently. The first adapter is the two-layer EBM representation-dynamics control; additional adapters should enter only when their method semantics are already trustworthy enough to compare.
+
 Local orchestration may still be needed for:
 
 - a single experiment process;

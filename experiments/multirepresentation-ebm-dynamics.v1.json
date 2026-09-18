@@ -1,6 +1,6 @@
 {
   "experiment_id": "multirepresentation.ebm_dynamics.v1",
-  "semantic_version": "0.2.0",
+  "semantic_version": "0.3.0",
   "question": "Which representations of the same two-layer climate energy-balance state support an unaugmented linear Markov model that preserves both physical thermal modes, and what is lost through scalar projection or gained only redundantly through naive concatenation?",
   "hypothesis": "On the declared two-layer EBM control, PyDMD recovers the exact fast and slow decay timescales from every rank-two temperature, heat-flux, or modal representation; an unaugmented one-coordinate Markov representation cannot resolve both state modes; concatenating equivalent full-state views adds observed dimensions without adding dynamical rank and exposes severe conditioning rather than new physical information. These mode-recovery statements are distinct from Kalman observability of a scalar output over time.",
   "candidate_methods": [
@@ -124,5 +124,18 @@
     "gpu_count": 0,
     "network": "none",
     "max_seconds": 600
+  },
+  "configuration": {
+    "numerical_policies": [
+      {
+        "configuration_id": "multirepresentation.ebm_dynamics.numerical.v1",
+        "semantic_version": "1.0.0",
+        "kind": "numerical_policy",
+        "owner": "multirepresentation.ebm_dynamics",
+        "provenance": "experiment_policy",
+        "record_path": "configurations/numerical/multirepresentation-ebm-dynamics.v1.json",
+        "digest": "sha256:9f42450e72804f99c38d3617d7a01b76ebc992b726b13604ade34aa2f1f8e62a"
+      }
+    ]
   }
 }

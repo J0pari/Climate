@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **44**.
+Registered modules: **45**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 29 |
+| `canonical` | 30 |
 | `reference` | 15 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 42 |
+| `runnable` | 43 |
 
 ### Canonical and reference modules
 
@@ -25,6 +25,7 @@ Registered modules: **44**.
 | `canonical` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_sensitivity_numerics` | `prototype` | no |
 | `canonical` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
 | `canonical` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
+| `canonical` | `src/experiment_runtime.py` | `experiment_runtime` | `runnable` | no |
 | `canonical` | `src/fortran/conservative_transport.f90` | `conservative_mass_tracer_transport` | `runnable` | no |
 | `canonical` | `src/fortran/coriolis_rotation.f90` | `coriolis_rotation_operator` | `runnable` | no |
 | `canonical` | `src/fortran/dry_thermodynamics.f90` | `dry_thermodynamics` | `runnable` | no |

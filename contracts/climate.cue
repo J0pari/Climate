@@ -232,6 +232,20 @@ package climate
 	uri?:        string
 }
 
+#MetricResultSet: {
+	schema_version: 1
+	metrics: [...#MetricResult] & [_, ...]
+}
+
+#ExperimentOutcome: {
+	schema_version: 1
+	experiment_id: #Id
+	runs:      [...#RunManifest] & [_, ...]
+	artifacts: [...#ArtifactRef] & [_, ...]
+	metrics:   [...#MetricResult] & [_, ...]
+	evidence:  [...#EvidenceRecord]
+}
+
 #ExperimentSpec: {
 	experiment_id: #Id
 	semantic_version: #Semver

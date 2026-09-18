@@ -1,0 +1,16 @@
+{
+  "configuration_id": "multirepresentation.ebm_dynamics.numerical.v1",
+  "semantic_version": "1.0.0",
+  "kind": "numerical_policy",
+  "owner": "multirepresentation.ebm_dynamics",
+  "provenance": "experiment_policy",
+  "settings": {
+    "transition_dt_years": 1.0,
+    "dmd_rank_policy": {
+      "full_rank": 2,
+      "scalar": 1
+    },
+    "nonfinite_result": "fail",
+    "exact_baseline_required": true
+  }
+}
