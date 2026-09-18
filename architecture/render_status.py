@@ -177,7 +177,7 @@ def render_status(root: Path = ROOT) -> str:
         "",
         "## Interpretation boundary",
         "",
-        "This projection reports declared repository structure only. A module listed as runnable is not thereby verified; reference-realized obligations are independent correctness oracles rather than production completion; canonical realization is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity.",
+        "This projection reports declared repository structure only. `canonical_implementation` means repository authority for the declared object, not scientific endorsement. A module listed as runnable is not thereby verified; reference-realized obligations are independent correctness oracles rather than production completion; canonical realization is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity.",
         "",
     ])
     return "\n".join(lines)
