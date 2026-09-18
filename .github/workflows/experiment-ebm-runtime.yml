@@ -7,8 +7,11 @@ on:
       - 'tests/test_experiment_runtime.py'
       - 'reference/two_layer_energy_balance.py'
       - 'reference/two_layer_representation_dynamics.py'
+      - 'reference/two_layer_forcing_protocols.py'
       - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
+      - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
       - 'experiments/multirepresentation-ebm-dynamics.v1.json'
+      - 'experiments/two-layer-ebm-forcing-protocols.v1.json'
       - 'configurations/numerical/multirepresentation-ebm-dynamics.v1.json'
       - 'methods/registry.json'
       - 'contracts/climate.cue'
@@ -34,22 +37,30 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r requirements/reference-ebm-representation.txt
       - name: Run common experiment runtime witness
         run: python -m unittest tests.test_experiment_runtime -v
-      - name: Execute registered EBM experiment
+      - name: Execute registered EBM experiments
         env:
           CLIMATE_RUN_SCOPE: github-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           python src/experiment_runtime.py \
             --experiment experiments/multirepresentation-ebm-dynamics.v1.json \
-            --output-dir run-artifacts \
+            --output-dir run-artifacts/ebm-dynamics \
+            --repository-revision "$GITHUB_SHA"
+          python src/experiment_runtime.py \
+            --experiment experiments/two-layer-ebm-forcing-protocols.v1.json \
+            --output-dir run-artifacts/ebm-forcing \
             --repository-revision "$GITHUB_SHA"
       - name: Install CUE
         run: go install cuelang.org/go/cmd/cue@v0.17.1
-      - name: Vet common experiment outcome
-        run: '"$(go env GOPATH)/bin/cue" vet -d "#ExperimentOutcome" contracts/climate.cue run-artifacts/outcome.json'
+      - name: Vet common experiment outcomes
+        run: |
+          "$(go env GOPATH)/bin/cue" vet -d '#ExperimentOutcome' contracts/climate.cue run-artifacts/ebm-dynamics/outcome.json
+          "$(go env GOPATH)/bin/cue" vet -d '#ExperimentOutcome' contracts/climate.cue run-artifacts/ebm-forcing/outcome.json
       - name: Vet run receipts
         run: |
-          "$(go env GOPATH)/bin/cue" vet -d '#RunManifest' contracts/climate.cue run-artifacts/run-baseline.json
-          "$(go env GOPATH)/bin/cue" vet -d '#RunManifest' contracts/climate.cue run-artifacts/run-candidate.json
+          for directory in run-artifacts/ebm-dynamics run-artifacts/ebm-forcing; do
+            "$(go env GOPATH)/bin/cue" vet -d '#RunManifest' contracts/climate.cue "$directory/run-baseline.json"
+            "$(go env GOPATH)/bin/cue" vet -d '#RunManifest' contracts/climate.cue "$directory/run-candidate.json"
+          done
       - name: Persist experiment receipts
         uses: actions/upload-artifact@v4
         with:

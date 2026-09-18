@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "fixture_id": "physics.two-layer-ebm-forcing-protocols.v1",
+  "description": "Deterministic forcing protocols for exact two-layer EBM response tests. Discovery and confirmation forcing domains are explicit so later fitted methods can be evaluated out of distribution without changing the reference dynamics.",
+  "discovery_forcing_domain_w_m2": [-1.0, 1.0],
+  "confirmation_forcing_domain_w_m2": [-2.0, 5.0],
+  "samples_per_segment": 32,
+  "protocols": [
+    {
+      "protocol_id": "constant_control",
+      "initial_equilibrium_forcing_w_m2": 0.0,
+      "segments": [
+        {"duration_years": 25.0, "forcing_start_w_m2": 1.0, "forcing_end_w_m2": 1.0},
+        {"duration_years": 75.0, "forcing_start_w_m2": 1.0, "forcing_end_w_m2": 1.0}
+      ]
+    },
+    {
+      "protocol_id": "held_out_step",
+      "initial_equilibrium_forcing_w_m2": 0.0,
+      "segments": [
+        {"duration_years": 100.0, "forcing_start_w_m2": 4.0, "forcing_end_w_m2": 4.0}
+      ]
+    },
+    {
+      "protocol_id": "held_out_ramp",
+      "initial_equilibrium_forcing_w_m2": 0.0,
+      "segments": [
+        {"duration_years": 50.0, "forcing_start_w_m2": 0.0, "forcing_end_w_m2": 4.0},
+        {"duration_years": 50.0, "forcing_start_w_m2": 4.0, "forcing_end_w_m2": 4.0}
+      ]
+    },
+    {
+      "protocol_id": "overshoot_reversal",
+      "initial_equilibrium_forcing_w_m2": 0.0,
+      "segments": [
+        {"duration_years": 30.0, "forcing_start_w_m2": 0.0, "forcing_end_w_m2": 5.0},
+        {"duration_years": 20.0, "forcing_start_w_m2": 5.0, "forcing_end_w_m2": 5.0},
+        {"duration_years": 50.0, "forcing_start_w_m2": 5.0, "forcing_end_w_m2": 2.0},
+        {"duration_years": 100.0, "forcing_start_w_m2": 2.0, "forcing_end_w_m2": 2.0}
+      ]
+    },
+    {
+      "protocol_id": "sign_reversal",
+      "initial_equilibrium_forcing_w_m2": 0.0,
+      "segments": [
+        {"duration_years": 25.0, "forcing_start_w_m2": 0.0, "forcing_end_w_m2": 3.0},
+        {"duration_years": 25.0, "forcing_start_w_m2": 3.0, "forcing_end_w_m2": 3.0},
+        {"duration_years": 50.0, "forcing_start_w_m2": 3.0, "forcing_end_w_m2": -1.0},
+        {"duration_years": 50.0, "forcing_start_w_m2": -1.0, "forcing_end_w_m2": -1.0}
+      ]
+    }
+  ]
+}

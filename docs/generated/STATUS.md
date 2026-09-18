@@ -6,17 +6,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **46**.
+Registered modules: **47**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 30 |
-| `reference` | 16 |
+| `reference` | 17 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 44 |
+| `runnable` | 45 |
 
 ### Canonical and reference modules
 
@@ -65,6 +65,7 @@ Registered modules: **46**.
 | `reference` | `independent_reference` | `reference/station_temperature_sheaf.py` | `reference_station_temperature_sheaf` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_forcing_protocols.py` | `reference_two_layer_forcing_protocols` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_observation_design.py` | `reference_two_layer_observation_design` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_observation_information.py` | `reference_two_layer_observation_information` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_representation_dynamics.py` | `reference_two_layer_representation_dynamics` | `runnable` | no |
@@ -87,7 +88,7 @@ Registered claims: **5**.
 
 ## Registered experiments
 
-Experiment specifications: **4**.
+Experiment specifications: **5**.
 
 | Experiment | File |
 | --- | --- |
@@ -95,6 +96,7 @@ Experiment specifications: **4**.
 | `multirepresentation.common_coordinate.v1` | `experiments/multirepresentation-common.v1.json` |
 | `multirepresentation.ebm_dynamics.v1` | `experiments/multirepresentation-ebm-dynamics.v1.json` |
 | `sheaf.structural_ablation.v1` | `experiments/sheaf-structural-ablation.v1.json` |
+| `physics.two_layer_ebm.forcing_protocols.v1` | `experiments/two-layer-ebm-forcing-protocols.v1.json` |
 
 ## Sheaf realization frontier
 

@@ -98,6 +98,8 @@ expected artifacts
 
 The same specification should be executable locally and schedulable by Commons without changing scientific meaning.
 
+Discovery/confirmation partitions are scientific inputs, not convenience labels. For representation or emulator experiments, forcing ranges, trajectory families, observation masks, and other distribution-shift boundaries must be immutable experiment inputs. A candidate tuned on confirmation trajectories cannot later report them as held-out or out-of-distribution evidence.
+
 ### Configuration records
 
 Runtime configuration is composed from small records with a single semantic owner rather than one flat mutable configuration object. `contracts/climate.cue` separates four configuration kinds: kernel parameters, numerical policy, data policy, and execution policy. Each record has its own identity, semantic version, owner, provenance, and owner-scoped settings.

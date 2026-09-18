@@ -589,6 +589,32 @@
         "experiments/multirepresentation-ebm-dynamics.v1.json",
         "contracts/climate.cue"
       ]
+    },
+    {
+      "id": "experimentation.climate_representation_ladder",
+      "title": "Build a climate-representation benchmark ladder",
+      "status": "active",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Use exact and progressively less idealized climate controls to test what information representations preserve under forcing shifts, sparse/noisy observations, parameter degeneracy, stochastic variability, and regime dependence. The first rung is an exact two-layer EBM with immutable discovery versus confirmation forcing domains and step, ramp, overshoot/reversal, and sign-reversal protocols executed through the common experiment/evidence spine.",
+      "depends_on": [
+        "experimentation.common_cpu_runtime"
+      ],
+      "completion": [
+        "Exact piecewise-affine forcing protocols reduce to the existing constant-forcing solution, preserve the energy budget, and expose immutable discovery/confirmation forcing domains through the common runtime.",
+        "At least one fitted representation is trained only on discovery-domain trajectories and evaluated on held-out step, ramp, overshoot/reversal, and sign-reversal forcing without confirmation leakage.",
+        "Subsequent immutable benchmark versions add sparse/noisy observations, deliberately redundant channels, parameter degeneracies, stochastic internal variability, and a simple regime-dependent feedback without mutating prior fixture semantics.",
+        "Tasks separately score state reconstruction, forced-response estimation, parameter identifiability, climate-statistics preservation, and out-of-distribution response; no single aggregate score substitutes for those distinctions.",
+        "Every rung emits common run/artifact/metric records and may produce scientific evidence only when a claim-scoped experiment explicitly licenses it."
+      ],
+      "evidence": [
+        "reference/two_layer_energy_balance.py",
+        "reference/two_layer_forcing_protocols.py",
+        "fixtures/physics/two-layer-ebm-forcing-protocols-v1.json",
+        "experiments/two-layer-ebm-forcing-protocols.v1.json",
+        "src/experiment_runtime.py",
+        ".github/workflows/experiment-ebm-runtime.yml"
+      ]
     }
   ]
 }

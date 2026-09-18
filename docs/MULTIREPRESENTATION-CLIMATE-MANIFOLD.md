@@ -432,3 +432,11 @@ Useful outcomes include:
 All of those outcomes advance the research program.
 
 The unifying commitment is therefore not to a particular manifold. It is to **making the relationships among physical, dynamical, statistical, observational, and experimental representations explicit enough that a useful geometry can be discovered, compared, or rejected without erasing what each representation means.**
+
+## Benchmark ladder beyond static structural worlds
+
+The structural-world zoo answers what relationship is present in deliberately known paired views. A complementary climate-relevant ladder uses the exact two-layer EBM to ask what a representation preserves under intervention and observation change.
+
+The first forcing rung uses one exact piecewise-affine propagation path for held forcing, ramps, overshoot/reversal, and sign reversal. The fixture declares a narrow discovery forcing domain and a wider confirmation domain. This split is immutable benchmark semantics: fitted candidates may learn only from discovery inputs, while confirmation trajectories remain held out. The exact reference itself is not trained, so its successful execution is a numerical control rather than evidence of OOD generalization.
+
+Later rungs should add sparse/noisy observations, redundant channels, parameter degeneracy, stochastic variability, and simple regime-dependent feedback as new versioned fixtures. They must not be introduced by silently mutating the original linear control. State reconstruction, forced response, identifiability, climate-statistics preservation, and OOD response remain separate tasks and metrics.

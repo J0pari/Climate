@@ -1,0 +1,116 @@
+{
+  "experiment_id": "physics.two_layer_ebm.forcing_protocols.v1",
+  "semantic_version": "0.1.0",
+  "question": "Can one exact piecewise-affine forcing path reproduce the existing constant-forcing two-layer EBM solution while defining immutable held-out step, ramp, overshoot/reversal, and sign-reversal protocols for later out-of-distribution representation tests?",
+  "hypothesis": "The registered affine-forcing reference reduces to the constant-forcing exact solution within floating-point tolerance, preserves the two-layer energy budget across every protocol sample, and exposes a confirmation forcing domain strictly wider than the discovery domain without interpreting exact-reference execution as fitted-model OOD skill.",
+  "candidate_methods": [
+    "physics.two_layer_ebm.affine_forcing_v1"
+  ],
+  "baseline_methods": [
+    "physics.two_layer_ebm.exact_modes_v1"
+  ],
+  "datasets": [
+    {
+      "id": "physics.two_layer_ebm.geoffroy_mean.v1",
+      "digest": "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9",
+      "source_family": "literature_parameterized_two_layer_energy_balance_reference",
+      "source_version": "1",
+      "variables": [
+        "surface_temperature_anomaly_k",
+        "deep_temperature_anomaly_k",
+        "toa_imbalance_w_m2",
+        "ocean_heat_uptake_w_m2"
+      ],
+      "spatial_domain": "global mean two-reservoir climate control",
+      "grid": "not spatially resolved",
+      "units_metadata": {
+        "temperature": "K anomaly",
+        "heat_flux": "W m^-2"
+      },
+      "quality_control_policy": "physical parameters must be finite and positive; malformed states and non-finite forcing fail closed",
+      "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.forcing_protocols.v1",
+      "digest": "sha256:8c761934353feef7563c8a57a96863afbd08ab547d88fc88228a240c9fa16743",
+      "source_family": "deterministic_synthetic_forcing_protocol_fixture",
+      "source_version": "1",
+      "variables": [
+        "forcing_w_m2",
+        "protocol_time_years",
+        "discovery_forcing_domain_w_m2",
+        "confirmation_forcing_domain_w_m2"
+      ],
+      "spatial_domain": "global mean forcing intervention",
+      "time_domain": "piecewise-affine segments spanning constant, step, ramp, overshoot/reversal, and sign-reversal controls",
+      "units_metadata": {
+        "forcing": "W m^-2",
+        "time": "years"
+      },
+      "quality_control_policy": "segment durations must be finite and positive; forcing endpoints and domains must be finite; confirmation domain must contain discovery domain; protocol forcing may not leave confirmation domain",
+      "citation": "fixtures/physics/two-layer-ebm-forcing-protocols-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "physics.two_layer_ebm.affine_forcing.constant_equivalence_max_abs_state_error_k",
+      "semantic_version": "0.1.0",
+      "units": "K",
+      "direction": "lower",
+      "target": 5e-13,
+      "aggregation_domain": "maximum absolute surface/deep state difference between affine propagation and the existing exact constant-forcing propagator over every constant-control sample",
+      "missing_data_policy": "all constant-control samples and both state components are required",
+      "uncertainty_method": "deterministic exact-reference differential control"
+    },
+    {
+      "metric_id": "physics.two_layer_ebm.affine_forcing.max_abs_energy_budget_residual_w_m2",
+      "semantic_version": "0.1.0",
+      "units": "W m^-2",
+      "direction": "lower",
+      "target": 1e-12,
+      "aggregation_domain": "maximum absolute instantaneous two-reservoir storage minus TOA imbalance residual over every sample in every declared forcing protocol",
+      "missing_data_policy": "every protocol sample must carry finite forcing and state values",
+      "uncertainty_method": "deterministic conservation identity"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "physics.two_layer_ebm.ood.held_out_absolute_forcing_margin_w_m2",
+      "semantic_version": "0.1.0",
+      "units": "W m^-2",
+      "direction": "descriptive",
+      "aggregation_domain": "maximum absolute confirmation-domain forcing minus maximum absolute discovery-domain forcing",
+      "missing_data_policy": "both discovery and confirmation forcing domains are required"
+    }
+  ],
+  "negative_controls": [
+    "constant forcing is routed through the affine implementation and compared pointwise against the existing exact constant-forcing propagator",
+    "confirmation includes forcing magnitudes outside the discovery interval so later fitted methods cannot claim interpolation as out-of-distribution performance",
+    "sign reversal and overshoot/reversal protocols prevent a benchmark specialized only to monotone warming trajectories",
+    "successful exact-reference execution emits no scientific EvidenceRecord about fitted-model OOD generalization"
+  ],
+  "falsifiers": [
+    "affine propagation disagrees with exact constant-forcing propagation by more than the declared tolerance",
+    "any forcing protocol violates the exact global energy budget beyond the declared numerical tolerance",
+    "the confirmation forcing domain does not strictly extend the discovery domain",
+    "a protocol leaves the declared confirmation forcing domain",
+    "a future fitted method is tuned on confirmation forcing trajectories and still labeled held out"
+  ],
+  "split_policy": "The exact reference uses all protocol inputs deterministically. Any fitted candidate added later must fit/tune only on discovery-domain forcing and must treat the declared confirmation protocols and forcing excursions as held out.",
+  "preprocessing": "No learned preprocessing. Physical parameters come from the immutable EBM fixture and forcing interventions come from the immutable protocol fixture.",
+  "seeds": [],
+  "stopping_rule": "The structural reference experiment passes only if constant-forcing differential equivalence and energy-budget closure remain within their preregistered tolerances; the held-out forcing margin is always reported descriptively.",
+  "multiple_comparison_policy": "All declared protocols and all primary metrics are reported; no protocol may be removed post hoc because a candidate performs poorly on it.",
+  "expected_artifact_types": [
+    "two_layer_forcing_response/v1",
+    "metric_results/v1",
+    "run_manifest/v1"
+  ],
+  "resource": {
+    "cpu_cores": 1,
+    "memory_bytes": 536870912,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 120
+  }
+}

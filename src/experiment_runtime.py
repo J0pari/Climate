@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Canonical local CPU experiment runtime for Climate's common evidence spine.
 
-The first adapter executes the registered two-layer EBM representation-dynamics
-experiment. The runtime owns identity resolution, immutable input checks,
+The first adapters execute registered two-layer EBM representation-dynamics
+and forcing-protocol experiments through one runtime. The runtime owns identity
+resolution, immutable input checks,
 subprocess receipts, content-addressed artifacts, typed metric results, and
 contract-shaped run/outcome records. Scientific methods remain in their own
 modules and are invoked without changing their semantics.
@@ -28,9 +29,16 @@ DEFAULT_EXPERIMENT = ROOT / "experiments" / "multirepresentation-ebm-dynamics.v1
 METHOD_REGISTRY = ROOT / "methods" / "registry.json"
 CONTRACT = ROOT / "contracts" / "climate.cue"
 
-SUPPORTED_EXPERIMENT = "multirepresentation.ebm_dynamics.v1"
-BASELINE_METHOD = "physics.two_layer_ebm.exact_modes_v1"
-CANDIDATE_METHOD = "dynamics.dmd.pydmd_v1"
+EBM_DYNAMICS_EXPERIMENT = "multirepresentation.ebm_dynamics.v1"
+EBM_FORCING_EXPERIMENT = "physics.two_layer_ebm.forcing_protocols.v1"
+EBM_BASELINE_METHOD = "physics.two_layer_ebm.exact_modes_v1"
+EBM_DYNAMICS_CANDIDATE_METHOD = "dynamics.dmd.pydmd_v1"
+EBM_FORCING_CANDIDATE_METHOD = "physics.two_layer_ebm.affine_forcing_v1"
+RUNNABLE_MATURITIES = {
+    "runnable", "verified", "validated", "replicated", "decision-eligible"
+}
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
@@ -128,24 +136,62 @@ def _resolve_configuration(experiment: Mapping[str, Any]) -> tuple[dict[str, Any
     return resolved, records
 
 
-def _resolve_dataset(experiment: Mapping[str, Any]) -> tuple[dict[str, Any], Path]:
+def _resolve_datasets(
+    experiment: Mapping[str, Any],
+) -> list[tuple[dict[str, Any], Path]]:
     datasets = experiment.get("datasets")
-    if not isinstance(datasets, list) or len(datasets) != 1 or not isinstance(datasets[0], dict):
-        raise ValueError("the EBM runtime adapter requires exactly one dataset reference")
-    dataset = dict(datasets[0])
-    citation = dataset.get("citation")
-    if not isinstance(citation, str) or not citation.startswith("fixtures/"):
-        raise ValueError("EBM dataset citation must resolve to an immutable fixture path")
-    path = (ROOT / citation).resolve()
-    try:
-        path.relative_to(ROOT.resolve())
-    except ValueError as exc:
-        raise ValueError("dataset fixture escapes repository") from exc
-    if not path.is_file():
-        raise ValueError(f"dataset fixture does not exist: {citation}")
-    if _sha256_file(path) != dataset.get("digest"):
-        raise ValueError(f"dataset digest mismatch for {citation}")
-    return dataset, path
+    if not isinstance(datasets, list) or not datasets:
+        raise ValueError("experiment requires at least one dataset reference")
+    resolved: list[tuple[dict[str, Any], Path]] = []
+    ids: set[str] = set()
+    for raw in datasets:
+        if not isinstance(raw, dict):
+            raise ValueError("dataset reference must be an object")
+        dataset = dict(raw)
+        dataset_id = dataset.get("id")
+        if not isinstance(dataset_id, str) or not dataset_id:
+            raise ValueError("dataset reference requires a non-empty id")
+        if dataset_id in ids:
+            raise ValueError(f"duplicate dataset reference {dataset_id}")
+        ids.add(dataset_id)
+        citation = dataset.get("citation")
+        if not isinstance(citation, str) or not citation.startswith("fixtures/"):
+            raise ValueError("dataset citation must resolve to an immutable fixture path")
+        path = (ROOT / citation).resolve()
+        try:
+            path.relative_to(ROOT.resolve())
+        except ValueError as exc:
+            raise ValueError("dataset fixture escapes repository") from exc
+        if not path.is_file():
+            raise ValueError(f"dataset fixture does not exist: {citation}")
+        if _sha256_file(path) != dataset.get("digest"):
+            raise ValueError(f"dataset digest mismatch for {citation}")
+        resolved.append((dataset, path))
+    return resolved
+
+
+def _require_methods(
+    experiment: Mapping[str, Any],
+    methods: Mapping[str, Mapping[str, Any]],
+    *,
+    baseline_method: str,
+    candidate_method: str,
+) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+    if experiment.get("baseline_methods") != [baseline_method]:
+        raise ValueError(f"experiment requires baseline method {baseline_method}")
+    if experiment.get("candidate_methods") != [candidate_method]:
+        raise ValueError(f"experiment requires candidate method {candidate_method}")
+    baseline = methods.get(baseline_method)
+    candidate = methods.get(candidate_method)
+    for method_id, descriptor in (
+        (baseline_method, baseline),
+        (candidate_method, candidate),
+    ):
+        if descriptor is None:
+            raise ValueError(f"experiment method does not resolve: {method_id}")
+        if descriptor.get("maturity") not in RUNNABLE_MATURITIES:
+            raise ValueError(f"experiment method is not runnable: {method_id}")
+    return baseline, candidate
 
 
 def _run_process(command: Sequence[str]) -> dict[str, Any]:
@@ -214,7 +260,7 @@ def _finite_metric(
     return result
 
 
-def _derive_metrics(experiment: Mapping[str, Any], candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
+def _derive_ebm_dynamics_metrics(experiment: Mapping[str, Any], candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
     definitions = _metric_definitions(experiment)
     representations = candidate.get("representations")
     if not isinstance(representations, dict):
@@ -271,6 +317,39 @@ def _derive_metrics(experiment: Mapping[str, Any], candidate: Mapping[str, Any])
     return results
 
 
+def _derive_forcing_metrics(
+    experiment: Mapping[str, Any], candidate: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    definitions = _metric_definitions(experiment)
+    return [
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.affine_forcing.constant_equivalence_max_abs_state_error_k"
+            ],
+            float(candidate["constant_forcing_equivalence_max_abs_state_error_k"]),
+        ),
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.affine_forcing.max_abs_energy_budget_residual_w_m2"
+            ],
+            float(candidate["max_abs_energy_budget_residual_w_m2"]),
+        ),
+        _finite_metric(
+            definitions[
+                "physics.two_layer_ebm.ood.held_out_absolute_forcing_margin_w_m2"
+            ],
+            float(candidate["held_out_absolute_forcing_margin_w_m2"]),
+        ),
+    ]
+
+
+def _validated_seeds(experiment: Mapping[str, Any]) -> list[int]:
+    seeds = experiment.get("seeds", [])
+    if not isinstance(seeds, list) or not all(isinstance(seed, int) for seed in seeds):
+        raise ValueError("experiment seeds must be an integer list")
+    return list(seeds)
+
+
 def _execution_identity(method_id: str, implementation_build: str, backend_id: str) -> dict[str, Any]:
     return {
         "method_id": method_id,
@@ -289,7 +368,7 @@ def _run_manifest(
     revision: str,
     method_builds: Mapping[str, str],
     execution_identity: Mapping[str, Any],
-    dataset_digest: str,
+    dataset_digests: Sequence[str],
     resolved_configuration: Mapping[str, Any],
     seeds: Sequence[int],
     libraries: Mapping[str, str],
@@ -309,7 +388,7 @@ def _run_manifest(
             "resolved": dict(execution_identity),
         },
         "scientific_output_eligible": True,
-        "resolved_dataset_digests": [dataset_digest],
+        "resolved_dataset_digests": list(dataset_digests),
         "resolved_configuration": dict(resolved_configuration),
         "seeds": list(seeds),
         "environment": {
@@ -329,56 +408,61 @@ def _run_manifest(
     }
 
 
-def run_experiment(
+def _run_ebm_dynamics_adapter(
     *,
-    experiment_path: Path,
+    experiment: Mapping[str, Any],
     output_dir: Path,
     repository_revision: str,
     run_scope: str,
+    methods: Mapping[str, Mapping[str, Any]],
+    resolved_configuration: Mapping[str, Any],
+    configuration_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    experiment = _load_json(experiment_path)
-    experiment_id = experiment.get("experiment_id")
-    if experiment_id != SUPPORTED_EXPERIMENT:
-        raise ValueError(f"runtime adapter supports {SUPPORTED_EXPERIMENT}, got {experiment_id!r}")
-    if not repository_revision.strip() or not run_scope.strip():
-        raise ValueError("repository_revision and run_scope must be explicit")
+    baseline_descriptor, candidate_descriptor = _require_methods(
+        experiment,
+        methods,
+        baseline_method=EBM_BASELINE_METHOD,
+        candidate_method=EBM_DYNAMICS_CANDIDATE_METHOD,
+    )
+    datasets = _resolve_datasets(experiment)
+    if len(datasets) != 1:
+        raise ValueError("EBM dynamics adapter requires exactly one dataset")
+    dataset, fixture_path = datasets[0]
 
-    methods = _method_map()
-    for method_id in (BASELINE_METHOD, CANDIDATE_METHOD):
-        descriptor = methods.get(method_id)
-        if descriptor is None:
-            raise ValueError(f"experiment method does not resolve: {method_id}")
-        if descriptor.get("maturity") not in {
-            "runnable", "verified", "validated", "replicated", "decision-eligible"
-        }:
-            raise ValueError(f"experiment method is not runnable: {method_id}")
-    if experiment.get("baseline_methods") != [BASELINE_METHOD]:
-        raise ValueError("EBM runtime requires the registered exact-mode baseline")
-    if experiment.get("candidate_methods") != [CANDIDATE_METHOD]:
-        raise ValueError("EBM runtime requires the registered PyDMD candidate")
-
-    dataset, fixture_path = _resolve_dataset(experiment)
-    resolved_configuration, records = _resolve_configuration(experiment)
     numerical_refs = resolved_configuration.get("numerical_policies", [])
     if len(numerical_refs) != 1:
-        raise ValueError("EBM runtime requires exactly one numerical policy")
-    settings = records[numerical_refs[0]["configuration_id"]]["settings"]
+        raise ValueError("EBM dynamics adapter requires exactly one numerical policy")
+    settings = configuration_records[numerical_refs[0]["configuration_id"]]["settings"]
     dt_years = float(settings["transition_dt_years"])
     if not math.isfinite(dt_years) or dt_years <= 0.0:
         raise ValueError("transition_dt_years must be finite and positive")
 
-    baseline_build = _resolved_method_build(BASELINE_METHOD, methods[BASELINE_METHOD])
-    candidate_build = _resolved_method_build(CANDIDATE_METHOD, methods[CANDIDATE_METHOD])
-    baseline_command = (
-        sys.executable, str(ROOT / "reference" / "two_layer_energy_balance.py"),
-        "--fixture", str(fixture_path), "--json",
+    baseline_build = _resolved_method_build(
+        EBM_BASELINE_METHOD, baseline_descriptor
     )
-    candidate_command = (
-        sys.executable, str(ROOT / "reference" / "two_layer_representation_dynamics.py"),
-        "--fixture", str(fixture_path), "--dt-years", repr(dt_years), "--json",
+    candidate_build = _resolved_method_build(
+        EBM_DYNAMICS_CANDIDATE_METHOD, candidate_descriptor
     )
-    baseline_receipt = _run_process(baseline_command)
-    candidate_receipt = _run_process(candidate_command)
+    baseline_receipt = _run_process(
+        (
+            sys.executable,
+            str(ROOT / "reference" / "two_layer_energy_balance.py"),
+            "--fixture",
+            str(fixture_path),
+            "--json",
+        )
+    )
+    candidate_receipt = _run_process(
+        (
+            sys.executable,
+            str(ROOT / "reference" / "two_layer_representation_dynamics.py"),
+            "--fixture",
+            str(fixture_path),
+            "--dt-years",
+            repr(dt_years),
+            "--json",
+        )
+    )
     baseline_payload = baseline_receipt["payload"]
     candidate_payload = candidate_receipt["payload"]
 
@@ -391,10 +475,14 @@ def run_experiment(
         not math.isclose(left, right, rel_tol=2e-13, abs_tol=2e-13)
         for left, right in zip(expected, observed)
     ):
-        raise RuntimeError("candidate evaluation and exact baseline disagree on control timescales")
+        raise RuntimeError(
+            "candidate evaluation and exact baseline disagree on control timescales"
+        )
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    baseline_bytes = _write_json(output_dir / "baseline-exact-modes.json", baseline_payload)
+    baseline_bytes = _write_json(
+        output_dir / "baseline-exact-modes.json", baseline_payload
+    )
     candidate_bytes = _write_json(
         output_dir / "candidate-representation-dynamics.json", candidate_payload
     )
@@ -410,9 +498,10 @@ def run_experiment(
         "candidate-representation-dynamics.json",
         candidate_bytes,
     )
-    metrics = _derive_metrics(experiment, candidate_payload)
+    metrics = _derive_ebm_dynamics_metrics(experiment, candidate_payload)
     metric_bytes = _write_json(
-        output_dir / "metric-results.json", {"schema_version": 1, "metrics": metrics}
+        output_dir / "metric-results.json",
+        {"schema_version": 1, "metrics": metrics},
     )
     metric_artifact = _artifact_ref(
         "multirepresentation.ebm_dynamics.metric_results",
@@ -421,24 +510,25 @@ def run_experiment(
         metric_bytes,
     )
 
-    baseline_identity = _execution_identity(BASELINE_METHOD, baseline_build, "scipy")
-    candidate_identity = _execution_identity(CANDIDATE_METHOD, candidate_build, "pydmd")
     libraries = {
         "numpy": importlib.metadata.version("numpy"),
         "scipy": importlib.metadata.version("scipy"),
         "pydmd": importlib.metadata.version("pydmd"),
     }
-    seeds = experiment.get("seeds", [])
-    if not isinstance(seeds, list) or not all(isinstance(seed, int) for seed in seeds):
-        raise ValueError("experiment seeds must be an integer list")
-
+    seeds = _validated_seeds(experiment)
+    baseline_identity = _execution_identity(
+        EBM_BASELINE_METHOD, baseline_build, "scipy"
+    )
+    candidate_identity = _execution_identity(
+        EBM_DYNAMICS_CANDIDATE_METHOD, candidate_build, "pydmd"
+    )
     baseline_run = _run_manifest(
-        run_id=f"{run_scope}.{BASELINE_METHOD}",
-        experiment_id=experiment_id,
+        run_id=f"{run_scope}.{EBM_BASELINE_METHOD}",
+        experiment_id=EBM_DYNAMICS_EXPERIMENT,
         revision=repository_revision,
-        method_builds={BASELINE_METHOD: baseline_build},
+        method_builds={EBM_BASELINE_METHOD: baseline_build},
         execution_identity=baseline_identity,
-        dataset_digest=dataset["digest"],
+        dataset_digests=[dataset["digest"]],
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries={"numpy": libraries["numpy"], "scipy": libraries["scipy"]},
@@ -446,12 +536,15 @@ def run_experiment(
         artifacts=[baseline_artifact],
     )
     candidate_run = _run_manifest(
-        run_id=f"{run_scope}.{CANDIDATE_METHOD}",
-        experiment_id=experiment_id,
+        run_id=f"{run_scope}.{EBM_DYNAMICS_CANDIDATE_METHOD}",
+        experiment_id=EBM_DYNAMICS_EXPERIMENT,
         revision=repository_revision,
-        method_builds={BASELINE_METHOD: baseline_build, CANDIDATE_METHOD: candidate_build},
+        method_builds={
+            EBM_BASELINE_METHOD: baseline_build,
+            EBM_DYNAMICS_CANDIDATE_METHOD: candidate_build,
+        },
         execution_identity=candidate_identity,
-        dataset_digest=dataset["digest"],
+        dataset_digests=[dataset["digest"]],
         resolved_configuration=resolved_configuration,
         seeds=seeds,
         libraries=libraries,
@@ -463,7 +556,7 @@ def run_experiment(
 
     outcome = {
         "schema_version": 1,
-        "experiment_id": experiment_id,
+        "experiment_id": EBM_DYNAMICS_EXPERIMENT,
         "runs": [baseline_run, candidate_run],
         "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
         "metrics": metrics,
@@ -472,6 +565,192 @@ def run_experiment(
     _write_json(output_dir / "outcome.json", outcome)
     return outcome
 
+
+def _run_ebm_forcing_adapter(
+    *,
+    experiment: Mapping[str, Any],
+    output_dir: Path,
+    repository_revision: str,
+    run_scope: str,
+    methods: Mapping[str, Mapping[str, Any]],
+    resolved_configuration: Mapping[str, Any],
+) -> dict[str, Any]:
+    baseline_descriptor, candidate_descriptor = _require_methods(
+        experiment,
+        methods,
+        baseline_method=EBM_BASELINE_METHOD,
+        candidate_method=EBM_FORCING_CANDIDATE_METHOD,
+    )
+    datasets = _resolve_datasets(experiment)
+    if len(datasets) != 2:
+        raise ValueError("EBM forcing adapter requires exactly two datasets")
+    by_id = {dataset["id"]: (dataset, path) for dataset, path in datasets}
+    try:
+        base_dataset, ebm_fixture_path = by_id[
+            "physics.two_layer_ebm.geoffroy_mean.v1"
+        ]
+        protocol_dataset, protocol_fixture_path = by_id[
+            "physics.two_layer_ebm.forcing_protocols.v1"
+        ]
+    except KeyError as exc:
+        raise ValueError("EBM forcing adapter datasets do not match registered identities") from exc
+
+    baseline_build = _resolved_method_build(
+        EBM_BASELINE_METHOD, baseline_descriptor
+    )
+    candidate_build = _resolved_method_build(
+        EBM_FORCING_CANDIDATE_METHOD, candidate_descriptor
+    )
+    baseline_receipt = _run_process(
+        (
+            sys.executable,
+            str(ROOT / "reference" / "two_layer_energy_balance.py"),
+            "--fixture",
+            str(ebm_fixture_path),
+            "--json",
+        )
+    )
+    candidate_receipt = _run_process(
+        (
+            sys.executable,
+            str(ROOT / "reference" / "two_layer_forcing_protocols.py"),
+            "--ebm-fixture",
+            str(ebm_fixture_path),
+            "--protocol-fixture",
+            str(protocol_fixture_path),
+            "--json",
+        )
+    )
+    baseline_payload = baseline_receipt["payload"]
+    candidate_payload = candidate_receipt["payload"]
+    if candidate_payload.get("ebm_fixture_id") != baseline_payload.get("fixture_id"):
+        raise RuntimeError("forcing candidate and baseline resolved different EBM fixtures")
+    if float(candidate_payload["held_out_absolute_forcing_margin_w_m2"]) <= 0.0:
+        raise RuntimeError("confirmation forcing domain does not extend discovery domain")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    baseline_bytes = _write_json(
+        output_dir / "baseline-exact-modes.json", baseline_payload
+    )
+    candidate_bytes = _write_json(
+        output_dir / "candidate-forcing-protocols.json", candidate_payload
+    )
+    baseline_artifact = _artifact_ref(
+        "physics.two_layer_ebm.forcing_protocols.baseline",
+        "thermal_decay_timescales/v1",
+        "baseline-exact-modes.json",
+        baseline_bytes,
+    )
+    candidate_artifact = _artifact_ref(
+        "physics.two_layer_ebm.forcing_protocols.responses",
+        "two_layer_forcing_response/v1",
+        "candidate-forcing-protocols.json",
+        candidate_bytes,
+    )
+    metrics = _derive_forcing_metrics(experiment, candidate_payload)
+    metric_bytes = _write_json(
+        output_dir / "metric-results.json",
+        {"schema_version": 1, "metrics": metrics},
+    )
+    metric_artifact = _artifact_ref(
+        "physics.two_layer_ebm.forcing_protocols.metric_results",
+        "metric_results/v1",
+        "metric-results.json",
+        metric_bytes,
+    )
+
+    libraries = {
+        "numpy": importlib.metadata.version("numpy"),
+        "scipy": importlib.metadata.version("scipy"),
+    }
+    seeds = _validated_seeds(experiment)
+    baseline_identity = _execution_identity(
+        EBM_BASELINE_METHOD, baseline_build, "scipy"
+    )
+    candidate_identity = _execution_identity(
+        EBM_FORCING_CANDIDATE_METHOD, candidate_build, "scipy"
+    )
+    baseline_run = _run_manifest(
+        run_id=f"{run_scope}.{EBM_BASELINE_METHOD}",
+        experiment_id=EBM_FORCING_EXPERIMENT,
+        revision=repository_revision,
+        method_builds={EBM_BASELINE_METHOD: baseline_build},
+        execution_identity=baseline_identity,
+        dataset_digests=[base_dataset["digest"]],
+        resolved_configuration=resolved_configuration,
+        seeds=seeds,
+        libraries=libraries,
+        receipt=baseline_receipt,
+        artifacts=[baseline_artifact],
+    )
+    candidate_run = _run_manifest(
+        run_id=f"{run_scope}.{EBM_FORCING_CANDIDATE_METHOD}",
+        experiment_id=EBM_FORCING_EXPERIMENT,
+        revision=repository_revision,
+        method_builds={
+            EBM_BASELINE_METHOD: baseline_build,
+            EBM_FORCING_CANDIDATE_METHOD: candidate_build,
+        },
+        execution_identity=candidate_identity,
+        dataset_digests=[base_dataset["digest"], protocol_dataset["digest"]],
+        resolved_configuration=resolved_configuration,
+        seeds=seeds,
+        libraries=libraries,
+        receipt=candidate_receipt,
+        artifacts=[candidate_artifact, metric_artifact],
+    )
+    _write_json(output_dir / "run-baseline.json", baseline_run)
+    _write_json(output_dir / "run-candidate.json", candidate_run)
+
+    outcome = {
+        "schema_version": 1,
+        "experiment_id": EBM_FORCING_EXPERIMENT,
+        "runs": [baseline_run, candidate_run],
+        "artifacts": [baseline_artifact, candidate_artifact, metric_artifact],
+        "metrics": metrics,
+        "evidence": [],
+    }
+    _write_json(output_dir / "outcome.json", outcome)
+    return outcome
+
+
+def run_experiment(
+    *,
+    experiment_path: Path,
+    output_dir: Path,
+    repository_revision: str,
+    run_scope: str,
+) -> dict[str, Any]:
+    experiment = _load_json(experiment_path)
+    experiment_id = experiment.get("experiment_id")
+    if not repository_revision.strip() or not run_scope.strip():
+        raise ValueError("repository_revision and run_scope must be explicit")
+
+    methods = _method_map()
+    resolved_configuration, configuration_records = _resolve_configuration(experiment)
+    if experiment_id == EBM_DYNAMICS_EXPERIMENT:
+        return _run_ebm_dynamics_adapter(
+            experiment=experiment,
+            output_dir=output_dir,
+            repository_revision=repository_revision,
+            run_scope=run_scope,
+            methods=methods,
+            resolved_configuration=resolved_configuration,
+            configuration_records=configuration_records,
+        )
+    if experiment_id == EBM_FORCING_EXPERIMENT:
+        return _run_ebm_forcing_adapter(
+            experiment=experiment,
+            output_dir=output_dir,
+            repository_revision=repository_revision,
+            run_scope=run_scope,
+            methods=methods,
+            resolved_configuration=resolved_configuration,
+        )
+    raise ValueError(
+        "no local CPU adapter for experiment "
+        f"{experiment_id!r}; supported: {EBM_DYNAMICS_EXPERIMENT}, {EBM_FORCING_EXPERIMENT}"
+    )
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="run a registered Climate CPU experiment")

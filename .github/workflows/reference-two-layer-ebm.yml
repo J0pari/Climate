@@ -4,8 +4,11 @@ on:
   push:
     paths:
       - 'reference/two_layer_energy_balance.py'
+      - 'reference/two_layer_forcing_protocols.py'
       - 'tests/reference/test_two_layer_energy_balance.py'
+      - 'tests/reference/test_two_layer_forcing_protocols.py'
       - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
+      - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
       - 'requirements/reference-two-layer-ebm.txt'
       - '.github/workflows/reference-two-layer-ebm.yml'
       - 'architecture/modules/reference.json'
@@ -35,6 +38,10 @@ jobs:
       - name: Record resolved numerical environment
         run: python -m pip freeze
       - name: Run two-layer energy-balance witnesses
-        run: python -m unittest tests.reference.test_two_layer_energy_balance -v
-      - name: Emit reference summary
-        run: python reference/two_layer_energy_balance.py --json
+        run: |
+          python -m unittest tests.reference.test_two_layer_energy_balance -v
+          python -m unittest tests.reference.test_two_layer_forcing_protocols -v
+      - name: Emit reference summaries
+        run: |
+          python reference/two_layer_energy_balance.py --json
+          python reference/two_layer_forcing_protocols.py --json

@@ -2,25 +2,29 @@
   "schema_version": 2,
   "methods": [
     {
-      "method_id": "geometry.reference.cpu_v1",
+      "method_id": "dynamics.dmd.pydmd_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",
-      "hypothesis_family": "geometry_verification_reference",
+      "hypothesis_family": "representation_dynamical_observability",
       "input_contracts": [
-        "analytic_metric_fixture/v1"
+        "paired_state_transition_samples/v1"
       ],
       "output_contracts": [
-        "geometry_diagnostics/v1"
+        "dmd_eigenvalues/v1",
+        "thermal_decay_timescales/v1",
+        "representation_conditioning/v1"
       ],
       "assumptions": [
-        "fixture metric and coordinate conventions are explicit",
-        "FP64 is the default reference precision",
-        "no climate interpretation is produced"
+        "paired sample matrices contain the same physical realizations before and after one declared time interval",
+        "DMD rank is declared from the intended resolved state dimension rather than selected using the exact target timescales",
+        "the exact EBM modal oracle is withheld from fitting and used only for evaluation",
+        "PyDMD 2025.8.1 owns generic DMD implementation semantics while Climate owns the representation maps and physical interpretation"
       ],
       "known_limitations": [
-        "the registered CPU implementation is the canonical Rust MetricJet/Levi-Civita path; independent symbolic verification remains a separate reference authority",
-        "metric construction and derivative generation remain caller-owned and are not supplied by this method",
-        "intended for correctness/reference-scale execution rather than climate-scale throughput"
+        "current witnesses use noiseless linear dynamics with deliberately sampled state pairs",
+        "a representation cannot recover more independent modes than its observable rank",
+        "redundant concatenation can preserve eigenvalues while producing severe rank deficiency and conditioning problems",
+        "DMD agreement with a reference generator is a dynamics witness, not evidence that the representation is scientifically sufficient for real climate data"
       ],
       "resource": {
         "cpu_cores": 2,
@@ -29,11 +33,14 @@
         "network": "none",
         "max_seconds": 600
       },
-      "reference_methods": [],
+      "reference_methods": [
+        "physics.two_layer_ebm.exact_modes_v1"
+      ],
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
-          "src/geometry.rs"
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_representation_dynamics.py"
         ]
       }
     },
@@ -91,28 +98,25 @@
       ]
     },
     {
-      "method_id": "multirepresentation.jsf.datafold_v1",
+      "method_id": "geometry.reference.cpu_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",
-      "hypothesis_family": "nonlinear_common_manifold_reference",
+      "hypothesis_family": "geometry_verification_reference",
       "input_contracts": [
-        "paired_multirepresentation_fixture/v1"
+        "analytic_metric_fixture/v1"
       ],
       "output_contracts": [
-        "common_coordinate/v1",
-        "multirepresentation_diagnostics/v1"
+        "geometry_diagnostics/v1"
       ],
       "assumptions": [
-        "paired rows across views refer to the same latent realization",
-        "each view is standardized independently before kernel construction",
-        "the first nonconstant jointly smooth function is the candidate common coordinate for this fixture",
-        "datafold 2.0.2 owns the jointly smooth functions algorithm; Climate owns the fixture semantics and evaluation"
+        "fixture metric and coordinate conventions are explicit",
+        "FP64 is the default reference precision",
+        "no climate interpretation is produced"
       ],
       "known_limitations": [
-        "verified only as runnable on one deterministic synthetic common-coordinate fixture",
-        "does not establish product, fibered, stratified, local-atlas, or climate-data geometry",
-        "kernel and spectral hyperparameters are fixture-specific reference settings rather than a universal selection policy",
-        "successful common-coordinate recovery is not evidence that real climate views share one common manifold"
+        "the registered CPU implementation is the canonical Rust MetricJet/Levi-Civita path; independent symbolic verification remains a separate reference authority",
+        "metric construction and derivative generation remain caller-owned and are not supplied by this method",
+        "intended for correctness/reference-scale execution rather than climate-scale throughput"
       ],
       "resource": {
         "cpu_cores": 2,
@@ -121,15 +125,48 @@
         "network": "none",
         "max_seconds": 600
       },
-      "reference_methods": [
-        "multirepresentation.concat_pca.sklearn_v1",
-        "multirepresentation.linear_cca.sklearn_v1",
-        "multirepresentation.concat_spectral.sklearn_v1"
-      ],
+      "reference_methods": [],
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
-          "reference/multirepresentation_common.py"
+          "src/geometry.rs"
+        ]
+      }
+    },
+    {
+      "method_id": "graph.scalar_laplacian_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "scalar_graph_structural_baseline",
+      "input_contracts": [
+        "scalar_graph/v1",
+        "vertex_signal/v1"
+      ],
+      "output_contracts": [
+        "graph_laplacian/v1",
+        "compatibility_energy/v1"
+      ],
+      "assumptions": [
+        "rank-one vertex and edge spaces use identity endpoint restrictions",
+        "edge orientation is representational and must not change the graph Laplacian",
+        "no climate interpretation is produced"
+      ],
+      "known_limitations": [
+        "cannot represent non-identity or dimension-changing restriction maps",
+        "serves as the exact collapse case rather than a climate-data baseline"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "tests/sheaf_ablation.rs"
         ]
       }
     },
@@ -154,43 +191,6 @@
         "linear variance-maximizing baseline only",
         "concatenation gives all standardized observed coordinates one Euclidean feature space",
         "not a common-manifold method"
-      ],
-      "resource": {
-        "cpu_cores": 1,
-        "memory_bytes": 1073741824,
-        "gpu_count": 0,
-        "network": "none",
-        "max_seconds": 120
-      },
-      "reference_methods": [],
-      "build_identity": {
-        "policy": "source_digest_at_run",
-        "sources": [
-          "reference/multirepresentation_common.py"
-        ]
-      }
-    },
-    {
-      "method_id": "multirepresentation.linear_cca.sklearn_v1",
-      "semantic_version": "0.1.0",
-      "maturity": "runnable",
-      "hypothesis_family": "linear_multiview_correlation_baseline",
-      "input_contracts": [
-        "paired_multirepresentation_fixture/v1"
-      ],
-      "output_contracts": [
-        "common_coordinate/v1",
-        "multirepresentation_diagnostics/v1"
-      ],
-      "assumptions": [
-        "paired rows across views refer to the same latent realization",
-        "views are standardized before CCA and the aligned first canonical scores are averaged",
-        "scikit-learn 1.2.2 owns CCA implementation semantics"
-      ],
-      "known_limitations": [
-        "linear shared-subspace baseline only",
-        "one canonical component is evaluated",
-        "does not model nonlinear common geometry"
       ],
       "resource": {
         "cpu_cores": 1,
@@ -245,6 +245,130 @@
       }
     },
     {
+      "method_id": "multirepresentation.jsf.datafold_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "nonlinear_common_manifold_reference",
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1"
+      ],
+      "output_contracts": [
+        "common_coordinate/v1",
+        "multirepresentation_diagnostics/v1"
+      ],
+      "assumptions": [
+        "paired rows across views refer to the same latent realization",
+        "each view is standardized independently before kernel construction",
+        "the first nonconstant jointly smooth function is the candidate common coordinate for this fixture",
+        "datafold 2.0.2 owns the jointly smooth functions algorithm; Climate owns the fixture semantics and evaluation"
+      ],
+      "known_limitations": [
+        "verified only as runnable on one deterministic synthetic common-coordinate fixture",
+        "does not establish product, fibered, stratified, local-atlas, or climate-data geometry",
+        "kernel and spectral hyperparameters are fixture-specific reference settings rather than a universal selection policy",
+        "successful common-coordinate recovery is not evidence that real climate views share one common manifold"
+      ],
+      "resource": {
+        "cpu_cores": 2,
+        "memory_bytes": 2147483648,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 600
+      },
+      "reference_methods": [
+        "multirepresentation.concat_pca.sklearn_v1",
+        "multirepresentation.linear_cca.sklearn_v1",
+        "multirepresentation.concat_spectral.sklearn_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_common.py"
+        ]
+      }
+    },
+    {
+      "method_id": "multirepresentation.linear_cca.sklearn_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "linear_multiview_correlation_baseline",
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1"
+      ],
+      "output_contracts": [
+        "common_coordinate/v1",
+        "multirepresentation_diagnostics/v1"
+      ],
+      "assumptions": [
+        "paired rows across views refer to the same latent realization",
+        "views are standardized before CCA and the aligned first canonical scores are averaged",
+        "scikit-learn 1.2.2 owns CCA implementation semantics"
+      ],
+      "known_limitations": [
+        "linear shared-subspace baseline only",
+        "one canonical component is evaluated",
+        "does not model nonlinear common geometry"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_common.py"
+        ]
+      }
+    },
+    {
+      "method_id": "physics.two_layer_ebm.affine_forcing_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "exact_two_layer_forcing_protocol_reference",
+      "input_contracts": [
+        "two_layer_ebm_fixture/v1",
+        "two_layer_forcing_protocols/v1"
+      ],
+      "output_contracts": [
+        "two_layer_forcing_response/v1",
+        "two_layer_energy_budget/v1",
+        "forcing_domain_partition/v1"
+      ],
+      "assumptions": [
+        "the declared two-layer EBM remains linear and time invariant over each benchmark run",
+        "forcing is piecewise affine in time with instantaneous forcing jumps permitted only at segment boundaries while physical state remains continuous",
+        "the exact augmented matrix exponential owns segment propagation; no numerical time-step approximation is introduced",
+        "discovery and confirmation forcing domains are benchmark partitions for later fitted methods and do not imply the exact reference is trained"
+      ],
+      "known_limitations": [
+        "the forcing protocols are synthetic structural controls rather than historical or scenario-calibrated radiative forcing",
+        "the two-layer model omits state-dependent feedback, stochastic internal variability, spatial structure, carbon-cycle response, and forcing efficacy",
+        "successful exact propagation does not establish out-of-distribution skill for any fitted representation or emulator",
+        "future candidates must be fit only on declared discovery inputs before confirmation forcing protocols can support a generalization result"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "physics.two_layer_ebm.exact_modes_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/two_layer_energy_balance.py",
+          "reference/two_layer_forcing_protocols.py"
+        ]
+      }
+    },
+    {
       "method_id": "physics.two_layer_ebm.exact_modes_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",
@@ -282,45 +406,39 @@
       }
     },
     {
-      "method_id": "dynamics.dmd.pydmd_v1",
+      "method_id": "sheaf.real.local_residual_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",
-      "hypothesis_family": "representation_dynamical_observability",
+      "hypothesis_family": "finite_sheaf_local_residual_baseline",
       "input_contracts": [
-        "paired_state_transition_samples/v1"
+        "finite_real_cellular_sheaf/v1",
+        "local_section/v1"
       ],
       "output_contracts": [
-        "dmd_eigenvalues/v1",
-        "thermal_decay_timescales/v1",
-        "representation_conditioning/v1"
+        "edge_residuals/v1",
+        "compatibility_energy/v1"
       ],
       "assumptions": [
-        "paired sample matrices contain the same physical realizations before and after one declared time interval",
-        "DMD rank is declared from the intended resolved state dimension rather than selected using the exact target timescales",
-        "the exact EBM modal oracle is withheld from fitting and used only for evaluation",
-        "PyDMD 2025.8.1 owns generic DMD implementation semantics while Climate owns the representation maps and physical interpretation"
+        "uses exactly the same endpoint restriction matrices as the spectral candidate",
+        "computes edge-local residuals independently of the assembled global coboundary",
+        "no spectral aggregation or climate interpretation is used"
       ],
       "known_limitations": [
-        "current witnesses use noiseless linear dynamics with deliberately sampled state pairs",
-        "a representation cannot recover more independent modes than its observable rank",
-        "redundant concatenation can preserve eigenvalues while producing severe rank deficiency and conditioning problems",
-        "DMD agreement with a reference generator is a dynamics witness, not evidence that the representation is scientifically sufficient for real climate data"
+        "local residuals do not characterize global nullspace or spectral gap structure",
+        "synthetic structural baseline only"
       ],
       "resource": {
-        "cpu_cores": 2,
-        "memory_bytes": 2147483648,
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
         "gpu_count": 0,
         "network": "none",
-        "max_seconds": 600
+        "max_seconds": 120
       },
-      "reference_methods": [
-        "physics.two_layer_ebm.exact_modes_v1"
-      ],
+      "reference_methods": [],
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
-          "reference/two_layer_energy_balance.py",
-          "reference/two_layer_representation_dynamics.py"
+          "tests/sheaf_ablation.rs"
         ]
       }
     },
@@ -363,80 +481,6 @@
         "policy": "source_digest_at_run",
         "sources": [
           "src/sheaf.rs"
-        ]
-      }
-    },
-    {
-      "method_id": "sheaf.real.local_residual_v1",
-      "semantic_version": "0.1.0",
-      "maturity": "runnable",
-      "hypothesis_family": "finite_sheaf_local_residual_baseline",
-      "input_contracts": [
-        "finite_real_cellular_sheaf/v1",
-        "local_section/v1"
-      ],
-      "output_contracts": [
-        "edge_residuals/v1",
-        "compatibility_energy/v1"
-      ],
-      "assumptions": [
-        "uses exactly the same endpoint restriction matrices as the spectral candidate",
-        "computes edge-local residuals independently of the assembled global coboundary",
-        "no spectral aggregation or climate interpretation is used"
-      ],
-      "known_limitations": [
-        "local residuals do not characterize global nullspace or spectral gap structure",
-        "synthetic structural baseline only"
-      ],
-      "resource": {
-        "cpu_cores": 1,
-        "memory_bytes": 536870912,
-        "gpu_count": 0,
-        "network": "none",
-        "max_seconds": 120
-      },
-      "reference_methods": [],
-      "build_identity": {
-        "policy": "source_digest_at_run",
-        "sources": [
-          "tests/sheaf_ablation.rs"
-        ]
-      }
-    },
-    {
-      "method_id": "graph.scalar_laplacian_v1",
-      "semantic_version": "0.1.0",
-      "maturity": "runnable",
-      "hypothesis_family": "scalar_graph_structural_baseline",
-      "input_contracts": [
-        "scalar_graph/v1",
-        "vertex_signal/v1"
-      ],
-      "output_contracts": [
-        "graph_laplacian/v1",
-        "compatibility_energy/v1"
-      ],
-      "assumptions": [
-        "rank-one vertex and edge spaces use identity endpoint restrictions",
-        "edge orientation is representational and must not change the graph Laplacian",
-        "no climate interpretation is produced"
-      ],
-      "known_limitations": [
-        "cannot represent non-identity or dimension-changing restriction maps",
-        "serves as the exact collapse case rather than a climate-data baseline"
-      ],
-      "resource": {
-        "cpu_cores": 1,
-        "memory_bytes": 536870912,
-        "gpu_count": 0,
-        "network": "none",
-        "max_seconds": 120
-      },
-      "reference_methods": [],
-      "build_identity": {
-        "policy": "source_digest_at_run",
-        "sources": [
-          "tests/sheaf_ablation.rs"
         ]
       }
     }

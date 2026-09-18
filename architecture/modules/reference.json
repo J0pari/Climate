@@ -199,6 +199,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/two_layer_forcing_protocols.py",
+      "family": "reference_two_layer_forcing_protocols",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "exact piecewise-affine forcing reference for the linear two-layer EBM, using an augmented matrix exponential so held, ramped, overshoot, reversal, and sign-reversal forcing share one propagation path with immutable discovery/confirmation forcing domains for later OOD tests",
+      "known_gaps": [
+        "the forcing histories are synthetic benchmark interventions rather than historical or scenario-calibrated radiative forcing",
+        "the exact reference is not trained and therefore does not itself establish out-of-distribution generalization",
+        "the underlying two-layer EBM remains linear, global-mean, deterministic, and spatially unresolved",
+        "stochastic internal variability, state-dependent feedback, carbon-cycle coupling, and forcing efficacy require later benchmark rungs rather than hidden changes to this fixture"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/two_layer_observation_design.py",
       "family": "reference_two_layer_observation_design",
       "language": "python",
