@@ -792,7 +792,7 @@
     {
       "id": "experimentation.runtime_protocol_decomposition",
       "title": "Decompose experiment runtime into composable execution protocols",
-      "status": "active",
+      "status": "done",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
       "summary": "After one complete claim/evidence vertical slice exposes the stable seams, separate generic experiment resolution, method execution, receipt materialization, and metric/evaluator protocols from experiment-family logic so new experiments become primarily declarative without hiding scientific semantics in a universal plugin framework.",
@@ -804,6 +804,12 @@
         "Family-specific scientific evaluation remains explicit, narrow, and independently testable rather than being folded into generic orchestration.",
         "Adding a structurally similar experiment requires declarative identities/configuration plus a small evaluator registration rather than a 150-200 line duplicated adapter.",
         "Existing EBM outcomes and receipts remain byte/semantic compatible where the contract does not intentionally version."
+      ],
+      "evidence": [
+        "src/experiment_runtime.py",
+        "tests/test_experiment_runtime.py",
+        ".github/workflows/experiment-ebm-runtime.yml",
+        "contracts/climate.cue"
       ]
     },
     {

@@ -7,10 +7,10 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 
 ## Planning summary
 
-- Active: 3
+- Active: 2
 - Ready: 15
 - Blocked: 9
-- Done: 14
+- Done: 15
 - Dropped: 0
 
 ## Graph projection
@@ -18,7 +18,6 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
-| `experimentation.runtime_protocol_decomposition` — Decompose experiment runtime into composable execution protocols | `active` | `P1` | `R2_toolchain_ci` | `experimentation.claim_evidence_vertical_slice` |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
@@ -57,6 +56,7 @@ Objective realized state is owned by the module, claim, experiment, hazard, and 
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `physics.streaming_budget_accounting` — Compose physical kernels through a streaming budget ledger | `done` | `P0` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 | `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
+| `experimentation.runtime_protocol_decomposition` — Decompose experiment runtime into composable execution protocols | `done` | `P1` | `R2_toolchain_ci` | `experimentation.claim_evidence_vertical_slice` |
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 
 Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.
