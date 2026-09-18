@@ -170,7 +170,10 @@ python architecture/check_durable_text.py
 python architecture/check_root_layout.py
 python architecture/source_gates.py --summary
 python architecture/inspect_repository.py --json
+python architecture/impact.py <repository-relative-path> --json
 ```
+
+`architecture/impact.py` is a derived reverse-reference view, not a new authority or a completion gate. Use it before semantically broad edits to expose existing machine-authority, workflow, test, generated-projection, and durable-contract references to the paths being changed; absence from the report does not prove independence because semantic and runtime coupling need not contain a literal path string.
 
 The integrity checks are binding. A source-gate summary may be used as an audit surface without implying that every compatibility/source-debt class is clean. `python architecture/source_gates.py --strict` becomes binding only for defect classes explicitly adopted into the strict policy. Do not make a broad allowlist permanent merely to turn CI green; either repair the source, narrow the gate to the intended semantic boundary, or record a temporary exception with rationale and expiry.
 
