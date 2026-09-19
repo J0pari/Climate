@@ -62,7 +62,6 @@ class DataAuthorityTests(unittest.TestCase):
                     "disposition": "externalize",
                     "source_ids": ["provider.dataset.v1"],
                     "authority_boundary": "observation_authority",
-                    "acquisition_owner": "external_native_capture",
                     "witness_path": "tests/authority_witness.py",
                     "witness_anchor": "test_exact_authority_identity",
                     "rationale": "measured temperature belongs to the provider",
@@ -170,24 +169,6 @@ class DataAuthorityTests(unittest.TestCase):
             codes = {item.code for item in check_data_authorities.check(root, registry)}
             self.assertIn("data_authority.current_external_boundary_missing", codes)
 
-
-    def test_current_external_usage_requires_external_capture_owner(self):
-        temporary, root, registry = self._root_and_registry()
-        with temporary:
-            del registry["usages"][0]["acquisition_owner"]
-            codes = {item.code for item in check_data_authorities.check(root, registry)}
-            self.assertIn("data_authority.current_external_acquisition_owner", codes)
-
-    def test_current_external_usage_rejects_live_http_acquisition(self):
-        temporary, root, registry = self._root_and_registry()
-        with temporary:
-            (root / "src" / "example.txt").write_text(
-                "observed_temperature\nobservation_authority\n"
-                "import requests\nrequests.get('https://example.test/data')\n",
-                encoding="utf-8",
-            )
-            codes = {item.code for item in check_data_authorities.check(root, registry)}
-            self.assertIn("data_authority.external_live_acquisition", codes)
     def test_current_external_usage_rejects_default_or_fallback_constructors(self):
         temporary, root, registry = self._root_and_registry()
         with temporary:

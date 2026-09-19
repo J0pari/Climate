@@ -1,18 +1,19 @@
-"""Provider-specific parser for captured NOAA@NSIDC Sea Ice Index monthly CSV files.
+"""Narrow reference adapter for NOAA@NSIDC Sea Ice Index monthly CSV files.
 
-The provider publishes one extent/area CSV per hemisphere and month. Climate
-retains the versioned URL/schema and parsing semantics only; acquisition is
-externally owned and evidence consumes an already captured immutable artifact.
-The parser does not infer missing months, smooth the time series, or reinterpret
-sea-ice extent as concentration or area.
+The provider publishes one extent/area CSV per hemisphere and month. This
+adapter preserves that file as the retrieval artifact, validates its Version 4
+schema, and records a content digest. It does not infer missing months, smooth
+the time series, or reinterpret sea-ice extent as concentration or area.
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import hashlib
 import io
 import json
 from dataclasses import dataclass
+from pathlib import Path
 
 SOURCE_ID = "nsidc.sea_ice_index.v4"
 BASE_URL = "https://noaadata.apps.nsidc.org/NOAA/G02135"
@@ -96,3 +97,44 @@ def parse_monthly_extent_csv(payload: bytes, *, source_url: str) -> MonthlyExten
         byte_count=len(payload),
         records=tuple(records),
     )
+
+
+def fetch_monthly_extent(
+    hemisphere: str,
+    month: int,
+    *,
+    timeout_seconds: float = 30.0,
+) -> tuple[bytes, MonthlyExtentPayload]:
+    """Download one published Sea Ice Index monthly CSV without substitution."""
+    import requests
+
+    source_url = monthly_extent_url(hemisphere, month)
+    response = requests.get(source_url, timeout=timeout_seconds)
+    response.raise_for_status()
+    raw = response.content
+    parsed = parse_monthly_extent_csv(raw, source_url=source_url)
+    return raw, parsed
+
+
+def _main() -> int:
+    parser = argparse.ArgumentParser(description="download one NSIDC Sea Ice Index monthly CSV")
+    parser.add_argument("--hemisphere", choices=("N", "S"), required=True)
+    parser.add_argument("--month", type=int, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+
+    raw, parsed = fetch_monthly_extent(args.hemisphere, args.month)
+    args.output.write_bytes(raw)
+    print(json.dumps({
+        "source_id": SOURCE_ID,
+        "source_url": parsed.source_url,
+        "sha256": parsed.sha256,
+        "byte_count": parsed.byte_count,
+        "record_count": len(parsed.records),
+        "output": str(args.output),
+    }, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_main())

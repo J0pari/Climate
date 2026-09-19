@@ -195,7 +195,7 @@
     {
       "id": "diagnostics.feedback_observation_benchmarks",
       "title": "Ground feedback diagnostics in explicit observations and process definitions",
-      "status": "blocked",
+      "status": "ready",
       "priority": "P1",
       "resource_class": "R5_large_data",
       "summary": "Ground feedback diagnostics in explicit observations and process definitions. Trajectory/secant diagnostics remain path-dependent numerical quantities unless an experiment identifies a causal or partial feedback derivative through controlled variables, explicit radiative fields, provenance, uncertainty, and competing process explanations.",
@@ -237,12 +237,12 @@
       "status": "done",
       "priority": "P0",
       "resource_class": "R1_portable_cpu",
-      "summary": "Audit climate-facing external data assumptions so provider-owned information enters through immutable externally captured artifacts or native data/evaluation systems, while Climate retains only provider-specific parsing, scientific semantics, and explicit local constants/policy.",
+      "summary": "Audit canonical data, values, empirical assumptions, thresholds, coefficient tables, climatologies, and metadata so externally owned information comes from authoritative downloaded datasets or versioned APIs, while true reference constants, numerical policy, experiment policy, and caller-owned model parameters remain explicitly local.",
       "depends_on": [],
       "completion": [
         "Canonical and experiment-facing hardcoded climate data, empirical constants, thresholds, coefficient tables, climatologies, geographic or station metadata, and other externally owned assumptions are inventoried with usage sites and ownership class.",
         "Each externally owned item is bound to a primary authoritative dataset or API, or explicitly rejected with rationale; retrieval identity, version or time coverage, units, licensing or access constraints, and update semantics are recorded.",
-        "At least one externally captured immutable dataset artifact and one API-addressed provider artifact are exercised through parser/import boundaries with source identity and digest; generic network transfer is not a Climate capability.",
+        "At least one downloaded immutable dataset path and one live or versioned API path are exercised through provenance-preserving adapters with network-free CI fixtures.",
         "Values that remain local are justified as mathematical or reference constants, numerical policy, experiment policy, or caller-owned model parameters rather than silently acting as observational truth.",
         "A usage marked current and externalized names a concrete implementation authority boundary, names an executable repository witness for that boundary, and cannot coexist with implicit Default/fallback constructors on that surface.",
         "Configuration records claiming literature-fixed, calibrated, or learned provenance resolve their authority references to the registered source authority rather than relying on provenance labels alone."
@@ -256,30 +256,38 @@
         "fixtures/data_authorities/ncei-ghcnd-USW00094728-2024-01-01-to-2024-01-03.json",
         "fixtures/data_authorities/nsidc-G02135-v4-N-september.csv",
         "tests/reference/test_data_authority_adapters.py",
+        ".github/workflows/data-authority-live-smoke.yml",
         ".github/workflows/architecture.yml",
         "architecture/check_semantic_defaults.py",
         "tests/architecture/test_semantic_defaults.py",
         "architecture/check_configurations.py",
-        "tests/architecture/test_configurations.py"
+        "tests/architecture/test_configurations.py",
+        "tests/reference/test_ncei_ghcnd_projection.py"
       ]
     },
     {
       "id": "data.immutable_observational_projection",
-      "title": "Bind one immutable observational projection from a native data/evaluation system",
-      "status": "blocked",
+      "title": "Create one immutable observational or reanalysis projection",
+      "status": "done",
       "priority": "P0",
-      "resource_class": "R4_integrated_system",
-      "summary": "Import one immutable observational/reanalysis projection produced by an externally owned native data/evaluation capability, preserving exact source selection, preprocessing/transformation identity, units, QC, missingness, and receipt semantics without rebuilding a Climate-local generic CF/regridding/serialization pipeline.",
-      "depends_on": [],
-      "completion": [
-        "One real observational or reanalysis artifact is selected and transformed through a maintained external-native data/evaluation system whose version and configuration are bound.",
-        "Source dataset/version, variable/time/space selection, preprocessing/regridding/aggregation recipe, native receipt, and resulting artifact digest are immutable inputs to Climate.",
-        "Climate imports the resulting artifact through DatasetRef/ArtifactRef/run provenance without re-executing equivalent generic preprocessing locally.",
-        "Units, calendar/time semantics, QC/source flags, missingness, and scientifically material transformations remain inspectable at the Climate boundary.",
-        "No Climate-local generic download, CMORization, regridding, CF serialization, or dataset-catalog implementation is introduced to satisfy the obligation."
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Build a narrow CF-aware data projection with explicit retrieval identity, QC, missingness, transformation lineage, coordinates, units, and content digests before expanding acquisition breadth.",
+      "depends_on": [
+        "data.external_authority_audit",
+        "state.typed_physical_state"
       ],
-      "blockers": [
-        "No real Climate-REF/ESMValCore/AQUA or equivalent native projection is yet connected to Climate with an immutable source/selection/transformation receipt; the former local single-station CF/netCDF projection was removed because it shadowed generic preprocessing/output capabilities."
+      "completion": [
+        "One real dataset projection is reproducible from immutable source identity through preprocessing to experiment input.",
+        "Missing observations are never silently replaced by climatology or defaults in validation paths.",
+        "A compact network-free fixture exercises the same schema and transformation semantics in CI."
+      ],
+      "evidence": [
+        "fixtures/data_authorities/ncei-ghcnd-USW00094728-2024-01-01-to-2024-01-03.json",
+        "reference/ncei_ghcnd.py",
+        "reference/ncei_ghcnd_projection.py",
+        "tests/reference/test_ncei_ghcnd_projection.py",
+        ".github/workflows/reference-data-projection.yml",
+        "architecture/modules/reference.json"
       ]
     },
     {
@@ -409,7 +417,8 @@
       "resource_class": "R2_toolchain_ci",
       "summary": "Build climate-data sheaf semantics on the actual production path: provider-neutral station identity and chunked observations, global geodesic locality, sparse/matrix-free restrictions and cochains, deterministic partition ownership, and scalable gluing/nullspace operations. Tiny fixtures exercise this path but cannot substitute for it.",
       "depends_on": [
-        "data.external_authority_audit"
+        "data.external_authority_audit",
+        "data.immutable_observational_projection"
       ],
       "completion": [
         "Provider-backed fixtures enter the same provider-neutral StationCatalog and StationSection contracts intended for large station networks.",
@@ -478,7 +487,7 @@
     {
       "id": "experimental.scenario_feasibility_adapter",
       "title": "Separate climate feasibility from modal truth",
-      "status": "blocked",
+      "status": "ready",
       "priority": "P2",
       "resource_class": "R2_toolchain_ci",
       "summary": "Construct climate-specific worlds, propositions, and accessibility relations through an explicit adapter while keeping canonical Kripke satisfaction semantics independent of heuristic plausibility scores.",
@@ -545,7 +554,7 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R5_large_data",
-      "summary": "Federate freely accessible worldwide station observations from externally captured provider artifacts, retaining stable provider/canonical identity, revision history, quality flags, units, location history, and explicit cross-provider alias lineage while leaving generic network transfer/storage-service machinery to external native systems.",
+      "summary": "Build an extensible station-data federation whose target population is every station worldwide that can be lawfully and reproducibly accessed without paid data access, while retaining provider identity, revision history, quality flags, units, location history, and explicit cross-provider alias/deduplication lineage.",
       "depends_on": [
         "data.external_authority_audit"
       ],
@@ -553,7 +562,7 @@
         "Provider discovery and registration is extensible and records access, licensing, update, and revision semantics rather than embedding a closed hand-selected station list.",
         "Every ingested station has a stable canonical identity plus provider aliases and location/history metadata; cross-provider deduplication is explicit and reversible rather than proximity-only guessing.",
         "Observation storage is immutable/versioned and partitioned by bounded dimensions such as provider, time, variable, and spatial shard so no workflow requires all stations or all times in memory.",
-        "Incremental import of externally captured provider artifacts is idempotent and resumable at Climate's parser/publication boundary, records source revisions or tombstones and artifact digests, and preserves provider quality/source flags without silent imputation.",
+        "Incremental ingestion is idempotent and resumable, records source revisions or tombstones and artifact digests, and preserves provider quality/source flags without silent imputation.",
         "Coverage manifests expose station, variable, temporal, geographic, and provider availability so gaps are observable rather than hidden by defaults.",
         "Additional freely accessible station authorities can enter without changing canonical sheaf topology/operator interfaces or adding provider-specific branches to numerical kernels."
       ],
@@ -822,7 +831,7 @@
     {
       "id": "sheaf.observation_uncertainty_compatibility",
       "title": "Define uncertainty-aware sheaf observation compatibility",
-      "status": "blocked",
+      "status": "ready",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
       "summary": "Keep exact global-section/restriction equality as the algebraic reference control while introducing a distinct observation-uncertainty method for noisy station data with explicit units, covariance/weights, residual semantics, and falsifiable interpretation rather than silent floating tolerances.",
@@ -895,13 +904,7 @@
         "architecture/commons_interface.json",
         "evaluations/external-training-artifact-climate-contract-reasoning.v1.json",
         "tests/architecture/test_commons_control.py",
-        "contracts/testdata/external-model-runtime-receipt.good.json",
-        "architecture/data_authorities.json",
-        "architecture/check_data_authorities.py",
-        "architecture/station_providers.json",
-        "architecture/check_station_providers.py",
-        "data/ncei_ghcnd_bulk.py",
-        "data/ncei_ghcnh_bulk.py"
+        "contracts/testdata/external-model-runtime-receipt.good.json"
       ]
     },
     {

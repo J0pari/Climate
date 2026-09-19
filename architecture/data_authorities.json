@@ -365,11 +365,10 @@
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "captured NCEI station observations enter the provider-neutral station/sheaf substrate with provider identity, coordinates, quality flags and missingness intact; acquisition remains externally owned and the adapter owns no generic preprocessing stack",
+      "rationale": "captured NCEI station identity, coordinates, daily TMAX/TMIN values, quality flags, and missingness are projected into the provider-neutral canonical station substrate; global topology and sparse cochain execution are owned by src/station_sheaf.py rather than this provider adapter",
       "authority_boundary": "to_station_section",
       "witness_path": "tests/reference/test_station_temperature_sheaf.py",
-      "witness_anchor": "test_provider_fixture_uses_canonical_global_sparse_path",
-      "acquisition_owner": "external_native_capture"
+      "witness_anchor": "test_provider_fixture_uses_canonical_global_sparse_path"
     },
     {
       "usage_id": "validation.surface_temperature",
@@ -419,10 +418,9 @@
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "the parser binds an externally captured NCEI response to explicit request URL and content digest; Climate does not own live HTTP acquisition, fallback station data, or observation synthesis",
+      "rationale": "the adapter binds provider response records to an explicit request URL and content digest; it does not synthesize station observations when retrieval data are absent",
       "witness_path": "tests/reference/test_data_authority_adapters.py",
-      "witness_anchor": "test_live_fixture_preserves_exact_payload_identity",
-      "acquisition_owner": "external_native_capture"
+      "witness_anchor": "test_live_fixture_preserves_exact_payload_identity"
     },
     {
       "usage_id": "data.nsidc_sea_ice_index_adapter_boundary",
@@ -435,10 +433,24 @@
       "source_ids": [
         "nsidc.sea_ice_index.v4"
       ],
-      "rationale": "the parser validates an externally captured provider artifact and preserves versioned source URL, schema, source transitions, and content digest; Climate does not own live download or substitute extent values",
+      "rationale": "the adapter parses an explicit provider artifact and preserves its source URL and content digest; no local extent series substitutes for the provider file",
       "witness_path": "tests/reference/test_data_authority_adapters.py",
-      "witness_anchor": "test_live_fixture_preserves_exact_payload_identity_and_source_transition",
-      "acquisition_owner": "external_native_capture"
+      "witness_anchor": "test_live_fixture_preserves_exact_payload_identity_and_source_transition"
+    },
+    {
+      "usage_id": "data.ncei_ghcnd_temperature_projection_boundary",
+      "scope": "current",
+      "path": "reference/ncei_ghcnd_projection.py",
+      "anchor": "PROJECTION_ID",
+      "authority_boundary": "project_single_station_temperature",
+      "ownership_class": "external_api",
+      "disposition": "externalize",
+      "source_ids": [
+        "ncei.ghcnd.v3"
+      ],
+      "rationale": "the CF-aware projection consumes an exact digested GHCN-Daily provider payload, preserves missing observations and provider attributes, and does not synthesize climatology or fallback station values",
+      "witness_path": "tests/reference/test_ncei_ghcnd_projection.py",
+      "witness_anchor": "test_netcdf_roundtrip_preserves_projection_identity"
     },
     {
       "usage_id": "data.ncei_ghcnd_bulk_federation_boundary",
@@ -451,10 +463,9 @@
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "worldwide GHCN-Daily federation consumes externally captured complete station/inventory/by-year artifacts and owns provider parsing, bounded station identity, and streaming row routing rather than generic network transfer",
+      "rationale": "worldwide GHCN-Daily provider discovery consumes the complete provider station/inventory artifacts and identifies bulk by-year observation artifacts; the scale path neither embeds a selected station list nor enumerates per-station REST requests",
       "witness_path": "tests/test_ncei_ghcnd_bulk.py",
-      "witness_anchor": "test_provider_fixed_width_catalog_and_inventory_parse",
-      "acquisition_owner": "external_native_capture"
+      "witness_anchor": "test_provider_fixed_width_catalog_and_inventory_parse"
     },
     {
       "usage_id": "data.ncei_ghcnh_station_federation_boundary",
@@ -467,10 +478,9 @@
       "source_ids": [
         "ncei.ghcnh.v1"
       ],
-      "rationale": "GHCNh federation consumes an externally captured global station-list artifact; exact documented shared identifiers create digest-bound aliases while unmatched hourly stations remain distinct roots",
+      "rationale": "GHCNh enters the provider-neutral station federation from its captured global station-list artifact; exact shared GHCN identifiers documented by NCEI create digest-bound aliases to existing GHCN-Daily roots, while unmatched hourly stations remain distinct canonical roots without proximity inference",
       "witness_path": "tests/test_ncei_ghcnh_bulk.py",
-      "witness_anchor": "test_shared_ghcn_identifier_becomes_explicit_alias_not_new_root",
-      "acquisition_owner": "external_native_capture"
+      "witness_anchor": "test_shared_ghcn_identifier_becomes_explicit_alias_not_new_root"
     },
     {
       "usage_id": "data.ncei_ghcnh_hourly_partition_boundary",
@@ -483,10 +493,9 @@
       "source_ids": [
         "ncei.ghcnh.v1"
       ],
-      "rationale": "externally captured annual GHCNh archives are streamed into immutable provider-specific partitions that bind the compressed source digest and preserve provider fields without making Climate responsible for archive transfer",
+      "rationale": "captured annual GHCNh bulk archives are streamed member-by-member into immutable content-addressed raw provider partitions; every partition binds the exact compressed source archive digest and preserves provider QC/source fields without silent normalization or imputation",
       "witness_path": "tests/test_ncei_ghcnh_bulk.py",
-      "witness_anchor": "test_annual_archive_publishes_content_addressed_raw_partitions",
-      "acquisition_owner": "external_native_capture"
+      "witness_anchor": "test_annual_archive_publishes_content_addressed_raw_partitions"
     }
   ]
 }

@@ -16,11 +16,12 @@ from data.ncei_ghcnh_bulk import (
     ARCHIVE_BASE_URL,
     SOURCE_ID,
     GHCNhAliasShardLookup,
-    validate_year_archive_url,
+    download_year_archive,
     federate_station_catalog,
     parse_station_catalog,
     stream_station_year_psv,
 )
+from data.ncei_ghcnd_bulk import HTTPArtifactIdentity
 from src.station_federation import (
     AliasBinding,
     FederatedStation,
@@ -72,6 +73,34 @@ def daily_station(station_id: str) -> FederatedStation:
     )
 
 
+class FakeHTTPTransport:
+    def __init__(self, payload: bytes) -> None:
+        self.payload = payload
+        self.starts = []
+
+    def inspect(self, url, *, timeout_seconds):
+        return HTTPArtifactIdentity(
+            url=url,
+            content_length=len(self.payload),
+            etag='"ghcnh-archive-v1"',
+            last_modified=None,
+            accept_ranges=True,
+        )
+
+    def iter_bytes(
+        self,
+        url,
+        *,
+        start,
+        identity,
+        timeout_seconds,
+        chunk_bytes,
+    ):
+        self.starts.append(start)
+        for offset in range(start, len(self.payload), chunk_bytes):
+            yield self.payload[offset:offset + chunk_bytes]
+
+
 def write_year_archive(path: Path, members: dict[str, str]) -> None:
     with tarfile.open(path, mode="w:gz") as archive:
         for name, text in members.items():
@@ -83,14 +112,30 @@ def write_year_archive(path: Path, members: dict[str, str]) -> None:
 
 
 class GHCNhFederationTests(unittest.TestCase):
-    def test_versioned_annual_archive_identity_is_validated_without_fetching(self):
-        url = ARCHIVE_BASE_URL + "ghcn-hourly_v1.0.0_d2026_c20260918.tar.gz"
-        self.assertEqual(
-            validate_year_archive_url(url),
-            "ghcn-hourly_v1.0.0_d2026_c20260918.tar.gz",
+    def test_versioned_annual_archive_download_reuses_resumable_capture(self):
+        payload = b"captured annual archive bytes"
+        transport = FakeHTTPTransport(payload)
+        url = (
+            ARCHIVE_BASE_URL
+            + "ghcn-hourly_v1.0.0_d2026_c20260918.tar.gz"
         )
-        with self.assertRaisesRegex(ValueError, "versioned"):
-            validate_year_archive_url(ARCHIVE_BASE_URL + "latest.tar.gz")
+        with tempfile.TemporaryDirectory() as temp:
+            destination = Path(temp) / "annual.tar.gz"
+            result = download_year_archive(
+                url,
+                destination,
+                transport=transport,
+                chunk_bytes=7,
+            )
+            self.assertEqual(destination.read_bytes(), payload)
+            self.assertEqual(result.byte_count, len(payload))
+            self.assertEqual(transport.starts, [0])
+            with self.assertRaisesRegex(ValueError, "versioned"):
+                download_year_archive(
+                    ARCHIVE_BASE_URL + "latest.tar.gz",
+                    Path(temp) / "latest.tar.gz",
+                    transport=transport,
+                )
 
     def test_station_list_parses_documented_fixed_width_fields(self):
         payload = station_line(

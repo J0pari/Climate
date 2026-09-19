@@ -51,7 +51,6 @@ class StationProviderRegistryTests(unittest.TestCase):
                 "providers": [provider(
                     status="current",
                     access_cost="paid",
-                    acquisition_owner="external_native_capture",
                     current_boundaries=["adapter.py::boundary"],
                 )]
             }), encoding="utf-8")
@@ -99,43 +98,6 @@ class StationProviderRegistryTests(unittest.TestCase):
             )
             self.assertEqual(check_station_providers.check(root), [])
 
-
-    def test_current_provider_requires_external_acquisition_owner(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / "architecture").mkdir()
-            (root / "architecture/data_authorities.json").write_text(
-                json.dumps({"sources": [authority()]}), encoding="utf-8")
-            (root / "adapter.py").write_text("def boundary(): pass\n", encoding="utf-8")
-            (root / "architecture/station_providers.json").write_text(json.dumps({
-                "schema_version": 1,
-                "target_population": "every station worldwide without paid data access",
-                "providers": [provider(
-                    status="current",
-                    current_boundaries=["adapter.py::boundary"],
-                )]
-            }), encoding="utf-8")
-            codes = {item.code for item in check_station_providers.check(root)}
-            self.assertIn("station_providers.acquisition_owner", codes)
-
-    def test_current_provider_rejects_download_boundary(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / "architecture").mkdir()
-            (root / "architecture/data_authorities.json").write_text(
-                json.dumps({"sources": [authority()]}), encoding="utf-8")
-            (root / "adapter.py").write_text("def download_artifact(): pass\n", encoding="utf-8")
-            (root / "architecture/station_providers.json").write_text(json.dumps({
-                "schema_version": 1,
-                "target_population": "every station worldwide without paid data access",
-                "providers": [provider(
-                    status="current",
-                    acquisition_owner="external_native_capture",
-                    current_boundaries=["adapter.py::download_artifact"],
-                )]
-            }), encoding="utf-8")
-            codes = {item.code for item in check_station_providers.check(root)}
-            self.assertIn("station_providers.transport_shadow", codes)
     def test_fixed_station_list_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

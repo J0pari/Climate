@@ -5,10 +5,8 @@ that a station shares the same managed GHCN identifier with GHCN-Daily.
 Identity linkage is emitted as explicit digest-bound crosswalk evidence; no
 name, coordinate, or proximity matching is performed here.
 
-Climate consumes externally captured station-list and annual archive artifacts.
-This module owns provider-specific archive-name validation, catalog federation,
-and hourly observation routing semantics; generic network transfer remains
-external.
+This module currently realizes provider catalog federation only. Hourly
+observation routing/publication remains a separate adapter obligation.
 """
 from __future__ import annotations
 
@@ -17,9 +15,16 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+from pathlib import Path
 import re
 from datetime import datetime
 from typing import Iterable, Protocol, Sequence
+
+from data.ncei_ghcnd_bulk import (
+    DownloadedHTTPArtifact,
+    HTTPRangeTransport,
+    download_resumable_http_artifact,
+)
 
 from src.station_federation import (
     AliasBinding,
@@ -47,8 +52,15 @@ _ARCHIVE_NAME = re.compile(
 )
 
 
-def validate_year_archive_url(archive_url: str) -> str:
-    """Validate provider version/data-year/creation-date identity without fetching."""
+def download_year_archive(
+    archive_url: str,
+    destination: Path,
+    *,
+    transport: HTTPRangeTransport | None = None,
+    timeout_seconds: float = 120.0,
+    chunk_bytes: int = 1024 * 1024,
+) -> DownloadedHTTPArtifact:
+    """Capture one explicitly versioned/creation-dated GHCNh annual archive."""
     if not archive_url.startswith(ARCHIVE_BASE_URL):
         raise ValueError("GHCNh archive URL must use the official NCEI archive path")
     name = archive_url.removeprefix(ARCHIVE_BASE_URL)
@@ -56,7 +68,16 @@ def validate_year_archive_url(archive_url: str) -> str:
         raise ValueError(
             "GHCNh archive URL must name one versioned data-year/creation-date tar.gz"
         )
-    return name
+    return download_resumable_http_artifact(
+        archive_url,
+        destination,
+        transport=transport,
+        timeout_seconds=timeout_seconds,
+        chunk_bytes=chunk_bytes,
+    )
+
+
+
 
 def _sha256(payload: bytes) -> str:
     return "sha256:" + hashlib.sha256(payload).hexdigest()
