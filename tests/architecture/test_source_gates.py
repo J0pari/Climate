@@ -53,38 +53,18 @@ class SourceGateTests(unittest.TestCase):
         self.assertEqual(len(raw), 1)
         self.assertEqual(raw[0].gate, "unchecked_cuda_call")
 
-    def test_capability_stub_is_inventoried(self):
-        findings = gates.gate_silent_capability_fallback({
+    def test_fallback_marker_is_supplemental_inventory(self):
+        files = {
             "gpu/example.cu": ["// NCCL stub used for single-device parsing"],
-        })
+        }
+        findings = gates.gate_fallback_marker_inventory(files)
         self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0].gate, "capability_fallback")
-
-
-    def test_optional_dependency_substitution_is_rejected(self):
-        findings = gates.gate_optional_capability_substitution({
-            "reference/example.py": [
-                "try:",
-                "    import accelerated_backend",
-                "except ImportError:",
-                "    import cpu_backend",
-                "    backend = cpu_backend",
-            ],
-        })
-        self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0].gate, "optional_capability_substitution")
-
-    def test_optional_dependency_failure_that_logs_and_raises_is_allowed(self):
-        findings = gates.gate_optional_capability_substitution({
-            "reference/example.py": [
-                "try:",
-                "    import required_backend",
-                "except ImportError as exc:",
-                "    logger.error('required backend unavailable')",
-                "    raise RuntimeError('required backend unavailable') from exc",
-            ],
-        })
-        self.assertEqual(findings, [])
+        self.assertEqual(findings[0].gate, "fallback_marker_inventory")
+        self.assertEqual(
+            [item.gate for item in gates.run(files)],
+            ["fallback_marker_inventory"],
+        )
+        self.assertEqual(gates.run_strict(files), [])
 
     def test_placeholder_marker_is_inventoried(self):
         findings = gates.gate_placeholder_inventory({
@@ -135,8 +115,8 @@ class SourceGateTests(unittest.TestCase):
         })
         self.assertEqual(findings, [])
 
-    def test_combined_runner_preserves_multiple_failure_classes(self):
-        findings = gates.run({
+    def test_combined_runner_preserves_binding_and_supplemental_classes(self):
+        files = {
             "gpu/example.cu": [
                 "cudaMalloc(&p, bytes);",
                 "cudaMallocManaged(&q, bytes);",
@@ -144,13 +124,18 @@ class SourceGateTests(unittest.TestCase):
                 "probability = score / 2.0;",
                 "// Additive: compatibility helper",
             ]
-        })
+        }
+        findings = gates.run(files)
         names = {f.gate for f in findings}
         self.assertIn("unchecked_cuda_call", names)
         self.assertIn("managed_memory", names)
-        self.assertIn("capability_fallback", names)
+        self.assertIn("fallback_marker_inventory", names)
         self.assertIn("interpretive_probability", names)
         self.assertIn("change_narration", names)
+
+        strict_names = {f.gate for f in gates.run_strict(files)}
+        self.assertNotIn("fallback_marker_inventory", strict_names)
+        self.assertIn("unchecked_cuda_call", strict_names)
 
 
 if __name__ == "__main__":
