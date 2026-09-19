@@ -360,7 +360,16 @@ Does a verified geometric candidate improve held-out discrimination or calibrate
 
 This is evidence for predictive utility, not yet evidence for a named Earth-system tipping element.
 
-## 20. Promotion criteria
+## 20. Cross-model response and representation comparison
+
+Verified geometry becomes more useful when it compares model structure rather than merely decorating one model's state space. Given a declared intervention `u` and response `r`, an external simulator or emulator may define a response operator `K: u -> r`. Climate can compare singular directions, local tangent spaces, information-null directions, neighborhood structure, or other invariantly defined properties of `K` across an emulator, parent GCM, multimodel ensemble, and observationally constrained products.
+
+Representation mismatch is itself an admissible diagnostic. If two grounded representations induce distances `d_A` and `d_B`, quantities derived from `d_A - d_B`, principal angles between local tangent spaces, or disagreement between their response-sensitive directions may reveal distinctions one representation suppresses. Such quantities require the same coordinate, scaling, conditioning, negative-control, and held-out checks as any other geometric method.
+
+Information geometry also supplies an experiment-design role: cheap emulator trajectories may estimate sensitivity or distinguishability directions, after which a frozen selection rule chooses a small number of expensive high-fidelity interventions. The scientific endpoint is not that the geometry looks structured; it is whether the selected high-fidelity runs discriminate hypotheses or reduce uncertainty better than simple grid/random designs under the same expensive-run budget.
+
+External models retain their native execution and training/inference machinery. Climate geometry consumes exact native outputs/receipts and contributes the structural comparison, selection rule, falsifiers, and evidence interpretation.
+## 21. Promotion criteria
 
 A geometric implementation may progress to `verified` only when its declared scope has appropriate evidence for:
 

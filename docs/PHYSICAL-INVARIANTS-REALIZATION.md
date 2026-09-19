@@ -182,6 +182,13 @@ Each term carries:
 
 A process that mutates state without an accounting channel is incomplete.
 
+### External-model assay boundary
+
+The streaming ledger and invariant contracts are also model-interrogation tools. When an external physical model exposes native tendency or exchange terms, Climate should map those declared outputs into the common signed accounting semantics without replacing the model's own physics. When a learned emulator exposes only state transitions and declared external forcing, Climate can still test integral state-change identities and residual structure, but must not invent an internal process decomposition the model does not provide.
+
+This supports comparisons such as physical-model versus emulator closure residuals, regime-conditioned drift, response to forcing, and whether structural residuals precede large conventional errors. The result is an assay over native model behavior, not a claim that Climate's local kernels reproduce the external model.
+
+If a native model/evaluation system already computes an equivalent budget with sufficient semantics, Climate should ingest that budget and verify the mapping rather than recompute it from raw petabyte-scale fields solely for local ownership. Recalculation remains justified as an independent witness or when the native diagnostic omits a quantity required by the experiment.
 ---
 
 ## 5. Lessons from mature numerical engines

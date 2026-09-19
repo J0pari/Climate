@@ -15,7 +15,7 @@ Do not create a long-lived `legacy/`, `old/`, `archive/`, or compatibility-sourc
 Before deleting a source reservoir:
 
 1. identify domain-specific equations, contracts, invariants, sign conventions, units, failure semantics, fixtures, and experimentally meaningful hypotheses that are unique to the file;
-2. distinguish those from generic numerical machinery, framework glue, arbitrary defaults, plausible-output placeholders, and commodity algorithms better provided by maintained libraries;
+2. distinguish those from generic numerical machinery, framework glue, arbitrary defaults, plausible-output placeholders, commodity algorithms better provided by maintained libraries, and project-local shadows of capabilities already owned by an external climate/model system;
 3. move reusable semantics into the narrow canonical module, contract, reference, test, or experiment that owns them;
 4. put every worthwhile but unrealized obligation in `architecture/planning_graph.json` rather than leaving a TODO in the source;
 5. verify that surviving authorities express the intended semantics independently of the legacy implementation;
@@ -23,6 +23,8 @@ Before deleting a source reservoir:
 7. delete the source file.
 
 Mining preserves meaning, not incidental implementation structure. A local generic optimizer, eigensolver, FFT, ODE solver, remapper, or similar commodity mechanism is not migrated merely because it exists in an old file; the production boundary should name a maintained library and Climate should retain only domain-specific integration or an independently valuable reference oracle.
+
+The same depletion rule applies to higher-level shadows. A local dataset catalog, common-preprocessing engine, diagnostic runner, model-training/inference wrapper, intercomparison harness, or workflow layer should be removed when an integrated native system already owns that capability and the local copy adds no independently testable Climate-specific semantics. Preserve the adapter, boundary tests, exact upstream identity, and any independent reference; delete the shadow implementation.
 
 ## 3. Deletion criteria
 
@@ -34,6 +36,7 @@ A source reservoir is deletable when all of the following hold:
 - any mathematical or numerical authority worth retaining has a canonical, reference, or library-backed home with an appropriate witness;
 - any still-relevant semantic hazard is attached to surviving source rather than retained solely as archaeology;
 - removing the file does not require a weaker replacement, silent fallback, fabricated output, or compatibility shim.
+- any externally owned native capability formerly shadowed by the file has an explicit integration boundary and retains its upstream identity rather than being silently reimplemented elsewhere.
 
 Deletion is preferable to keeping a depleted file for comparison. A historical implementation needed for investigation can be read from the commit that contained it.
 

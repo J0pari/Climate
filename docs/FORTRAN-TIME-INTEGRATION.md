@@ -19,9 +19,9 @@ The canonical surface separates independently testable contracts:
 
 Separating these concerns is allowed only when the missing semantics remain explicit obligations. A smaller kernel must not erase physical assumptions or coupled responsibilities merely because they live outside that kernel.
 
-## Library boundary: reference locally, delegate generic production numerics
+## Library boundary: reference locally, use native production numerics through explicit integration
 
-Climate should not spend novelty budget reimplementing mature generic numerical algorithms.
+Climate should not spend novelty budget reimplementing mature generic numerical algorithms. External ownership of an integrator or solver does not remove its timestep, tolerance, convergence, restart, or backend semantics from Climate's reproducibility boundary; those semantics must be bound and receipted when they affect evidence.
 
 The hand-written RK4, theta-step, and Thomas-factorization code is small, inspectable, deterministic, and useful as a differential/reference oracle. It is not intended to grow into a bespoke production solver stack.
 
@@ -32,6 +32,8 @@ For tridiagonal linear solves, LAPACK `DGTTRF`/`DGTTRS` is the production-orient
 PETSc TS is a plausible distributed-system option when Climate has a genuinely domain-decomposed, MPI-scale state representation; it is not justified merely to solve independent vertical columns. The dependency should enter only when its scalable vector/matrix/preconditioner and TS machinery solve an actual repository problem better than the lighter ARKODE/LAPACK path.
 
 GPU production paths should likewise prefer maintained vendor/library solvers where their semantics fit, while keeping CPU reference kernels for differential verification. A GPU library call is not evidence of scientific correctness; implementation identity, precision, determinism, residuals, conditioning, and CPU/GPU agreement remain part of the evidence boundary.
+
+When Climate analyzes an externally owned climate model, the model's native time-integration stack remains authoritative for that run. Climate may compare its consequences through state, tendency, budget, restart, or response artifacts, but should not reconstruct a local integrator and present the result as the external model. If native step/restart metadata are needed for the scientific question, their absence is an integration limitation that must remain explicit.
 
 ## Explicit stepping
 

@@ -226,6 +226,8 @@ When exact reproducibility is not realistic, define the acceptable equivalence r
 
 Benchmark suites should be versioned data products, not loose scripts. A benchmark definition should include:
 
+When an established system already owns the required common preprocessing, dataset discovery, reference-data handling, or baseline diagnostic execution, the benchmark should bind that native capability and its versioned configuration rather than recreate it. Climate-REF/ESMValTool/ESMValCore/AQUA/AIMIP outputs may therefore be benchmark inputs or execution receipts; Climate remains responsible for the additional claim-specific metric semantics, controls, and interpretation.
+
 ```text
 benchmark_id
 question
@@ -334,7 +336,25 @@ Experiments should declare when relevant:
 
 Exploratory analysis is allowed, but must be labeled exploratory; confirmatory evidence requires a fresh or appropriately held-out evaluation.
 
-## 11. Reproducibility levels
+## 11. Cross-model and multi-fidelity evidence transport
+
+Evidence scope includes the model/data realization that produced it. Idealized-model, emulator, parent-GCM, multimodel, reanalysis, and observational results may inform the same research question without being the same evidence.
+
+A cross-fidelity chain should be represented conceptually as:
+
+```text
+cheap/idealized result
+  -> hypothesis or experiment selection
+  -> native higher-fidelity run
+  -> cross-model discrepancy/structural comparison
+  -> optional model-population test
+  -> observational constraint
+```
+
+No arrow is automatic promotion. The bridge must state what is assumed invariant or transportable: intervention definition, target variable, response operator, conserved quantity, representation relation, or another explicit object. A learned emulator may efficiently search perturbation space and select a small high-fidelity experiment set; its success criterion is whether that frozen selection improves discrimination or uncertainty reduction under the same high-fidelity budget, not whether the emulator and parent merely correlate.
+
+Native external receipts are part of provenance. If Climate-REF, AQUA, ESMValTool, AIMIP tooling, ClimSim-Online, Anemoi, ACE-family code, or a physical model runtime materially transforms or produces the evaluated artifact, the evidence chain must bind the exact upstream artifact/model/configuration/runtime identity and preserve failures. Reimplementing that native capability locally is not a reproducibility strategy.
+## 12. Reproducibility levels
 
 Execution-resource classes use the `R0_static` … `R5_large_data` namespace in `docs/EXECUTION-TOPOLOGY.md`. Reproducibility therefore uses a separate `REP*` namespace:
 
@@ -346,7 +366,7 @@ Execution-resource classes use the `R0_static` … `R5_large_data` namespace in 
 
 Do not use "reproducible" without indicating which sense when the distinction matters.
 
-## 12. CI versus scientific evaluation
+## 13. CI versus scientific evaluation
 
 CI is for bounded, fast evidence:
 
@@ -359,7 +379,7 @@ CI is for bounded, fast evidence:
 
 Large observational/model evaluations belong in scheduled benchmark jobs with immutable receipts. They can gate promotion without running on every commit.
 
-## 13. Failure reporting
+## 14. Failure reporting
 
 A failed experiment is evidence and should be retained. Report at least:
 
@@ -375,7 +395,7 @@ whether failure attacks a claim or only infrastructure
 
 Do not silently drop numerical failures or only retain successful seeds/members.
 
-## 14. Definition of validated
+## 15. Definition of validated
 
 A claim is `validated` only when:
 
@@ -388,5 +408,6 @@ A claim is `validated` only when:
 7. independent held-out evidence supports the claim;
 8. known failures and counterevidence are retained;
 9. the evidence record points to immutable run/artifact identities.
+10. any inference transported across model/fidelity classes names and tests the bridge that makes that transport scientifically admissible.
 
 Validation never means universally true. It means supported for the stated domain under the stated protocol.

@@ -65,6 +65,11 @@ class RenderStatusTests(unittest.TestCase):
         self.assertIn(f"-| `{stale_id}`", result.stdout)
         self.assertIn(f"+| `{canonical_id}`", result.stdout)
 
+    def test_projection_states_external_integration_boundary(self) -> None:
+        projection = (ROOT / "docs" / "generated" / "STATUS.md").read_text(encoding="utf-8")
+        self.assertIn("External implementation ownership is not treated as local realization", projection)
+        self.assertIn("without shadowing the upstream implementation", projection)
+
 
 if __name__ == "__main__":
     unittest.main()

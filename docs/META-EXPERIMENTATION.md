@@ -343,7 +343,22 @@ ResearchQuestion
 
 Commons can own run identity, scheduling, resources, causation/correlation, and durable cross-repository lineage. Climate owns the meaning of its methods, climate datasets, scientific metrics, and validation policy.
 
-## 15. Reference meta-experiment families
+## 15. Cross-model and multi-fidelity experimentation
+
+A scientific question may be realized at several fidelity levels: an analytic/idealized model, a learned emulator, a parent physical GCM, a multimodel ensemble, reanalysis, and direct observations. These are not interchangeable replicates. Each run keeps its native model/runtime identity and evidence class; cross-fidelity agreement or disagreement is itself an experimental result.
+
+Do not create a parallel orchestration or model-serving contract for this purpose. Use the existing `MethodDescriptor`, `DatasetRef`, `ExperimentSpec`, `RunManifest`, `ArtifactRef`, `MetricResult`, and `EvidenceRecord` waist. A thin external adapter should preserve the native runtime receipt and exact intervention mapping. Add new stable contract fields only when repeated executable experiments demonstrate a semantic that cannot be expressed without ambiguity.
+
+Useful multi-fidelity experiments include:
+
+- emulator-to-parent response-operator comparison under matched interventions;
+- estimation of the discrepancy `delta(theta) = f_high(theta) - f_low(theta)` and whether that discrepancy is smooth, state-dependent, regime-dependent, or concentrated in identifiable directions;
+- emulator-guided selection of a fixed expensive-run budget, compared against grid/random/simple sensitivity designs;
+- offline-to-online prediction of coupled instability or drift for learned parameterizations using ClimSim-Online or an equivalent native online workflow;
+- comparison of conventional benchmark metrics with invariant, response-structure, or representation-mismatch diagnostics over an AIMIP/CMIP-like model population.
+
+Evidence transport must be explicit. Emulator evidence may motivate or select a parent-model experiment but does not automatically support the parent-model claim; multimodel agreement is not observational evidence; reanalysis is not an intervention oracle. A claim update must state which source produced the evidence and which bridge experiment, if any, justifies carrying information across sources.
+## 16. Reference meta-experiment families
 
 The following are useful experiment designs when their prerequisites are ready. Their ordering here is not priority; `docs/ROADMAP.md` determines current work selection.
 
@@ -353,5 +368,7 @@ The following are useful experiment designs when their prerequisites are ready. 
 - **Teleconnection representation** — p-adic/ultrametric candidates versus correlation/spectral/graph baselines on held-out teleconnection targets.
 - **Station consistency** — actual sheaf/cohomology implementation versus ordinary QC/graph residual baselines with injected faults.
 - **Information-geometry optimization** — natural gradient versus standard optimizers on a small, explicit climate likelihood with known synthetic parameters and held-out observations.
+- **Response-structure transfer** — apply matched perturbations to a cheap emulator and a higher-fidelity parent model; compare response subspaces/operators and use frozen selection rules to choose discriminating high-fidelity runs.
+- **Offline/online structural failure** — test whether invariant residuals, Jacobian/spectral diagnostics, state-dependent error, or representation mismatch predict online coupled failure beyond ordinary offline loss.
 
 Local tests isolate mathematical and numerical failure modes before broad integration. They are not a reason to keep scientifically related representations permanently isolated: once constituent maps are trustworthy enough, integrated experiments should test whether their joint geometry captures climate dynamics, information, and physical structure that separate views or simpler fusion baselines miss.

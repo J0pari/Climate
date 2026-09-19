@@ -44,6 +44,8 @@ Requires Commons or another explicitly named integrated runtime component.
 
 Examples include cross-repository run/trace/causation propagation, sandbox execution, global resource leases, cancellation/restart lineage, shared-device contention/cleanup, and contract verification across repository boundaries.
 
+This class also covers experiments whose correctness depends on an actual external model/evaluation runtime rather than a local imitation: for example a ClimSim-Online E3SM-MMF run, an Anemoi/ACE-family inference run, a Climate-REF execution, or another named integrated system. A locally reproduced command shape is not equivalent to the native runtime receipt.
+
 ### `R5_large_data`
 
 Requires substantial external data, model ensembles, or protected confirmation splits.
@@ -51,6 +53,8 @@ Requires substantial external data, model ensembles, or protected confirmation s
 Examples include ERA5/CMIP/ESGF-scale validation, teleconnection confirmation, observational early-warning validation, station-network reconstruction, and process/model evaluation.
 
 Data identity, licensing, provenance, contamination controls, and split policy are part of the resource requirement.
+
+When the external data system already supports data-local lazy/scalable evaluation, as with AQUA in its intended environment, `R5` does not imply copying the corpus into Climate storage. The authoritative execution may occur where the data live; Climate must still bind the exact dataset/version, preprocessing/evaluation configuration, upstream receipt, and resulting immutable artifacts.
 
 ## 2. Execution-environment semantics
 
@@ -87,6 +91,7 @@ DRY is primarily semantic, not stylistic. Prefer one authored authority for:
 - method identity and maturity;
 - claim identity and maturity;
 - experiment definition;
+- native external capability identity and receipt when an experiment crosses an external system boundary;
 - realization obligations;
 - dataset/run/artifact/evidence identity;
 - requested and resolved execution identity;

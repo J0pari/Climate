@@ -29,6 +29,9 @@ This file is the binding contributor/agent contract. `README.md` is descriptive.
 21. **Commit only to `main`.** Repository edits are made directly on `main` in small coherent commits. Do not create or stage work on feature branches, and do not rewrite or force-update history. Before each write, re-read the current `main` version of every file being edited so concurrent or newly learned design intent is preserved rather than overwritten.
 22. **Commit history owns change narration.** Durable documentation and source comments describe the current contract, rationale, assumptions, limitations, and invariants. Do not annotate repository text with edit batches, feature-addition notes, replacement history, or temporal status narration that belongs to version history. Put what changed and why in the commit message.
 23. **The planning graph owns TODO concerns.** Durable source and documentation must not maintain TODO/FIXME action queues, priority lists, future-work checklists, or dependency plans. Explain a current limitation at the point where it matters, and represent the work needed to remove that limitation in `architecture/planning_graph.json`. Generated roadmap prose may project graph facts but must not add planning content of its own.
+24. **External ownership does not remove integration responsibility.** When a scientific result depends on an externally owned dataset, preprocessor, evaluator, scheduler, model runtime, training system, inference engine, or intercomparison protocol, Climate remains responsible for binding the exact capability/version/configuration, recording the transformations and native receipts that affect the result, testing the boundary, and failing closed when the required external semantics cannot be established.
+25. **Do not shadow native capabilities.** If an external system already owns cataloging, preprocessing, standard diagnostics, execution-state management, training, inference, model serving, intercomparison, or provenance machinery, Climate should use that native capability through a thin explicit integration seam rather than reproduce a Climate-shaped substitute. Local code is justified only for Climate-specific semantics, boundary verification, independently valuable bounded references, or a demonstrated gap in the native capability.
+26. **Evidence does not transfer across model classes by proximity.** Evidence obtained from an idealized model, learned emulator, parent GCM, multimodel ensemble, reanalysis, or observation retains that source scope. Updating one claim from several such sources requires an explicit scientific relation among them; agreement with a cheap or learned model cannot silently stand in for high-fidelity or observational confirmation.
 
 ## 2. Claim maturity vocabulary
 
@@ -67,6 +70,7 @@ The target architecture separates:
 - experimental mathematical methods;
 - validation/benchmarking;
 - orchestration, resource control, provenance, and Commons integration.
+- external climate/model systems through native-capability adapters that preserve upstream identity while adding only Climate-owned scientific semantics.
 
 Experimental modules must not be wired directly into authoritative physical state transitions merely because they share a state struct. Prefer typed artifacts and explicit adapters.
 

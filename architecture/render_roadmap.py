@@ -45,6 +45,8 @@ def render(graph: dict[str, Any]) -> str:
         "",
         "Objective realized state is owned by the module, claim, experiment, hazard, and realization authorities and is rendered separately in `docs/generated/STATUS.md`.",
         "",
+        "External implementation ownership does not remove integration correctness from scope: planning nodes should bind native external capabilities and add Climate-specific scientific semantics rather than create shadow cataloging, preprocessing, execution, training/inference, intercomparison, or provenance stacks.",
+        "",
         "## Planning summary",
         "",
         f"- Active: {counts.get('active', 0)}",
@@ -70,6 +72,7 @@ def render(graph: dict[str, Any]) -> str:
     lines.extend([
         "",
         "Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.",
+        "External-integration obligations name both the native capability that remains externally owned and the Climate-specific semantic/evidence responsibility that remains in scope; completion must not be satisfied by a local shadow implementation with the same advertised identity.",
     ])
     return "\n".join(lines).rstrip() + "\n"
 

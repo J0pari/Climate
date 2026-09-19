@@ -121,6 +121,11 @@ Evaluate many candidate embeddings or added dimensions against held-out predicti
 
 Only after the mathematical implementation uses real complexes/boundary operators and profiling identifies a suitable workload, compile host-side structures into compact device arrays for sparse operations and large fault-injection ensembles. Do not port the abstract object model wholesale to CUDA.
 
+### 4.5 External model inference is not a Climate accelerator subsystem
+
+If an experiment uses an Anemoi, ACE-family, or other externally owned learned climate model, its training/inference runtime remains the model owner's capability. Climate may request that runtime, bind its exact checkpoint/build/backend/precision identity, and consume outputs for Climate-owned diagnostics or experiment selection. It should not build a parallel GPU serving/training framework simply because the downstream structural analysis also runs on accelerators.
+
+Climate GPU engineering begins at a genuine Climate-owned bottleneck: invariant reduction, response-operator analysis, geometry, sheaf/sparse kernels, statistical resampling, or another declared transformation whose reference semantics already exist. Upstream device provenance remains part of the run lineage when its numerics can affect the evidence.
 ## 5. Device context pattern
 
 Each accelerated subsystem must expose a bounded context whose allocations and lifetimes are inspectable.
@@ -554,7 +559,7 @@ No compatibility path or acceleration feature is retained merely because it alre
 
 ## 26. Relationship to Commons
 
-Climate owns GPU numerical semantics. Commons owns cross-repository scheduling/resource arbitration and shared run/causation identity.
+Climate owns the GPU numerical semantics of Climate-implemented transformations. Commons owns cross-repository scheduling/resource arbitration and shared run/causation identity. Externally owned model runtimes retain their own device execution semantics; Climate binds their native receipts instead of absorbing them into `CurvatureDeviceContext` or another project-local GPU abstraction.
 
 Climate should expose:
 

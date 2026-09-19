@@ -89,7 +89,7 @@ The dynamical core is therefore judged on coupled mass, momentum, energy, balanc
 
 ## Separation of climate semantics from generic numerics
 
-Climate-owned code should define climate variables, coordinates, physical partitions, balance laws, diagnostics, adapters, and verification fixtures. Generic numerical machinery should be delegated when a maintained package provides the required semantics.
+Climate-owned code should define climate variables, coordinates, physical partitions, balance laws, diagnostics, adapters, and verification fixtures. Generic numerical machinery should remain owned by a maintained native implementation when it provides the required semantics; Climate integrates that capability explicitly and verifies the boundary rather than treating the concern as out of scope or reproducing it locally.
 
 - Production adaptive/IMEX/multirate time integration should target SUNDIALS ARKODE unless a concrete requirement demonstrates a better fit.
 - CPU tridiagonal factorization/solve uses LAPACK; a transparent Thomas implementation is appropriate only as a reference/differential oracle.
@@ -100,6 +100,7 @@ Climate-owned code should define climate variables, coordinates, physical partit
 
 Selecting an external package or published parameterization does not by itself validate a scientific process. Version, configuration, implementation identity, numerical diagnostics, input provenance, and differential/benchmark evidence remain required.
 
+The same boundary applies when these kernels are used to interrogate full climate models. Climate's local pressure-coordinate, transport, thermodynamic, and budget kernels are references and composable scientific components; they are not substitutes for E3SM, ICON, IFS, or another external model's native dynamics. Cross-model assays should consume declared native fields/tendencies/budgets where available, map them into explicit Climate semantics, and compare conservation, response, or exchange structure without silently replacing the external model's physics with local kernels.
 ## Canonicalization rule
 
 A physical or numerical responsibility becomes canonical only when all of the following are true:
@@ -108,6 +109,6 @@ A physical or numerical responsibility becomes canonical only when all of the fo
 2. invalid or unavailable states fail closed rather than silently clamping or switching implementation identity;
 3. executable witnesses test invariants, metamorphic relations, or independent references rather than only example outputs;
 4. the module is registered with honest maturity and known gaps;
-5. generic machinery is delegated to a maintained library when that reduces bespoke numerical risk;
+5. generic machinery remains in a maintained native library when that reduces bespoke numerical risk, with Climate binding the exact library/backend/configuration rather than shadowing it;
 6. climate-specific composition seams identify which quantities must share one authority across neighboring kernels;
 7. the slice does not imply that unresolved neighboring physics has been implemented.

@@ -415,7 +415,14 @@ The following are research references, not automatic dependency choices:
 
 The purpose of surveying these methods is to avoid inventing generic manifold-learning algorithms while still allowing Climate to contribute the physically grounded multi-view construction they do not decide for us.
 
-## 14. Promotion boundary
+## 14. Cross-model structural comparison and representation mismatch
+
+The representation program should compare not only alternative views of one dataset but also the same scientifically grounded view across model classes. Learned emulators, parent GCMs, reanalysis, observations, and idealized models may induce different neighborhoods, slow subspaces, response directions, information-null spaces, or latent tangent structure even when conventional climatological metrics are similar.
+
+Mismatch is therefore a first-class object. For two declared representations `A` and `B`, compare neighborhood relations or distances `d_A(s_i, s_j)` and `d_B(s_i, s_j)`, principal angles between local tangent spaces, agreement of response-sensitive directions, preservation of known invariants, and the scientific targets retained or discarded by each map. A learned latent state is useful only to the extent that it preserves a predeclared target such as future response, forcing sensitivity, regime identity, conservation structure, extremes, or parameter identifiability; reconstruction quality alone does not establish that.
+
+External learned-model ecosystems remain native execution dependencies, not implementation targets for this repository. Climate should consume exact Anemoi/ACE-family checkpoints and inference receipts when those models are part of an experiment, AIMIP/CMIP-compatible outputs when intercomparison is the substrate, and AQUA/Climate-REF/ESMValTool-native preprocessing or diagnostics when they already express the required operation. Climate-owned code begins at the cross-view/cross-model scientific map, structural diagnostic, falsifier, or experiment-design rule that those systems do not decide.
+## 15. Promotion boundary
 
 This document does **not** assert that there is one correct low-dimensional climate manifold.
 

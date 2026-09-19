@@ -10,6 +10,8 @@ D. M. Murphy and T. Koop (2005), *Review of the vapour pressures of ice and supe
 
 The provider returns equilibrium water-vapor partial pressure in pascals from temperature in kelvin and an explicit phase selector. It does not infer phase from temperature.
 
+This authority is local to Climate kernels and reference comparisons. When an external climate model, reanalysis, or preprocessing system uses its own saturation/phase formulation, Climate must record and preserve that native thermodynamic definition for the run rather than silently substituting this provider. Cross-model comparisons may use this implementation as an independent oracle only when the compared formula/domain is explicitly matched.
+
 ## Liquid-water branch
 
 The liquid-water expression is the Murphy–Koop supercooled-liquid parameterization

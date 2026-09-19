@@ -11,9 +11,12 @@ The architecture optimizes for four properties:
 1. **scientific separability** — changing one hypothesis should not silently alter unrelated physics, data handling, or evaluation;
 2. **evidence traceability** — every result that matters can be reconstructed from immutable inputs, code, configuration, and environment;
 3. **fair comparison** — novel methods and established baselines enter the same experiment/evaluation machinery;
-4. **control-plane compatibility** — Commons can inspect, schedule, identify, trace, and compare work without owning Climate's scientific semantics.
+4. **control-plane compatibility** — Commons can inspect, schedule, identify, trace, and compare work without owning Climate's scientific semantics;
+5. **native-capability composition** — externally owned climate/model systems remain inside the scientific correctness envelope without being reimplemented as project-local substitutes.
 
 This repository should not attempt to become a monolithic all-purpose Earth system model before its components have earned that role.
+
+The intended frontier role is therefore not another simulator, generic diagnostics framework, data lake, model-training stack, or workflow engine. Climate should express scientific interrogations that can be realized against several model and data systems: controlled interventions, response-structure comparisons, physical/information invariants, representation mismatch, multi-fidelity discrepancy, experiment selection, and claim-scoped evidence. The external system may own the implementation of acquisition, preprocessing, simulation, training, inference, or evaluation; Climate owns the correctness of the boundary by which that native result enters a Climate experiment.
 
 ## 2. The stable waist
 
@@ -191,6 +194,8 @@ Preferred tools can remain Python/xarray/Dask/Zarr/NetCDF where they fit. Xarray
 
 Hard rule: **download/cache success is not data validity**. Schema checks, coordinate sanity, units, temporal coverage, missingness, and source-specific QC must be separate gates.
 
+When Climate-REF, ESMValCore, AQUA, ESGF-native tooling, or another maintained system already performs the required cataloging, normalization, regridding, lazy access, or standard preprocessing, Climate should bind that native operation and its receipt/configuration rather than implement a second preprocessing engine. Climate-specific projections remain valid when they add semantics the upstream system does not own, provide an independent bounded reference, or enforce a narrower evidence contract.
+
 ### Layer B — physical and numerical kernels
 
 This layer owns equations, discrete operators, coupling laws, and numerical transformations intended to model physical climate dynamics.
@@ -271,7 +276,9 @@ Responsibilities include:
 - uncertainty/calibration analysis;
 - negative controls and adversarial cases.
 
-Climate should learn from tools such as ESMValTool without reimplementing an entire evaluation ecosystem. ESMValTool's recipe-based model/observation comparisons and provenance approach are useful external reference points: https://docs.esmvaltool.org/en/latest/
+Climate should consume established evaluation capabilities rather than reproduce them. Climate-REF already manages climate-dataset ingestion, execution solving/state, and diagnostic-provider execution; ESMValTool/ESMValCore already own recipe-driven preprocessing, common model/observation evaluation, and provenance; AQUA supplies high-resolution model-output access/evaluation machinery in the DestinE ecosystem; AIMIP supplies a common AI-climate intercomparison protocol and CMIP-oriented output conventions. Those systems are integration targets, not functionality checklists for local reimplementation.
+
+The Climate-owned validation layer begins where those generic capabilities stop: expressing the scientific question across model classes, preserving intervention equivalence, comparing response operators or representation structure, applying invariant/budget assays, quantifying emulator-to-parent or model-to-observation discrepancy, selecting informative high-fidelity experiments, and deciding how resulting evidence bears on an explicit claim. Native upstream metrics and provenance are inputs to that reasoning, not replaced by Climate copies.
 
 Externally owned climate data use a separate authority chain. `architecture/data_authorities.json` declares provider/product identity, access/update semantics, and whether a repository usage remains local or must be externalized. A realized externalized usage names both a concrete implementation boundary and an executable repository witness; a planned usage remains attached to the planning authority rather than implementation source. Values become observation-bearing inputs only through provenance-preserving boundaries such as `ObservedField` or a dataset reference that retains source identity, artifact digest, missingness, units, coordinates, and transformation semantics. Registry membership by itself does not make an arbitrary numeric value observational evidence.
 
@@ -280,6 +287,8 @@ Externally owned climate data use a separate authority chain. `architecture/data
 Climate should expose work; it should not become its own distributed control plane if Commons owns that role.
 
 The canonical local CPU experiment runtime is deliberately an execution/evidence waist rather than a scheduler. It resolves immutable experiment, method, dataset, and configuration identities; executes declared local adapters without capability substitution; and emits content-addressed artifacts, typed metrics, run receipts, and experiment outcomes that can be vetted independently. The current EBM ladder uses explicit experiment-family adapters because that remains auditable at its present scale. This is not the long-term orchestration target: once a claim-scoped vertical evidence path has exercised the full lifecycle, common resolution/execution/receipt phases should be separated from family-specific evaluators so experiment growth does not create one large dispatcher per scientific comparison.
+
+An external runtime follows the same semantic waist without becoming a Climate runtime implementation. A thin adapter should invoke or import the external system through its native interface, bind exact model/artifact/runtime identity, preserve the upstream receipt and transformations as artifacts/provenance, map only the required outputs into Climate's existing `DatasetRef`/`ArtifactRef`/`RunManifest`/`MetricResult`/`EvidenceRecord` records, and fail closed if those bindings cannot be established. Do not invent a generic `ExternalModel` framework when the native runtime already defines execution semantics.
 
 Local orchestration may still be needed for:
 
@@ -364,6 +373,7 @@ No language is authoritative by chronology or provenance. Authority comes from t
 - Approximation level is explicit.
 - Requested and resolved execution identities must agree for an eligible run; unavailable requirements fail closed rather than selecting an alternate implementation.
 - An experiment consumes immutable references and emits immutable artifacts/evidence.
+- Native external capabilities retain their own implementation identity; Climate adapters add scientific meaning and verification without impersonating or shadowing the upstream system.
 - Domain-specific code never invents its own run identity when Commons supplies one.
 - Cross-language FFI stays narrow; complex climate arrays should use documented memory/layout contracts rather than ad-hoc pointer conventions.
 
@@ -380,6 +390,9 @@ These questions require experiments rather than architecture fiat:
 - whether sheaf-theoretic obstruction measures improve data-quality/reconstruction tasks;
 - which early-warning indicators are robust under nonstationary forcing/noise;
 - which model complexity is warranted for each target question;
+- whether response operators, tangent spaces, modal structure, invariant residuals, or representation neighborhoods provide more discriminating cross-model comparisons than conventional fieldwise metrics;
+- how evidence and uncertainty should transport across idealized models, learned emulators, parent GCMs, multimodel ensembles, reanalysis, and observations without treating fidelity levels as interchangeable;
+- when cheap-model exploration can select a small set of expensive simulations that is measurably more informative than grid/random experiment design;
 - whether a single coupled physical core should ultimately exist in this repository at all.
 
 The architecture's job is to make these questions cheap to test and hard to misreport.
@@ -395,5 +408,7 @@ The architecture is doing its job when a new method can be added by:
 5. emitting reproducible artifacts and evidence;
 6. being compared without custom result semantics;
 7. remaining unable to overstate its scientific maturity merely because it executed successfully.
+8. binding externally owned native capabilities without reproducing their cataloging, preprocessing, execution, training, inference, intercomparison, or provenance stacks;
+9. asking the same falsifiable scientific question across multiple model/data realizations while retaining the scope and fidelity of each resulting evidence record.
 
 For the multirepresentation program, success also means a representation can be composed with or rejected by other representations through explicit scientific maps and constraints, without forcing every mathematical object into one data type or letting experiment infrastructure dictate the climate semantics.

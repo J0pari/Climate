@@ -45,9 +45,13 @@ Examples:
 - fixed humidity injected into a state advertised as observational state;
 - fixed eigenvalues used as if computed conditioning diagnostics;
 - a CPU/fake-MPI path retaining the identity of a CUDA/NCCL implementation;
+- a local preprocessing/evaluation wrapper advertised as equivalent to a native external system while omitting its configuration, provenance, or failure semantics;
+- a project-local model runner that impersonates an Anemoi/ACE/ClimSim or other upstream runtime without binding the exact upstream artifact and execution identity;
 - a hard-coded probability transform returned as a physical probability.
 
 **S3 must be removed, renamed/retyped as an explicit heuristic, or converted to fail-closed behavior.**
+
+Capability shadowing is an S3/S4 risk even when the local implementation appears numerically plausible. If Climate needs an externally owned capability, the safe forms are an explicit native integration, a clearly distinct bounded reference implementation, or an unavailable state. A simplified local substitute must never retain the upstream system's semantic identity.
 
 A weaker name or type is **not** a repair strategy for an implementation that failed to meet a stronger contract. Renaming/retyping is permitted only when the narrower operation is itself the scientifically or computationally preferable reusable abstraction for a real task, with a contract worth preserving independently. If the stronger capability is the right tool, its implementation must rise to that contract or remain unavailable. Never choose a weaker API merely because it is easier to make compile, test, or return plausible output.
 

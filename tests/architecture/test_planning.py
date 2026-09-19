@@ -47,6 +47,8 @@ class PlanningGraphTests(unittest.TestCase):
             self.assertIn("`a.done`", rendered)
             self.assertIn("`b.ready`", rendered)
             self.assertLess(rendered.index("`b.ready`"), rendered.index("`a.done`"))
+            self.assertIn("bind native external capabilities", rendered)
+            self.assertIn("local shadow implementation", rendered)
 
     def test_missing_dependency_and_cycle_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

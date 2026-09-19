@@ -317,22 +317,24 @@ Commons must not:
 
 ## 13. What Climate should not duplicate
 
-Once Commons provides these facilities, Climate should avoid building separate incompatible versions of:
+The no-duplication rule is capability-based rather than repository-based. External ownership never makes a concern scientifically irrelevant to Climate, but it normally means Climate should integrate and verify the native capability instead of manufacturing a parallel implementation.
 
-- global run IDs;
-- workspace-level job scheduling;
-- cross-repo GPU leases;
-- generic causal lineage;
-- generic artifact-addressing conventions;
-- generic experiment DAG orchestration;
-- cross-repository promotion bookkeeping.
+For Commons, Climate should not reproduce global run IDs, workspace scheduling, cross-repository resource leases, generic causal lineage, generic artifact addressing, experiment-DAG orchestration, or cross-repository promotion bookkeeping. Climate may retain local component scheduling when it is part of the numerical/scientific method, and that distinction must be explicit.
 
-Climate may retain local component scheduling where it is scientifically/numerically part of a simulation, but that distinction must be explicit.
+The same rule applies to climate/model systems used by Climate experiments:
 
+- Climate-REF owns its dataset ingestion/catalog, execution solving/state, and diagnostic-provider execution model; Climate should contribute or invoke diagnostics through that surface rather than mirror it.
+- ESMValTool/ESMValCore own recipe-driven common preprocessing, regridding/masking/level extraction, established diagnostics, and their provenance machinery; Climate should consume those outputs or providers when they satisfy the experiment contract.
+- AQUA owns its high-resolution model-data access, fixes/normalization, scalable/lazy processing, regridding, and evaluation machinery in the DestinE context; Climate should move its diagnostics to the data through that interface rather than build a second petabyte-scale access stack.
+- AIMIP owns its AI-climate intercomparison protocol, forcing/output conventions, submission corpus, and baseline evaluation definitions; Climate should use that comparable population to ask structural questions rather than create a competing intercomparison.
+- ClimSim-Online owns the control/hybrid E3SM-MMF online execution workflow and container/HPC integration; Climate should attach invariant, stability, response, or failure-prediction assays to its native runs rather than fork an online climate simulator.
+- Anemoi and ACE-family systems own their model data/training/model/inference machinery. Climate may run or ingest those models through native interfaces, but should not create a parallel training or serving stack merely to obtain experiment inputs.
+
+A Climate adapter is justified when it binds exact upstream identity/configuration, preserves native receipts, performs a Climate-specific projection or intervention mapping, adds an independently valuable reference witness, or computes a Climate-owned scientific quantity. The adapter must not erase upstream semantics or become a shadow source of truth.
 ## 14. External artifact evaluation
 
 Climate pins Commons `evaluation-exchange/v1` as an interoperability boundary,
-not as scientific authority. A Training model artifact can be presented as an
+not as scientific authority or as a model-serving abstraction. External model execution should remain attached to the artifact's native runtime while Climate binds the resulting receipt and evaluation semantics. A Training model artifact can be presented as an
 external artifact reference only when it carries its producer repository,
 producer-local alias, full SHA-256 identity, and artifact contract. The local
 16-character Training alias is metadata; it is never the cross-repository

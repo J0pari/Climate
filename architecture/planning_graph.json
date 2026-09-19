@@ -710,18 +710,19 @@
       "status": "blocked",
       "priority": "P1",
       "resource_class": "R4_integrated_system",
-      "summary": "Use Commons evaluation-exchange/v1 to bind immutable external artifacts to Climate-owned evaluation specifications and attestations without allowing the exchange layer to make Training promotion decisions.",
+      "summary": "Bind immutable external model artifacts to Climate-owned evaluation specifications through the artifact's native runtime or an exact native-output import path, then map the resulting receipt into Climate/Commons evidence semantics without building a parallel model-serving stack or allowing the exchange layer to make producer-repository promotion decisions.",
       "depends_on": [
         "orchestration.commons_read_execution"
       ],
       "blockers": [
-        "Climate can validate and score a digest-bound prediction artifact against the registered contract-reasoning task set, but climate.external-model-runtime/v1 is unavailable; the remaining blocker is producing those predictions from the exact requested Training artifact under a real runtime receipt."
+        "Climate can validate and score a digest-bound prediction artifact against the registered contract-reasoning task set, but no exact native runtime/import binding currently produces those predictions from the requested external model artifact under a verifiable receipt. The missing piece is the integration seam, not a Climate-owned generic serving runtime."
       ],
       "completion": [
-        "A versioned Climate evaluation specification declares the model-artifact input contract, climate task, metrics, controls, resource class, and falsifiers.",
-        "A Training artifact is referenced by full SHA-256 exchange identity while retaining its local alias only as metadata.",
-        "One Commons-scheduled Climate evaluation emits a contract-valid evaluation attestation with immutable subject binding and Climate run/artifact lineage.",
-        "The attestation carries evidence class and verification separately and cannot encode Training acceptance/promotion."
+        "A versioned Climate evaluation specification declares the external artifact contract, native execution/import identity, climate task, metrics, controls, resource class, and falsifiers.",
+        "The external artifact is referenced by full SHA-256 exchange identity while retaining producer-local aliases only as metadata.",
+        "One Commons-scheduled Climate evaluation consumes predictions produced by the artifact's native runtime or an exact native-output import path and emits a contract-valid evaluation attestation with immutable subject binding and Climate run/artifact lineage.",
+        "The integration receipt binds native runtime/tool version, artifact/checkpoint identity, relevant configuration, execution failure semantics, and transformations without reproducing upstream training/inference/serving machinery.",
+        "The attestation carries evidence class and verification separately and cannot encode producer-repository acceptance/promotion."
       ],
       "evidence": [
         "contracts/evaluation-exchange-pin.json",
@@ -880,6 +881,59 @@
         "UMAP, if registered, is fit only on discovery data and uses its maintained out-of-sample transform for confirmation data; two-dimensional visual separation is diagnostic only and cannot satisfy scientific evidence criteria.",
         "EBM extensions distinguish Euclidean, physically weighted, observation/information-geometric, and dynamical neighborhood notions only where each metric has an explicit authority and units; dynamic-neighbor divergence under true forcing is reported separately from static embedding quality.",
         "No neighborhood-derived quantity is connected to climate.geometry.regime_indicator until controlled worlds show correct behavior and incremental information beyond simpler registered diagnostics."
+      ]
+    },
+    {
+      "id": "integration.native_capability_boundaries",
+      "title": "Bind external native capabilities without shadow implementations",
+      "status": "ready",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Make external ownership and Climate integration simultaneously explicit: Climate-REF/ESMValTool/AQUA/AIMIP/ClimSim-Online/Anemoi/ACE-family or comparable systems retain their native cataloging, preprocessing, execution, training, inference, intercomparison, and provenance responsibilities while Climate binds exact versions/configuration/receipts and adds only Climate-specific scientific semantics.",
+      "depends_on": [],
+      "completion": [
+        "Each realized external integration names the exact native capability being consumed, the Climate-owned semantic gap it fills, and the upstream identity/configuration/receipt required for reproducibility.",
+        "Adapters preserve native artifact/model/data identity and failure semantics and map only necessary outputs into existing Climate run/artifact/metric/evidence records rather than defining a second generic execution or data model.",
+        "Architecture tests contain at least one negative witness showing that an unavailable or mismatched native capability fails closed rather than selecting a local substitute with the same identity.",
+        "A capability inventory demonstrates that common cataloging, preprocessing, standard diagnostics, training/inference, intercomparison, and orchestration are reused from their native owners wherever they already satisfy the experiment contract.",
+        "Any retained local duplicate is justified as an independently valuable bounded reference or a concrete missing upstream semantic, with a distinct implementation identity."
+      ]
+    },
+    {
+      "id": "validation.cross_model_evidence_transport",
+      "title": "Make cross-model evidence transport explicit and testable",
+      "status": "ready",
+      "priority": "P1",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Represent how evidence from idealized models, learned emulators, parent GCMs, model ensembles, reanalysis, and observations may inform one claim without treating those sources as interchangeable or allowing agreement at one fidelity to silently promote another.",
+      "depends_on": [
+        "experimentation.claim_evidence_vertical_slice"
+      ],
+      "completion": [
+        "A versioned evaluation example records evidence source/model class, domain of validity, and the explicit bridge object or assumption used when evidence informs a claim beyond its producing model.",
+        "Negative witnesses reject automatic promotion from emulator agreement to parent-GCM validation and from multimodel agreement to observational support.",
+        "At least one bridge test compares a declared transferable object such as an intervention response, invariant, response subspace, or representation relation across two model classes.",
+        "Evidence records preserve each source's original class and scope even when several sources are synthesized for one claim."
+      ]
+    },
+    {
+      "id": "experimentation.multifidelity_response_interrogation",
+      "title": "Use cheap model exploration to choose discriminating high-fidelity experiments",
+      "status": "blocked",
+      "priority": "P1",
+      "resource_class": "R5_large_data",
+      "summary": "Test the core frontier hypothesis that emulator-scale exploration plus response/information geometry can identify a small set of high-fidelity interventions that discriminate mechanisms or reduce uncertainty more efficiently than simple grid/random designs, while preserving native execution ownership at every fidelity.",
+      "depends_on": [
+        "integration.native_capability_boundaries",
+        "orchestration.external_artifact_evaluation",
+        "validation.cross_model_evidence_transport"
+      ],
+      "completion": [
+        "One matched intervention family is executable or importable through a cheap learned/idealized model and a higher-fidelity physical-model path with exact native receipts.",
+        "The cheap path estimates a predeclared response/discrepancy/information structure and freezes a high-fidelity experiment-selection rule before high-fidelity outcomes are inspected.",
+        "The same expensive-run budget is allocated to at least one simple comparator such as random, space-filling, or conventional sensitivity selection.",
+        "Evaluation reports response-operator or target-discrimination agreement, discrepancy structure, uncertainty reduction, and failure cases separately from ordinary fieldwise error.",
+        "Any evidence update remains scoped to the high-fidelity observations actually run; cheap-model exploration is recorded as experiment-design evidence rather than substituted confirmation."
       ]
     }
   ]

@@ -96,6 +96,10 @@ The repository therefore keeps physical state, statistical models, research repr
 
 Generic numerical infrastructure should be reused where mature implementations exist. Climate-owned engineering effort should concentrate on climate-specific variables, coordinates, operators, balance laws, coupling semantics, representation maps, Jacobians, physical constraints, and scientifically meaningful experiments.
 
+The same rule applies above the numerical-library level. Climate should not recreate mature climate-data, evaluation, intercomparison, training, inference, or model-execution stacks merely to place them behind project-local interfaces. External implementation ownership does not remove those concerns from Climate's correctness envelope: an evidence-producing integration must still bind the exact external capability, version, configuration, data transformations, runtime identity, failures, and native receipts or artifacts that affect the result.
+
+Current integration targets illustrate the boundary rather than define a dependency mandate: Climate-REF and ESMValTool/ESMValCore already own broad climate-evaluation and preprocessing machinery; AQUA owns high-resolution model-output access and evaluation machinery for the DestinE context; AIMIP owns an AI-climate intercomparison protocol and common output conventions; ClimSim-Online owns its E3SM-MMF online execution workflow; and Anemoi/ACE-family systems own their model training or inference runtimes. Climate's distinctive contribution is the scientific interrogation layer across such systems: intervention semantics, cross-model structural comparisons, invariant/budget assays, multi-fidelity discrepancy, experiment selection, representation mismatch, falsifiers, and scoped evidence transport.
+
 ## Research workflow
 
 New scientific ideas should enter as precise mathematical or physical questions, not as implementation-first feature requests. A useful sequence is:
