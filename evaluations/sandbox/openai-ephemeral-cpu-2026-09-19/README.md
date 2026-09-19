@@ -53,6 +53,14 @@ A follow-up FP64 stress separated derivative correctness from downstream geometr
 
 A 500-scenario Normal location-scale recovery sweep tested truth scales from `0.01` to `100`, five initial scale errors from `0.01x` to `100x`, two mean offsets, and ten synthetic train/holdout seeds. Exact-Fisher natural gradient succeeded in all 500 scenarios and strongly improved on unpreconditioned gradient descent (`42.8%` success). However, a generic adaptive Hessian-diagonal/Jacobi preconditioner also succeeded in all 500 and used fewer function evaluations than natural gradient in `64.6%` of matched cases; SciPy `trust-exact` did so in `65.0%`. This is exploratory attacking evidence against attributing robust recovery to Fisher geometry when an equally informed generic curvature baseline is available. See `information-geometry-recovery-discovery.json`; a confirmation experiment must be preregistered before this affects claim authority.
 
+## Climate-specific information-geometry EBM recovery discovery
+
+A follow-up 24-trial benchmark moved the recovery question from the generic Normal family to the repository's two-layer EBM. Parameters were fit only to noisy step+ramp temperature responses under a fixed-variance Gaussian observation likelihood and scored on separately held-out overshoot/reversal plus sign-reversal forcing histories. The discovery sensitivity matrix was full rank with condition number `36.18`.
+
+Local-Fisher natural gradient, SciPy L-BFGS-B with exact AD gradients, and SciPy Jacobian-scaled trust-region least squares converged to numerically the same recovered parameters and held-out likelihood when they converged. Natural gradient converged in 21/24 trials; trust-region least squares and L-BFGS-B converged in 24/24. Median held-out negative log likelihood per observation was `0.66426` for all three. Trust-region least squares required a median 13 function evaluations versus 31 for natural gradient and 77 for L-BFGS-B. A Fisher matrix frozen at initialization converged in 0/24 trials and produced materially worse recovery.
+
+For this fixed-variance Gaussian mean model, the local Fisher natural-gradient direction is the ordinary Gauss-Newton direction. Across 64 broad parameter states, independently formed steps differed by at most `1.96e-12` relative. The benchmark therefore attacks any interpretation that improvement here is uniquely attributable to information geometry: the stronger ordinary nonlinear-least-squares globalization is at least as effective and more robust in this discovery. See `information-geometry-ebm-recovery-discovery.json` and `information-geometry-gauss-newton-equivalence.json`.
+
 ## Resource accounting
 
 No GitHub Codespaces compute was consumed by this campaign.
