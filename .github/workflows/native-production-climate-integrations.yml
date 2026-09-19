@@ -141,8 +141,8 @@ jobs:
           import numpy as np
           from aqua.core.intake_drivers.xarray.netcdf import IntakeNetCDFSource
 
-          source = IntakeNetCDFSource("areacella.nc", chunks=None)
-          dataset = source.reader.read()
+          source = IntakeNetCDFSource("areacella.nc")
+          dataset = source.read()
           assert "areacella" in dataset
           field = dataset["areacella"]
           values = np.asarray(field.values)
