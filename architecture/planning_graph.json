@@ -1052,6 +1052,29 @@
         "Station partition encoding remains Climate-specific while durable object persistence is delegated to Commons.",
         "Only after the owner path passes are data/ncei_ghcnd_parquet.py or data/ncei_ghcnh_partition.py storage-engine mechanics eligible for pruning."
       ]
+    },
+    {
+      "id": "orchestration.codespaces_cpu_experiment_campaign",
+      "title": "Turn included Codespaces CPU into receipted experiments",
+      "status": "active",
+      "priority": "P0",
+      "resource_class": "R2_toolchain_ci",
+      "summary": "Use available included personal-account GitHub Codespaces CPU for the registered portable experiment frontier through the canonical runtime, capturing exact revision/environment receipts and contract-valid outcomes so ready experiments produce evidence before discretionary framework refinement consumes effort.",
+      "depends_on": [],
+      "completion": [
+        "A fresh GitHub Codespace bootstraps the declared Climate experiment environment from .devcontainer without hand-installed scientific dependencies.",
+        "The campaign runner discovers runnable experiment identities from the existing experiment specifications plus the canonical runtime adapter registry rather than maintaining a second experiment list.",
+        "At least one clean-main Codespaces campaign executes the supported registered local CPU experiment frontier, preserves per-experiment stdout/stderr, run/outcome artifacts, CUE validation logs, and an environment receipt, and terminates with a campaign summary.",
+        "Codespaces is treated only as an R1/R2 execution venue: experiments requiring CUDA, an integrated native external runtime, or large-data authority remain resource-gated rather than being locally imitated.",
+        "Included account compute is spent on declared experiments, replications, or blocker-resolving integration work; redundant repetition solely to exhaust quota does not satisfy completion."
+      ],
+      "evidence": [
+        ".devcontainer/devcontainer.json",
+        ".devcontainer/bootstrap.sh",
+        "architecture/codespaces_campaign.py",
+        "tests/architecture/test_codespaces_campaign.py",
+        "docs/EXECUTION-TOPOLOGY.md"
+      ]
     }
   ]
 }
