@@ -336,6 +336,7 @@ def stream_station_year_psv(
     expected_year: int,
     lookup: GHCNhAliasShardLookup,
     sink: GHCNhObservationSink,
+    expected_station_id: str | None = None,
 ) -> GHCNhRoutingSummary:
     """Stream one GHCNh station/year PSV without normalizing provider fields."""
     if expected_year < 0:
@@ -366,6 +367,11 @@ def stream_station_year_psv(
         timestamp = row["DATE"].strip()
         if not station_id:
             raise ValueError(f"GHCNh PSV row {row_number} has empty STATION")
+        if expected_station_id is not None and station_id != expected_station_id:
+            raise ValueError(
+                f"GHCNh PSV row {row_number} station {station_id!r} does not "
+                f"match archive member station {expected_station_id!r}"
+            )
         if not timestamp:
             raise ValueError(f"GHCNh PSV row {row_number} has empty DATE")
         try:

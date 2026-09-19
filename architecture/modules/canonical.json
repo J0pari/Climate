@@ -38,10 +38,23 @@
       "maturity": "runnable",
       "intended_role": "canonical GHCNh provider adapter that parses the documented global fixed-width station list, federates exact shared GHCN identifiers as explicit digest-bound aliases, creates distinct hourly-provider roots for unmatched stations, and streams self-describing station/year PSV rows to bounded canonical station/shard/year sinks while preserving every provider field including source/QC attributes",
       "known_gaps": [
-        "hourly PSV routing is streaming and lossless at the provider-field boundary, but immutable content-addressed partition publication for GHCNh remains a separate adapter obligation",
         "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
         "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations rather than ingestion defaults",
         "shared identity uses exact documented GHCN identifier equality only and does not infer crosswalks from names, coordinates, ICAO codes, WMO codes, or proximity"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "data/ncei_ghcnh_partition.py",
+      "family": "ncei_ghcnh_raw_partition_publication",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "canonical bounded-memory publication adapter for captured annual GHCNh tar archives, streaming station PSV members through canonical alias/shard routing into immutable content-addressed spatial/year raw-row partitions that preserve every provider field and bind the compressed source archive SHA-256",
+      "known_gaps": [
+        "the raw partition contract deliberately stores provider fields without physical-unit conversion or quality-policy filtering; downstream projections must interpret documented GHCNh measurement/QC/source codes explicitly",
+        "the local content-addressed filesystem is the canonical publication witness; durable remote object-store transport remains an adapter responsibility",
+        "the raw opaque variable identity supports provenance-preserving federation but does not itself expose field-level variable coverage in StationFederationManifest summaries"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false
@@ -533,7 +546,7 @@
       "maturity": "runnable",
       "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, explicit evidence-bound and reversible cross-provider alias application, resolved location epochs, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
       "known_gaps": [
-        "the provider registry now realizes GHCN-Daily observations plus GHCNh station-catalog federation; GHCNh hourly observation routing/publication and additional lawfully accessible no-fee authorities remain integration obligations rather than numerical-kernel branches",
+        "the provider registry now realizes GHCN-Daily plus GHCNh catalog and raw-hourly observation federation; additional lawfully accessible no-fee authorities and normalized GHCNh projections remain integration obligations rather than numerical-kernel branches",
         "durable remote object-store publication remains an adapter responsibility; canonical local publication is content-addressed and the NCEI scale adapter now provides resumable bulk acquisition",
         "GHCNh supplies the first real second-provider catalog crosswalk via NCEI-managed shared GHCN identifiers; crosswalks for unrelated provider identity systems still require their own upstream evidence and never use proximity inference",
         "catalog-record counts in manifest coverage are shard record totals, not a claim that unresolved aliases across different shards have already been deduplicated"

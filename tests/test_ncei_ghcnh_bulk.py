@@ -1,7 +1,17 @@
 from __future__ import annotations
 
+import hashlib
+import io
+import json
+from pathlib import Path
+import tarfile
+import tempfile
 import unittest
 
+from data.ncei_ghcnh_partition import (
+    MEDIA_TYPE,
+    publish_year_archive,
+)
 from data.ncei_ghcnh_bulk import (
     SOURCE_ID,
     GHCNhAliasShardLookup,
@@ -58,6 +68,16 @@ def daily_station(station_id: str) -> FederatedStation:
         ),
         variable_ids=("TMAX",),
     )
+
+
+def write_year_archive(path: Path, members: dict[str, str]) -> None:
+    with tarfile.open(path, mode="w:gz") as archive:
+        for name, text in members.items():
+            encoded = text.encode("utf-8")
+            info = tarfile.TarInfo(name)
+            info.size = len(encoded)
+            info.mtime = 0
+            archive.addfile(info, io.BytesIO(encoded))
 
 
 class GHCNhFederationTests(unittest.TestCase):
@@ -226,6 +246,141 @@ class GHCNhFederationTests(unittest.TestCase):
                 lookup=lookup,
                 sink=Sink(),
             )
+
+    def test_annual_archive_publishes_content_addressed_raw_partitions(self):
+        catalog = parse_station_catalog(
+            (
+                station_line(
+                    "USW00094846", 41.98, -87.90, 204.0, "CHICAGO OHARE"
+                )
+                + station_line(
+                    "CAW00099999", 50.0, -100.0, 300.0, "HOURLY ONLY"
+                )
+            ).encode("ascii")
+        )
+        result = federate_station_catalog(
+            (daily_station("USW00094846"),),
+            catalog,
+            metadata_effective_date="2026-09-18",
+        )
+        shared = next(
+            station
+            for station in result.stations
+            if any(
+                binding.alias == ProviderAlias(SOURCE_ID, "USW00094846")
+                for binding in station.aliases
+            )
+        )
+        hourly_only = next(
+            station
+            for station in result.stations
+            if any(
+                binding.alias == ProviderAlias(SOURCE_ID, "CAW00099999")
+                for binding in station.aliases
+            )
+        )
+        lookup = GHCNhAliasShardLookup(
+            (
+                StationCatalogShard("cell-a", "cell-a", (shared,)),
+                StationCatalogShard("cell-b", "cell-b", (hourly_only,)),
+            )
+        )
+        header = "STATION|DATE|temperature|temperature_QC|SOURCE|Remarks\n"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            archive = root / "ghcn-hourly_v1.0.0_d2026_c20260918.tar.gz"
+            write_year_archive(
+                archive,
+                {
+                    "GHCNh_USW00094846_2026.psv": (
+                        header
+                        + "USW00094846|2026-09-18T12:00:00Z|19.4|V020|USAF|raw\n"
+                    ),
+                    "GHCNh_CAW00099999_2026.psv": (
+                        header
+                        + "CAW00099999|2026-09-18T12:00:00Z||V030|NOAA|\n"
+                    ),
+                },
+            )
+            publication = publish_year_archive(
+                archive,
+                expected_year=2026,
+                lookup=lookup,
+                object_root=root / "store",
+            )
+            self.assertEqual(publication.archive_member_count, 2)
+            self.assertEqual(len(publication.partitions), 2)
+            expected_source = "sha256:" + hashlib.sha256(
+                archive.read_bytes()
+            ).hexdigest()
+            self.assertEqual(publication.source_revision, expected_source)
+            self.assertTrue(
+                all(item.source_revision == expected_source for item in publication.partitions)
+            )
+            self.assertTrue(
+                all(item.media_type == MEDIA_TYPE for item in publication.partitions)
+            )
+            self.assertTrue(all(item.row_count == 1 for item in publication.partitions))
+
+            for item in publication.partitions:
+                object_dir = (
+                    root
+                    / "store"
+                    / "objects"
+                    / item.digest.removeprefix("sha256:")
+                )
+                manifest = json.loads(
+                    (object_dir / "manifest.json").read_text(encoding="utf-8")
+                )
+                self.assertIn("temperature_QC", manifest["provider_field_names"])
+                row = json.loads(
+                    (object_dir / "records.ndjson").read_text(encoding="utf-8")
+                )
+                fields = dict(row["provider_fields"])
+                self.assertIn(fields["SOURCE"], {"USAF", "NOAA"})
+                self.assertIn(fields["temperature_QC"], {"V020", "V030"})
+
+            repeated = publish_year_archive(
+                archive,
+                expected_year=2026,
+                lookup=lookup,
+                object_root=root / "store",
+            )
+            self.assertEqual(repeated.partitions, publication.partitions)
+
+    def test_annual_archive_refuses_member_station_mismatch(self):
+        catalog = parse_station_catalog(
+            station_line(
+                "USW00094846", 41.98, -87.90, 204.0, "CHICAGO OHARE"
+            ).encode("ascii")
+        )
+        result = federate_station_catalog(
+            (daily_station("USW00094846"),),
+            catalog,
+            metadata_effective_date="2026-09-18",
+        )
+        lookup = GHCNhAliasShardLookup(
+            (StationCatalogShard("cell-a", "cell-a", result.stations),)
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            archive = root / "fixture.tar.gz"
+            write_year_archive(
+                archive,
+                {
+                    "GHCNh_USW00094846_2026.psv": (
+                        "STATION|DATE|temperature\n"
+                        "USW00000000|2026-09-18T12:00:00Z|19.4\n"
+                    )
+                },
+            )
+            with self.assertRaisesRegex(ValueError, "archive member station"):
+                publish_year_archive(
+                    archive,
+                    expected_year=2026,
+                    lookup=lookup,
+                    object_root=root / "store",
+                )
 
     def test_duplicate_station_identifier_fails_closed(self):
         line = station_line(

@@ -49,10 +49,11 @@
       "geographic_scope": "global",
       "station_identity_namespace": "GHCNh managed GHCN identifier",
       "discovery_mode": "provider_catalog",
-      "scale_path": "captured ghcnh-station-list.txt provides global catalog discovery and explicit shared-GHCN-ID crosswalks today; NCEI yearly GHCNh bulk archives are the declared large-volume observation path but hourly observation routing/publication is not yet realized in Climate",
+      "scale_path": "captured ghcnh-station-list.txt provides global catalog discovery and explicit shared-GHCN-ID crosswalks; captured annual GHCNh tar.gz archives are streamed member-by-member through canonical alias/shard routing into immutable content-addressed raw spatial/year partitions without materializing the year",
       "current_boundaries": [
         "data/ncei_ghcnh_bulk.py::parse_station_catalog",
-        "data/ncei_ghcnh_bulk.py::federate_station_catalog"
+        "data/ncei_ghcnh_bulk.py::federate_station_catalog",
+        "data/ncei_ghcnh_partition.py::publish_year_archive"
       ]
     }
   ]

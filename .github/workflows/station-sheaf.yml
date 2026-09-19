@@ -8,6 +8,7 @@ on:
       - 'data/ncei_ghcnd_bulk.py'
       - 'data/ncei_ghcnd_parquet.py'
       - 'data/ncei_ghcnh_bulk.py'
+      - 'data/ncei_ghcnh_partition.py'
       - 'tests/test_ncei_ghcnd_bulk.py'
       - 'tests/test_ncei_ghcnd_parquet.py'
       - 'tests/test_ncei_ghcnh_bulk.py'

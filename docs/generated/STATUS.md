@@ -8,17 +8,17 @@ This file is a deterministic projection of repository-local authorities. It does
 
 ## Module authority
 
-Registered modules: **66**.
+Registered modules: **67**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 36 |
+| `canonical` | 37 |
 | `reference` | 30 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 64 |
+| `runnable` | 65 |
 
 ### Canonical and reference modules
 
@@ -27,6 +27,7 @@ Registered modules: **66**.
 | `canonical` | `canonical_implementation` | `data/ncei_ghcnd_bulk.py` | `ncei_ghcnd_bulk_station_federation_adapter` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `data/ncei_ghcnd_parquet.py` | `ncei_ghcnd_parquet_partition_publication` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `data/ncei_ghcnh_bulk.py` | `ncei_ghcnh_station_federation_adapter` | `runnable` | no |
+| `canonical` | `canonical_implementation` | `data/ncei_ghcnh_partition.py` | `ncei_ghcnh_raw_partition_publication` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_trajectory_secant_numerics` | `prototype` | no |
 | `canonical` | `canonical_implementation` | `src/budget_ledger.rs` | `streaming_extensive_budget_accounting` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |

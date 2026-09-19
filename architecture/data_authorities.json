@@ -481,6 +481,21 @@
       "rationale": "GHCNh enters the provider-neutral station federation from its captured global station-list artifact; exact shared GHCN identifiers documented by NCEI create digest-bound aliases to existing GHCN-Daily roots, while unmatched hourly stations remain distinct canonical roots without proximity inference",
       "witness_path": "tests/test_ncei_ghcnh_bulk.py",
       "witness_anchor": "test_shared_ghcn_identifier_becomes_explicit_alias_not_new_root"
+    },
+    {
+      "usage_id": "data.ncei_ghcnh_hourly_partition_boundary",
+      "scope": "current",
+      "path": "data/ncei_ghcnh_partition.py",
+      "anchor": "publish_year_archive",
+      "authority_boundary": "publish_year_archive",
+      "ownership_class": "external_dataset",
+      "disposition": "externalize",
+      "source_ids": [
+        "ncei.ghcnh.v1"
+      ],
+      "rationale": "captured annual GHCNh bulk archives are streamed member-by-member into immutable content-addressed raw provider partitions; every partition binds the exact compressed source archive digest and preserves provider QC/source fields without silent normalization or imputation",
+      "witness_path": "tests/test_ncei_ghcnh_bulk.py",
+      "witness_anchor": "test_annual_archive_publishes_content_addressed_raw_partitions"
     }
   ]
 }
