@@ -13,7 +13,6 @@ has never demonstrated it can catch its target failure is not evidence.
 from __future__ import annotations
 
 import argparse
-import ast
 import re
 import sys
 from dataclasses import dataclass
@@ -133,88 +132,22 @@ FALLBACK_MARKERS = (
 )
 
 
-def gate_silent_capability_fallback(files: dict[str, list[str]]) -> list[Finding]:
-    """Inventory capability-substitution surfaces that require fail-closed review."""
+def gate_fallback_marker_inventory(files: dict[str, list[str]]) -> list[Finding]:
+    """Supplemental lexical tripwire for suspicious compatibility/fallback prose.
+
+    This is defense in depth only. Marker spelling is neither necessary nor
+    sufficient to establish semantic substitution; the binding structural rule
+    lives in architecture/check_semantic_defaults.py.
+    """
     findings: list[Finding] = []
     for path, lines in files.items():
         for line_no, line in enumerate(lines, 1):
             lower = line.lower()
             if any(marker in lower for marker in FALLBACK_MARKERS):
                 findings.append(Finding(
-                    "capability_fallback", path, line_no,
-                    "requested execution must fail closed rather than substitute this capability; an alternate implementation requires its own explicit execution identity",
+                    "fallback_marker_inventory", path, line_no,
+                    "supplemental lexical marker only; review the path, but structural semantic-substitution guards are authoritative",
                     line,
-                ))
-    return findings
-
-
-
-def _caught_exception_names(node: ast.expr | None) -> set[str]:
-    if node is None:
-        return set()
-    if isinstance(node, ast.Name):
-        return {node.id}
-    if isinstance(node, ast.Tuple):
-        names: set[str] = set()
-        for item in node.elts:
-            names.update(_caught_exception_names(item))
-        return names
-    return set()
-
-
-def _allowed_failure_log(statement: ast.stmt) -> bool:
-    if not isinstance(statement, ast.Expr) or not isinstance(statement.value, ast.Call):
-        return False
-    func = statement.value.func
-    if not isinstance(func, ast.Attribute):
-        return False
-    root = func.value
-    return isinstance(root, ast.Name) and root.id in {"logger", "logging"}
-
-
-def gate_optional_capability_substitution(
-    files: dict[str, list[str]],
-) -> list[Finding]:
-    """Require optional-capability import failures to terminate, never substitute.
-
-    An ImportError/ModuleNotFoundError handler may optionally emit a log record,
-    but its only semantic exit is a raise. Importing another backend, assigning
-    replacement state, returning a different implementation, or continuing is
-    a source-integrity violation.
-    """
-    findings: list[Finding] = []
-    for path, lines in files.items():
-        if not path.endswith(".py"):
-            continue
-        try:
-            tree = ast.parse("\n".join(lines), filename=path)
-        except SyntaxError:
-            continue
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Try):
-                continue
-            for handler in node.handlers:
-                caught = _caught_exception_names(handler.type)
-                if not caught.intersection({"ImportError", "ModuleNotFoundError"}):
-                    continue
-                body = handler.body
-                valid = bool(body) and isinstance(body[-1], ast.Raise)
-                if valid:
-                    valid = all(
-                        isinstance(statement, ast.Raise)
-                        or _allowed_failure_log(statement)
-                        for statement in body
-                    )
-                if valid:
-                    continue
-                line_no = getattr(handler, "lineno", 1)
-                source_line = lines[line_no - 1] if 0 < line_no <= len(lines) else ""
-                findings.append(Finding(
-                    "optional_capability_substitution",
-                    path,
-                    line_no,
-                    "missing optional capability must fail closed; the handler may log and raise only, never select or construct an alternate implementation",
-                    source_line,
                 ))
     return findings
 
@@ -314,23 +247,38 @@ def gate_change_narration(files: dict[str, list[str]]) -> list[Finding]:
 
 
 Gate = Callable[[dict[str, list[str]]], list[Finding]]
-GATES: tuple[Gate, ...] = (
+STRICT_GATES: tuple[Gate, ...] = (
     gate_managed_memory,
     gate_unchecked_cuda_calls,
-    gate_silent_capability_fallback,
-    gate_optional_capability_substitution,
     gate_placeholder_inventory,
     gate_ambient_rng,
     gate_interpretive_probability,
     gate_change_narration,
 )
+SUPPLEMENTAL_GATES: tuple[Gate, ...] = (
+    gate_fallback_marker_inventory,
+)
+GATES: tuple[Gate, ...] = STRICT_GATES + SUPPLEMENTAL_GATES
+
+
+def _run(
+    gates: tuple[Gate, ...],
+    files: dict[str, list[str]],
+) -> list[Finding]:
+    findings: list[Finding] = []
+    for gate in gates:
+        findings.extend(gate(files))
+    return sorted(findings, key=lambda f: (f.path, f.line, f.gate))
 
 
 def run(files: dict[str, list[str]]) -> list[Finding]:
-    findings: list[Finding] = []
-    for gate in GATES:
-        findings.extend(gate(files))
-    return sorted(findings, key=lambda f: (f.path, f.line, f.gate))
+    """Return binding and supplemental audit findings."""
+    return _run(GATES, files)
+
+
+def run_strict(files: dict[str, list[str]]) -> list[Finding]:
+    """Return only findings adopted as binding strict policy."""
+    return _run(STRICT_GATES, files)
 
 
 def main() -> int:
@@ -341,6 +289,7 @@ def main() -> int:
 
     files = read_sources()
     findings = run(files)
+    strict_findings = run_strict(files)
     if args.summary:
         counts: dict[str, int] = {}
         for finding in findings:
@@ -348,12 +297,14 @@ def main() -> int:
         for gate, count in sorted(counts.items()):
             print(f"{gate}: {count}")
         print(f"total: {len(findings)}")
+        print(f"strict: {len(strict_findings)}")
+        print(f"supplemental: {len(findings) - len(strict_findings)}")
     else:
         for finding in findings:
             print(finding.render())
         print(f"\n{len(findings)} finding(s) across {len(files)} source file(s)")
 
-    return 1 if args.strict and findings else 0
+    return 1 if args.strict and strict_findings else 0
 
 
 if __name__ == "__main__":
