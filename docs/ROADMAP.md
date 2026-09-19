@@ -10,9 +10,9 @@ External implementation ownership does not remove integration correctness from s
 ## Planning summary
 
 - Active: 5
-- Ready: 15
+- Ready: 14
 - Blocked: 13
-- Done: 17
+- Done: 18
 - Dropped: 0
 
 ## Graph projection
@@ -27,7 +27,6 @@ External implementation ownership does not remove integration correctness from s
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |
-| `information_geometry.recovery_validation` — Validate information-geometry primitives on explicit statistical models | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `numerics.conditioning_guardrails` — Define library-backed numerical conditioning guardrails | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `ready` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 | `physics.vertical_coordinate_contract` — Define pressure, sigma, and hybrid vertical-coordinate semantics | `ready` | `P1` | `R2_toolchain_ci` | `architecture.reference_values` |
@@ -68,6 +67,7 @@ External implementation ownership does not remove integration correctness from s
 | `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
 | `experimentation.runtime_protocol_decomposition` — Decompose experiment runtime into composable execution protocols | `done` | `P1` | `R2_toolchain_ci` | `experimentation.claim_evidence_vertical_slice` |
 | `geometry.independent_derivative_route` — Add a second independent metric-derivative route | `done` | `P1` | `R2_toolchain_ci` | — |
+| `information_geometry.recovery_validation` — Validate information-geometry primitives on explicit statistical models | `done` | `P1` | `R2_toolchain_ci` | — |
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 
 Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.
