@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "campaign_id": "openai-ephemeral-cpu-2026-09-19",
+  "classification": "exploratory_non_promotional",
+  "repository_revision": "27689bf3b27e8980a904cb70075091e01222e759",
+  "execution_venue": {
+    "kind": "openai_ephemeral_cpu_sandbox",
+    "cpu_cores": 5,
+    "python": "3.13.5",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "scikit_learn": "1.8.0",
+    "gpu_count": 0,
+    "public_outbound_network": false,
+    "cue_available": false,
+    "rust_available": false,
+    "pydmd_available": false,
+    "datafold_available": false
+  },
+  "promotion": {
+    "evidence_eligible": false,
+    "canonical_runtime_receipt": false,
+    "cue_vetted": false,
+    "reason": "Independent sandbox replication and robustness campaign. Results may guide falsification and future preregistration but do not substitute for exact Climate execution resolution or native external capability identity."
+  },
+  "registered_ebm_replications": {
+    "physics.two_layer_ebm.forcing_protocols.v1": {
+      "all_registered_checks_passed": true,
+      "constant_equivalence_max_abs_state_error_k": 4.440892098500626e-16,
+      "max_abs_energy_budget_residual_w_m2": 1.3322676295501878e-15
+    },
+    "physics.two_layer_ebm.parameter_identifiability.v1": {
+      "all_registered_checks_passed": true,
+      "equilibrium_local_sensitivity_rank": 1,
+      "transient_local_sensitivity_rank": 4,
+      "local_rank_gain": 3,
+      "transient_step_consistency_relative_frobenius": 6.084e-10
+    },
+    "multirepresentation.ebm_stochastic_statistics.v1": {
+      "all_registered_checks_passed": true,
+      "full_state_covariance_relative_frobenius_error": 0.0,
+      "full_state_lag_covariance_relative_frobenius_error": 0.0,
+      "max_abs_total_budget_residual_w_m2": 2.7755575615628914e-16,
+      "redundant_vs_surface_covariance_error_delta": 0.0
+    },
+    "multirepresentation.ebm_regime_feedback.v1": {
+      "all_registered_checks_passed": true,
+      "raw_global_confirmation_relative_error": 0.005420,
+      "gated_confirmation_relative_error": 3.704e-16,
+      "swapped_label_confirmation_relative_error": 0.025687,
+      "observed_minimum_regime_margin_k": 0.753324
+    },
+    "multirepresentation.ebm_forced_ood.v1": {
+      "all_registered_checks_passed": true,
+      "full_state_confirmation_relative_error": 2.0628583404395667e-16,
+      "surface_scalar_confirmation_relative_error": 0.05095989365523751,
+      "closure_gap_confirmation_relative_error": 0.0509598936552373,
+      "extra_confirmation_box_stress": {
+        "sample_count": 4096,
+        "relative_error": 4.678902840606019e-16,
+        "max_abs_error_k": 2.220446049250313e-15
+      }
+    },
+    "multirepresentation.ebm_observation_degradation.v1": {
+      "all_registered_checks_passed": true,
+      "clean_control_forced_prediction_relative_error": 2.0628583404395667e-16,
+      "noisy_full_vs_surface_forced_prediction_error_gap": 0.322001,
+      "redundant_structural_rank_gain": 0
+    }
+  },
+  "exploratory_robustness": {
+    "forced_ood_256_training_seeds": {
+      "full_state_failures_over_1e-12": 0,
+      "surface_scalar_cases_below_registered_0.02_lower_bound": 0,
+      "surface_confirmation_error_min": 0.022309385083164286,
+      "surface_confirmation_error_max": 0.0776109517004404
+    },
+    "regime_feedback_128_seed_quartets": {
+      "raw_threshold_failures": 0,
+      "gated_threshold_failures": 0,
+      "swapped_label_threshold_failures": 0,
+      "margin_threshold_failures": 0,
+      "raw_confirmation_error_min": 0.005020249468411955,
+      "raw_confirmation_error_max": 0.005825994414285411
+    },
+    "stochastic_128_seeds": {
+      "max_budget_residual_w_m2": 4.440892098500626e-16,
+      "surface_covariance_error_min": 0.11255823827286518,
+      "surface_covariance_error_max": 0.36724992717624294
+    },
+    "parameter_log_step_scan": {
+      "step_min": 1e-7,
+      "step_max": 1e-2,
+      "tested_steps": 13,
+      "equilibrium_rank_all_steps": 1,
+      "transient_rank_all_steps": 4
+    },
+    "observation_noise_dose_response_32_seeds_each": {
+      "noise_std_k": [0.0, 0.01, 0.025, 0.05, 0.1, 0.2],
+      "noisy_full_forced_prediction_error_mean": [1.3906831882707025e-16, 0.007609305858209756, 0.01900831149673722, 0.0379833838313887, 0.07595642168566326, 0.1527127368331929]
+    }
+  },
+  "independent_cross_language_oracle": {
+    "implementation": "GNU Fortran RK4",
+    "comparison": "Python/SciPy exact affine matrix-exponential forcing solution",
+    "observed_order_behavior": "approximately 16x error reduction per timestep halving",
+    "smallest_step_years": 0.0125,
+    "max_abs_state_disagreement_k": 6.928e-13
+  },
+  "active_structural_world_partial_evaluation": {
+    "planning_node": "multirepresentation.structure_baselines",
+    "world_count": 7,
+    "selector_permutations": 255,
+    "all_discovery_selector_decisions_calibrated": true,
+    "all_confirmation_selector_decisions_calibrated": true,
+    "available_coordinate_baselines": ["concat_pca", "linear_cca", "concat_spectral", "factor_analysis"],
+    "available_matched_information_probe_representations": ["raw_concat", "concat_pca", "linear_cca", "factor_analysis"],
+    "unavailable_without_substitution": ["jointly_smooth/datafold", "PyDMD temporal state-space"]
+  },
+  "resource_accounting": {
+    "github_codespaces_consumed": false
+  }
+}
