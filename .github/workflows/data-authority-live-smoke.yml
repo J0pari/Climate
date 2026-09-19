@@ -32,7 +32,7 @@ jobs:
               parse_station_catalog,
           )
           target = Path("live-data/ghcnd-stations.txt")
-          receipt = download_resumable_http_artifact(
+          receipt = capture_http_artifact(
               GHCN_STATION_CATALOG_URL, target, timeout_seconds=180.0
           )
           catalog = parse_station_catalog(target.read_bytes())
