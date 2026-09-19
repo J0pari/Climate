@@ -195,7 +195,7 @@
     {
       "id": "diagnostics.feedback_observation_benchmarks",
       "title": "Ground feedback diagnostics in explicit observations and process definitions",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P1",
       "resource_class": "R5_large_data",
       "summary": "Ground feedback diagnostics in explicit observations and process definitions. Trajectory/secant diagnostics remain path-dependent numerical quantities unless an experiment identifies a causal or partial feedback derivative through controlled variables, explicit radiative fields, provenance, uncertainty, and competing process explanations.",
@@ -409,8 +409,7 @@
       "resource_class": "R2_toolchain_ci",
       "summary": "Build climate-data sheaf semantics on the actual production path: provider-neutral station identity and chunked observations, global geodesic locality, sparse/matrix-free restrictions and cochains, deterministic partition ownership, and scalable gluing/nullspace operations. Tiny fixtures exercise this path but cannot substitute for it.",
       "depends_on": [
-        "data.external_authority_audit",
-        "data.immutable_observational_projection"
+        "data.external_authority_audit"
       ],
       "completion": [
         "Provider-backed fixtures enter the same provider-neutral StationCatalog and StationSection contracts intended for large station networks.",
@@ -479,7 +478,7 @@
     {
       "id": "experimental.scenario_feasibility_adapter",
       "title": "Separate climate feasibility from modal truth",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P2",
       "resource_class": "R2_toolchain_ci",
       "summary": "Construct climate-specific worlds, propositions, and accessibility relations through an explicit adapter while keeping canonical Kripke satisfaction semantics independent of heuristic plausibility scores.",
@@ -823,7 +822,7 @@
     {
       "id": "sheaf.observation_uncertainty_compatibility",
       "title": "Define uncertainty-aware sheaf observation compatibility",
-      "status": "ready",
+      "status": "blocked",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
       "summary": "Keep exact global-section/restriction equality as the algebraic reference control while introducing a distinct observation-uncertainty method for noisy station data with explicit units, covariance/weights, residual semantics, and falsifiable interpretation rather than silent floating tolerances.",

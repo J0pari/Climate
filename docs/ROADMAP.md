@@ -10,8 +10,8 @@ External implementation ownership does not remove integration correctness from s
 ## Planning summary
 
 - Active: 3
-- Ready: 16
-- Blocked: 11
+- Ready: 13
+- Blocked: 14
 - Done: 14
 - Dropped: 0
 
@@ -23,29 +23,29 @@ External implementation ownership does not remove integration correctness from s
 | `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_toolchain_ci` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_toolchain_ci` | — |
-| `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `geometry.independent_derivative_route` — Add a second independent metric-derivative route | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `information_geometry.recovery_validation` — Validate information-geometry primitives on explicit statistical models | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `numerics.conditioning_guardrails` — Define library-backed numerical conditioning guardrails | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `ready` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 | `physics.vertical_coordinate_contract` — Define pressure, sigma, and hybrid vertical-coordinate semantics | `ready` | `P1` | `R2_toolchain_ci` | `architecture.reference_values` |
-| `sheaf.observation_uncertainty_compatibility` — Define uncertainty-aware sheaf observation compatibility | `ready` | `P1` | `R2_toolchain_ci` | `sheaf.climate_data_semantics`, `data.immutable_observational_projection` |
 | `simulation.reproducible_restart` — Define reproducible integration and restart state | `ready` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition`, `state.typed_physical_state` |
 | `validation.cross_model_evidence_transport` — Make cross-model evidence transport explicit and testable | `ready` | `P1` | `R2_toolchain_ci` | `experimentation.claim_evidence_vertical_slice` |
 | `adapters.versioned_array_ffi` — Define narrow versioned array FFI contracts | `ready` | `P2` | `R2_toolchain_ci` | `state.typed_physical_state` |
-| `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_toolchain_ci` | `data.immutable_observational_projection` |
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `data.immutable_observational_projection` — Bind one immutable observational projection from a native data/evaluation system | `blocked` | `P0` | `R4_integrated_system` | — |
 | `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` | `sheaf.climate_data_semantics`, `data.global_free_station_federation` |
+| `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `experimentation.multifidelity_response_interrogation` — Use cheap model exploration to choose discriminating high-fidelity experiments | `blocked` | `P1` | `R5_large_data` | `integration.native_capability_boundaries`, `orchestration.external_artifact_evaluation`, `validation.cross_model_evidence_transport` |
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `blocked` | `P1` | `R4_integrated_system` | — |
 | `orchestration.external_artifact_evaluation` — Evaluate external model artifacts through Climate-owned tasks | `blocked` | `P1` | `R4_integrated_system` | `orchestration.commons_read_execution` |
+| `sheaf.observation_uncertainty_compatibility` — Define uncertainty-aware sheaf observation compatibility | `blocked` | `P1` | `R2_toolchain_ci` | `sheaf.climate_data_semantics`, `data.immutable_observational_projection` |
 | `data.logical_materialization_identity` — Separate logical observation identity from storage realization | `blocked` | `P2` | `R2_toolchain_ci` | `data.global_free_station_federation` |
 | `experimental.clifford_task` — Give Clifford representations a falsifiable climate task | `blocked` | `P2` | `R2_toolchain_ci` | `diagnostics.spectral_oscillation_contracts` |
+| `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `blocked` | `P2` | `R2_toolchain_ci` | `data.immutable_observational_projection` |
 | `gpu.justified_geometry_acceleration` — Prepare GPU differential execution only for a justified workload | `blocked` | `P2` | `R3_cuda_device` | `geometry.nonlinear_coordinate_witness`, `geometry.independent_derivative_route` |
 | `multirepresentation.neighborhood_geometry` — Make neighborhood geometry a first-class representation evaluator | `blocked` | `P2` | `R2_toolchain_ci` | `multirepresentation.structure_baselines`, `experimentation.claim_evidence_vertical_slice` |
 | `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `blocked` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
@@ -60,7 +60,7 @@ External implementation ownership does not remove integration correctness from s
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `done` | `P0` | `R2_toolchain_ci` | — |
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `physics.streaming_budget_accounting` — Compose physical kernels through a streaming budget ledger | `done` | `P0` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
-| `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |
+| `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit` |
 | `experimentation.runtime_protocol_decomposition` — Decompose experiment runtime into composable execution protocols | `done` | `P1` | `R2_toolchain_ci` | `experimentation.claim_evidence_vertical_slice` |
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 
