@@ -81,6 +81,19 @@ The executable surface is intentionally narrower than the research agenda. It co
 
 The physical realization boundary is described in [`docs/FORTRAN-PHYSICS-FRONTIER.md`](docs/FORTRAN-PHYSICS-FRONTIER.md); geometry, sheaf, and other method-specific verification obligations live in their corresponding specifications.
 
+### Codespaces experiment campaigns
+
+The repository includes a GitHub Codespaces dev-container and a thin campaign runner for the canonical local CPU experiment frontier. Open a Codespace on the exact revision you intend to test; the container bootstraps the pinned EBM experiment dependencies and CUE contract checker. Then inspect or execute the registered runtime frontier:
+
+```text
+python architecture/codespaces_campaign.py --list
+python architecture/codespaces_campaign.py
+```
+
+Campaigns derive runnable identities from the existing experiment specifications plus the canonical runtime adapter registry rather than maintaining another experiment list. They write environment fingerprints, stdout/stderr, run/outcome artifacts, CUE validation logs, and a campaign summary below `run-artifacts/codespaces/`. A clean checkout is required for evidence-oriented runs by default; `--allow-dirty` is reserved for exploration.
+
+Codespaces is only an execution venue for work whose declared semantics fit `R1_portable_cpu` or `R2_toolchain_ci`. It does not make CUDA, integrated external runtimes, or large-data evidence locally available, and it does not change upstream ownership: external climate/model systems remain native owners while Climate supplies only the connectors, adapters, diagnostics, intervention mappings, and evidence semantics needed to interrogate them.
+
 ## Architecture
 
 Climate separates four kinds of authority:
