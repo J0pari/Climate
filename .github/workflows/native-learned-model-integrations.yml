@@ -1,0 +1,69 @@
+name: native learned model integrations
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/native-learned-model-integrations.yml'
+
+permissions:
+  contents: read
+
+env:
+  FME_SHA: b648495f7512691649a6f7e3a655fed6e0ff822a
+
+jobs:
+  ace2-era5-native-cpu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Resolve exact public ACE2-ERA5 model revision
+        run: |
+          set -euo pipefail
+          repo_url='https://huggingface.co/allenai/ACE2-ERA5'
+          revision="$(git ls-remote "$repo_url" refs/heads/main | awk '{print $1}')"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          printf 'ACE_HF_REVISION=%s\n' "$revision" >> "$GITHUB_ENV"
+          printf 'ace_hf_revision %s\n' "$revision"
+      - name: Download exact checkpoint, initial condition, forcing, and owner config
+        run: |
+          set -euo pipefail
+          mkdir -p initial_conditions forcing_data
+          base="https://huggingface.co/allenai/ACE2-ERA5/resolve/$ACE_HF_REVISION"
+          declare -a paths=(
+            'ace2_era5_ckpt.tar'
+            'inference_config.yaml'
+            'initial_conditions/ic_2020.nc'
+            'forcing_data/forcing_2020.nc'
+          )
+          for path in "${paths[@]}"; do
+            target="$PWD/$path"
+            curl --fail --location --retry 3 --retry-all-errors --silent --show-error               "$base/$path?download=true" --output "$target"
+            test -s "$target"
+            sha256sum "$target"
+          done
+          test "$(stat -c '%s' ace2_era5_ckpt.tar)" -gt 1000000000
+      - name: Install exact FME owner implementation
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/ai2cm/ace.git upstream-ace
+          git -C upstream-ace checkout "$FME_SHA"
+          python -m pip install --disable-pip-version-check ./upstream-ace
+      - name: Validate exact native inference request
+        run: |
+          set -euo pipefail
+          python -m fme.ace.validate_config inference_config.yaml --config_type inference             --override               experiment_dir="$PWD/ace-output"               n_forward_steps=1               forward_steps_in_memory=1               checkpoint_path="$PWD/ace2_era5_ckpt.tar"               initial_condition.path="$PWD/initial_conditions/ic_2020.nc"               forcing_loader.dataset.data_path="$PWD/forcing_data"               forcing_loader.num_data_workers=0               logging.log_to_file=false               logging.log_to_wandb=false
+      - name: Run one native ACE2-ERA5 forward step on CPU
+        env:
+          CUDA_VISIBLE_DEVICES: ''
+        run: |
+          set -euo pipefail
+          python -m fme.ace.inference inference_config.yaml             --override               experiment_dir="$PWD/ace-output"               n_forward_steps=1               forward_steps_in_memory=1               checkpoint_path="$PWD/ace2_era5_ckpt.tar"               initial_condition.path="$PWD/initial_conditions/ic_2020.nc"               forcing_loader.dataset.data_path="$PWD/forcing_data"               forcing_loader.num_data_workers=0               logging.log_to_file=false               logging.log_to_wandb=false
+          find ace-output -maxdepth 2 -type f -printf '%P %s bytes\n' | sort
+          test -n "$(find ace-output -type f -print -quit)"
+          printf 'ace_runtime_git_sha %s\n' "$FME_SHA"
+          printf 'ace_model_revision %s\n' "$ACE_HF_REVISION"
