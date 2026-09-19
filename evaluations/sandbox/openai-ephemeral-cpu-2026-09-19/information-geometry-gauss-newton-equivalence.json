@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "classification": "exploratory_non_promotional",
+  "repository_revision": "552652f68eb98d7aa2604669336c523ef68917c9",
+  "samples": 64,
+  "max_abs_step_difference": 4.876736768528094e-11,
+  "max_relative_step_difference": 1.955060800938451e-12,
+  "jacobian_condition_number": {
+    "min": 24.455542890848953,
+    "median": 70.85321006320001,
+    "max": 967.9410729155695
+  },
+  "identity": "For a fixed-variance Gaussian mean model with full-rank Jacobian J, Fisher F=J^T J/sigma^2 and score gradient g=J^T r/sigma imply -F^-1 g equals the ordinary Gauss-Newton step.",
+  "interpretation": "Observed differences are floating-point roundoff, so optimizer differences in this benchmark come from globalization/stopping policy rather than a distinct local search direction."
+}
