@@ -1,0 +1,268 @@
+"""NCEI GHCN-Hourly station catalog federation adapter.
+
+GHCNh is a distinct provider namespace in Climate even where NCEI documents
+that a station shares the same managed GHCN identifier with GHCN-Daily.
+Identity linkage is emitted as explicit digest-bound crosswalk evidence; no
+name, coordinate, or proximity matching is performed here.
+
+This module currently realizes provider catalog federation only. Hourly
+observation routing/publication remains a separate adapter obligation.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+import hashlib
+import json
+import math
+from typing import Sequence
+
+from src.station_federation import (
+    AliasBinding,
+    CrossProviderAliasEvidence,
+    FederatedStation,
+    ProviderAlias,
+    StationLocationEpoch,
+    apply_cross_provider_alias_evidence,
+    canonical_station_id,
+)
+
+
+SOURCE_ID = "ncei.ghcnh.v1"
+STATION_LIST_URL = (
+    "https://www.ncei.noaa.gov/oa/global-historical-climatology-network/"
+    "hourly/doc/ghcnh-station-list.txt"
+)
+
+
+def _sha256(payload: bytes) -> str:
+    return "sha256:" + hashlib.sha256(payload).hexdigest()
+
+
+def _canonical_json(payload: object) -> bytes:
+    return (
+        json.dumps(
+            payload,
+            sort_keys=True,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+        + "\n"
+    ).encode("utf-8")
+
+
+def _finite_coordinate(value: str, *, name: str, lower: float, upper: float) -> float:
+    try:
+        parsed = float(value)
+    except ValueError as exc:
+        raise ValueError(f"GHCNh {name} is not numeric") from exc
+    if not math.isfinite(parsed) or not lower <= parsed <= upper:
+        raise ValueError(f"GHCNh {name} is outside [{lower}, {upper}]")
+    return parsed
+
+
+@dataclass(frozen=True)
+class GHCNhStationRecord:
+    station_id: str
+    latitude_deg: float
+    longitude_deg: float
+    elevation_m: float | None
+    state: str
+    name: str
+    gsn_flag: str
+    hcn_crn_flag: str
+    wmo_id: str
+    icao: str
+
+
+@dataclass(frozen=True)
+class GHCNhStationCatalog:
+    records: tuple[GHCNhStationRecord, ...]
+    sha256: str
+    source_url: str = STATION_LIST_URL
+
+
+@dataclass(frozen=True)
+class GHCNhFederationResult:
+    stations: tuple[FederatedStation, ...]
+    crosswalk_evidence_digest: str
+    shared_station_count: int
+    new_root_station_count: int
+
+
+def parse_station_catalog(payload: bytes) -> GHCNhStationCatalog:
+    """Parse the documented fixed-width ghcnh-station-list.txt format."""
+    try:
+        text = payload.decode("ascii")
+    except UnicodeDecodeError as exc:
+        raise ValueError("GHCNh station list must be ASCII") from exc
+
+    records: list[GHCNhStationRecord] = []
+    seen: set[str] = set()
+    for line_number, raw in enumerate(text.splitlines(), start=1):
+        if not raw.strip():
+            continue
+        line = raw.rstrip("\r\n")
+        if len(line) < 30:
+            raise ValueError(
+                f"GHCNh station-list line {line_number} is shorter than required fields"
+            )
+        station_id = line[0:11].strip()
+        if len(station_id) != 11:
+            raise ValueError(
+                f"GHCNh station-list line {line_number} requires an 11-character ID"
+            )
+        if station_id in seen:
+            raise ValueError(f"duplicate GHCNh station ID {station_id!r}")
+        seen.add(station_id)
+
+        latitude = _finite_coordinate(
+            line[12:20].strip(),
+            name="latitude",
+            lower=-90.0,
+            upper=90.0,
+        )
+        longitude = _finite_coordinate(
+            line[21:30].strip(),
+            name="longitude",
+            lower=-180.0,
+            upper=180.0,
+        )
+        elevation_text = line[31:37].strip() if len(line) >= 37 else ""
+        if elevation_text in {"", "-999.9"}:
+            elevation = None
+        else:
+            try:
+                elevation = float(elevation_text)
+            except ValueError as exc:
+                raise ValueError("GHCNh elevation is not numeric") from exc
+            if not math.isfinite(elevation):
+                raise ValueError("GHCNh elevation must be finite")
+
+        records.append(
+            GHCNhStationRecord(
+                station_id=station_id,
+                latitude_deg=latitude,
+                longitude_deg=longitude,
+                elevation_m=elevation,
+                state=line[38:40].strip() if len(line) >= 40 else "",
+                name=line[41:71].strip() if len(line) >= 71 else "",
+                gsn_flag=line[72:75].strip() if len(line) >= 75 else "",
+                hcn_crn_flag=line[76:79].strip() if len(line) >= 79 else "",
+                wmo_id=line[80:85].strip() if len(line) >= 85 else "",
+                icao=line[86:90].strip() if len(line) >= 90 else "",
+            )
+        )
+    if not records:
+        raise ValueError("GHCNh station list contains no stations")
+    return GHCNhStationCatalog(tuple(records), _sha256(payload))
+
+
+def _daily_root_aliases(
+    stations: Sequence[FederatedStation],
+) -> dict[str, ProviderAlias]:
+    out: dict[str, ProviderAlias] = {}
+    for station in stations:
+        roots = [
+            binding.alias
+            for binding in station.aliases
+            if (
+                binding.binding_method == "root"
+                and binding.alias.source_id == "ncei.ghcnd.v3"
+            )
+        ]
+        if not roots:
+            continue
+        if len(roots) != 1:
+            raise ValueError("GHCN-Daily station has ambiguous root aliases")
+        station_id = roots[0].provider_station_id
+        if station_id in out:
+            raise ValueError("GHCN-Daily root station ID is not unique")
+        out[station_id] = roots[0]
+    return out
+
+
+def _crosswalk_digest(
+    *,
+    ghcnh_catalog_digest: str,
+    daily_station_ids: Sequence[str],
+    shared_station_ids: Sequence[str],
+) -> str:
+    return _sha256(
+        _canonical_json(
+            {
+                "schema": "ncei-ghcnd-ghcnh-shared-ghcn-id-crosswalk/v1",
+                "ghcnh_catalog_digest": ghcnh_catalog_digest,
+                "ghcnd_station_ids_digest": _sha256(
+                    _canonical_json(sorted(daily_station_ids))
+                ),
+                "shared_station_ids": sorted(shared_station_ids),
+                "rule": (
+                    "exact shared 11-character GHCN identifier only; "
+                    "no name/location/proximity matching"
+                ),
+            }
+        )
+    )
+
+
+def federate_station_catalog(
+    existing: Sequence[FederatedStation],
+    catalog: GHCNhStationCatalog,
+    *,
+    metadata_effective_date: str,
+) -> GHCNhFederationResult:
+    """Add GHCNh metadata using NCEI's documented shared-GHCN-ID semantics."""
+    existing_records = tuple(existing)
+    daily_roots = _daily_root_aliases(existing_records)
+    hourly_by_id = {item.station_id: item for item in catalog.records}
+    shared = sorted(set(daily_roots) & set(hourly_by_id))
+    crosswalk_digest = _crosswalk_digest(
+        ghcnh_catalog_digest=catalog.sha256,
+        daily_station_ids=tuple(daily_roots),
+        shared_station_ids=shared,
+    )
+
+    evidence = tuple(
+        CrossProviderAliasEvidence(
+            root_alias=daily_roots[station_id],
+            alias=ProviderAlias(SOURCE_ID, station_id),
+            evidence_digest=crosswalk_digest,
+        )
+        for station_id in shared
+    )
+    federated = list(
+        apply_cross_provider_alias_evidence(existing_records, evidence)
+    )
+
+    for record in catalog.records:
+        if record.station_id in daily_roots:
+            continue
+        alias = ProviderAlias(SOURCE_ID, record.station_id)
+        federated.append(
+            FederatedStation(
+                canonical_station_id=canonical_station_id(alias),
+                aliases=(
+                    AliasBinding(alias, "root", catalog.sha256),
+                ),
+                location_history=(
+                    StationLocationEpoch(
+                        record.latitude_deg,
+                        record.longitude_deg,
+                        record.elevation_m,
+                        metadata_effective_date,
+                        None,
+                        alias,
+                        catalog.sha256,
+                    ),
+                ),
+                variable_ids=(),
+            )
+        )
+
+    ordered = tuple(sorted(federated, key=lambda item: item.canonical_station_id))
+    return GHCNhFederationResult(
+        stations=ordered,
+        crosswalk_evidence_digest=crosswalk_digest,
+        shared_station_count=len(shared),
+        new_root_station_count=len(catalog.records) - len(shared),
+    )

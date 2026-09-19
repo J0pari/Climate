@@ -152,6 +152,33 @@
       "update_semantics": "daily updates plus periodic reconstruction; NCEI assigns unique daily versions and values/flags can be revised, so responses used as evidence must be captured and digested"
     },
     {
+      "source_id": "ncei.ghcnh.v1",
+      "kind": "dataset",
+      "provider": "NOAA National Centers for Environmental Information",
+      "product": "Global Historical Climatology Network hourly",
+      "version": "GHCNh Version 1",
+      "official_url": "https://www.ncei.noaa.gov/products/global-historical-climatology-network-hourly",
+      "access": "NCEI HTTPS bulk archive and data access applications",
+      "access_url": "https://www.ncei.noaa.gov/oa/global-historical-climatology-network/index.html",
+      "time_coverage": "station-dependent records from historical archives through present daily updates",
+      "variables": [
+        "station identifiers and metadata",
+        "hourly and synoptic temperature",
+        "dew point and wet bulb temperature",
+        "wind",
+        "pressure",
+        "visibility",
+        "precipitation",
+        "snow depth",
+        "source and quality-control attributes"
+      ],
+      "units": [
+        "dataset-field-specific units and provider/source attributes documented by GHCNh"
+      ],
+      "license_or_access_constraints": "NOAA public data; source and quality-control attributes remain part of provenance",
+      "update_semantics": "Version 1 is updated daily; immutable inputs pin the exact station-list or bulk archive artifact digest, and yearly archive filenames carry product version plus creation date"
+    },
+    {
       "source_id": "metoffice.hadcrut5.5.1.0.0",
       "kind": "dataset",
       "provider": "Met Office Hadley Centre and Climatic Research Unit",
@@ -439,6 +466,21 @@
       "rationale": "worldwide GHCN-Daily provider discovery consumes the complete provider station/inventory artifacts and identifies bulk by-year observation artifacts; the scale path neither embeds a selected station list nor enumerates per-station REST requests",
       "witness_path": "tests/test_ncei_ghcnd_bulk.py",
       "witness_anchor": "test_provider_fixed_width_catalog_and_inventory_parse"
+    },
+    {
+      "usage_id": "data.ncei_ghcnh_station_federation_boundary",
+      "scope": "current",
+      "path": "data/ncei_ghcnh_bulk.py",
+      "anchor": "STATION_LIST_URL",
+      "authority_boundary": "federate_station_catalog",
+      "ownership_class": "external_dataset",
+      "disposition": "externalize",
+      "source_ids": [
+        "ncei.ghcnh.v1"
+      ],
+      "rationale": "GHCNh enters the provider-neutral station federation from its captured global station-list artifact; exact shared GHCN identifiers documented by NCEI create digest-bound aliases to existing GHCN-Daily roots, while unmatched hourly stations remain distinct canonical roots without proximity inference",
+      "witness_path": "tests/test_ncei_ghcnh_bulk.py",
+      "witness_anchor": "test_shared_ghcn_identifier_becomes_explicit_alias_not_new_root"
     }
   ]
 }

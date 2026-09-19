@@ -32,6 +32,20 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "data/ncei_ghcnh_bulk.py",
+      "family": "ncei_ghcnh_station_federation_adapter",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "canonical GHCNh provider-catalog adapter that parses the documented global fixed-width station list, preserves the captured catalog digest, creates distinct hourly-provider roots for unmatched stations, and emits explicit digest-bound aliases for stations sharing NCEI-managed GHCN identifiers with captured GHCN-Daily roots",
+      "known_gaps": [
+        "this slice realizes GHCNh station catalog federation only; hourly PSV/Parquet observation routing and immutable partition publication remain a separate provider adapter obligation",
+        "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
+        "shared identity uses exact documented GHCN identifier equality only and does not infer crosswalks from names, coordinates, ICAO codes, WMO codes, or proximity"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/albedo_temperature_sensitivity.rs",
       "family": "albedo_temperature_trajectory_secant_numerics",
       "language": "rust",
@@ -59,21 +73,6 @@
         "Neumaier compensation improves floating-point accumulation but does not promise bitwise merge-order invariance across arbitrary distributed reduction trees",
         "unit compatibility is declared by exact ledger identity strings rather than a dimensional-analysis type system",
         "carrier-mass, tracer-mass, pressure-energy, and vertical-diffusion diagnostics have narrow canonical adapters; water-cycle and broader coupled-reservoir integrations remain open"
-      ],
-      "authority_kind": "canonical_implementation",
-      "scientific_evidence_eligible": false
-    },
-    {
-      "path": "src/physical_budget_adapters.rs",
-      "family": "physical_kernel_budget_adapters",
-      "language": "rust",
-      "maturity": "runnable",
-      "intended_role": "narrow climate-specific semantic adapters from decomposed conservative-transport, pressure-coordinate energy, and vertical-diffusion diagnostics into the generic streaming extensive-quantity ledger, preserving boundary/source/sink/dissipation/internal/coupling distinctions without duplicating solver implementations",
-      "known_gaps": [
-        "the adapters consume language-neutral scalar diagnostics and do not themselves provide a Fortran/Rust FFI or orchestration layer",
-        "vertical-diffusion rate diagnostics must be integrated consistently with the caller's time integrator before they become finite-interval ledger amounts",
-        "the diffusion quadratic adapter accounts only a caller-declared weighted scalar quadratic quantity; it must not be relabeled as physical energy without an independently declared physical weighting",
-        "broader water-cycle and coupled-reservoir accounting remains outside the current adapter surface"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false
@@ -479,6 +478,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/physical_budget_adapters.rs",
+      "family": "physical_kernel_budget_adapters",
+      "language": "rust",
+      "maturity": "runnable",
+      "intended_role": "narrow climate-specific semantic adapters from decomposed conservative-transport, pressure-coordinate energy, and vertical-diffusion diagnostics into the generic streaming extensive-quantity ledger, preserving boundary/source/sink/dissipation/internal/coupling distinctions without duplicating solver implementations",
+      "known_gaps": [
+        "the adapters consume language-neutral scalar diagnostics and do not themselves provide a Fortran/Rust FFI or orchestration layer",
+        "vertical-diffusion rate diagnostics must be integrated consistently with the caller's time integrator before they become finite-interval ledger amounts",
+        "the diffusion quadratic adapter accounts only a caller-declared weighted scalar quadratic quantity; it must not be relabeled as physical energy without an independently declared physical weighting",
+        "broader water-cycle and coupled-reservoir accounting remains outside the current adapter surface"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/physical_state.rs",
       "family": "typed_physical_state_boundary",
       "language": "rust",
@@ -518,9 +532,9 @@
       "maturity": "runnable",
       "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, explicit evidence-bound and reversible cross-provider alias application, resolved location epochs, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
       "known_gaps": [
-        "the current provider registry realizes NCEI GHCN-Daily only; additional lawfully accessible no-fee providers remain a data-integration obligation rather than hardcoded kernel branches",
+        "the provider registry now realizes GHCN-Daily observations plus GHCNh station-catalog federation; GHCNh hourly observation routing/publication and additional lawfully accessible no-fee authorities remain integration obligations rather than numerical-kernel branches",
         "durable remote object-store publication remains an adapter responsibility; canonical local publication is content-addressed and the NCEI scale adapter now provides resumable bulk acquisition",
-        "real external crosswalk evidence for a second provider has not yet been integrated; the canonical substrate now applies and reverses only explicit digest-bound cross-provider alias evidence and never infers identity from proximity",
+        "GHCNh supplies the first real second-provider catalog crosswalk via NCEI-managed shared GHCN identifiers; crosswalks for unrelated provider identity systems still require their own upstream evidence and never use proximity inference",
         "catalog-record counts in manifest coverage are shard record totals, not a claim that unresolved aliases across different shards have already been deduplicated"
       ],
       "authority_kind": "canonical_implementation",

@@ -36,6 +36,24 @@
       "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",
       "update_semantics": "daily updates plus periodic reconstruction; NCEI assigns unique daily versions and values/flags can be revised, so responses used as evidence must be captured and digested",
       "revision_identity": "catalog, inventory, and by-year inputs bind the exact provider URL to the captured artifact SHA-256; resumable HTTP capture additionally binds a stable remote validator and Content-Length; published observation partitions carry the captured compressed-artifact SHA-256 as source_revision and revisions use explicit supersession or tombstone lineage"
+    },
+    {
+      "provider_id": "ncei.ghcnh.v1",
+      "source_id": "ncei.ghcnh.v1",
+      "status": "current",
+      "access_cost": "no_fee",
+      "access": "NCEI HTTPS bulk archive and data access applications",
+      "license_or_access_constraints": "NOAA public data; source and quality-control attributes remain part of provenance",
+      "update_semantics": "Version 1 is updated daily; immutable inputs pin the exact station-list or bulk archive artifact digest, and yearly archive filenames carry product version plus creation date",
+      "revision_identity": "station-catalog federation binds the exact ghcnh-station-list artifact SHA-256; shared GHCN-Daily/GHCNh identifiers are emitted as a separate deterministic crosswalk evidence digest; future hourly observation partitions must bind the exact versioned/creation-dated bulk archive artifact digest before publication",
+      "geographic_scope": "global",
+      "station_identity_namespace": "GHCNh managed GHCN identifier",
+      "discovery_mode": "provider_catalog",
+      "scale_path": "captured ghcnh-station-list.txt provides global catalog discovery and explicit shared-GHCN-ID crosswalks today; NCEI yearly GHCNh bulk archives are the declared large-volume observation path but hourly observation routing/publication is not yet realized in Climate",
+      "current_boundaries": [
+        "data/ncei_ghcnh_bulk.py::parse_station_catalog",
+        "data/ncei_ghcnh_bulk.py::federate_station_catalog"
+      ]
     }
   ]
 }
