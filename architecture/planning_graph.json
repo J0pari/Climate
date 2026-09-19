@@ -889,13 +889,14 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Bind externally owned capabilities through exact native identity, configuration, transformation, receipt, and failure semantics while keeping upstream cataloging, preprocessing, execution, training/inference, intercomparison, and provenance implementations in their native systems. The first realized seam is content-addressed native-output import for external model evaluation.",
+      "summary": "Bind externally owned capabilities through exact native identity, configuration, transformation, receipt, and failure semantics while pruning Climate-owned shadows only after the exact replacement has executed successfully on production-scale resources. Realized so far: native-output import for external model evaluation, direct native curl acquisition in workflows with Climate HTTP transport orchestration removed, and successful Climate-REF ingestion of a checksum-pinned CMIP6 ESGF object.",
       "depends_on": [],
       "completion": [
         "Each realized external integration names the exact native capability being consumed, the Climate-owned semantic gap it fills, and the upstream identity/configuration/receipt required for reproducibility.",
         "Adapters preserve native artifact/model/data identity and failure semantics and map only necessary outputs into existing Climate run/artifact/metric/evidence records rather than defining a second generic execution or data model.",
         "Architecture tests contain at least one negative witness showing that an unavailable or mismatched native capability fails closed rather than selecting a local substitute with the same identity.",
-        "A capability inventory demonstrates that common cataloging, preprocessing, standard diagnostics, training/inference, intercomparison, and orchestration are reused from their native owners wherever they already satisfy the experiment contract.",
+        "A local shadow is deleted or narrowed only in the same capability lineage after the named external replacement has executed successfully against a production-scale resource through the interface that will remain in use.",
+        "Sample-only, credential-gated, private-only, or failing native paths cannot satisfy a pruning gate; their blockers remain explicit planning state rather than being replaced by a different implementation.",
         "Any retained local duplicate is justified as an independently valuable bounded reference or a concrete missing upstream semantic, with a distinct implementation identity."
       ],
       "evidence": [
@@ -904,7 +905,11 @@
         "architecture/commons_interface.json",
         "evaluations/external-training-artifact-climate-contract-reasoning.v1.json",
         "tests/architecture/test_commons_control.py",
-        "contracts/testdata/external-model-runtime-receipt.good.json"
+        "contracts/testdata/external-model-runtime-receipt.good.json",
+        ".github/workflows/data-authority-live-smoke.yml",
+        ".github/workflows/native-production-climate-integrations.yml",
+        "data/ncei_ghcnd_bulk.py",
+        "data/ncei_ghcnh_bulk.py"
       ]
     },
     {
@@ -942,6 +947,110 @@
         "The same expensive-run budget is allocated to at least one simple comparator such as random, space-filling, or conventional sensitivity selection.",
         "Evaluation reports response-operator or target-discrimination agreement, discrepancy structure, uncertainty reduction, and failure cases separately from ordinary fieldwise error.",
         "Any evidence update remains scoped to the high-fidelity observations actually run; cheap-model exploration is recorded as experiment-design evidence rather than substituted confirmation."
+      ]
+    },
+    {
+      "id": "integration.climate_ref_production_cmip",
+      "title": "Use Climate-REF on production CMIP data",
+      "status": "done",
+      "priority": "P0",
+      "resource_class": "R3_network_cpu",
+      "summary": "The pinned Climate-REF production stack successfully ingests a checksum-pinned ACCESS-CM2 CMIP6 object from the full ESGF archive through its production DRS ingestion path. This is a real replacement witness for CMIP catalog/ingest ownership, not a reduced development dataset.",
+      "depends_on": [],
+      "completion": [
+        "A real object from the production CMIP6 ESGF archive is retrieved with an expected SHA-256 digest.",
+        "Climate-REF is pinned to an exact upstream revision and ingests the object through its native CMIP6 DRS path.",
+        "The resulting native catalog resolves the model and variable identity without Climate implementing a parallel CMIP catalog.",
+        "Future CMIP catalog/ingest pruning may rely on this owner path only where the local code overlaps this exact capability."
+      ],
+      "evidence": [
+        ".github/workflows/native-production-climate-integrations.yml"
+      ]
+    },
+    {
+      "id": "integration.aimip_production_archive",
+      "title": "Use the public AIMIP production archive",
+      "status": "active",
+      "priority": "P0",
+      "resource_class": "R3_network_cpu",
+      "summary": "Exercise the anonymous DKRZ AIMIP archive through the exact published model path, then bind AIMIP model/experiment/realization/grid/version identity into Climate evidence semantics without mirroring the intercomparison archive or evaluation protocol.",
+      "depends_on": [],
+      "blockers": [
+        "The first workflow used a nonexistent ACE2.1-ERA5 tas/native-grid path and received HTTP/S3 403. AIMIP SUBMISSIONS.md publishes the exact ACE2.1-ERA5 example as s3://ai-mip/Ai2/ACE2-1-ERA5/aimip/r1i1p1f1/Amon/ta/gr/v20251130/ta_Amon_ACE2-ERA5_aimip_r1i1p1f1_gr_197810-202412.nc. Update to that exact path and rerun; do not add an alternate dataset or fallback."
+      ],
+      "completion": [
+        "Anonymous access succeeds against the published DKRZ S3 endpoint using an exact path present in AIMIP's submission registry.",
+        "A real full-period model field is opened and at least one bounded Climate diagnostic is computed from it.",
+        "The receipt binds AIMIP organization, model, experiment, realization, frequency, variable, grid and version.",
+        "Missing variables or realizations fail the declared assay or define a separately preregistered partial experiment; they are never filled or substituted silently.",
+        "Only after this native archive path passes may overlapping local AI-intercomparison/archive behavior be pruned."
+      ],
+      "evidence": [
+        ".github/workflows/native-production-climate-integrations.yml"
+      ]
+    },
+    {
+      "id": "integration.esmvalcore_production_preprocessing",
+      "title": "Use ESMValCore production preprocessing",
+      "status": "blocked",
+      "priority": "P0",
+      "resource_class": "R3_network_cpu",
+      "summary": "Run the pinned ESMValCore source revision with its documented production dependency stack on the same checksum-pinned CMIP6 ESGF object, then use that native preprocessing boundary before deleting any overlapping Climate preprocessing code.",
+      "depends_on": [
+        "integration.climate_ref_production_cmip"
+      ],
+      "blockers": [
+        "The first pip-only installation omitted ESMPy, causing ESMValCore preprocessor import to fail before extract_region executed. ESMValCore documents conda/mamba installation and its own CI uses setup-micromamba; the next attempt must provision the documented conda-forge dependency stack, then install the exact pinned source revision without substituting a different preprocessor."
+      ],
+      "completion": [
+        "The exact pinned ESMValCore source revision imports under its documented dependency environment, including ESMPy.",
+        "Native ESMValCore preprocessing executes on the checksum-pinned production CMIP6 object and exits cleanly.",
+        "Input selection, preprocessing operation, upstream revision and output identity are recorded.",
+        "Only capabilities demonstrated by that passing native path may authorize deletion of overlapping Climate preprocessing."
+      ],
+      "evidence": [
+        ".github/workflows/native-production-climate-integrations.yml"
+      ]
+    },
+    {
+      "id": "integration.aqua_production_reader",
+      "title": "Use AQUA production data access",
+      "status": "blocked",
+      "priority": "P0",
+      "resource_class": "R3_network_cpu",
+      "summary": "Use the exact pinned AQUA implementation to read and compute from production climate data through AQUA's native reader without retaining a Climate-owned generic reader/catalog/regrid layer.",
+      "depends_on": [
+        "integration.climate_ref_production_cmip"
+      ],
+      "blockers": [
+        "AQUA successfully opened the checksum-pinned ACCESS-CM2 CMIP6 object, produced dimensions lat=144/lon=192 and a finite positive global cell-area sum, but the Python process then aborted during native-library teardown with free(): invalid pointer (exit 134). The integration is not accepted until the native process exits cleanly; do not mask the abort with forced process termination."
+      ],
+      "completion": [
+        "The exact pinned AQUA revision reads the production object through its native NetCDF/Reader surface.",
+        "A Climate-required bounded computation completes and the process exits normally with no native-library abort.",
+        "Reader configuration, upstream revision, source digest and output identity are bound.",
+        "Only after a clean native run may overlapping Climate generic reader/catalog/regrid/output behavior be pruned."
+      ],
+      "evidence": [
+        ".github/workflows/native-production-climate-integrations.yml"
+      ]
+    },
+    {
+      "id": "integration.commons_storage_distribution",
+      "title": "Resolve Commons storage distribution into public Climate CI",
+      "status": "blocked",
+      "priority": "P1",
+      "resource_class": "R4_integrated_system",
+      "summary": "Use Commons as the exact owner of durable content-addressed persistence before deleting Climate station-publication storage mechanics, but only through a distribution boundary that public Climate CI can actually consume.",
+      "depends_on": [],
+      "blockers": [
+        "Commons is private while Climate is public. A direct Cargo Git dependency on the pinned Commons revision failed in public Climate GitHub Actions because the runner could not authenticate to the private repository. Copying/vendoring the Commons implementation or embedding credentials in Climate is not an acceptable substitute."
+      ],
+      "completion": [
+        "Commons exposes a legitimate versioned distribution surface consumable by public Climate CI without repository-secret coupling or copied implementation code.",
+        "Climate executes that exact owner implementation in CI and verifies content identity, idempotence and failure semantics.",
+        "Station partition encoding remains Climate-specific while durable object persistence is delegated to Commons.",
+        "Only after the owner path passes are data/ncei_ghcnd_parquet.py or data/ncei_ghcnh_partition.py storage-engine mechanics eligible for pruning."
       ]
     }
   ]
