@@ -55,7 +55,7 @@ class SourceGateTests(unittest.TestCase):
 
     def test_fallback_marker_is_supplemental_inventory(self):
         files = {
-            "gpu/example.cu": ["// NCCL stub used for single-device parsing"],
+            "gpu/example.cu": ["// CPU fallback path"],
         }
         findings = gates.gate_fallback_marker_inventory(files)
         self.assertEqual(len(findings), 1)
