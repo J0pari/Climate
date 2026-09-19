@@ -7,6 +7,8 @@ on:
       - '.github/workflows/data-authority-live-smoke.yml'
       - 'reference/ncei_ghcnd.py'
       - 'reference/nsidc_sea_ice_index.py'
+      - 'data/ncei_ghcnd_bulk.py'
+      - 'data/ncei_ghcnh_bulk.py'
 
 permissions:
   contents: read
@@ -21,6 +23,26 @@ jobs:
           python-version: '3.12'
       - name: Install maintained HTTP client
         run: python -m pip install --disable-pip-version-check 'requests==2.34.2'
+      - name: Capture and parse complete NCEI GHCN-D station catalog through curl
+        run: |
+          mkdir -p live-data
+          python - <<'PY'
+          from pathlib import Path
+          from data.ncei_ghcnd_bulk import (
+              GHCN_STATION_CATALOG_URL,
+              download_resumable_http_artifact,
+              parse_station_catalog,
+          )
+          target = Path("live-data/ghcnd-stations.txt")
+          receipt = download_resumable_http_artifact(
+              GHCN_STATION_CATALOG_URL, target, timeout_seconds=180.0
+          )
+          catalog = parse_station_catalog(target.read_bytes())
+          assert len(catalog.records) > 100_000
+          assert catalog.sha256 == receipt.sha256
+          print(receipt)
+          print("station_count", len(catalog.records))
+          PY
       - name: Retrieve fixed NCEI GHCN-D API subset
         run: |
           mkdir -p live-data

@@ -15,9 +15,11 @@ import hashlib
 import json
 import math
 import os
+import re
+import shutil
+import subprocess
 from pathlib import Path
-from typing import Iterable, Mapping, Protocol, Sequence
-import urllib.request
+from typing import Iterable, Mapping, Sequence
 
 from src.station_federation import (
     AliasBinding,
@@ -66,27 +68,6 @@ class DownloadedHTTPArtifact:
     validator_value: str
 
 
-class HTTPRangeTransport(Protocol):
-    def inspect(
-        self,
-        url: str,
-        *,
-        timeout_seconds: float,
-    ) -> HTTPArtifactIdentity:
-        ...
-
-    def iter_bytes(
-        self,
-        url: str,
-        *,
-        start: int,
-        identity: HTTPArtifactIdentity,
-        timeout_seconds: float,
-        chunk_bytes: int,
-    ) -> Iterable[bytes]:
-        ...
-
-
 def _resume_validator(identity: HTTPArtifactIdentity) -> tuple[str, str]:
     etag = identity.etag.strip() if isinstance(identity.etag, str) else ""
     if etag and not etag.startswith("W/"):
@@ -107,7 +88,8 @@ def _header_identity(
     url: str,
     headers: Mapping[str, str],
 ) -> HTTPArtifactIdentity:
-    raw_length = headers.get("Content-Length")
+    lowered = {key.lower(): value for key, value in headers.items()}
+    raw_length = lowered.get("content-length")
     if raw_length is None:
         raise ValueError("remote artifact does not declare Content-Length")
     try:
@@ -117,70 +99,108 @@ def _header_identity(
     return HTTPArtifactIdentity(
         url=url,
         content_length=content_length,
-        etag=headers.get("ETag"),
-        last_modified=headers.get("Last-Modified"),
-        accept_ranges=headers.get("Accept-Ranges", "").lower() == "bytes",
+        etag=lowered.get("etag"),
+        last_modified=lowered.get("last-modified"),
+        accept_ranges=lowered.get("accept-ranges", "").lower() == "bytes",
     )
 
 
-class UrllibHTTPRangeTransport:
-    """Standard-library HTTP range transport with fail-closed resume semantics."""
+def _curl_executable() -> str:
+    executable = shutil.which("curl")
+    if executable is None:
+        raise RuntimeError("curl is required for native HTTP artifact acquisition")
+    return executable
 
-    def inspect(
-        self,
-        url: str,
-        *,
-        timeout_seconds: float,
-    ) -> HTTPArtifactIdentity:
-        request = urllib.request.Request(url, method="HEAD")
-        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
-            return _header_identity(url, response.headers)
 
-    def iter_bytes(
-        self,
-        url: str,
-        *,
-        start: int,
-        identity: HTTPArtifactIdentity,
-        timeout_seconds: float,
-        chunk_bytes: int,
-    ) -> Iterable[bytes]:
+def _parse_curl_head_output(url: str, output: str) -> HTTPArtifactIdentity:
+    blocks = re.split(r"\r?\n\r?\n", output.strip())
+    for raw in reversed(blocks):
+        lines = [line for line in raw.splitlines() if line.strip()]
+        if not lines or not lines[0].startswith("HTTP/"):
+            continue
+        parts = lines[0].split()
+        if len(parts) < 2:
+            continue
+        try:
+            status = int(parts[1])
+        except ValueError:
+            continue
+        if not 200 <= status < 300:
+            continue
         headers: dict[str, str] = {}
-        validator_kind, validator_value = _resume_validator(identity)
-        if start:
-            headers["Range"] = f"bytes={start}-"
-            headers["If-Range"] = validator_value
-        request = urllib.request.Request(url, headers=headers, method="GET")
-        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
-            status = int(getattr(response, "status", response.getcode()))
-            if start and status != 206:
-                raise ValueError(
-                    "remote server did not honor the requested resume byte range"
-                )
-            if not start and status not in {200, 206}:
-                raise ValueError(f"unexpected HTTP status {status} for artifact download")
+        for line in lines[1:]:
+            if ":" not in line:
+                continue
+            key, value = line.split(":", 1)
+            headers[key.strip()] = value.strip()
+        return _header_identity(url, headers)
+    raise ValueError("curl HEAD response did not contain a successful final response")
 
-            observed = _header_identity(url, response.headers)
-            observed_kind, observed_value = _resume_validator(observed)
-            if (observed_kind, observed_value) != (
-                validator_kind,
-                validator_value,
-            ):
-                raise ValueError("remote artifact validator changed during download")
-            if start:
-                content_range = response.headers.get("Content-Range", "")
-                if not content_range.startswith(f"bytes {start}-"):
-                    raise ValueError("remote Content-Range does not match resume offset")
-                if not content_range.endswith(f"/{identity.content_length}"):
-                    raise ValueError("remote Content-Range total length changed")
-            elif observed.content_length != identity.content_length:
-                raise ValueError("remote artifact length changed during download")
 
-            while True:
-                chunk = response.read(chunk_bytes)
-                if not chunk:
-                    break
-                yield chunk
+def _inspect_with_curl(url: str, *, timeout_seconds: float) -> HTTPArtifactIdentity:
+    result = subprocess.run(
+        [
+            _curl_executable(),
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--location",
+            "--head",
+            "--max-time",
+            str(timeout_seconds),
+            url,
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return _parse_curl_head_output(url, result.stdout)
+
+
+def _download_with_curl(
+    url: str,
+    partial: Path,
+    *,
+    start: int,
+    identity: HTTPArtifactIdentity,
+    timeout_seconds: float,
+) -> None:
+    validator_kind, validator_value = _resume_validator(identity)
+    command = [
+        _curl_executable(),
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--location",
+        "--max-time",
+        str(timeout_seconds),
+        "--output",
+        str(partial),
+        "--write-out",
+        "%{http_code}",
+    ]
+    if start:
+        command.extend([
+            "--continue-at",
+            str(start),
+            "--header",
+            f"If-Range: {validator_value}",
+        ])
+    command.append(url)
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        detail = result.stderr.strip() or f"curl exit {result.returncode}"
+        raise RuntimeError(f"curl artifact acquisition failed: {detail}")
+    status_text = result.stdout.strip()
+    if not status_text.isdigit():
+        raise RuntimeError("curl did not emit an HTTP status code")
+    status = int(status_text)
+    expected = 206 if start else 200
+    if status != expected:
+        raise ValueError(
+            f"curl returned HTTP {status}; expected {expected} for "
+            f"{validator_kind}-bound acquisition"
+        )
 
 
 def _sha256_path(path: Path) -> tuple[str, int]:
@@ -244,29 +264,23 @@ def download_resumable_http_artifact(
     url: str,
     destination: Path,
     *,
-    transport: HTTPRangeTransport | None = None,
     timeout_seconds: float = 120.0,
-    chunk_bytes: int = 1024 * 1024,
 ) -> DownloadedHTTPArtifact:
-    """Capture one immutable remote artifact with durable byte-range resume state.
+    """Capture one immutable remote artifact using curl-owned HTTP transport.
 
-    The sidecar state is authoritative only for bytes already flushed and fsynced.
-    If a process dies after appending additional bytes but before committing the
-    state update, the next run truncates that uncommitted tail before resuming.
-    A changed remote validator or content length is never appended to an existing
-    partial artifact.
+    Climate owns the immutable identity/checkpoint/digest contract only. curl
+    owns HTTP/TLS/redirect/range mechanics. A missing curl executable, changed
+    remote validator, unsupported byte range, or curl failure aborts acquisition;
+    no alternate client or unvalidated restart path is selected.
     """
     if timeout_seconds <= 0.0:
         raise ValueError("timeout_seconds must be positive")
-    if chunk_bytes <= 0:
-        raise ValueError("chunk_bytes must be positive")
 
     destination = Path(destination)
     partial = destination.with_name(destination.name + ".partial")
     state_path = destination.with_name(destination.name + ".resume.json")
     receipt_path = destination.with_name(destination.name + ".artifact.json")
-    client = transport or UrllibHTTPRangeTransport()
-    identity = client.inspect(url, timeout_seconds=timeout_seconds)
+    identity = _inspect_with_curl(url, timeout_seconds=timeout_seconds)
     if not identity.accept_ranges:
         raise ValueError("remote artifact does not advertise byte-range resume support")
     validator_kind, validator_value = _resume_validator(identity)
@@ -286,12 +300,8 @@ def download_resumable_http_artifact(
         ):
             raise ValueError("captured artifact does not match its durable receipt")
         return DownloadedHTTPArtifact(
-            url=url,
-            path=destination,
-            sha256=digest,
-            byte_count=byte_count,
-            validator_kind=validator_kind,
-            validator_value=validator_value,
+            url=url, path=destination, sha256=digest, byte_count=byte_count,
+            validator_kind=validator_kind, validator_value=validator_value,
         )
 
     if destination.exists() and not state_path.exists():
@@ -331,72 +341,49 @@ def download_resumable_http_artifact(
             },
         )
 
-    if committed == identity.content_length and destination.is_file() and not partial.exists():
-        digest, byte_count = _sha256_path(destination)
-        if digest != prefix_digest or byte_count != committed:
-            raise ValueError("completed artifact does not match resumable state")
-    else:
-        if not partial.exists():
-            if committed:
-                raise ValueError("resume state references a missing partial artifact")
-            partial.parent.mkdir(parents=True, exist_ok=True)
-            partial.touch()
+    if not partial.exists():
+        if committed:
+            raise ValueError("resume state references a missing partial artifact")
+        partial.parent.mkdir(parents=True, exist_ok=True)
+        partial.touch()
+    partial_size = partial.stat().st_size
+    if partial_size < committed:
+        raise ValueError("partial artifact is shorter than committed resume state")
+    if partial_size > committed:
+        with partial.open("r+b") as handle:
+            handle.truncate(committed)
+    observed_prefix, observed_bytes = _sha256_path(partial)
+    if observed_bytes != committed or observed_prefix != prefix_digest:
+        raise ValueError("partial artifact does not match committed resume digest")
 
-        partial_size = partial.stat().st_size
-        if partial_size < committed:
-            raise ValueError("partial artifact is shorter than committed resume state")
-        if partial_size > committed:
-            with partial.open("r+b") as handle:
-                handle.truncate(committed)
-
-        observed_prefix, observed_bytes = _sha256_path(partial)
-        if observed_bytes != committed or observed_prefix != prefix_digest:
-            raise ValueError("partial artifact does not match committed resume digest")
-
-        hasher = hashlib.sha256()
-        with partial.open("rb") as handle:
-            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-                hasher.update(chunk)
-
-        with partial.open("ab") as handle:
-            for chunk in client.iter_bytes(
-                url,
-                start=committed,
-                identity=identity,
-                timeout_seconds=timeout_seconds,
-                chunk_bytes=chunk_bytes,
-            ):
-                if not isinstance(chunk, (bytes, bytearray)):
-                    raise ValueError("HTTP range transport yielded a non-byte chunk")
-                if not chunk:
-                    continue
-                if committed + len(chunk) > identity.content_length:
-                    raise ValueError("remote stream exceeds declared Content-Length")
-                handle.write(chunk)
-                handle.flush()
-                os.fsync(handle.fileno())
-                hasher.update(chunk)
-                committed += len(chunk)
-                prefix_digest = "sha256:" + hasher.hexdigest()
-                _write_json_atomic(
-                    state_path,
-                    {
-                        "schema": _HTTP_RESUME_SCHEMA,
-                        **_identity_payload(identity),
-                        "committed_bytes": committed,
-                        "prefix_sha256": prefix_digest,
-                    },
-                )
-
-        if committed != identity.content_length:
-            raise ValueError(
-                "remote stream ended before the declared Content-Length was captured"
+    try:
+        _download_with_curl(
+            url, partial, start=committed, identity=identity,
+            timeout_seconds=timeout_seconds,
+        )
+    except Exception:
+        if partial.exists():
+            current_digest, current_bytes = _sha256_path(partial)
+            if current_bytes < committed or current_bytes > identity.content_length:
+                raise
+            _write_json_atomic(
+                state_path,
+                {
+                    "schema": _HTTP_RESUME_SCHEMA,
+                    **_identity_payload(identity),
+                    "committed_bytes": current_bytes,
+                    "prefix_sha256": current_digest,
+                },
             )
-        os.replace(partial, destination)
+        raise
 
-    digest, byte_count = _sha256_path(destination)
-    if byte_count != identity.content_length or digest != prefix_digest:
-        raise ValueError("completed artifact failed final digest/length verification")
+    observed_identity = _inspect_with_curl(url, timeout_seconds=timeout_seconds)
+    if _identity_payload(observed_identity) != _identity_payload(identity):
+        raise ValueError("remote artifact identity changed during curl acquisition")
+    digest, byte_count = _sha256_path(partial)
+    if byte_count != identity.content_length:
+        raise ValueError("remote stream ended before declared Content-Length")
+    os.replace(partial, destination)
     _write_json_atomic(
         receipt_path,
         {
@@ -408,12 +395,8 @@ def download_resumable_http_artifact(
     )
     state_path.unlink(missing_ok=True)
     return DownloadedHTTPArtifact(
-        url=url,
-        path=destination,
-        sha256=digest,
-        byte_count=byte_count,
-        validator_kind=validator_kind,
-        validator_value=validator_value,
+        url=url, path=destination, sha256=digest, byte_count=byte_count,
+        validator_kind=validator_kind, validator_value=validator_value,
     )
 
 
@@ -421,17 +404,13 @@ def download_by_year_artifact(
     year: int,
     destination: Path,
     *,
-    transport: HTTPRangeTransport | None = None,
     timeout_seconds: float = 120.0,
-    chunk_bytes: int = 1024 * 1024,
 ) -> DownloadedHTTPArtifact:
-    """Capture one GHCN-Daily by-year gzip through the resumable scale path."""
+    """Capture one GHCN-Daily by-year gzip through the curl-owned scale path."""
     return download_resumable_http_artifact(
         by_year_url(year),
         destination,
-        transport=transport,
         timeout_seconds=timeout_seconds,
-        chunk_bytes=chunk_bytes,
     )
 
 

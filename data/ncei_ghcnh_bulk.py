@@ -22,7 +22,6 @@ from typing import Iterable, Protocol, Sequence
 
 from data.ncei_ghcnd_bulk import (
     DownloadedHTTPArtifact,
-    HTTPRangeTransport,
     download_resumable_http_artifact,
 )
 
@@ -56,9 +55,7 @@ def download_year_archive(
     archive_url: str,
     destination: Path,
     *,
-    transport: HTTPRangeTransport | None = None,
     timeout_seconds: float = 120.0,
-    chunk_bytes: int = 1024 * 1024,
 ) -> DownloadedHTTPArtifact:
     """Capture one explicitly versioned/creation-dated GHCNh annual archive."""
     if not archive_url.startswith(ARCHIVE_BASE_URL):
@@ -71,9 +68,7 @@ def download_year_archive(
     return download_resumable_http_artifact(
         archive_url,
         destination,
-        transport=transport,
         timeout_seconds=timeout_seconds,
-        chunk_bytes=chunk_bytes,
     )
 
 
