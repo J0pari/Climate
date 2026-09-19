@@ -562,7 +562,7 @@
         "Provider discovery and registration is extensible and records access, licensing, update, and revision semantics rather than embedding a closed hand-selected station list.",
         "Every ingested station has a stable canonical identity plus provider aliases and location/history metadata; cross-provider deduplication is explicit and reversible rather than proximity-only guessing.",
         "Observation storage is immutable/versioned and partitioned by bounded dimensions such as provider, time, variable, and spatial shard so no workflow requires all stations or all times in memory.",
-        "Incremental ingestion is idempotent and resumable, records source revisions or tombstones and artifact digests, and preserves provider quality/source flags without silent imputation.",
+        "Incremental ingestion is idempotent from immutable captured artifacts, records source revisions or tombstones and artifact digests, and preserves provider quality/source flags without silent imputation; transport failure itself creates no accepted Climate artifact.",
         "Coverage manifests expose station, variable, temporal, geographic, and provider availability so gaps are observable rather than hidden by defaults.",
         "Additional freely accessible station authorities can enter without changing canonical sheaf topology/operator interfaces or adding provider-specific branches to numerical kernels."
       ],

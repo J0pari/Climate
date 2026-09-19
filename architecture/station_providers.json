@@ -22,7 +22,7 @@
       "geographic_scope": "global",
       "station_identity_namespace": "GHCN-Daily STATION",
       "discovery_mode": "provider_catalog",
-      "scale_path": "complete ghcnd-stations.txt and ghcnd-inventory.txt provider artifacts feed bounded content-addressed catalog shards; yearly observations use curl-owned byte-range transport wrapped by Climate's exact validator/Content-Length/resume/digest contract, while subset REST remains a distinct provider API path",
+      "scale_path": "complete ghcnd-stations.txt and ghcnd-inventory.txt provider artifacts feed bounded content-addressed catalog shards; yearly observations are whole-file captures performed by the exact curl executable and accepted only after Climate records the explicit provider URL, resolved curl binary path/version/SHA-256, byte count, and final artifact SHA-256; subset REST remains a distinct provider API path",
       "current_boundaries": [
         "data/ncei_ghcnd_bulk.py::parse_station_catalog",
         "data/ncei_ghcnd_bulk.py::parse_inventory",
@@ -36,7 +36,7 @@
       "access": "NCEI HTTPS archive and Common Access Data/Search Service REST APIs",
       "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",
       "update_semantics": "daily updates plus periodic reconstruction; NCEI assigns unique daily versions and values/flags can be revised, so responses used as evidence must be captured and digested",
-      "revision_identity": "catalog, inventory, and by-year inputs bind exact provider URL and final SHA-256; resumable capture binds stable strong ETag or Last-Modified plus Content-Length while curl owns HTTP transport; published observation partitions carry captured compressed-artifact SHA-256 and revisions use explicit supersession or tombstone lineage"
+      "revision_identity": "catalog, inventory, and by-year inputs bind exact provider URL plus final captured SHA-256 and byte count; curl owns HTTP/TLS/redirect/transfer behavior, interrupted captures produce no accepted artifact, and published observation partitions carry the captured compressed-artifact SHA-256 with explicit supersession or tombstone lineage"
     },
     {
       "provider_id": "ncei.ghcnh.v1",
@@ -46,7 +46,7 @@
       "access": "NCEI HTTPS bulk archive and data access applications",
       "license_or_access_constraints": "NOAA public data; source and quality-control attributes remain part of provenance",
       "update_semantics": "Version 1 is updated daily; immutable inputs pin the exact station-list or bulk archive artifact digest, and yearly archive filenames carry product version plus creation date",
-      "revision_identity": "station-catalog federation binds exact ghcnh-station-list SHA-256; shared GHCN-Daily/GHCNh identifiers emit deterministic crosswalk evidence; annual observations require an explicit versioned/creation-dated official archive URL captured through curl-owned transport under Climate's validator/Content-Length/digest contract",
+      "revision_identity": "station-catalog federation binds exact ghcnh-station-list SHA-256; shared GHCN-Daily/GHCNh identifiers emit deterministic crosswalk evidence; annual observations require an explicit versioned/creation-dated official archive URL whose whole-file curl capture records the resolved curl binary path/version/SHA-256, byte count, and final artifact SHA-256",
       "geographic_scope": "global",
       "station_identity_namespace": "GHCNh managed GHCN identifier",
       "discovery_mode": "provider_catalog",

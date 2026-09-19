@@ -15,7 +15,6 @@ import hashlib
 import json
 import math
 import os
-import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -39,23 +38,7 @@ GHCN_VERSION_URL = f"{GHCN_BASE_URL}/ghcnd-version.txt"
 GHCN_BY_YEAR_URL = f"{GHCN_BASE_URL}/by_year"
 
 
-_HTTP_RESUME_SCHEMA = "climate-http-resume/v1"
-_HTTP_RECEIPT_SCHEMA = "climate-http-artifact/v1"
-
-
-@dataclass(frozen=True)
-class HTTPArtifactIdentity:
-    url: str
-    content_length: int
-    etag: str | None
-    last_modified: str | None
-    accept_ranges: bool
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.url, str) or not self.url.strip():
-            raise ValueError("artifact url must be non-empty")
-        if self.content_length < 0:
-            raise ValueError("artifact content_length must be non-negative")
+_HTTP_RECEIPT_SCHEMA = "climate-http-artifact/v2"
 
 
 @dataclass(frozen=True)
@@ -64,143 +47,31 @@ class DownloadedHTTPArtifact:
     path: Path
     sha256: str
     byte_count: int
-    validator_kind: str
-    validator_value: str
-
-
-def _resume_validator(identity: HTTPArtifactIdentity) -> tuple[str, str]:
-    etag = identity.etag.strip() if isinstance(identity.etag, str) else ""
-    if etag and not etag.startswith("W/"):
-        return "etag", etag
-    modified = (
-        identity.last_modified.strip()
-        if isinstance(identity.last_modified, str)
-        else ""
-    )
-    if modified:
-        return "last_modified", modified
-    raise ValueError(
-        "resumable acquisition requires a strong ETag or Last-Modified validator"
-    )
-
-
-def _header_identity(
-    url: str,
-    headers: Mapping[str, str],
-) -> HTTPArtifactIdentity:
-    lowered = {key.lower(): value for key, value in headers.items()}
-    raw_length = lowered.get("content-length")
-    if raw_length is None:
-        raise ValueError("remote artifact does not declare Content-Length")
-    try:
-        content_length = int(raw_length)
-    except ValueError as exc:
-        raise ValueError("remote Content-Length is not an integer") from exc
-    return HTTPArtifactIdentity(
-        url=url,
-        content_length=content_length,
-        etag=lowered.get("etag"),
-        last_modified=lowered.get("last-modified"),
-        accept_ranges=lowered.get("accept-ranges", "").lower() == "bytes",
-    )
+    transport: str
+    transport_version: str
+    transport_executable: Path
+    transport_executable_sha256: str
+    receipt_path: Path
 
 
 def _curl_executable() -> str:
     executable = shutil.which("curl")
     if executable is None:
-        raise RuntimeError("curl is required for native HTTP artifact acquisition")
+        raise RuntimeError("curl is required for native HTTP artifact capture")
     return executable
 
 
-def _parse_curl_head_output(url: str, output: str) -> HTTPArtifactIdentity:
-    blocks = re.split(r"\r?\n\r?\n", output.strip())
-    for raw in reversed(blocks):
-        lines = [line for line in raw.splitlines() if line.strip()]
-        if not lines or not lines[0].startswith("HTTP/"):
-            continue
-        parts = lines[0].split()
-        if len(parts) < 2:
-            continue
-        try:
-            status = int(parts[1])
-        except ValueError:
-            continue
-        if not 200 <= status < 300:
-            continue
-        headers: dict[str, str] = {}
-        for line in lines[1:]:
-            if ":" not in line:
-                continue
-            key, value = line.split(":", 1)
-            headers[key.strip()] = value.strip()
-        return _header_identity(url, headers)
-    raise ValueError("curl HEAD response did not contain a successful final response")
-
-
-def _inspect_with_curl(url: str, *, timeout_seconds: float) -> HTTPArtifactIdentity:
+def _curl_version(executable: str) -> str:
     result = subprocess.run(
-        [
-            _curl_executable(),
-            "--fail",
-            "--silent",
-            "--show-error",
-            "--location",
-            "--head",
-            "--max-time",
-            str(timeout_seconds),
-            url,
-        ],
+        [executable, "--version"],
         check=True,
         capture_output=True,
         text=True,
     )
-    return _parse_curl_head_output(url, result.stdout)
-
-
-def _download_with_curl(
-    url: str,
-    partial: Path,
-    *,
-    start: int,
-    identity: HTTPArtifactIdentity,
-    timeout_seconds: float,
-) -> None:
-    validator_kind, validator_value = _resume_validator(identity)
-    command = [
-        _curl_executable(),
-        "--fail",
-        "--silent",
-        "--show-error",
-        "--location",
-        "--max-time",
-        str(timeout_seconds),
-        "--output",
-        str(partial),
-        "--write-out",
-        "%{http_code}",
-    ]
-    if start:
-        command.extend([
-            "--continue-at",
-            str(start),
-            "--header",
-            f"If-Range: {validator_value}",
-        ])
-    command.append(url)
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        detail = result.stderr.strip() or f"curl exit {result.returncode}"
-        raise RuntimeError(f"curl artifact acquisition failed: {detail}")
-    status_text = result.stdout.strip()
-    if not status_text.isdigit():
-        raise RuntimeError("curl did not emit an HTTP status code")
-    status = int(status_text)
-    expected = 206 if start else 200
-    if status != expected:
-        raise ValueError(
-            f"curl returned HTTP {status}; expected {expected} for "
-            f"{validator_kind}-bound acquisition"
-        )
+    first_line = result.stdout.splitlines()[0].strip() if result.stdout else ""
+    if not first_line.startswith("curl "):
+        raise RuntimeError("curl did not report a recognizable version identity")
+    return first_line
 
 
 def _sha256_path(path: Path) -> tuple[str, int]:
@@ -226,177 +97,100 @@ def _write_json_atomic(path: Path, payload: Mapping[str, object]) -> None:
     os.replace(temporary, path)
 
 
-def _load_json_object(path: Path) -> dict[str, object]:
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"invalid resumable artifact state at {path}") from exc
-    if not isinstance(payload, dict):
-        raise ValueError(f"resumable artifact state at {path} must be an object")
-    return payload
-
-
-def _identity_payload(identity: HTTPArtifactIdentity) -> dict[str, object]:
-    validator_kind, validator_value = _resume_validator(identity)
-    return {
-        "url": identity.url,
-        "content_length": identity.content_length,
-        "validator_kind": validator_kind,
-        "validator_value": validator_value,
-    }
-
-
-def _validate_identity_payload(
-    payload: Mapping[str, object],
-    identity: HTTPArtifactIdentity,
-    *,
-    label: str,
-) -> None:
-    expected = _identity_payload(identity)
-    for key, value in expected.items():
-        if payload.get(key) != value:
-            raise ValueError(
-                f"{label} remote artifact identity changed at field {key}"
-            )
-
-
-def download_resumable_http_artifact(
+def capture_http_artifact(
     url: str,
     destination: Path,
     *,
     timeout_seconds: float = 120.0,
 ) -> DownloadedHTTPArtifact:
-    """Capture one immutable remote artifact using curl-owned HTTP transport.
+    """Capture one complete HTTPS artifact through the native curl executable.
 
-    Climate owns the immutable identity/checkpoint/digest contract only. curl
-    owns HTTP/TLS/redirect/range mechanics. A missing curl executable, changed
-    remote validator, unsupported byte range, or curl failure aborts acquisition;
-    no alternate client or unchecked restart path is selected.
+    curl owns HTTP, TLS, redirects, and transfer behavior. Climate supplies the
+    exact URL and accepts only a successfully completed whole-file capture whose
+    final bytes are hashed and receipted. There is no Climate-owned HEAD/range
+    protocol, continuation state, alternate client, or partial-artifact success.
     """
+    if not isinstance(url, str) or not url.startswith("https://"):
+        raise ValueError("artifact URL must be explicit HTTPS")
     if timeout_seconds <= 0.0:
         raise ValueError("timeout_seconds must be positive")
 
     destination = Path(destination)
-    partial = destination.with_name(destination.name + ".partial")
-    state_path = destination.with_name(destination.name + ".resume.json")
+    temporary = destination.with_name(destination.name + ".capture.tmp")
     receipt_path = destination.with_name(destination.name + ".artifact.json")
-    identity = _inspect_with_curl(url, timeout_seconds=timeout_seconds)
-    if not identity.accept_ranges:
-        raise ValueError("remote artifact does not advertise byte-range resume support")
-    validator_kind, validator_value = _resume_validator(identity)
-
-    if receipt_path.exists():
-        receipt = _load_json_object(receipt_path)
-        if receipt.get("schema") != _HTTP_RECEIPT_SCHEMA:
-            raise ValueError("existing artifact receipt has an unsupported schema")
-        _validate_identity_payload(receipt, identity, label="completed")
-        if not destination.is_file():
-            raise ValueError("artifact receipt exists but captured artifact is missing")
-        digest, byte_count = _sha256_path(destination)
-        if (
-            receipt.get("sha256") != digest
-            or receipt.get("byte_count") != byte_count
-            or byte_count != identity.content_length
-        ):
-            raise ValueError("captured artifact does not match its durable receipt")
-        return DownloadedHTTPArtifact(
-            url=url, path=destination, sha256=digest, byte_count=byte_count,
-            validator_kind=validator_kind, validator_value=validator_value,
-        )
-
-    if destination.exists() and not state_path.exists():
+    receipt_tmp = receipt_path.with_name(receipt_path.name + ".tmp")
+    if destination.exists() or receipt_path.exists() or temporary.exists():
         raise ValueError(
-            "destination exists without a durable artifact receipt; refuse overwrite"
+            "capture target, receipt, or temporary path already exists; "
+            "refuse implicit reuse or overwrite"
         )
 
-    empty_digest = "sha256:" + hashlib.sha256(b"").hexdigest()
-    if state_path.exists():
-        state = _load_json_object(state_path)
-        if state.get("schema") != _HTTP_RESUME_SCHEMA:
-            raise ValueError("resume state has an unsupported schema")
-        _validate_identity_payload(state, identity, label="resume")
-        committed = state.get("committed_bytes")
-        prefix_digest = state.get("prefix_sha256")
-        if (
-            not isinstance(committed, int)
-            or isinstance(committed, bool)
-            or committed < 0
-            or committed > identity.content_length
-        ):
-            raise ValueError("resume state committed_bytes is invalid")
-        if not isinstance(prefix_digest, str):
-            raise ValueError("resume state prefix_sha256 is missing")
-    else:
-        if partial.exists():
-            raise ValueError("partial artifact exists without durable resume state")
-        committed = 0
-        prefix_digest = empty_digest
+    executable = _curl_executable()
+    executable_path = Path(executable).resolve()
+    transport_version = _curl_version(str(executable_path))
+    transport_executable_sha256, _ = _sha256_path(executable_path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    command = [
+        str(executable_path),
+        "--fail",
+        "--location",
+        "--silent",
+        "--show-error",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        str(timeout_seconds),
+        "--output",
+        str(temporary),
+        url,
+    ]
+
+    published = False
+    try:
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            detail = result.stderr.strip() or f"curl exit {result.returncode}"
+            raise RuntimeError(f"curl artifact capture failed: {detail}")
+        if not temporary.is_file():
+            raise RuntimeError("curl reported success without a captured artifact")
+
+        with temporary.open("rb+") as handle:
+            os.fsync(handle.fileno())
+        digest, byte_count = _sha256_path(temporary)
+        os.replace(temporary, destination)
+        published = True
         _write_json_atomic(
-            state_path,
+            receipt_path,
             {
-                "schema": _HTTP_RESUME_SCHEMA,
-                **_identity_payload(identity),
-                "committed_bytes": committed,
-                "prefix_sha256": prefix_digest,
+                "schema": _HTTP_RECEIPT_SCHEMA,
+                "url": url,
+                "sha256": digest,
+                "byte_count": byte_count,
+                "transport": "curl",
+                "transport_version": transport_version,
+                "transport_executable": str(executable_path),
+                "transport_executable_sha256": transport_executable_sha256,
             },
         )
-
-    if not partial.exists():
-        if committed:
-            raise ValueError("resume state references a missing partial artifact")
-        partial.parent.mkdir(parents=True, exist_ok=True)
-        partial.touch()
-    partial_size = partial.stat().st_size
-    if partial_size < committed:
-        raise ValueError("partial artifact is shorter than committed resume state")
-    if partial_size > committed:
-        with partial.open("r+b") as handle:
-            handle.truncate(committed)
-    observed_prefix, observed_bytes = _sha256_path(partial)
-    if observed_bytes != committed or observed_prefix != prefix_digest:
-        raise ValueError("partial artifact does not match committed resume digest")
-
-    try:
-        _download_with_curl(
-            url, partial, start=committed, identity=identity,
-            timeout_seconds=timeout_seconds,
-        )
     except Exception:
-        if partial.exists():
-            current_digest, current_bytes = _sha256_path(partial)
-            if current_bytes < committed or current_bytes > identity.content_length:
-                raise
-            _write_json_atomic(
-                state_path,
-                {
-                    "schema": _HTTP_RESUME_SCHEMA,
-                    **_identity_payload(identity),
-                    "committed_bytes": current_bytes,
-                    "prefix_sha256": current_digest,
-                },
-            )
+        temporary.unlink(missing_ok=True)
+        receipt_tmp.unlink(missing_ok=True)
+        if published and not receipt_path.exists():
+            destination.unlink(missing_ok=True)
         raise
 
-    observed_identity = _inspect_with_curl(url, timeout_seconds=timeout_seconds)
-    if _identity_payload(observed_identity) != _identity_payload(identity):
-        raise ValueError("remote artifact identity changed during curl acquisition")
-    digest, byte_count = _sha256_path(partial)
-    if byte_count != identity.content_length:
-        raise ValueError("remote stream ended before declared Content-Length")
-    os.replace(partial, destination)
-    _write_json_atomic(
-        receipt_path,
-        {
-            "schema": _HTTP_RECEIPT_SCHEMA,
-            **_identity_payload(identity),
-            "sha256": digest,
-            "byte_count": byte_count,
-        },
-    )
-    state_path.unlink(missing_ok=True)
     return DownloadedHTTPArtifact(
-        url=url, path=destination, sha256=digest, byte_count=byte_count,
-        validator_kind=validator_kind, validator_value=validator_value,
+        url=url,
+        path=destination,
+        sha256=digest,
+        byte_count=byte_count,
+        transport="curl",
+        transport_version=transport_version,
+        transport_executable=executable_path,
+        transport_executable_sha256=transport_executable_sha256,
+        receipt_path=receipt_path,
     )
 
 
@@ -406,8 +200,8 @@ def download_by_year_artifact(
     *,
     timeout_seconds: float = 120.0,
 ) -> DownloadedHTTPArtifact:
-    """Capture one GHCN-Daily by-year gzip through the curl-owned scale path."""
-    return download_resumable_http_artifact(
+    """Capture one GHCN-Daily by-year gzip through the curl-owned transport."""
+    return capture_http_artifact(
         by_year_url(year),
         destination,
         timeout_seconds=timeout_seconds,

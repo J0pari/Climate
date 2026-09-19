@@ -28,7 +28,7 @@ jobs:
           from pathlib import Path
           from data.ncei_ghcnd_bulk import (
               GHCN_STATION_CATALOG_URL,
-              download_resumable_http_artifact,
+              capture_http_artifact,
               parse_station_catalog,
           )
           target = Path("live-data/ghcnd-stations.txt")

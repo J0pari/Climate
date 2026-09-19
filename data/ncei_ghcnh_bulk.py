@@ -22,7 +22,7 @@ from typing import Iterable, Protocol, Sequence
 
 from data.ncei_ghcnd_bulk import (
     DownloadedHTTPArtifact,
-    download_resumable_http_artifact,
+    capture_http_artifact,
 )
 
 from src.station_federation import (
@@ -65,7 +65,7 @@ def download_year_archive(
         raise ValueError(
             "GHCNh archive URL must name one versioned data-year/creation-date tar.gz"
         )
-    return download_resumable_http_artifact(
+    return capture_http_artifact(
         archive_url,
         destination,
         timeout_seconds=timeout_seconds,
