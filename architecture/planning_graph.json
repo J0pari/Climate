@@ -407,14 +407,24 @@
     {
       "id": "information_geometry.recovery_validation",
       "title": "Validate information-geometry primitives on explicit statistical models",
-      "status": "ready",
+      "status": "done",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Use explicit likelihood families for Fisher, connection, identifiability, natural-gradient, and recovery experiments, with maintained optimization libraries and standard baselines.",
+      "summary": "Preregistered Normal-family discovery and a fresh 16-trial two-layer EBM confirmation now compare local Fisher natural gradient against strong conventional curvature-aware baselines under explicit Gaussian observations and held-out forcing histories. The confirmation found equivalent recovery/held-out likelihood to Jacobian-scaled TRF, no distinct Fisher-specific advantage under the frozen rule, and numerical Fisher/Gauss-Newton step equivalence.",
       "depends_on": [],
       "completion": [
         "Synthetic observations are explicit experiment inputs rather than hidden inside method implementations.",
         "Parameter-recovery and held-out likelihood tasks compare natural-gradient behavior against standard optimizers and equally informed preconditioners."
+      ],
+      "evidence": [
+        "reference/information_geometry_sympy.py",
+        "reference/information_geometry_ebm_recovery.py",
+        "fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json",
+        "experiments/information-geometry-two-layer-ebm-recovery-confirmation.v1.json",
+        "tests/reference/test_information_geometry_ebm_recovery.py",
+        ".github/workflows/information-geometry-ebm-recovery.yml",
+        "evaluations/information-geometry/two-layer-ebm-recovery-confirmation-v1/result.json",
+        "evaluations/information-geometry/two-layer-ebm-recovery-confirmation-v1/README.md"
       ]
     },
     {
