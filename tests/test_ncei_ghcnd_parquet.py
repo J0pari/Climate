@@ -16,8 +16,12 @@ from data.ncei_ghcnd_bulk import (
     parse_inventory,
     parse_station_catalog,
     StationShardLookup,
+    stream_by_year_partitions,
 )
-from data.ncei_ghcnd_parquet import publish_gzip_by_year
+from data.ncei_ghcnd_parquet import (
+    GHCNParquetPartitionPublisher,
+    publish_gzip_by_year,
+)
 from src.station_federation import StationFederationManifest
 
 
@@ -171,6 +175,104 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 path for path in (store / "objects").iterdir() if path.is_dir()
             ]
             self.assertEqual(len(objects), len(first.partitions))
+
+    def test_interrupted_publication_resumes_from_flushed_fragment_boundary(self):
+        lookup, _ = self.substrate()
+        rows = (
+            "USW00000001,20240101,TMAX,123,,,S,0700\n"
+            "USW00000001,20240102,TMAX,125,,,S,0700\n"
+            "USW00000001,20240103,TMAX,127,,,S,0700\n"
+            "USW00000001,20240104,TMAX,129,,,S,0700\n"
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "2024.csv.gz"
+            store = root / "store"
+            clean_store = root / "clean"
+            write_gzip(source, rows)
+            source_revision = "sha256:" + __import__("hashlib").sha256(
+                source.read_bytes()
+            ).hexdigest()
+
+            partial = GHCNParquetPartitionPublisher(
+                store,
+                source_revision=source_revision,
+                batch_rows=2,
+            )
+            stream_by_year_partitions(
+                rows.splitlines(keepends=True)[:3],
+                expected_year=2024,
+                lookup=lookup,
+                sink=partial,
+            )
+            partial.abort()
+            checkpoints = list((store / ".staging").glob("*/checkpoint.json"))
+            self.assertEqual(len(checkpoints), 1)
+            checkpoint = json.loads(checkpoints[0].read_text())
+            self.assertEqual(checkpoint["committed_rows"], 2)
+
+            resumed = publish_gzip_by_year(
+                source,
+                expected_year=2024,
+                lookup=lookup,
+                root=store,
+                batch_rows=2,
+            )
+            clean = publish_gzip_by_year(
+                source,
+                expected_year=2024,
+                lookup=lookup,
+                root=clean_store,
+                batch_rows=2,
+            )
+            self.assertEqual(resumed.routing.row_count, 4)
+            self.assertEqual(resumed.partitions, clean.partitions)
+            self.assertEqual(list((store / ".staging").iterdir()), [])
+
+    def test_resume_refuses_changed_resolved_prefix_identity(self):
+        lookup, _ = self.substrate()
+        rows = (
+            "USW00000001,20240101,TMAX,123,,,S,0700\n"
+            "USW00000001,20240102,TMAX,125,,,S,0700\n"
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "2024.csv.gz"
+            write_gzip(source, rows)
+            source_revision = "sha256:" + __import__("hashlib").sha256(
+                source.read_bytes()
+            ).hexdigest()
+            partial = GHCNParquetPartitionPublisher(
+                root / "store",
+                source_revision=source_revision,
+                batch_rows=2,
+            )
+            stream_by_year_partitions(
+                rows.splitlines(keepends=True),
+                expected_year=2024,
+                lookup=lookup,
+                sink=partial,
+            )
+            partial.abort()
+
+            altered_lookup, _ = self.substrate()
+            original_resolve = altered_lookup.resolve
+
+            class AlteredLookup:
+                source_id = altered_lookup.source_id
+
+                def resolve(self, station_id):
+                    canonical, shard = original_resolve(station_id)
+                    return canonical + ".changed", shard
+
+            with self.assertRaisesRegex(ValueError, "committed input prefix"):
+                publish_gzip_by_year(
+                    source,
+                    expected_year=2024,
+                    lookup=AlteredLookup(),
+                    root=root / "store",
+                    batch_rows=2,
+                )
 
     def test_provider_revision_requires_explicit_supersession_in_manifest(self):
         lookup, catalog_refs = self.substrate()

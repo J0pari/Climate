@@ -16,7 +16,6 @@ import os
 from pathlib import Path
 import re
 import shutil
-import tempfile
 from typing import Mapping, Sequence
 
 import pyarrow as pa
@@ -35,6 +34,7 @@ from src.station_federation import ObservationPartitionRef
 
 MEDIA_TYPE = "application/vnd.climate.station-parquet-partition+json"
 _SCHEMA_ID = "ncei-ghcnd-parquet-partition/v1"
+_CHECKPOINT_SCHEMA = "ncei-ghcnd-parquet-resume/v1"
 _SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
@@ -97,6 +97,38 @@ def _record_bytes(record: RoutedGHCNObservation) -> bytes:
     )
 
 
+def _input_record_bytes(
+    key: GHCNObservationPartitionKey,
+    record: RoutedGHCNObservation,
+) -> bytes:
+    return _canonical_json(
+        [
+            key.source_id,
+            key.spatial_partition,
+            key.year,
+            key.element,
+            record.canonical_station_id,
+            record.observation_date,
+            record.element,
+            record.value,
+            record.measurement_flag,
+            record.quality_flag,
+            record.source_flag,
+            record.observation_time,
+        ]
+    )
+
+
+def _write_json_atomic(path: Path, payload: object) -> None:
+    encoded = _canonical_json(payload)
+    temporary = path.with_name(path.name + ".tmp")
+    with temporary.open("wb") as handle:
+        handle.write(encoded)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temporary, path)
+
+
 @dataclass
 class _PartitionState:
     key: GHCNObservationPartitionKey
@@ -142,10 +174,239 @@ class GHCNParquetPartitionPublisher:
 
         staging_root = self.root / ".staging"
         staging_root.mkdir(parents=True, exist_ok=True)
-        self._staging = Path(
-            tempfile.mkdtemp(prefix="ghcnd-parquet-", dir=staging_root)
-        )
+        resume_token = hashlib.sha256(
+            _canonical_json(
+                {
+                    "schema": _CHECKPOINT_SCHEMA,
+                    "source_revision": self.source_revision,
+                    "batch_rows": self.batch_rows,
+                    "compression": self.compression,
+                    "pyarrow_version": pa.__version__,
+                }
+            )
+        ).hexdigest()
+        self._staging = staging_root / f"ghcnd-parquet-{resume_token}"
+        self._checkpoint_path = self._staging / "checkpoint.json"
+        self._prefix_path = self._staging / "input-prefix.ndjson"
+        self._skip_remaining = 0
+        self._resume_reader = None
+
+        if self._staging.exists():
+            if self._checkpoint_path.is_file():
+                self._restore_checkpoint()
+            else:
+                shutil.rmtree(self._staging)
+                self._staging.mkdir(parents=True)
+        else:
+            self._staging.mkdir(parents=True)
         (self.root / "objects").mkdir(parents=True, exist_ok=True)
+
+    def _partition_dir(self, key: GHCNObservationPartitionKey) -> Path:
+        return self._staging / _key_token(key)
+
+    def _logical_path(self, key: GHCNObservationPartitionKey) -> Path:
+        return self._partition_dir(key) / "logical.ndjson"
+
+    def _checkpoint_payload(self) -> dict[str, object]:
+        states = []
+        for key in sorted(self._states):
+            state = self._states[key]
+            logical_path = self._logical_path(key)
+            states.append(
+                {
+                    "key": {
+                        "source_id": key.source_id,
+                        "spatial_partition": key.spatial_partition,
+                        "year": key.year,
+                        "element": key.element,
+                    },
+                    "row_count": state.row_count,
+                    "time_start": state.time_start,
+                    "time_end": state.time_end,
+                    "logical_bytes": logical_path.stat().st_size,
+                    "logical_content_digest": (
+                        "sha256:" + state.logical_hasher.hexdigest()
+                    ),
+                    "fragments": list(state.fragments),
+                }
+            )
+        return {
+            "schema": _CHECKPOINT_SCHEMA,
+            "source_revision": self.source_revision,
+            "batch_rows": self.batch_rows,
+            "compression": self.compression,
+            "pyarrow_version": pa.__version__,
+            "committed_rows": sum(
+                state.row_count for state in self._states.values()
+            ),
+            "prefix_bytes": self._prefix_path.stat().st_size,
+            "states": states,
+        }
+
+    def _write_checkpoint(self) -> None:
+        _write_json_atomic(self._checkpoint_path, self._checkpoint_payload())
+
+    def _restore_checkpoint(self) -> None:
+        try:
+            payload = json.loads(self._checkpoint_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError("GHCN Parquet resume checkpoint is invalid") from exc
+        if not isinstance(payload, dict) or payload.get("schema") != _CHECKPOINT_SCHEMA:
+            raise ValueError("GHCN Parquet resume checkpoint schema is invalid")
+        expected = {
+            "source_revision": self.source_revision,
+            "batch_rows": self.batch_rows,
+            "compression": self.compression,
+            "pyarrow_version": pa.__version__,
+        }
+        for name, value in expected.items():
+            if payload.get(name) != value:
+                raise ValueError(
+                    f"GHCN Parquet resume checkpoint changed at {name}"
+                )
+
+        prefix_bytes = payload.get("prefix_bytes")
+        committed_rows = payload.get("committed_rows")
+        states = payload.get("states")
+        if (
+            not isinstance(prefix_bytes, int)
+            or isinstance(prefix_bytes, bool)
+            or prefix_bytes < 0
+            or not isinstance(committed_rows, int)
+            or isinstance(committed_rows, bool)
+            or committed_rows < 0
+            or not isinstance(states, list)
+        ):
+            raise ValueError("GHCN Parquet resume checkpoint counters are invalid")
+        if not self._prefix_path.is_file():
+            raise ValueError("GHCN Parquet resume prefix is missing")
+        if self._prefix_path.stat().st_size < prefix_bytes:
+            raise ValueError("GHCN Parquet resume prefix is truncated")
+        with self._prefix_path.open("r+b") as handle:
+            handle.truncate(prefix_bytes)
+
+        restored_rows = 0
+        for item in states:
+            if not isinstance(item, dict) or not isinstance(item.get("key"), dict):
+                raise ValueError("GHCN Parquet resume partition state is invalid")
+            raw_key = item["key"]
+            try:
+                key = GHCNObservationPartitionKey(
+                    str(raw_key.get("source_id", "")),
+                    str(raw_key.get("spatial_partition", "")),
+                    int(raw_key.get("year")),
+                    str(raw_key.get("element", "")),
+                )
+            except (TypeError, ValueError) as exc:
+                raise ValueError("GHCN Parquet resume partition key is invalid") from exc
+            if key.source_id != SOURCE_ID:
+                raise ValueError("GHCN Parquet resume partition source changed")
+            row_count = item.get("row_count")
+            logical_bytes = item.get("logical_bytes")
+            fragments = item.get("fragments")
+            if (
+                not isinstance(row_count, int)
+                or isinstance(row_count, bool)
+                or row_count < 0
+                or not isinstance(logical_bytes, int)
+                or isinstance(logical_bytes, bool)
+                or logical_bytes < 0
+                or not isinstance(fragments, list)
+            ):
+                raise ValueError("GHCN Parquet resume partition counters are invalid")
+
+            partition_dir = self._partition_dir(key)
+            logical_path = self._logical_path(key)
+            if not logical_path.is_file() or logical_path.stat().st_size < logical_bytes:
+                raise ValueError("GHCN Parquet resume logical sidecar is missing/truncated")
+            with logical_path.open("r+b") as handle:
+                handle.truncate(logical_bytes)
+
+            expected_fragment_names = {
+                str(fragment.get("filename"))
+                for fragment in fragments
+                if isinstance(fragment, dict)
+            }
+            for extra in partition_dir.glob("part-*.parquet"):
+                if extra.name not in expected_fragment_names:
+                    extra.unlink()
+
+            hasher = hashlib.sha256()
+            logical_rows = 0
+            with logical_path.open("rb") as handle:
+                for line in handle:
+                    hasher.update(line)
+                    logical_rows += 1
+            if logical_rows != row_count:
+                raise ValueError("GHCN Parquet resume logical row count changed")
+            observed_logical_digest = "sha256:" + hasher.hexdigest()
+            if observed_logical_digest != item.get("logical_content_digest"):
+                raise ValueError("GHCN Parquet resume logical digest changed")
+
+            fragment_rows = 0
+            normalized_fragments: list[dict[str, object]] = []
+            for fragment in fragments:
+                if not isinstance(fragment, dict):
+                    raise ValueError("GHCN Parquet resume fragment metadata is invalid")
+                path = partition_dir / str(fragment.get("filename", ""))
+                if not path.is_file():
+                    raise ValueError("GHCN Parquet resume fragment is missing")
+                digest, byte_count = _sha256_file(path)
+                if (
+                    digest != fragment.get("sha256")
+                    or byte_count != fragment.get("byte_count")
+                ):
+                    raise ValueError("GHCN Parquet resume fragment digest changed")
+                fragment_row_count = fragment.get("row_count")
+                if (
+                    not isinstance(fragment_row_count, int)
+                    or isinstance(fragment_row_count, bool)
+                    or fragment_row_count < 0
+                ):
+                    raise ValueError("GHCN Parquet resume fragment row count is invalid")
+                fragment_rows += fragment_row_count
+                normalized_fragments.append(dict(fragment))
+            if fragment_rows != row_count:
+                raise ValueError("GHCN Parquet resume fragment rows changed")
+
+            state = _PartitionState(
+                key=key,
+                row_count=row_count,
+                time_start=item.get("time_start"),
+                time_end=item.get("time_end"),
+                logical_hasher=hasher,
+                fragments=normalized_fragments,
+            )
+            self._states[key] = state
+            restored_rows += row_count
+
+        if restored_rows != committed_rows:
+            raise ValueError("GHCN Parquet resume committed row count changed")
+        self._skip_remaining = committed_rows
+        if committed_rows:
+            self._resume_reader = self._prefix_path.open("rb")
+
+    def _resume_prefix_record(
+        self,
+        key: GHCNObservationPartitionKey,
+        record: RoutedGHCNObservation,
+    ) -> bool:
+        if self._skip_remaining <= 0:
+            return False
+        assert self._resume_reader is not None
+        expected = self._resume_reader.readline()
+        observed = _input_record_bytes(key, record)
+        if expected != observed:
+            raise ValueError(
+                "GHCN Parquet resume replay does not match the committed input prefix"
+            )
+        self._skip_remaining -= 1
+        if self._skip_remaining == 0:
+            if self._resume_reader.read(1) != b"":
+                raise ValueError("GHCN Parquet resume prefix has uncommitted records")
+            self._resume_reader.close()
+            self._resume_reader = None
+        return True
 
     def _state(self, key: GHCNObservationPartitionKey) -> _PartitionState:
         state = self._states.get(key)
@@ -173,6 +434,8 @@ class GHCNParquetPartitionPublisher:
             raise ValueError("record observation_date must be an ISO date") from exc
         if observed.year != key.year:
             raise ValueError("record year must match partition key year")
+        if self._resume_prefix_record(key, record):
+            return
 
         state = self._state(key)
         state.row_count += 1
@@ -222,16 +485,23 @@ class GHCNParquetPartitionPublisher:
     def _flush_batch(self) -> None:
         if not self._buffer:
             return
+        if self._skip_remaining:
+            raise ValueError(
+                "GHCN Parquet resume replay is incomplete before new rows"
+            )
         grouped: dict[
             GHCNObservationPartitionKey, list[RoutedGHCNObservation]
         ] = {}
         for key, record in self._buffer:
             grouped.setdefault(key, []).append(record)
 
+        pending_fragments: dict[
+            GHCNObservationPartitionKey, dict[str, object]
+        ] = {}
         for key in sorted(grouped):
             records = grouped[key]
             state = self._states[key]
-            partition_dir = self._staging / _key_token(key)
+            partition_dir = self._partition_dir(key)
             partition_dir.mkdir(parents=True, exist_ok=True)
             filename = f"part-{len(state.fragments):08d}.parquet"
             path = partition_dir / filename
@@ -244,15 +514,31 @@ class GHCNParquetPartitionPublisher:
                 write_statistics=True,
             )
             digest, byte_count = _sha256_file(path)
-            state.fragments.append(
-                {
-                    "filename": filename,
-                    "sha256": digest,
-                    "byte_count": byte_count,
-                    "row_count": len(records),
-                }
-            )
+            pending_fragments[key] = {
+                "filename": filename,
+                "sha256": digest,
+                "byte_count": byte_count,
+                "row_count": len(records),
+            }
+
+        for key in sorted(grouped):
+            logical_path = self._logical_path(key)
+            with logical_path.open("ab") as handle:
+                for record in grouped[key]:
+                    handle.write(_record_bytes(record))
+                handle.flush()
+                os.fsync(handle.fileno())
+
+        with self._prefix_path.open("ab") as handle:
+            for key, record in self._buffer:
+                handle.write(_input_record_bytes(key, record))
+            handle.flush()
+            os.fsync(handle.fileno())
+
+        for key, fragment in pending_fragments.items():
+            self._states[key].fragments.append(fragment)
         self._buffer.clear()
+        self._write_checkpoint()
 
     def _manifest_bytes(self, state: _PartitionState) -> bytes:
         assert state.time_start is not None and state.time_end is not None
@@ -316,6 +602,10 @@ class GHCNParquetPartitionPublisher:
     ) -> tuple[ObservationPartitionRef, ...]:
         if self._final_refs is not None:
             return self._final_refs
+        if self._skip_remaining:
+            raise ValueError(
+                "GHCN Parquet resume replay ended before committed prefix was verified"
+            )
         self._flush_batch()
         supersedes = dict(supersedes_by_key or {})
         unknown_keys = set(supersedes) - set(self._states)
@@ -325,9 +615,16 @@ class GHCNParquetPartitionPublisher:
             for digest in values:
                 _require_digest(digest, "supersedes digest")
 
+        # The source stream is fully consumed. Resume-only state is no longer
+        # needed; a crash during short final object publication safely restarts
+        # deterministic publication from the captured source artifact.
+        self._checkpoint_path.unlink(missing_ok=True)
+        self._prefix_path.unlink(missing_ok=True)
+
         refs: list[ObservationPartitionRef] = []
         for key in sorted(self._states):
             state = self._states[key]
+            self._logical_path(key).unlink(missing_ok=True)
             manifest_bytes = self._manifest_bytes(state)
             digest = _sha256_bytes(manifest_bytes)
             object_dir = self.root / "objects" / digest.removeprefix("sha256:")
@@ -366,9 +663,16 @@ class GHCNParquetPartitionPublisher:
         shutil.rmtree(self._staging, ignore_errors=True)
         return self._final_refs
 
-    def abort(self) -> None:
-        if self._final_refs is None:
-            shutil.rmtree(self._staging, ignore_errors=True)
+    def abort(self, *, preserve_checkpoint: bool = True) -> None:
+        if self._resume_reader is not None:
+            self._resume_reader.close()
+            self._resume_reader = None
+        self._buffer.clear()
+        if self._final_refs is not None:
+            return
+        if preserve_checkpoint and self._checkpoint_path.is_file():
+            return
+        shutil.rmtree(self._staging, ignore_errors=True)
 
 
 def publish_gzip_by_year(
