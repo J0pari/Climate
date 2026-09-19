@@ -292,12 +292,12 @@ class GHCNParquetPartitionPublisher:
             raw_key = item["key"]
             try:
                 key = GHCNObservationPartitionKey(
-                    str(raw_key.get("source_id", "")),
-                    str(raw_key.get("spatial_partition", "")),
-                    int(raw_key.get("year")),
-                    str(raw_key.get("element", "")),
+                    str(raw_key["source_id"]),
+                    str(raw_key["spatial_partition"]),
+                    int(raw_key["year"]),
+                    str(raw_key["element"]),
                 )
-            except (TypeError, ValueError) as exc:
+            except (KeyError, TypeError, ValueError) as exc:
                 raise ValueError("GHCN Parquet resume partition key is invalid") from exc
             if key.source_id != SOURCE_ID:
                 raise ValueError("GHCN Parquet resume partition source changed")
