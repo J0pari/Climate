@@ -41,6 +41,10 @@ All discovery and confirmation selector decisions were calibrated on this realiz
 
 A follow-up exploratory seed-offset robustness sweep evaluated eight independent realizations of each of the seven worlds (56 world realizations total) with the same 255-permutation selector policy. All 56 decisions were calibrated. The product and independent-null worlds abstained in every realization; every world with an authoritative shared target supported a shared coordinate in every realization. See `structural-selector-robustness.json` for per-world p-value and statistic ranges. `datafold`/JSF and PyDMD temporal state-space remained unavailable and were not substituted.
 
+## Independent automatic-differentiation geometry witness
+
+A JAX 0.9.0.1 `jacfwd` route independently differentiated all five analytic geometry fixtures at 64 interior points each and compared first/second metric derivatives with exact SymPy derivatives. In FP64, the worst first-derivative, second-derivative, and scalar-curvature errors were `2.13e-14`, `1.71e-13`, and `3.55e-15`. In FP32 they rose to `1.02e-5`, `9.68e-5`, and `2.62e-6`, respectively. This is an exploratory maintained-library AD witness, not yet a canonical repository execution route.
+
 ## Resource accounting
 
 No GitHub Codespaces compute was consumed by this campaign.

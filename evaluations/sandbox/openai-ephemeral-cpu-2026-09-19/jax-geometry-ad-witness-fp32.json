@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "classification": "exploratory_non_promotional",
+  "repository_revision": "27689bf3b27e8980a904cb70075091e01222e759",
+  "route": "JAX jacfwd automatic differentiation of repository analytic metric fixtures",
+  "reference": "exact SymPy metric derivatives and analytic scalar curvature controls",
+  "precision": "float32",
+  "implementation_versions": {
+    "jax": "0.9.0.1",
+    "numpy": "2.3.5",
+    "python": "3.13.5",
+    "sympy": "1.14.0"
+  },
+  "fixture_results": {
+    "flat.cartesian.2d": {
+      "sample_count": 64,
+      "expected_scalar_curvature": 0,
+      "max_abs_first_derivative_error": 0,
+      "max_abs_second_derivative_error": 0,
+      "max_abs_scalar_curvature_error": 0,
+      "median_abs_scalar_curvature_error": 0
+    },
+    "flat.polar.2d": {
+      "sample_count": 64,
+      "expected_scalar_curvature": 0,
+      "max_abs_first_derivative_error": 1.1359623286466558e-7,
+      "max_abs_second_derivative_error": 0,
+      "max_abs_scalar_curvature_error": 0.0000026206714665022446,
+      "median_abs_scalar_curvature_error": 3.709577001131947e-8
+    },
+    "flat.quadratic_shear.2d": {
+      "sample_count": 64,
+      "expected_scalar_curvature": 0,
+      "max_abs_first_derivative_error": 5.893632515352465e-8,
+      "max_abs_second_derivative_error": 0,
+      "max_abs_scalar_curvature_error": 0,
+      "median_abs_scalar_curvature_error": 0
+    },
+    "sphere.radius2.2d": {
+      "sample_count": 64,
+      "expected_scalar_curvature": 0.5,
+      "max_abs_first_derivative_error": 5.341849633744289e-7,
+      "max_abs_second_derivative_error": 0.0000019671864550652174,
+      "max_abs_scalar_curvature_error": 8.344650268554688e-7,
+      "median_abs_scalar_curvature_error": 0
+    },
+    "hyperbolic.poincare.radius1.2d": {
+      "sample_count": 64,
+      "expected_scalar_curvature": -2,
+      "max_abs_first_derivative_error": 0.000010154238310633446,
+      "max_abs_second_derivative_error": 0.00009679796443151645,
+      "max_abs_scalar_curvature_error": 7.152557373046875e-7,
+      "median_abs_scalar_curvature_error": 1.1920928955078125e-7
+    }
+  },
+  "aggregate": {
+    "fixture_count": 5,
+    "point_count": 320,
+    "max_abs_first_derivative_error": 0.000010154238310633446,
+    "max_abs_second_derivative_error": 0.00009679796443151645,
+    "max_abs_scalar_curvature_error": 0.0000026206714665022446
+  },
+  "interpretation": "Independent AD/reference witness only. It validates derivative generation and analytic-fixture geometry in this sandbox; it is not a canonical Rust MetricJet execution receipt."
+}
