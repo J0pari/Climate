@@ -369,15 +369,13 @@ class StationShardLookup:
     def __init__(
         self,
         shards: Sequence[StationCatalogShard],
-        *,
-        source_id: str = SOURCE_ID,
     ) -> None:
         mapping: dict[str, tuple[str, str]] = {}
         for shard in shards:
             for station in shard.stations:
                 for binding in station.aliases:
                     alias = binding.alias
-                    if alias.source_id != source_id:
+                    if alias.source_id != SOURCE_ID:
                         continue
                     value = (station.canonical_station_id, shard.spatial_partition)
                     previous = mapping.get(alias.provider_station_id)
@@ -389,9 +387,9 @@ class StationShardLookup:
                     mapping[alias.provider_station_id] = value
         if not mapping:
             raise ValueError(
-                f"no aliases for provider {source_id!r} exist in catalog shards"
+                f"no aliases for provider {SOURCE_ID!r} exist in catalog shards"
             )
-        self.source_id = source_id
+        self.source_id = SOURCE_ID
         self._mapping = mapping
 
     def resolve(self, provider_station_id: str) -> tuple[str, str]:
