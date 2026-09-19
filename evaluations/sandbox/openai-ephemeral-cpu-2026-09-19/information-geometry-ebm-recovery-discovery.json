@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "classification": "exploratory_non_promotional",
+  "repository_revision": "552652f68eb98d7aa2604669336c523ef68917c9",
+  "planning_node": "information_geometry.recovery_validation",
+  "question": "Does local Fisher/natural-gradient scaling improve four-parameter two-layer EBM recovery under a fixed-variance Gaussian temperature likelihood relative to strong standard optimizers and ordinary preconditioning?",
+  "likelihood": {
+    "family": "independent Gaussian temperature observations",
+    "fixed_known_noise": true,
+    "noise_std_k": [
+      0.02,
+      0.05,
+      0.1
+    ]
+  },
+  "split": {
+    "discovery_protocols": [
+      "held_out_step",
+      "held_out_ramp"
+    ],
+    "confirmation_protocols": [
+      "overshoot_reversal",
+      "sign_reversal"
+    ],
+    "samples_per_segment": 4,
+    "confirmation_used_in_fit": false
+  },
+  "truth": {
+    "surface_heat_capacity": 7.3,
+    "deep_heat_capacity": 106,
+    "ocean_heat_exchange": 0.73,
+    "climate_feedback": 1.13
+  },
+  "discovery_sensitivity": {
+    "rank": 4,
+    "condition_number": 36.184903436502395,
+    "singular_values": [
+      5.446455882606874,
+      2.339499632952687,
+      0.38639448139108407,
+      0.15051735296639288
+    ]
+  },
+  "trial_count": 24,
+  "trials_per_noise_level": 8,
+  "methods": {
+    "natural_gradient_local_fisher": {
+      "converged": 21,
+      "heldout_nll_median": 0.6642601173936274,
+      "heldout_nll_q90": 0.7764786974337121,
+      "log_parameter_rmse_median": 0.15450397995703735,
+      "log_parameter_rmse_q90": 0.4775174400959459,
+      "function_evals_median": 31,
+      "jacobian_evals_median": 8
+    },
+    "fixed_initial_fisher_preconditioner": {
+      "converged": 0,
+      "heldout_nll_median": 1.0444069566840755,
+      "heldout_nll_q90": 7.187415926571541,
+      "log_parameter_rmse_median": 0.6910497993085762,
+      "log_parameter_rmse_q90": 1.1057544282346077,
+      "function_evals_median": 318.5,
+      "jacobian_evals_median": 51
+    },
+    "scipy_trf_least_squares_jac_scaled": {
+      "converged": 24,
+      "heldout_nll_median": 0.6642601200520009,
+      "heldout_nll_q90": 0.7764786460099133,
+      "log_parameter_rmse_median": 0.1545040047838816,
+      "log_parameter_rmse_q90": 0.4775174003718051,
+      "function_evals_median": 13,
+      "jacobian_evals_median": 12
+    },
+    "scipy_lbfgsb_exact_grad": {
+      "converged": 24,
+      "heldout_nll_median": 0.6642601301941168,
+      "heldout_nll_q90": 0.7764786980195446,
+      "log_parameter_rmse_median": 0.15450401935894387,
+      "log_parameter_rmse_q90": 0.47751745504951726,
+      "function_evals_median": 77,
+      "jacobian_evals_median": 38.5
+    }
+  },
+  "natural_gradient_nonconvergence": {
+    "count": 3,
+    "kind": "line_search_failed",
+    "note": "Failures were globalization/stopping-policy failures rather than Fisher rank failures."
+  },
+  "execution_identity": {
+    "venue": "openai_ephemeral_cpu_sandbox",
+    "python": "3.13.5",
+    "jax": "0.9.0.1",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "canonical_runtime": false
+  },
+  "interpretation": {
+    "supported": "Local Fisher scaling removes much of the raw conditioning problem and reaches the same likelihood optimum as strong standard methods in most starts.",
+    "attacking": "Jacobian-scaled trust-region least squares converged on every trial with fewer function evaluations, while the local Fisher direction is exactly the Gauss-Newton direction for this likelihood. The result does not support a unique Fisher-geometry optimization advantage.",
+    "boundary": "Exploratory discovery only; the likelihood, starts, noise levels, and optimizer policies were not preregistered."
+  }
+}
