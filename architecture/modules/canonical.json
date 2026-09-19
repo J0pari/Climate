@@ -570,6 +570,20 @@
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false
+    },
+    {
+      "path": "src/bin/commons_store_adapter.rs",
+      "family": "commons_content_addressed_storage_adapter",
+      "language": "rust",
+      "maturity": "runnable",
+      "intended_role": "thin Climate-owned executable adapter to the exact pinned Commons FileCasStore implementation for streaming content-addressed file persistence; it accepts an explicit store root and explicit input file, emits the Commons-derived SHA-256 identity/byte count, and owns no storage layout, retry, fallback, or alternate persistence semantics",
+      "known_gaps": [
+        "the pinned Commons store is a local durable filesystem backend; any remote/shared object-store backend must be supplied by Commons under a distinct explicit implementation identity",
+        "the adapter currently exposes only put-file because Climate has no justified need to shadow the rest of the Commons storage API",
+        "partition encoding and scientific metadata remain Climate-owned and must be constructed before this persistence boundary"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
     }
   ]
 }

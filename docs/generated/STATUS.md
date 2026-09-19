@@ -10,17 +10,17 @@ External implementation ownership is not treated as local realization. A Climate
 
 ## Module authority
 
-Registered modules: **67**.
+Registered modules: **68**.
 
 | Lifecycle | Count |
 | --- | ---: |
-| `canonical` | 37 |
+| `canonical` | 38 |
 | `reference` | 30 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 65 |
+| `runnable` | 66 |
 
 ### Canonical and reference modules
 
@@ -31,6 +31,7 @@ Registered modules: **67**.
 | `canonical` | `canonical_implementation` | `data/ncei_ghcnh_bulk.py` | `ncei_ghcnh_station_federation_adapter` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `data/ncei_ghcnh_partition.py` | `ncei_ghcnh_raw_partition_publication` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/albedo_temperature_sensitivity.rs` | `albedo_temperature_trajectory_secant_numerics` | `prototype` | no |
+| `canonical` | `canonical_implementation` | `src/bin/commons_store_adapter.rs` | `commons_content_addressed_storage_adapter` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/budget_ledger.rs` | `streaming_extensive_budget_accounting` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/clifford.rs` | `clifford_reference` | `runnable` | no |
 | `canonical` | `canonical_implementation` | `src/ebm_observation_geometry.rs` | `two_layer_ebm_observation_geometry` | `runnable` | no |
