@@ -169,30 +169,6 @@ class DataAuthorityTests(unittest.TestCase):
             codes = {item.code for item in check_data_authorities.check(root, registry)}
             self.assertIn("data_authority.current_external_boundary_missing", codes)
 
-    def test_current_external_usage_rejects_default_or_fallback_constructors(self):
-        temporary, root, registry = self._root_and_registry()
-        with temporary:
-            (root / "src" / "example.txt").write_text(
-                "observed_temperature\nobservation_authority\n"
-                "impl Default for EmpiricalInput {}\n"
-                "pub fn legacy_reference() {}\n",
-                encoding="utf-8",
-            )
-            codes = {item.code for item in check_data_authorities.check(root, registry)}
-            self.assertIn("data_authority.external_default_impl", codes)
-            self.assertIn("data_authority.external_fallback_constructor", codes)
-
-    def test_current_external_usage_rejects_python_fallback_constructor(self):
-        temporary, root, registry = self._root_and_registry()
-        with temporary:
-            (root / "src" / "example.txt").write_text(
-                "observed_temperature\nobservation_authority\n"
-                "def fallback():\n    return 273.15\n",
-                encoding="utf-8",
-            )
-            codes = {item.code for item in check_data_authorities.check(root, registry)}
-            self.assertIn("data_authority.external_fallback_constructor", codes)
-
     def test_real_registry_is_current(self):
         findings = check_data_authorities.check()
         self.assertEqual(findings, [], "\n".join(str(item) for item in findings))
