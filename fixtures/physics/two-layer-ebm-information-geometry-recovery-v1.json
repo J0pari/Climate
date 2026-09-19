@@ -72,5 +72,11 @@
     "max_line_search_steps": 30
   },
   "negative_control": "A fixed Fisher matrix evaluated only at initialization is reported separately and may fail; it is not the strong standard comparator.",
-  "confirmation_interpretation": "Natural gradient has a distinct optimization advantage only if it improves held-out likelihood or recovery/cost without reducing convergence relative to the standard Jacobian-aware trust-region baseline. Matched outcomes do not establish a uniquely information-geometric benefit because the local Fisher step equals Gauss-Newton for this likelihood."
+  "confirmation_interpretation": "Natural gradient has a distinct optimization advantage only if it improves held-out likelihood or recovery/cost without reducing convergence relative to the standard Jacobian-aware trust-region baseline. Matched outcomes do not establish a uniquely information-geometric benefit because the local Fisher step equals Gauss-Newton for this likelihood.",
+  "primary_comparator": "scipy_trf_least_squares_jac_scaled",
+  "interpretation_thresholds": {
+    "heldout_nll_median_abs_delta_equivalence": 1e-06,
+    "log_parameter_rmse_median_abs_delta_equivalence": 1e-06,
+    "gauss_newton_step_max_relative_difference": 1e-10
+  }
 }
