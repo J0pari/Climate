@@ -129,7 +129,9 @@ def _resolved_method_build(method_id: str, descriptor: Mapping[str, Any]) -> str
 
 
 def _resolve_configuration(experiment: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
-    configuration = experiment.get("configuration", {})
+    if "configuration" not in experiment:
+        return {}, {}
+    configuration = experiment["configuration"]
     if not isinstance(configuration, dict):
         raise ValueError("experiment configuration must be an object")
     resolved: dict[str, Any] = {}
