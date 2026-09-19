@@ -128,6 +128,60 @@ class SemanticSubstitutionTests(unittest.TestCase):
             codes = {item.code for item in check_semantic_defaults.check(root)}
             self.assertIn("semantic_substitution.python_boolean_coalescing", codes)
 
+    def test_python_configuration_get_default_is_rejected(self):
+        temporary, root = self._root()
+        with temporary:
+            (root / "src" / "bad.py").write_text(
+                'configuration = experiment.get("configuration", {})\n',
+                encoding="utf-8",
+            )
+            codes = {item.code for item in check_semantic_defaults.check(root)}
+            self.assertIn("semantic_substitution.python_mapping_default", codes)
+
+    def test_python_missing_membership_cannot_install_backend(self):
+        temporary, root = self._root()
+        with temporary:
+            (root / "src" / "bad.py").write_text(
+                'if "backend" not in request:\n'
+                '    backend = "cpu"\n',
+                encoding="utf-8",
+            )
+            codes = {item.code for item in check_semantic_defaults.check(root)}
+            self.assertIn("semantic_substitution.python_availability_rewrite", codes)
+
+    def test_python_conditional_semantic_coalescing_is_rejected(self):
+        temporary, root = self._root()
+        with temporary:
+            (root / "src" / "bad.py").write_text(
+                'backend = requested_backend if requested_backend is not None else "cpu"\n',
+                encoding="utf-8",
+            )
+            codes = {item.code for item in check_semantic_defaults.check(root)}
+            self.assertIn("semantic_substitution.python_conditional_coalescing", codes)
+
+    def test_python_schema_optional_configuration_absence_is_allowed(self):
+        temporary, root = self._root()
+        with temporary:
+            (root / "src" / "good.py").write_text(
+                'def resolve(experiment):\n'
+                '    if "configuration" not in experiment:\n'
+                '        return {}\n'
+                '    return experiment["configuration"]\n',
+                encoding="utf-8",
+            )
+            self.assertEqual(check_semantic_defaults.check(root), [])
+
+    def test_python_optional_configuration_still_cannot_install_replacement(self):
+        temporary, root = self._root()
+        with temporary:
+            (root / "src" / "bad.py").write_text(
+                'if "configuration" not in experiment:\n'
+                '    resolved_configuration = {"execution_policies": ["default"]}\n',
+                encoding="utf-8",
+            )
+            codes = {item.code for item in check_semantic_defaults.check(root)}
+            self.assertIn("semantic_substitution.python_availability_rewrite", codes)
+
     def test_python_semantic_parameter_default_is_rejected(self):
         temporary, root = self._root()
         with temporary:
@@ -227,7 +281,14 @@ class SemanticSubstitutionTests(unittest.TestCase):
             self.assertEqual(check_semantic_defaults.check(root), [])
 
     def test_repository_audited_source_has_no_implicit_semantic_substitution(self):
-        self.assertEqual(check_semantic_defaults.check(), [])
+        findings = check_semantic_defaults.check()
+        self.assertEqual(
+            findings,
+            [],
+            msg="\n".join(
+                f"{item.code}: {item.path}: {item.message}" for item in findings
+            ),
+        )
 
 
 if __name__ == "__main__":
