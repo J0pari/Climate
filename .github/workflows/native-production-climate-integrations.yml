@@ -1,0 +1,179 @@
+name: native production climate integrations
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/native-production-climate-integrations.yml'
+
+permissions:
+  contents: read
+
+env:
+  CMIP6_URL: https://esgf.ceda.ac.uk/thredds/fileServer/esg_cmip6/CMIP6/CMIP/CSIRO-ARCCSS/ACCESS-CM2/historical/r1i1p1f1/fx/areacella/gn/v20191108/areacella_fx_ACCESS-CM2_historical_r1i1p1f1_gn.nc
+  CMIP6_SHA256: 0b88106085d6c6463a47038fc97a58e29df29f948ef8e27beacdbebe371b5928
+  CLIMATE_REF_SHA: fc525c6718426baf1485a95095516280fd00fb4c
+  ESMVALCORE_SHA: 2f249416243c25038c0c98c0309062746413235c
+  AQUA_SHA: 57c77589e1cf4053d988e3c87f67ad33cd593694
+
+jobs:
+  climate-ref-production-cmip6:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Retrieve exact CMIP6 production object
+        run: |
+          set -euo pipefail
+          target="$PWD/production-data/CMIP6/CMIP/CSIRO-ARCCSS/ACCESS-CM2/historical/r1i1p1f1/fx/areacella/gn/v20191108/areacella_fx_ACCESS-CM2_historical_r1i1p1f1_gn.nc"
+          mkdir -p "$(dirname "$target")"
+          curl --fail --location --silent --show-error "$CMIP6_URL" --output "$target"
+          printf '%s  %s\n' "$CMIP6_SHA256" "$target" | sha256sum --check --strict
+      - name: Install pinned Climate-REF owner implementation
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/Climate-REF/climate-ref.git upstream-climate-ref
+          git -C upstream-climate-ref checkout "$CLIMATE_REF_SHA"
+          python -m pip install --disable-pip-version-check \
+            ./upstream-climate-ref/packages/climate-ref-core \
+            ./upstream-climate-ref/packages/climate-ref
+      - name: Ingest production-shaped CMIP6 DRS with Climate-REF
+        run: |
+          set -euo pipefail
+          export REF_CONFIGURATION="$PWD/ref-production"
+          export REF_CMIP6_PARSER=drs
+          ref config init
+          ref config validate
+          ref datasets ingest --source-type cmip6 "$PWD/production-data/CMIP6"
+          ref datasets list --column instance_id --column variable_id | tee climate-ref-catalog.txt
+          grep -F 'ACCESS-CM2' climate-ref-catalog.txt
+          grep -F 'areacella' climate-ref-catalog.txt
+
+  esmvalcore-production-cmip6:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Retrieve exact CMIP6 production object
+        run: |
+          set -euo pipefail
+          target="$PWD/areacella.nc"
+          curl --fail --location --silent --show-error "$CMIP6_URL" --output "$target"
+          printf '%s  %s\n' "$CMIP6_SHA256" "$target" | sha256sum --check --strict
+      - name: Install pinned ESMValCore owner implementation
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/ESMValGroup/ESMValCore.git upstream-esmvalcore
+          git -C upstream-esmvalcore checkout "$ESMVALCORE_SHA"
+          python -m pip install --disable-pip-version-check ./upstream-esmvalcore
+      - name: Apply native ESMValCore regional preprocessing
+        run: |
+          python - <<'PY'
+          import numpy as np
+          import iris
+          from esmvalcore.preprocessor import extract_region
+
+          cube = iris.load_cube("areacella.nc")
+          assert cube.var_name == "areacella"
+          subset = extract_region(
+              cube,
+              start_longitude=0.0,
+              end_longitude=180.0,
+              start_latitude=-30.0,
+              end_latitude=30.0,
+          )
+          values = np.asarray(subset.core_data())
+          assert values.size > 0
+          assert values.size < np.asarray(cube.core_data()).size
+          assert np.isfinite(values).all()
+          assert (values > 0.0).all()
+          print("esmvalcore_source_shape", cube.shape)
+          print("esmvalcore_subset_shape", subset.shape)
+          print("esmvalcore_subset_area_sum_m2", float(values.sum()))
+          PY
+
+  aqua-production-cmip6:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Retrieve exact CMIP6 production object
+        run: |
+          set -euo pipefail
+          target="$PWD/areacella.nc"
+          curl --fail --location --silent --show-error "$CMIP6_URL" --output "$target"
+          printf '%s  %s\n' "$CMIP6_SHA256" "$target" | sha256sum --check --strict
+      - name: Install pinned AQUA owner implementation
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/DestinE-Climate-DT/AQUA.git upstream-aqua
+          git -C upstream-aqua checkout "$AQUA_SHA"
+          python -m pip install --disable-pip-version-check ./upstream-aqua
+      - name: Read and use production CMIP6 object through AQUA native NetCDF driver
+        run: |
+          python - <<'PY'
+          import numpy as np
+          from aqua.core.intake_drivers.xarray.netcdf import IntakeNetCDFSource
+
+          source = IntakeNetCDFSource("areacella.nc", chunks=None)
+          dataset = source.reader.read()
+          assert "areacella" in dataset
+          field = dataset["areacella"]
+          values = np.asarray(field.values)
+          assert values.size > 0
+          assert np.isfinite(values).all()
+          assert (values > 0.0).all()
+          assert dataset.attrs.get("source_id") == "ACCESS-CM2"
+          print("aqua_dims", dict(dataset.sizes))
+          print("aqua_area_sum_m2", float(values.sum()))
+          PY
+
+  aimip-production-archive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install production AIMIP access dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            'xarray>=2025.1' 's3fs>=2025.1' 'h5netcdf>=1.4'
+      - name: Read and use full ACE2.1-ERA5 AIMIP submission anonymously
+        run: |
+          python - <<'PY'
+          import math
+          import xarray as xr
+
+          path = (
+              "s3://ai-mip/Ai2/ACE2-1-ERA5/aimip/r1i1p1f1/Amon/tas/gn/v20251130/"
+              "tas_Amon_ACE2-1-ERA5_aimip_r1i1p1f1_gn_197810-202412.nc"
+          )
+          storage_options = {
+              "anon": True,
+              "client_kwargs": {"endpoint_url": "https://s3.eu-dkrz-1.dkrz.cloud"},
+          }
+          dataset = xr.open_dataset(
+              path,
+              engine="h5netcdf",
+              backend_kwargs={"storage_options": storage_options},
+          )
+          assert "tas" in dataset
+          assert dataset.sizes["time"] > 500
+          first_global_mean = float(dataset["tas"].isel(time=0).mean().compute())
+          assert math.isfinite(first_global_mean)
+          assert 150.0 < first_global_mean < 350.0
+          print("aimip_path", path)
+          print("aimip_dims", dict(dataset.sizes))
+          print("aimip_first_global_mean_tas_k", first_global_mean)
+          PY
