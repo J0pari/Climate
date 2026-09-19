@@ -11,10 +11,11 @@ The controlling claim is `climate.geometry.regime_indicator`. Passing mathematic
 The geometry program uses complementary portable authorities and executable witnesses:
 
 - `reference/geometry_sympy.py` plus `tests/reference/test_geometry_sympy.py`: symbolic known-geometry oracle covering flat Cartesian, flat polar/nonzero-connection, a nonlinear quadratic-shear chart whose Christoffel connection is entirely the inhomogeneous transformation term, positive-curvature sphere, negative-curvature Poincaré disk, torsion freedom, metric compatibility, Riemann antisymmetry, and first Bianchi witnesses;
+- `tests/reference/test_geometry_jax.py` with `requirements/reference-geometry-ad.txt` and its path-filtered workflow: maintained-library JAX automatic differentiation of the same analytic fixture metrics, comparing first and second metric derivatives directly against exact SymPy derivatives in FP64 while keeping FP32 as an explicit separate precision identity and refusing non-finite derivative outputs rather than repairing them;
 - `src/geometry.rs`: canonical Rust Riemannian Levi-Civita kernel from explicit local SPD metric jets, with executable Cartesian/polar/nonlinear-quadratic-shear/sphere fixtures, scale-aware tolerances, an omitted-inhomogeneous-term negative control, metric-compatibility and Bianchi witnesses, fail-closed non-SPD/rank-deficient behavior, measured SVD conditioning, caller-owned conditioning policy, and Cholesky inversion;
 - `tests/geometry_coordinate_metamorphics.rs`: constant-linear coordinate covariance under permutation and anisotropic rescaling, plus finite-difference metric-jet construction for a nonconstant conformal metric.
 
-These authorities deliberately stop before choosing a climate metric or mapping curvature to tipping/risk/timescale. The canonical object now enforces the Riemannian SPD contract and exposes conditioning; task-specific conditioning limits remain experiment policy. Their verified scope does not by itself establish an independent derivative-generation route, geodesic-solver correctness, or CUDA differential equivalence. `architecture/planning_graph.json` is the sole authority for work that extends this scope.
+These authorities deliberately stop before choosing a climate metric or mapping curvature to tipping/risk/timescale. The canonical object now enforces the Riemannian SPD contract and exposes conditioning; task-specific conditioning limits remain experiment policy. Their verified scope includes an independent maintained-library automatic-differentiation route for analytic metric derivatives; it does not by itself establish geodesic-solver correctness or CUDA differential equivalence. `architecture/planning_graph.json` is the sole authority for work that extends this scope.
 
 Module and claim lifecycle state is rendered from machine authorities in `docs/generated/STATUS.md`; this document owns verification semantics and obligations rather than duplicating generated status.
 
@@ -163,6 +164,8 @@ For metric and connection derivatives, compare at least two independent mechanis
 Run step-size sweeps for finite differences to demonstrate the expected truncation/roundoff tradeoff.
 
 Do not accept one hard-coded epsilon as derivative validation.
+
+The realized independent AD route uses pinned JAX `jacfwd` in a focused reference workflow and compares both first and second metric derivatives against the exact SymPy fixture oracle. FP64 is the correctness witness. FP32 remains a distinct diagnostic precision and cannot silently satisfy the FP64 derivative contract.
 
 ## 11. Coordinate and scaling metamorphic tests
 
