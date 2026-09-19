@@ -1,0 +1,1194 @@
+{
+  "dataset_seeds": [
+    9401,
+    9402,
+    9403,
+    9404
+  ],
+  "ebm_fixture_id": "physics.two_layer_ebm.geoffroy_mean.v1",
+  "fixture_id": "physics.two-layer-ebm-information-geometry-recovery.v1",
+  "forcing_protocol_fixture_id": "physics.two-layer-ebm-forcing-protocols.v1",
+  "gauss_newton_equivalence": {
+    "max_relative_step_difference": 2.5341573334591624e-13,
+    "sample_count": 4,
+    "threshold": 1e-10
+  },
+  "implementation_versions": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1"
+  },
+  "interpretation_rule": "Natural gradient has a distinct optimization advantage only if it improves held-out likelihood or recovery/cost without reducing convergence relative to the standard Jacobian-aware trust-region baseline. Matched outcomes do not establish a uniquely information-geometric benefit because the local Fisher step equals Gauss-Newton for this likelihood.",
+  "primary_comparison": {
+    "candidate_convergence_not_worse": true,
+    "candidate_lower_residual_evaluation_cost": false,
+    "candidate_method_id": "information_geometry.natural_gradient.armijo_v1",
+    "comparator_method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+    "distinct_information_geometry_advantage_supported": false,
+    "heldout_nll_equivalent": true,
+    "heldout_nll_median_delta_candidate_minus_comparator": 1.0196191468914151e-7,
+    "log_parameter_rmse_equivalent": true,
+    "log_parameter_rmse_median_delta_candidate_minus_comparator": 1.031565361464537e-7
+  },
+  "start_count": 4,
+  "summaries": {
+    "information_geometry.fixed_initial_fisher.armijo_v1": {
+      "converged_count": 0,
+      "convergence_rate": 0,
+      "heldout_nll_median": -0.963296900677869,
+      "jacobian_evaluations_median": 30,
+      "log_parameter_rmse_median": 0.3399107670379181,
+      "residual_evaluations_median": 206,
+      "trial_count": 16
+    },
+    "information_geometry.natural_gradient.armijo_v1": {
+      "converged_count": 16,
+      "convergence_rate": 1,
+      "heldout_nll_median": -1.3483276076474928,
+      "jacobian_evaluations_median": 8,
+      "log_parameter_rmse_median": 0.27874662392030647,
+      "residual_evaluations_median": 15.5,
+      "trial_count": 16
+    },
+    "optimization.scipy_lbfgsb.exact_gradient_v1": {
+      "converged_count": 16,
+      "convergence_rate": 1,
+      "heldout_nll_median": -1.3483279755265674,
+      "jacobian_evaluations_median": 35.5,
+      "log_parameter_rmse_median": 0.2787464093564294,
+      "residual_evaluations_median": 71,
+      "trial_count": 16
+    },
+    "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+      "converged_count": 16,
+      "convergence_rate": 1,
+      "heldout_nll_median": -1.3483277096094075,
+      "jacobian_evaluations_median": 10.5,
+      "log_parameter_rmse_median": 0.2787465207637703,
+      "residual_evaluations_median": 10.5,
+      "trial_count": 16
+    }
+  },
+  "trial_count": 16,
+  "trials": [
+    {
+      "dataset_seed": 9401,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 0.7078740058353908,
+            "deep_heat_capacity_w_yr_m2_k": 210.47770746375042,
+            "ocean_heat_exchange_w_m2_k": 1.3408516623019313,
+            "surface_heat_capacity_w_yr_m2_k": 3.333469708743084
+          },
+          "heldout_nll_per_observation": -0.6162977455070048,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.6467968831984601,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 241,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053172759236448,
+            "deep_heat_capacity_w_yr_m2_k": 146.04853133707613,
+            "ocean_heat_exchange_w_m2_k": 0.9483488288618807,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389122544723805
+          },
+          "heldout_nll_per_observation": -1.3072277489144553,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.3976594025049617,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 15,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.005317296538674,
+            "deep_heat_capacity_w_yr_m2_k": 146.04852713967233,
+            "ocean_heat_exchange_w_m2_k": 0.9483488010242942,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389122089182734
+          },
+          "heldout_nll_per_observation": -1.3072277389613924,
+          "iterations": 32,
+          "jacobian_evaluations": 39,
+          "log_parameter_rmse": 0.3976593955028351,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 78,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.005317302227894,
+            "deep_heat_capacity_w_yr_m2_k": 146.0485250236119,
+            "ocean_heat_exchange_w_m2_k": 0.948348785492053,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389127684754833
+          },
+          "heldout_nll_per_observation": -1.3072278509769555,
+          "iterations": 10,
+          "jacobian_evaluations": 10,
+          "log_parameter_rmse": 0.3976593265216706,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 10,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 0
+    },
+    {
+      "dataset_seed": 9401,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0691018453402399,
+            "deep_heat_capacity_w_yr_m2_k": 131.93793493462167,
+            "ocean_heat_exchange_w_m2_k": 0.8522198258161615,
+            "surface_heat_capacity_w_yr_m2_k": 4.413063822204555
+          },
+          "heldout_nll_per_observation": -1.4075042664753639,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.28647079659795155,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 234,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053172763683984,
+            "deep_heat_capacity_w_yr_m2_k": 146.04853123007777,
+            "ocean_heat_exchange_w_m2_k": 0.9483488281199361,
+            "surface_heat_capacity_w_yr_m2_k": 3.738912263567221
+          },
+          "heldout_nll_per_observation": -1.3072277507184353,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.3976594011729312,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 15,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053172814613072,
+            "deep_heat_capacity_w_yr_m2_k": 146.04852997448577,
+            "ocean_heat_exchange_w_m2_k": 0.9483488222989059,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389123074858848
+          },
+          "heldout_nll_per_observation": -1.3072277594626769,
+          "iterations": 26,
+          "jacobian_evaluations": 32,
+          "log_parameter_rmse": 0.3976593931176035,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 64,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053173701828881,
+            "deep_heat_capacity_w_yr_m2_k": 146.04850870755553,
+            "ocean_heat_exchange_w_m2_k": 0.9483486727234726,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389141285906753
+          },
+          "heldout_nll_per_observation": -1.3072281207495913,
+          "iterations": 11,
+          "jacobian_evaluations": 11,
+          "log_parameter_rmse": 0.3976591264652212,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 12,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 1
+    },
+    {
+      "dataset_seed": 9401,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0185463032706652,
+            "deep_heat_capacity_w_yr_m2_k": 142.95575056073176,
+            "ocean_heat_exchange_w_m2_k": 0.9282913444883317,
+            "surface_heat_capacity_w_yr_m2_k": 3.9706263843094973
+          },
+          "heldout_nll_per_observation": -1.3500606819828747,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.36359550284794867,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 123,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053172755548705,
+            "deep_heat_capacity_w_yr_m2_k": 146.04853142545244,
+            "ocean_heat_exchange_w_m2_k": 0.9483488294758229,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389122470535816
+          },
+          "heldout_nll_per_observation": -1.3072277474445355,
+          "iterations": 7,
+          "jacobian_evaluations": 7,
+          "log_parameter_rmse": 0.39765940359498264,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 13,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053172752210549,
+            "deep_heat_capacity_w_yr_m2_k": 146.04853150532654,
+            "ocean_heat_exchange_w_m2_k": 0.9483488300226174,
+            "surface_heat_capacity_w_yr_m2_k": 3.738912238369532
+          },
+          "heldout_nll_per_observation": -1.307227745787362,
+          "iterations": 30,
+          "jacobian_evaluations": 36,
+          "log_parameter_rmse": 0.3976594048014132,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 72,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053172653142117,
+            "deep_heat_capacity_w_yr_m2_k": 146.04853388727375,
+            "ocean_heat_exchange_w_m2_k": 0.9483488465405538,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389120388513915
+          },
+          "heldout_nll_per_observation": -1.3072277061498958,
+          "iterations": 9,
+          "jacobian_evaluations": 9,
+          "log_parameter_rmse": 0.39765943412354454,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 9,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 2
+    },
+    {
+      "dataset_seed": 9401,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 0.8415679552931961,
+            "deep_heat_capacity_w_yr_m2_k": 182.4520506253887,
+            "ocean_heat_exchange_w_m2_k": 1.163516895194933,
+            "surface_heat_capacity_w_yr_m2_k": 3.6848046916756445
+          },
+          "heldout_nll_per_observation": -1.0875830870183465,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.5163436559817072,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 154,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053172756635336,
+            "deep_heat_capacity_w_yr_m2_k": 146.0485313996002,
+            "ocean_heat_exchange_w_m2_k": 0.9483488292957459,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389122491678313
+          },
+          "heldout_nll_per_observation": -1.3072277478625693,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.3976594032822756,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 15,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.005317298765318,
+            "deep_heat_capacity_w_yr_m2_k": 146.0485179977694,
+            "ocean_heat_exchange_w_m2_k": 0.9483487559730807,
+            "surface_heat_capacity_w_yr_m2_k": 3.7389157657476373
+          },
+          "heldout_nll_per_observation": -1.307228479812441,
+          "iterations": 27,
+          "jacobian_evaluations": 31,
+          "log_parameter_rmse": 0.3976589747614575,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 62,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.0053173159964686,
+            "deep_heat_capacity_w_yr_m2_k": 146.04852163606793,
+            "ocean_heat_exchange_w_m2_k": 0.9483487613370511,
+            "surface_heat_capacity_w_yr_m2_k": 3.738913113629116
+          },
+          "heldout_nll_per_observation": -1.3072279194433996,
+          "iterations": 11,
+          "jacobian_evaluations": 11,
+          "log_parameter_rmse": 0.3976592778207286,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 11,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 3
+    },
+    {
+      "dataset_seed": 9402,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.4156157711601336,
+            "deep_heat_capacity_w_yr_m2_k": 42.345860782903486,
+            "ocean_heat_exchange_w_m2_k": 0.29430873242828054,
+            "surface_heat_capacity_w_yr_m2_k": 10.438490104528297
+          },
+          "heldout_nll_per_observation": -0.8402153682737598,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.6793061379037293,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 249,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929186280396,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263441708228,
+            "ocean_heat_exchange_w_m2_k": 0.6646843776881302,
+            "surface_heat_capacity_w_yr_m2_k": 8.96753966872994
+          },
+          "heldout_nll_per_observation": -1.4337711033095621,
+          "iterations": 7,
+          "jacobian_evaluations": 7,
+          "log_parameter_rmse": 0.12317573366867277,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 13,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929193195426,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263424287626,
+            "ocean_heat_exchange_w_m2_k": 0.6646843765544437,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539684363269
+          },
+          "heldout_nll_per_observation": -1.4337711012683423,
+          "iterations": 25,
+          "jacobian_evaluations": 31,
+          "log_parameter_rmse": 0.12317573509784165,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 62,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929066285002,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263713136058,
+            "ocean_heat_exchange_w_m2_k": 0.6646843963953528,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539480598056
+          },
+          "heldout_nll_per_observation": -1.4337711262488841,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.12317571363573762,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 8,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 0
+    },
+    {
+      "dataset_seed": 9402,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.3204094364426255,
+            "deep_heat_capacity_w_yr_m2_k": 75.2702000381692,
+            "ocean_heat_exchange_w_m2_k": 0.5169524906731428,
+            "surface_heat_capacity_w_yr_m2_k": 9.120892634073474
+          },
+          "heldout_nll_per_observation": -0.8864222547002605,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.27845049823750634,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 228,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.155792918922027,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263435012834,
+            "ocean_heat_exchange_w_m2_k": 0.6646843772255476,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539673609496
+          },
+          "heldout_nll_per_observation": -1.4337711027014777,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.12317573417419583,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 16,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929133480935,
+            "deep_heat_capacity_w_yr_m2_k": 96.3726356647265,
+            "ocean_heat_exchange_w_m2_k": 0.6646843873630315,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539593205297
+          },
+          "heldout_nll_per_observation": -1.4337711101371828,
+          "iterations": 37,
+          "jacobian_evaluations": 43,
+          "log_parameter_rmse": 0.12317572467170822,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 86,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929110680205,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263612741354,
+            "ocean_heat_exchange_w_m2_k": 0.6646843894761733,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539550046224
+          },
+          "heldout_nll_per_observation": -1.433771117788786,
+          "iterations": 9,
+          "jacobian_evaluations": 9,
+          "log_parameter_rmse": 0.12317572103904449,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 9,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 1
+    },
+    {
+      "dataset_seed": 9402,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1840042131674549,
+            "deep_heat_capacity_w_yr_m2_k": 90.33079802125687,
+            "ocean_heat_exchange_w_m2_k": 0.6237309639105193,
+            "surface_heat_capacity_w_yr_m2_k": 9.234510554869908
+          },
+          "heldout_nll_per_observation": -1.4027246481097853,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.16414746810267397,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 138,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929198870882,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263413308891,
+            "ocean_heat_exchange_w_m2_k": 0.6646843757323608,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539688019786
+          },
+          "heldout_nll_per_observation": -1.4337711009787881,
+          "iterations": 6,
+          "jacobian_evaluations": 6,
+          "log_parameter_rmse": 0.12317573574604261,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 11,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557928908356978,
+            "deep_heat_capacity_w_yr_m2_k": 96.37264029339659,
+            "ocean_heat_exchange_w_m2_k": 0.6646844166749689,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539486497932
+          },
+          "heldout_nll_per_observation": -1.4337711133372455,
+          "iterations": 24,
+          "jacobian_evaluations": 28,
+          "log_parameter_rmse": 0.12317570113952485,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 56,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929108193776,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263618303655,
+            "ocean_heat_exchange_w_m2_k": 0.6646843898508085,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539546773446
+          },
+          "heldout_nll_per_observation": -1.4337711181550405,
+          "iterations": 9,
+          "jacobian_evaluations": 9,
+          "log_parameter_rmse": 0.12317572065803051,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 9,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 2
+    },
+    {
+      "dataset_seed": 9402,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 0.8720149284271483,
+            "deep_heat_capacity_w_yr_m2_k": 159.30821477666186,
+            "ocean_heat_exchange_w_m2_k": 1.0805502538083311,
+            "surface_heat_capacity_w_yr_m2_k": 6.5254812197864585
+          },
+          "heldout_nll_per_observation": -1.0172283983990111,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.31604160497037953,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 178,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929231874626,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263338377694,
+            "ocean_heat_exchange_w_m2_k": 0.6646843705699498,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539741115669
+          },
+          "heldout_nll_per_observation": -1.433771094441613,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.12317574132934599,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 18,
+          "status": "projected_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1557929205942166,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263401888343,
+            "ocean_heat_exchange_w_m2_k": 0.6646843748860709,
+            "surface_heat_capacity_w_yr_m2_k": 8.967539679339579
+          },
+          "heldout_nll_per_observation": -1.4337711028945392,
+          "iterations": 34,
+          "jacobian_evaluations": 37,
+          "log_parameter_rmse": 0.12317573584111141,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 74,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.155792913278951,
+            "deep_heat_capacity_w_yr_m2_k": 96.37263562683286,
+            "ocean_heat_exchange_w_m2_k": 0.664684386020734,
+            "surface_heat_capacity_w_yr_m2_k": 8.96753958513839
+          },
+          "heldout_nll_per_observation": -1.4337711134877473,
+          "iterations": 13,
+          "jacobian_evaluations": 13,
+          "log_parameter_rmse": 0.12317572475350665,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 13,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 3
+    },
+    {
+      "dataset_seed": 9403,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.422781770503156,
+            "deep_heat_capacity_w_yr_m2_k": 47.32795796520039,
+            "ocean_heat_exchange_w_m2_k": 0.2863404152811928,
+            "surface_heat_capacity_w_yr_m2_k": 10.868863948802632
+          },
+          "heldout_nll_per_observation": -0.339706880770051,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.6590768716438932,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 252,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.133126305418995,
+            "deep_heat_capacity_w_yr_m2_k": 103.86898589017926,
+            "ocean_heat_exchange_w_m2_k": 0.6982686491484195,
+            "surface_heat_capacity_w_yr_m2_k": 10.011892835837052
+          },
+          "heldout_nll_per_observation": -1.3894274754601803,
+          "iterations": 10,
+          "jacobian_evaluations": 10,
+          "log_parameter_rmse": 0.1598338421887344,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 19,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331262534676603,
+            "deep_heat_capacity_w_yr_m2_k": 103.86899816720029,
+            "ocean_heat_exchange_w_m2_k": 0.6982687262093557,
+            "surface_heat_capacity_w_yr_m2_k": 10.011892383889881
+          },
+          "heldout_nll_per_observation": -1.3894275104110825,
+          "iterations": 21,
+          "jacobian_evaluations": 26,
+          "log_parameter_rmse": 0.15983380826040516,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 52,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331263694640052,
+            "deep_heat_capacity_w_yr_m2_k": 103.8689706617494,
+            "ocean_heat_exchange_w_m2_k": 0.6982685486769584,
+            "surface_heat_capacity_w_yr_m2_k": 10.011894010472497
+          },
+          "heldout_nll_per_observation": -1.389427298469224,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.15983391506231945,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 8,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 0
+    },
+    {
+      "dataset_seed": 9403,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.3569755040394968,
+            "deep_heat_capacity_w_yr_m2_k": 93.13084664137443,
+            "ocean_heat_exchange_w_m2_k": 0.6215984310676036,
+            "surface_heat_capacity_w_yr_m2_k": 4.677513858916907
+          },
+          "heldout_nll_per_observation": 0.8429992865913999,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.26182932878912574,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 243,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331263043916526,
+            "deep_heat_capacity_w_yr_m2_k": 103.86898613433377,
+            "ocean_heat_exchange_w_m2_k": 0.6982686507593341,
+            "surface_heat_capacity_w_yr_m2_k": 10.011892817054148
+          },
+          "heldout_nll_per_observation": -1.389427478288218,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.1598338410228149,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 17,
+          "status": "projected_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331263069956563,
+            "deep_heat_capacity_w_yr_m2_k": 103.86898551879322,
+            "ocean_heat_exchange_w_m2_k": 0.6982686466322218,
+            "surface_heat_capacity_w_yr_m2_k": 10.011892864054733
+          },
+          "heldout_nll_per_observation": -1.389427471240694,
+          "iterations": 38,
+          "jacobian_evaluations": 48,
+          "log_parameter_rmse": 0.15983384395140135,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 96,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.133126137865525,
+            "deep_heat_capacity_w_yr_m2_k": 103.86902572971651,
+            "ocean_heat_exchange_w_m2_k": 0.6982689119958765,
+            "surface_heat_capacity_w_yr_m2_k": 10.011889763804557
+          },
+          "heldout_nll_per_observation": -1.3894279382834747,
+          "iterations": 10,
+          "jacobian_evaluations": 10,
+          "log_parameter_rmse": 0.1598336515898075,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 10,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 1
+    },
+    {
+      "dataset_seed": 9403,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.184203159331058,
+            "deep_heat_capacity_w_yr_m2_k": 92.6996124582905,
+            "ocean_heat_exchange_w_m2_k": 0.6245590721333123,
+            "surface_heat_capacity_w_yr_m2_k": 10.50921216947109
+          },
+          "heldout_nll_per_observation": -1.310158559841071,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.2105219767948543,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 143,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331263093511912,
+            "deep_heat_capacity_w_yr_m2_k": 103.86898495499437,
+            "ocean_heat_exchange_w_m2_k": 0.6982686429784765,
+            "surface_heat_capacity_w_yr_m2_k": 10.011892908048088
+          },
+          "heldout_nll_per_observation": -1.3894274645765503,
+          "iterations": 9,
+          "jacobian_evaluations": 9,
+          "log_parameter_rmse": 0.15983384666768172,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 17,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.133126307127815,
+            "deep_heat_capacity_w_yr_m2_k": 103.8689854914143,
+            "ocean_heat_exchange_w_m2_k": 0.6982686465061303,
+            "surface_heat_capacity_w_yr_m2_k": 10.011892862151669
+          },
+          "heldout_nll_per_observation": -1.3894274717342785,
+          "iterations": 21,
+          "jacobian_evaluations": 24,
+          "log_parameter_rmse": 0.15983384387891067,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 48,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331262591834863,
+            "deep_heat_capacity_w_yr_m2_k": 103.86899688351988,
+            "ocean_heat_exchange_w_m2_k": 0.6982687216786292,
+            "surface_heat_capacity_w_yr_m2_k": 10.011891988116464
+          },
+          "heldout_nll_per_observation": -1.3894276031793324,
+          "iterations": 10,
+          "jacobian_evaluations": 10,
+          "log_parameter_rmse": 0.1598337895936306,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 10,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 2
+    },
+    {
+      "dataset_seed": 9403,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 0.8753392139725644,
+            "deep_heat_capacity_w_yr_m2_k": 163.05817046088927,
+            "ocean_heat_exchange_w_m2_k": 1.0726157702570394,
+            "surface_heat_capacity_w_yr_m2_k": 7.560751890314015
+          },
+          "heldout_nll_per_observation": -1.207639032726894,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.3162260312278876,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 184,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331263069826283,
+            "deep_heat_capacity_w_yr_m2_k": 103.86898551828453,
+            "ocean_heat_exchange_w_m2_k": 0.698268646694779,
+            "surface_heat_capacity_w_yr_m2_k": 10.011892864563478
+          },
+          "heldout_nll_per_observation": -1.38942747113006,
+          "iterations": 10,
+          "jacobian_evaluations": 10,
+          "log_parameter_rmse": 0.15983384397038736,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 19,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331263089963937,
+            "deep_heat_capacity_w_yr_m2_k": 103.86898581392896,
+            "ocean_heat_exchange_w_m2_k": 0.6982686442093228,
+            "surface_heat_capacity_w_yr_m2_k": 10.011892736752474
+          },
+          "heldout_nll_per_observation": -1.389427491051264,
+          "iterations": 30,
+          "jacobian_evaluations": 35,
+          "log_parameter_rmse": 0.15983383782735855,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 70,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1331262279470062,
+            "deep_heat_capacity_w_yr_m2_k": 103.86900431099706,
+            "ocean_heat_exchange_w_m2_k": 0.6982687706823136,
+            "surface_heat_capacity_w_yr_m2_k": 10.011891415236356
+          },
+          "heldout_nll_per_observation": -1.3894276894946611,
+          "iterations": 15,
+          "jacobian_evaluations": 15,
+          "log_parameter_rmse": 0.15983375405215378,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 16,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 3
+    },
+    {
+      "dataset_seed": 9404,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.4311098063902115,
+            "deep_heat_capacity_w_yr_m2_k": 40.83867597629335,
+            "ocean_heat_exchange_w_m2_k": 0.25015512912452037,
+            "surface_heat_capacity_w_yr_m2_k": 9.517199717580494
+          },
+          "heldout_nll_per_observation": -0.4511699414393329,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.7387262368791159,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 262,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.3320714384836236,
+            "deep_heat_capacity_w_yr_m2_k": 54.07784696229117,
+            "ocean_heat_exchange_w_m2_k": 0.38099883006586643,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104558141784
+          },
+          "heldout_nll_per_observation": -1.1340761981847456,
+          "iterations": 7,
+          "jacobian_evaluations": 7,
+          "log_parameter_rmse": 0.513430032492994,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 13,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.332071439626782,
+            "deep_heat_capacity_w_yr_m2_k": 54.0778465380133,
+            "ocean_heat_exchange_w_m2_k": 0.3809988287638376,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104650263428
+          },
+          "heldout_nll_per_observation": -1.134076184777865,
+          "iterations": 29,
+          "jacobian_evaluations": 36,
+          "log_parameter_rmse": 0.5134300378357252,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 72,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.332071429088611,
+            "deep_heat_capacity_w_yr_m2_k": 54.0778488742122,
+            "ocean_heat_exchange_w_m2_k": 0.3809988420469451,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104532527696
+          },
+          "heldout_nll_per_observation": -1.1340762201821575,
+          "iterations": 12,
+          "jacobian_evaluations": 12,
+          "log_parameter_rmse": 0.5134300099347355,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 13,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 0
+    },
+    {
+      "dataset_seed": 9404,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.4608057338314144,
+            "deep_heat_capacity_w_yr_m2_k": 101.92831211410376,
+            "ocean_heat_exchange_w_m2_k": 0.7027477839332068,
+            "surface_heat_capacity_w_yr_m2_k": 2.91746607667907
+          },
+          "heldout_nll_per_observation": 4.827631578901207,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.47699405254424965,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 262,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.332071439167644,
+            "deep_heat_capacity_w_yr_m2_k": 54.077846823227304,
+            "ocean_heat_exchange_w_m2_k": 0.38099882920718575,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104559633172
+          },
+          "heldout_nll_per_observation": -1.134076196689534,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.5134300341166657,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 17,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.332071441200524,
+            "deep_heat_capacity_w_yr_m2_k": 54.0778475707519,
+            "ocean_heat_exchange_w_m2_k": 0.3809988350134652,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104005143648
+          },
+          "heldout_nll_per_observation": -1.1340763020130669,
+          "iterations": 39,
+          "jacobian_evaluations": 50,
+          "log_parameter_rmse": 0.5134300151275181,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 100,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.3320714384311438,
+            "deep_heat_capacity_w_yr_m2_k": 54.077846973847066,
+            "ocean_heat_exchange_w_m2_k": 0.38099883014648306,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104557351984
+          },
+          "heldout_nll_per_observation": -1.1340761984502779,
+          "iterations": 13,
+          "jacobian_evaluations": 13,
+          "log_parameter_rmse": 0.5134300323389197,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 14,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 1
+    },
+    {
+      "dataset_seed": 9404,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.1965169709816708,
+            "deep_heat_capacity_w_yr_m2_k": 83.31646467354535,
+            "ocean_heat_exchange_w_m2_k": 0.5835304921064196,
+            "surface_heat_capacity_w_yr_m2_k": 9.55315012735333
+          },
+          "heldout_nll_per_observation": -1.5286137297002664,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.21433883616302762,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 151,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.3320714394535593,
+            "deep_heat_capacity_w_yr_m2_k": 54.07784676469039,
+            "ocean_heat_exchange_w_m2_k": 0.38099882884691993,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104560439425
+          },
+          "heldout_nll_per_observation": -1.1340761960348207,
+          "iterations": 7,
+          "jacobian_evaluations": 7,
+          "log_parameter_rmse": 0.5134300348021623,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 13,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.332071443029665,
+            "deep_heat_capacity_w_yr_m2_k": 54.07784596141904,
+            "ocean_heat_exchange_w_m2_k": 0.3809988234528045,
+            "surface_heat_capacity_w_yr_m2_k": 10.77510460298898
+          },
+          "heldout_nll_per_observation": -1.1340761796104768,
+          "iterations": 29,
+          "jacobian_evaluations": 33,
+          "log_parameter_rmse": 0.5134300451162572,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 66,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.332071420098096,
+            "deep_heat_capacity_w_yr_m2_k": 54.07785071980786,
+            "ocean_heat_exchange_w_m2_k": 0.38099885170195147,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104547911038
+          },
+          "heldout_nll_per_observation": -1.134076228427925,
+          "iterations": 11,
+          "jacobian_evaluations": 11,
+          "log_parameter_rmse": 0.5134299904571079,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 11,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 2
+    },
+    {
+      "dataset_seed": 9404,
+      "methods": {
+        "information_geometry.fixed_initial_fisher.armijo_v1": {
+          "converged": false,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 0.8078485976446644,
+            "deep_heat_capacity_w_yr_m2_k": 168.6346979160914,
+            "ocean_heat_exchange_w_m2_k": 1.143086496966233,
+            "surface_heat_capacity_w_yr_m2_k": 6.9718717964337955
+          },
+          "heldout_nll_per_observation": -0.9093654029567269,
+          "iterations": 30,
+          "jacobian_evaluations": 30,
+          "log_parameter_rmse": 0.36449032690519606,
+          "method_id": "information_geometry.fixed_initial_fisher.armijo_v1",
+          "residual_evaluations": 170,
+          "status": "max_iterations"
+        },
+        "information_geometry.natural_gradient.armijo_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.3320714394371296,
+            "deep_heat_capacity_w_yr_m2_k": 54.07784676799491,
+            "ocean_heat_exchange_w_m2_k": 0.3809988288675481,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104560415347
+          },
+          "heldout_nll_per_observation": -1.1340761960691725,
+          "iterations": 8,
+          "jacobian_evaluations": 8,
+          "log_parameter_rmse": 0.5134300347635832,
+          "method_id": "information_geometry.natural_gradient.armijo_v1",
+          "residual_evaluations": 16,
+          "status": "parameter_step_tolerance"
+        },
+        "optimization.scipy_lbfgsb.exact_gradient_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.3320713933960262,
+            "deep_heat_capacity_w_yr_m2_k": 54.07785414352845,
+            "ocean_heat_exchange_w_m2_k": 0.380998880172608,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104125607365
+          },
+          "heldout_nll_per_observation": -1.1340762944074936,
+          "iterations": 37,
+          "jacobian_evaluations": 43,
+          "log_parameter_rmse": 0.5134299370136651,
+          "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
+          "residual_evaluations": 86,
+          "status": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        "optimization.scipy_trf_least_squares.jac_scaled_v1": {
+          "converged": true,
+          "fitted_parameters": {
+            "climate_feedback_w_m2_k": 1.3320714323576206,
+            "deep_heat_capacity_w_yr_m2_k": 54.07784820919445,
+            "ocean_heat_exchange_w_m2_k": 0.3809988379232938,
+            "surface_heat_capacity_w_yr_m2_k": 10.775104540256965
+          },
+          "heldout_nll_per_observation": -1.1340762128731756,
+          "iterations": 15,
+          "jacobian_evaluations": 15,
+          "log_parameter_rmse": 0.5134300177241063,
+          "method_id": "optimization.scipy_trf_least_squares.jac_scaled_v1",
+          "residual_evaluations": 15,
+          "status": "`ftol` termination condition is satisfied."
+        }
+      },
+      "start_index": 3
+    }
+  ]
+}
