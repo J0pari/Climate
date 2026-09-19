@@ -47,7 +47,13 @@ EXTERNAL_FALLBACK_PATTERNS = (
         ),
     ),
 )
-
+EXTERNAL_LIVE_ACQUISITION_PATTERNS = (
+    re.compile(r"\bimport\s+requests\b"),
+    re.compile(r"\bfrom\s+requests\b"),
+    re.compile(r"\burllib\.request\b"),
+    re.compile(r"\burlopen\s*\("),
+    re.compile(r"\brequests\.(?:get|post|head|request)\s*\("),
+)
 
 @dataclass(frozen=True)
 class Finding:
@@ -317,6 +323,12 @@ def check(root: Path = ROOT, registry: dict | None = None) -> list[Finding]:
                 ))
 
             if scope == "current":
+                if usage.get("acquisition_owner") != "external_native_capture":
+                    findings.append(_finding(
+                        "data_authority.current_external_acquisition_owner",
+                        path,
+                        "current externalized data must declare acquisition_owner=external_native_capture",
+                    ))
                 authority_boundary = usage.get("authority_boundary")
                 if not isinstance(authority_boundary, str) or not authority_boundary.strip():
                     findings.append(_finding(
@@ -369,6 +381,15 @@ def check(root: Path = ROOT, registry: dict | None = None) -> list[Finding]:
                             ))
 
                 if candidate_text is not None:
+                    if any(
+                        pattern.search(candidate_text)
+                        for pattern in EXTERNAL_LIVE_ACQUISITION_PATTERNS
+                    ):
+                        findings.append(_finding(
+                            "data_authority.external_live_acquisition",
+                            relative_path if isinstance(relative_path, str) else path,
+                            "current externalized data parser/import boundary must not own live HTTP acquisition",
+                        ))
                     for code, pattern in EXTERNAL_FALLBACK_PATTERNS:
                         if pattern.search(candidate_text):
                             findings.append(_finding(

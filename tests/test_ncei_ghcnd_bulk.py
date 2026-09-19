@@ -1,19 +1,13 @@
 from __future__ import annotations
 
-import hashlib
-from pathlib import Path
-import tempfile
 import unittest
 
 from data.ncei_ghcnd_bulk import (
-    HTTPArtifactIdentity,
     adaptive_catalog_shards,
     build_federated_stations,
     by_year_url,
     by_year_urls,
     catalog_shard_refs,
-    download_by_year_artifact,
-    download_resumable_http_artifact,
     StationShardLookup,
     parse_inventory,
     parse_station_catalog,
@@ -35,56 +29,6 @@ def inventory_line(station_id, lat, lon, element, first, last):
     )
 
 
-class FakeRangeTransport:
-    def __init__(
-        self,
-        payload: bytes,
-        *,
-        etag: str = '"fixture-v1"',
-        last_modified: str = "Fri, 18 Sep 2026 00:00:00 GMT",
-        accept_ranges: bool = True,
-        fail_after_bytes: int | None = None,
-    ) -> None:
-        self.payload = payload
-        self.etag = etag
-        self.last_modified = last_modified
-        self.accept_ranges = accept_ranges
-        self.fail_after_bytes = fail_after_bytes
-        self.starts: list[int] = []
-        self.urls: list[str] = []
-
-    def inspect(self, url: str, *, timeout_seconds: float) -> HTTPArtifactIdentity:
-        self.urls.append(url)
-        return HTTPArtifactIdentity(
-            url=url,
-            content_length=len(self.payload),
-            etag=self.etag,
-            last_modified=self.last_modified,
-            accept_ranges=self.accept_ranges,
-        )
-
-    def iter_bytes(
-        self,
-        url: str,
-        *,
-        start: int,
-        identity: HTTPArtifactIdentity,
-        timeout_seconds: float,
-        chunk_bytes: int,
-    ):
-        self.starts.append(start)
-        sent = 0
-        for offset in range(start, len(self.payload), chunk_bytes):
-            chunk = self.payload[offset:offset + chunk_bytes]
-            yield chunk
-            sent += len(chunk)
-            if (
-                self.fail_after_bytes is not None
-                and start + sent >= self.fail_after_bytes
-            ):
-                raise RuntimeError("simulated transport interruption")
-
-
 class GHCNBulkFederationTests(unittest.TestCase):
     def payloads(self):
         catalog = (
@@ -99,87 +43,6 @@ class GHCNBulkFederationTests(unittest.TestCase):
             + inventory_line("USW00000003", 51.5, -0.1, "TAVG", 1880, 2026)
         ).encode("ascii")
         return parse_station_catalog(catalog), parse_inventory(inventory)
-
-    def test_resumable_download_continues_from_committed_prefix(self):
-        payload = b"0123456789abcdef"
-        transport = FakeRangeTransport(payload, fail_after_bytes=4)
-        with tempfile.TemporaryDirectory() as temp:
-            destination = Path(temp) / "2024.csv.gz"
-            with self.assertRaisesRegex(RuntimeError, "simulated"):
-                download_resumable_http_artifact(
-                    "https://example.test/2024.csv.gz",
-                    destination,
-                    transport=transport,
-                    chunk_bytes=4,
-                )
-            state = destination.with_name(destination.name + ".resume.json")
-            self.assertTrue(state.is_file())
-            self.assertEqual(
-                __import__("json").loads(state.read_text())["committed_bytes"],
-                4,
-            )
-
-            transport.fail_after_bytes = None
-            result = download_resumable_http_artifact(
-                "https://example.test/2024.csv.gz",
-                destination,
-                transport=transport,
-                chunk_bytes=4,
-            )
-            self.assertEqual(destination.read_bytes(), payload)
-            self.assertEqual(result.byte_count, len(payload))
-            self.assertEqual(
-                result.sha256,
-                "sha256:" + hashlib.sha256(payload).hexdigest(),
-            )
-            self.assertEqual(transport.starts, [0, 4])
-            self.assertFalse(state.exists())
-
-            starts_before = list(transport.starts)
-            repeated = download_resumable_http_artifact(
-                "https://example.test/2024.csv.gz",
-                destination,
-                transport=transport,
-                chunk_bytes=4,
-            )
-            self.assertEqual(repeated.sha256, result.sha256)
-            self.assertEqual(transport.starts, starts_before)
-
-    def test_resumable_download_refuses_remote_revision_change(self):
-        transport = FakeRangeTransport(b"abcdefgh", fail_after_bytes=4)
-        with tempfile.TemporaryDirectory() as temp:
-            destination = Path(temp) / "artifact.bin"
-            with self.assertRaises(RuntimeError):
-                download_resumable_http_artifact(
-                    "https://example.test/artifact.bin",
-                    destination,
-                    transport=transport,
-                    chunk_bytes=4,
-                )
-            transport.fail_after_bytes = None
-            transport.etag = '"fixture-v2"'
-            with self.assertRaisesRegex(ValueError, "identity changed"):
-                download_resumable_http_artifact(
-                    "https://example.test/artifact.bin",
-                    destination,
-                    transport=transport,
-                    chunk_bytes=4,
-                )
-            self.assertEqual(transport.starts, [0])
-
-    def test_by_year_downloader_uses_provider_bulk_url_and_requires_ranges(self):
-        transport = FakeRangeTransport(b"payload", accept_ranges=False)
-        with tempfile.TemporaryDirectory() as temp:
-            with self.assertRaisesRegex(ValueError, "byte-range"):
-                download_by_year_artifact(
-                    2024,
-                    Path(temp) / "2024.csv.gz",
-                    transport=transport,
-                )
-        self.assertEqual(
-            transport.urls,
-            ["https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_year/2024.csv.gz"],
-        )
 
     def test_provider_fixed_width_catalog_and_inventory_parse(self):
         catalog, inventory = self.payloads()

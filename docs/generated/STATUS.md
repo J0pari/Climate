@@ -10,17 +10,17 @@ External implementation ownership is not treated as local realization. A Climate
 
 ## Module authority
 
-Registered modules: **67**.
+Registered modules: **66**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 37 |
-| `reference` | 30 |
+| `reference` | 29 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 65 |
+| `runnable` | 64 |
 
 ### Canonical and reference modules
 
@@ -73,10 +73,9 @@ Registered modules: **67**.
 | `reference` | `independent_reference` | `reference/multirepresentation_state_space.py` | `reference_multirepresentation_state_space_baseline` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/multirepresentation_structure_evaluation.py` | `reference_multirepresentation_structure_evaluation` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/multirepresentation_worlds.py` | `reference_multirepresentation_structural_worlds` | `runnable` | no |
-| `reference` | `independent_reference` | `reference/ncei_ghcnd.py` | `reference_ncei_ghcnd_access` | `runnable` | no |
-| `reference` | `independent_reference` | `reference/ncei_ghcnd_projection.py` | `reference_ncei_ghcnd_cf_projection` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/ncei_ghcnd.py` | `reference_ncei_ghcnd_payload_parser` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/noether_sympy.py` | `reference_variational_symmetry` | `runnable` | no |
-| `reference` | `independent_reference` | `reference/nsidc_sea_ice_index.py` | `reference_nsidc_sea_ice_index_access` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/nsidc_sea_ice_index.py` | `reference_nsidc_sea_ice_index_parser` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/sheaf_claim_evidence.py` | `reference_sheaf_claim_evidence_runtime` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/station_temperature_sheaf.py` | `reference_station_temperature_sheaf` | `runnable` | no |

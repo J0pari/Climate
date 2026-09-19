@@ -22,12 +22,11 @@
       "geographic_scope": "global",
       "station_identity_namespace": "GHCN-Daily STATION",
       "discovery_mode": "provider_catalog",
-      "scale_path": "complete ghcnd-stations.txt and ghcnd-inventory.txt provider artifacts feed bounded content-addressed catalog shards; yearly observation acquisition uses resumable byte-range capture of the provider by_year archive bound to a stable remote validator and final SHA-256 digest, while subset REST remains a captured-fixture/reference path rather than the worldwide ingestion loop",
+      "scale_path": "externally captured complete ghcnd-stations.txt, ghcnd-inventory.txt, and by_year artifacts feed Climate's bounded catalog-shard and row-routing semantics; network transfer, resume, retry, and remote-validator handling remain outside Climate",
       "current_boundaries": [
         "data/ncei_ghcnd_bulk.py::parse_station_catalog",
         "data/ncei_ghcnd_bulk.py::parse_inventory",
         "data/ncei_ghcnd_bulk.py::adaptive_catalog_shards",
-        "data/ncei_ghcnd_bulk.py::download_by_year_artifact",
         "data/ncei_ghcnd_bulk.py::stream_by_year_partitions",
         "reference/ncei_ghcnd.py::DailySummariesPayload",
         "reference/station_temperature_sheaf.py::to_station_catalog",
@@ -36,7 +35,8 @@
       "access": "NCEI HTTPS archive and Common Access Data/Search Service REST APIs",
       "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",
       "update_semantics": "daily updates plus periodic reconstruction; NCEI assigns unique daily versions and values/flags can be revised, so responses used as evidence must be captured and digested",
-      "revision_identity": "catalog, inventory, and by-year inputs bind the exact provider URL to the captured artifact SHA-256; resumable HTTP capture additionally binds a stable remote validator and Content-Length; published observation partitions carry the captured compressed-artifact SHA-256 as source_revision and revisions use explicit supersession or tombstone lineage"
+      "revision_identity": "catalog, inventory, and by-year inputs bind the exact provider URL plus imported artifact SHA-256/native capture receipt; published observation partitions carry the captured compressed-artifact SHA-256 as source_revision and revisions use explicit supersession or tombstone lineage",
+      "acquisition_owner": "external_native_capture"
     },
     {
       "provider_id": "ncei.ghcnh.v1",
@@ -46,18 +46,19 @@
       "access": "NCEI HTTPS bulk archive and data access applications",
       "license_or_access_constraints": "NOAA public data; source and quality-control attributes remain part of provenance",
       "update_semantics": "Version 1 is updated daily; immutable inputs pin the exact station-list or bulk archive artifact digest, and yearly archive filenames carry product version plus creation date",
-      "revision_identity": "station-catalog federation binds the exact ghcnh-station-list artifact SHA-256; shared GHCN-Daily/GHCNh identifiers are emitted as a separate deterministic crosswalk evidence digest; annual observations require an explicit versioned/creation-dated official archive URL, use resumable validator/content-length capture, and bind every published raw partition to the captured compressed archive SHA-256",
+      "revision_identity": "station-catalog federation binds the imported ghcnh-station-list artifact SHA-256; shared GHCN-Daily/GHCNh identifiers are emitted as deterministic crosswalk evidence; annual observations require an externally captured official versioned/creation-dated archive whose URL identity and SHA-256/native capture receipt are preserved",
       "geographic_scope": "global",
       "station_identity_namespace": "GHCNh managed GHCN identifier",
       "discovery_mode": "provider_catalog",
-      "scale_path": "captured ghcnh-station-list.txt provides global catalog discovery and explicit shared-GHCN-ID crosswalks; captured annual GHCNh tar.gz archives are streamed member-by-member through canonical alias/shard routing into immutable content-addressed raw spatial/year partitions without materializing the year",
+      "scale_path": "externally captured ghcnh-station-list.txt supplies catalog discovery and shared-GHCN-ID crosswalks; externally captured annual tar.gz archives are validated by provider filename identity then streamed through canonical alias/shard routing into immutable content-addressed raw spatial/year partitions",
       "current_boundaries": [
         "data/ncei_ghcnh_bulk.py::parse_station_catalog",
         "data/ncei_ghcnh_bulk.py::federate_station_catalog",
+        "data/ncei_ghcnh_bulk.py::validate_year_archive_url",
         "data/ncei_ghcnh_partition.py::publish_year_archive",
-        "data/ncei_ghcnh_bulk.py::download_year_archive",
         "data/ncei_ghcnh_bulk.py::stream_station_year_psv"
-      ]
+      ],
+      "acquisition_owner": "external_native_capture"
     }
   ]
 }

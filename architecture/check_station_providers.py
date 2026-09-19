@@ -84,11 +84,25 @@ def check(root: Path = ROOT) -> list[Finding]:
         if "station_ids" in provider:
             findings.append(Finding("station_providers.fixed_station_list", path, "provider registry must not encode a fixed station list"))
         if provider.get("status") == "current":
+            if provider.get("acquisition_owner") != "external_native_capture":
+                findings.append(Finding(
+                    "station_providers.acquisition_owner",
+                    path,
+                    "current provider acquisition must remain externally owned as external_native_capture",
+                ))
             boundaries = provider.get("current_boundaries")
             if not isinstance(boundaries, list) or not boundaries:
                 findings.append(Finding("station_providers.boundary", path, "current provider requires executable adapter boundaries"))
                 continue
             for boundary in boundaries:
+                if isinstance(boundary, str) and any(
+                    token in boundary for token in ("::download_", "::fetch_")
+                ):
+                    findings.append(Finding(
+                        "station_providers.transport_shadow",
+                        path,
+                        f"current provider boundary shadows external acquisition: {boundary}",
+                    ))
                 if not isinstance(boundary, str) or "::" not in boundary:
                     findings.append(Finding("station_providers.boundary", path, "boundary must be path::anchor"))
                     continue

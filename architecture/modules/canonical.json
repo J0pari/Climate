@@ -6,11 +6,11 @@
       "family": "ncei_ghcnd_bulk_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-specific resumable bulk acquisition, discovery, normalization, and streaming observation-routing adapter for complete GHCN-Daily station/inventory/by-year authorities, binding remote revision validators and final artifact digests while producing bounded federation catalog shards and spatial/year/element partition keys without station-by-time or per-station REST materialization",
+      "intended_role": "canonical provider-specific GHCN-Daily catalog/inventory parser and streaming station-federation router over externally captured immutable provider artifacts, preserving provider URL identity, source digests, raw value/flag semantics, bounded catalog shards, and spatial/year/element routing without owning generic HTTP transfer or resume machinery",
       "known_gaps": [
+        "provider artifact acquisition, remote validation, retries, and transport checkpointing are externally owned; Climate requires imported immutable bytes plus source identity/digest",
         "ghcnd-stations.txt is treated as a provider metadata snapshot effective at the captured date; the adapter does not back-project current coordinates into unobserved historical relocation epochs",
-        "HTTP resume requires provider byte-range support plus a stable strong ETag or Last-Modified validator; changed or weakly identified remote artifacts fail closed rather than mixing revisions",
-        "provider element values remain raw GHCN integer semantics at this boundary; unit normalization into climate variable contracts is a separate explicit adapter rather than an ingestion default",
+        "provider element values remain raw GHCN integer semantics at this boundary; unit normalization into climate variable contracts is a separate explicit transformation",
         "cross-provider station crosswalks remain federation-level evidence obligations and are never inferred from location proximity"
       ],
       "authority_kind": "canonical_implementation",
@@ -36,10 +36,11 @@
       "family": "ncei_ghcnh_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical GHCNh provider adapter that parses the documented global fixed-width station list, captures explicitly versioned annual archives through the resumable immutable HTTP transport, federates exact shared GHCN identifiers as explicit digest-bound aliases, creates distinct hourly-provider roots for unmatched stations, and streams self-describing station/year PSV rows while preserving every provider field including source/QC attributes",
+      "intended_role": "canonical GHCNh provider parser/router over externally captured station-list and annual archive artifacts, validating provider version/data-year/creation-date identity, federating exact shared GHCN identifiers as digest-bound aliases, and streaming station/year PSV rows while preserving provider source/QC fields without owning generic network transfer",
       "known_gaps": [
+        "provider artifact acquisition, remote validation, retries, and transfer durability are externally owned; Climate starts from imported immutable station-list/archive bytes and their provenance",
         "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
-        "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations rather than ingestion defaults",
+        "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations",
         "shared identity uses exact documented GHCN identifier equality only and does not infer crosswalks from names, coordinates, ICAO codes, WMO codes, or proximity"
       ],
       "authority_kind": "canonical_implementation",

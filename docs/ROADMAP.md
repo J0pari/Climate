@@ -11,8 +11,8 @@ External implementation ownership does not remove integration correctness from s
 
 - Active: 3
 - Ready: 16
-- Blocked: 10
-- Done: 15
+- Blocked: 11
+- Done: 14
 - Dropped: 0
 
 ## Graph projection
@@ -38,6 +38,7 @@ External implementation ownership does not remove integration correctness from s
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` | — |
+| `data.immutable_observational_projection` — Bind one immutable observational projection from a native data/evaluation system | `blocked` | `P0` | `R4_integrated_system` | — |
 | `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` | `sheaf.climate_data_semantics`, `data.global_free_station_federation` |
 | `experimentation.multifidelity_response_interrogation` — Use cheap model exploration to choose discriminating high-fidelity experiments | `blocked` | `P1` | `R5_large_data` | `integration.native_capability_boundaries`, `orchestration.external_artifact_evaluation`, `validation.cross_model_evidence_transport` |
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
@@ -52,7 +53,6 @@ External implementation ownership does not remove integration correctness from s
 | `architecture.legacy_source_depletion` — Deplete and delete legacy root monoliths | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `architecture.reference_values` — Focused atmospheric reference-value authority | `done` | `P0` | `R2_toolchain_ci` | — |
 | `data.external_authority_audit` — Externalize hardcoded climate data and assumptions | `done` | `P0` | `R1_portable_cpu` | — |
-| `data.immutable_observational_projection` — Create one immutable observational or reanalysis projection | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `state.typed_physical_state` |
 | `experimentation.claim_evidence_vertical_slice` — Close one claim-to-evidence scientific loop | `done` | `P0` | `R2_toolchain_ci` | `experimentation.failure_provenance` |
 | `experimentation.climate_representation_ladder` — Build a climate-representation benchmark ladder | `done` | `P0` | `R2_toolchain_ci` | `experimentation.common_cpu_runtime` |
 | `experimentation.common_cpu_runtime` — Run one contract-valid CPU experiment end to end | `done` | `P0` | `R1_portable_cpu` | — |
