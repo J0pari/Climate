@@ -66,6 +66,21 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 "https://example.test/source",
                 "HTTP/2 200\r\nAccept-Ranges: bytes\r\n\r\n",
             )
+    def test_station_catalog_accepts_utf8_names_without_shifting_fixed_columns(self):
+        payload = station_line(
+            "BR000000001",
+            -23.5505,
+            -46.6333,
+            760.0,
+            "SÃO PAULO",
+            "SP",
+            "83781",
+        ).encode("utf-8")
+        catalog = parse_station_catalog(payload)
+        self.assertEqual(catalog.records[0].name, "SÃO PAULO")
+        self.assertEqual(catalog.records[0].state, "SP")
+        self.assertEqual(catalog.records[0].wmo_id, "83781")
+
     def test_provider_fixed_width_catalog_and_inventory_parse(self):
         catalog, inventory = self.payloads()
         self.assertEqual(len(catalog.records), 3)

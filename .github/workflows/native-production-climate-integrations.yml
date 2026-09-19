@@ -107,35 +107,41 @@ jobs:
 
   aqua-production-cmip6:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Retrieve exact CMIP6 production object
         run: |
           set -euo pipefail
           target="$PWD/areacella.nc"
           curl --fail --location --silent --show-error "$CMIP6_URL" --output "$target"
           printf '%s  %s\n' "$CMIP6_SHA256" "$target" | sha256sum --check --strict
-      - name: Install pinned AQUA owner implementation
+      - name: Checkout pinned AQUA owner implementation
         run: |
           set -euo pipefail
           git clone --filter=blob:none https://github.com/DestinE-Climate-DT/AQUA.git upstream-aqua
           git -C upstream-aqua checkout "$AQUA_SHA"
-          python -m pip install --disable-pip-version-check ./upstream-aqua
+      - name: Set up AQUA owner-locked no-FDB environment
+        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39
+        with:
+          environment-file: upstream-aqua/conda-linux-64.nofdb.lock
+          environment-name: aqua
+          cache-downloads: true
+          cache-environment: false
+      - name: Install AQUA pip lock entries and exact source
+        shell: bash -el {0}
+        run: |
+          set -euo pipefail
+          sed -n 's/^# pip //p' upstream-aqua/conda-linux-64.nofdb.lock | python -m pip install -r /dev/stdin
+          python -m pip install --no-deps -e ./upstream-aqua
       - name: Read and use production CMIP6 object through AQUA native NetCDF driver
+        shell: bash -el {0}
         run: |
           python - <<'PY'
           import numpy as np
           from aqua.core.intake_drivers.xarray.netcdf import IntakeNetCDFSource
 
-          source = IntakeNetCDFSource(
-              "areacella.nc",
-              xarray_kwargs={"engine": "h5netcdf"},
-              chunks=None,
-          )
+          source = IntakeNetCDFSource("areacella.nc", chunks=None)
           dataset = source.reader.read()
           assert "areacella" in dataset
           field = dataset["areacella"]
@@ -151,41 +157,59 @@ jobs:
 
   aimip-production-archive:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install production AIMIP access dependencies
+      - name: Resolve one immutable AIMIP full-archive revision and object
         run: |
-          python -m pip install --disable-pip-version-check \
-            'xarray>=2025.1' 's3fs>=2025.1' 'h5netcdf>=1.4'
-      - name: Read and use full ACE2.1-ERA5 AIMIP submission anonymously
+          set -euo pipefail
+          repo_url='https://huggingface.co/datasets/allenai/aimip-phase1-submissions'
+          revision="$(git ls-remote "$repo_url" refs/heads/main | awk '{print $1}')"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          git clone --filter=blob:none --no-checkout "$repo_url" aimip-index
+          git -C aimip-index fetch --depth=1 origin "$revision"
+          mapfile -t matches < <(
+            git -C aimip-index ls-tree -r --name-only "$revision" |
+              grep -E '^Ai2/ACE2-1-ERA5/aimip/r1i1p1f1/Amon/tas/gn/v20251130/[^/]+\.nc$'
+          )
+          if [ "${#matches[@]}" -ne 1 ]; then
+            printf 'expected exactly one ACE2.1-ERA5 Amon/tas/gn object, found %s\n' "${#matches[@]}" >&2
+            printf '%s\n' "${matches[@]}" >&2
+            exit 1
+          fi
+          printf 'AIMIP_HF_REVISION=%s\n' "$revision" >> "$GITHUB_ENV"
+          printf 'AIMIP_OBJECT=%s\n' "${matches[0]}" >> "$GITHUB_ENV"
+          printf 'aimip_revision %s\naimip_object %s\n' "$revision" "${matches[0]}"
+      - name: Download exact production object from resolved AIMIP snapshot
+        run: |
+          set -euo pipefail
+          encoded_path="${AIMIP_OBJECT// /%20}"
+          url="https://huggingface.co/datasets/allenai/aimip-phase1-submissions/resolve/$AIMIP_HF_REVISION/$encoded_path?download=true"
+          curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$url" --output aimip-tas.nc
+          sha256sum aimip-tas.nc | tee aimip-object.sha256
+          test -s aimip-tas.nc
+      - name: Install NetCDF analysis dependencies
+        run: |
+          python -m pip install --disable-pip-version-check             'xarray==2026.7.0' 'h5netcdf==1.8.1' 'h5py==3.16.0'
+      - name: Read and use exact ACE2.1-ERA5 AIMIP production object
         run: |
           python - <<'PY'
           import math
+          import os
           import xarray as xr
 
-          path = (
-              "s3://ai-mip/Ai2/ACE2-1-ERA5/aimip/r1i1p1f1/Amon/tas/gn/v20251130/"
-              "tas_Amon_ACE2-ERA5_aimip_r1i1p1f1_gn_197810-202412.nc"
-          )
-          storage_options = {
-              "anon": True,
-              "client_kwargs": {"endpoint_url": "https://s3.eu-dkrz-1.dkrz.cloud"},
-          }
-          dataset = xr.open_dataset(
-              path,
-              engine="h5netcdf",
-              backend_kwargs={"storage_options": storage_options},
-          )
+          dataset = xr.open_dataset("aimip-tas.nc", engine="h5netcdf")
           assert "tas" in dataset
           assert dataset.sizes["time"] > 500
           first_global_mean = float(dataset["tas"].isel(time=0).mean().compute())
           assert math.isfinite(first_global_mean)
           assert 150.0 < first_global_mean < 350.0
-          print("aimip_path", path)
+          print("aimip_revision", os.environ["AIMIP_HF_REVISION"])
+          print("aimip_object", os.environ["AIMIP_OBJECT"])
           print("aimip_dims", dict(dataset.sizes))
           print("aimip_first_global_mean_tas_k", first_global_mean)
+          dataset.close()
           PY

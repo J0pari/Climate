@@ -457,9 +457,9 @@ def _digest(payload: bytes) -> str:
 
 def _lines(payload: bytes, *, minimum_width: int) -> Iterable[str]:
     try:
-        text = payload.decode("ascii")
+        text = payload.decode("utf-8")
     except UnicodeDecodeError as exc:
-        raise ValueError("GHCN bulk metadata must be ASCII") from exc
+        raise ValueError("GHCN bulk metadata must be valid UTF-8") from exc
     for line_number, raw in enumerate(text.splitlines(), start=1):
         if not raw:
             continue
