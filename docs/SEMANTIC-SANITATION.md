@@ -15,6 +15,8 @@ Prefer, in order:
 
 Compilation, API completeness, demos, or apparent end-to-end execution are not reasons to retain fake behavior.
 
+**No implicit semantic substitution is the controlling rule.** A required dataset, observation, calibration/parameter authority, configuration, model/runtime, solver, backend, precision, resource class, preprocessing policy, or other scientific/execution semantic either resolves exactly as declared or remains unavailable/failed. Missingness or capability failure must not trigger an undeclared replacement that keeps the original request or success meaning. Alternatives are valid only as separately declared inputs/identities selected explicitly before execution.
+
 ## 2. Hazard classes
 
 ### S0 — absent / declared unavailable
@@ -102,13 +104,13 @@ Semantic-integrity priority is based on **contamination risk**, not ease of fixi
 7. demos/tests that can be mistaken for validation;
 8. ordinary TODOs that already fail closed.
 
-`architecture/source_gates.py` is an inventory aid; semantic review decides which findings are harmless notes versus S3/S4 hazards.
+`architecture/check_semantic_defaults.py` is the binding source-level structural guard for implicit semantic substitution across the audited scientific/reference surface. Its historical filename is narrower than its responsibility. `architecture/source_gates.py` retains a fallback-marker scan only as supplemental defense in depth: lexical matches can prompt review, but the presence or absence of the word `fallback` is not evidence that substitution is or is not occurring.
 
 ## 6. Interaction with maturity and evidence
 
 A module containing an active S3/S4 path cannot be `verified`, `validated`, `replicated`, or `decision-eligible` for a claim that can reach that path.
 
-Execution identity is governed by `#ExecutionResolution` in `contracts/climate.cue`. An eligible execution resolves to exactly the identity that was requested. If a required capability is unavailable, the request is ineligible and carries a typed failure without a replacement resolved identity. A CPU path, alternate solver, lower-precision path, compatibility shim, or other implementation may run only when it is requested under its own execution identity; it is not a runtime fallback for a different request.
+Execution identity is the most concrete instance of the general rule and is governed by `#ExecutionResolution` in `contracts/climate.cue`. An eligible execution resolves to exactly the identity that was requested. If a required capability is unavailable, the request is ineligible and carries a typed failure without a replacement resolved identity. A CPU path, alternate solver, lower-precision path, compatibility shim, or other implementation may run only when it is requested under its own execution identity; it is not a runtime fallback for a different request. Data, calibration, configuration, and other scientific inputs obey the same resolve-exactly-or-fail-closed principle at their own authority boundaries.
 
 An unavailable stub or blueprint may coexist with a `concept`/`prototype` method descriptor because it cannot manufacture supporting evidence.
 
@@ -117,8 +119,9 @@ An unavailable stub or blueprint may coexist with a `concept`/`prototype` method
 The semantic-integrity system requires:
 
 - a machine-readable hazard ledger with owner/action/status where that adds value;
-- negative witnesses proving guards catch plausible-output placeholders and execution substitution;
-- source gates for known dangerous patterns;
+- negative witnesses proving guards catch plausible-output placeholders and semantic substitution without depending on the spelling `fallback`;
+- a binding structural source guard for implicit defaults, semantic coalescing, availability/exception rewrites, and optional-capability substitution;
+- supplemental lexical source gates for suspicious markers, explicitly treated as defense in depth rather than semantic proof;
 - contract checks that make eligible requested/resolved execution identity mismatch invalid;
 - module/method checks preventing maturity promotion while unresolved S3/S4 hazards are reachable;
 - explicit allowlists only for correctly named heuristics, never for fake implementations.
