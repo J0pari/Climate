@@ -189,5 +189,17 @@
       "poincare_radial_boundary": "Absolute derivative error grows with component scale while normalized error remains near FP64 epsilon and curvature stays stable.",
       "interpretation": "Exploratory non-promotional stress; derivative correctness does not replace canonical conditioning/refusal semantics."
     }
+  },
+  "information_geometry_recovery_discovery": {
+    "repository_revision": "dc27dc0980b540c2eb5cd5abc17ad2b2591272d0",
+    "planning_node": "information_geometry.recovery_validation",
+    "scenario_count": 500,
+    "result_uri": "information-geometry-recovery-discovery.json",
+    "natural_gradient_success_rate": 1,
+    "jacobi_hessian_success_rate": 1,
+    "trust_exact_success_rate": 1,
+    "natural_higher_fevals_than_jacobi_fraction": 0.646,
+    "natural_higher_fevals_than_trust_exact_fraction": 0.65,
+    "interpretation": "Exploratory non-promotional result; motivates preregistered confirmation with strong ordinary preconditioning and second-order baselines."
   }
 }

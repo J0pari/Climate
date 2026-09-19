@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "classification": "exploratory_non_promotional",
+  "repository_revision": "dc27dc0980b540c2eb5cd5abc17ad2b2591272d0",
+  "planning_node": "information_geometry.recovery_validation",
+  "model": {
+    "family": "Normal location-scale",
+    "parameters": [
+      "mu",
+      "rho=log(sigma)"
+    ],
+    "truth_mu": 2,
+    "truth_sigma": [
+      0.01,
+      0.1,
+      1,
+      10,
+      100
+    ],
+    "train_samples": 128,
+    "holdout_samples": 4096,
+    "dataset_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "initial_sigma_factor": [
+      0.01,
+      0.1,
+      1,
+      10,
+      100
+    ],
+    "initial_mu_offset_in_truth_sigma": [
+      0,
+      4
+    ],
+    "scenario_count": 500,
+    "objective": "mean negative log likelihood",
+    "target": "train objective gap <= 1e-8 relative to exact Normal MLE",
+    "max_iterations": 1000
+  },
+  "methods": {
+    "gd": "Euclidean gradient descent with Armijo backtracking",
+    "natural": "exact per-observation Fisher inverse times gradient with Armijo backtracking",
+    "static_fisher": "Fisher inverse frozen at initialization with Armijo backtracking",
+    "jacobi_hessian": "generic inverse Hessian-diagonal/Jacobi preconditioned gradient with Armijo backtracking",
+    "bfgs": "scipy.optimize.minimize BFGS with analytic gradient",
+    "trust_exact": "scipy.optimize.minimize trust-exact with analytic gradient and Hessian"
+  },
+  "overall": [
+    {
+      "method": "bfgs",
+      "cases": 500,
+      "success_rate": 1,
+      "median_iterations": 20,
+      "p90_iterations": 39,
+      "median_fevals": 27,
+      "p90_fevals": 52.1
+    },
+    {
+      "method": "gd",
+      "cases": 500,
+      "success_rate": 0.428,
+      "median_iterations": 1000,
+      "p90_iterations": 1000,
+      "median_fevals": 1004,
+      "p90_fevals": 1643.8
+    },
+    {
+      "method": "jacobi_hessian",
+      "cases": 500,
+      "success_rate": 1,
+      "median_iterations": 5,
+      "p90_iterations": 12,
+      "median_fevals": 9,
+      "p90_fevals": 15
+    },
+    {
+      "method": "natural",
+      "cases": 500,
+      "success_rate": 1,
+      "median_iterations": 15.5,
+      "p90_iterations": 628.2,
+      "median_fevals": 16.5,
+      "p90_fevals": 635.1
+    },
+    {
+      "method": "static_fisher",
+      "cases": 500,
+      "success_rate": 0.656,
+      "median_iterations": 20,
+      "p90_iterations": 1000,
+      "median_fevals": 21,
+      "p90_fevals": 1010
+    },
+    {
+      "method": "trust_exact",
+      "cases": 500,
+      "success_rate": 1,
+      "median_iterations": 11,
+      "p90_iterations": 17,
+      "median_fevals": 12,
+      "p90_fevals": 18
+    }
+  ],
+  "natural_gradient_matched_feval_comparisons": {
+    "jacobi_hessian": {
+      "both_success_cases": 500,
+      "natural_lower_fraction": 0.23,
+      "equal_fraction": 0.124,
+      "natural_higher_fraction": 0.646,
+      "median_natural_minus_other_fevals": 9
+    },
+    "bfgs": {
+      "both_success_cases": 500,
+      "natural_lower_fraction": 0.528,
+      "equal_fraction": 0.01,
+      "natural_higher_fraction": 0.462,
+      "median_natural_minus_other_fevals": -3
+    },
+    "trust_exact": {
+      "both_success_cases": 500,
+      "natural_lower_fraction": 0.282,
+      "equal_fraction": 0.068,
+      "natural_higher_fraction": 0.65,
+      "median_natural_minus_other_fevals": 4
+    },
+    "gd": {
+      "both_success_cases": 214,
+      "natural_lower_fraction": 0.8037383177570093,
+      "equal_fraction": 0.028037383177570093,
+      "natural_higher_fraction": 0.16822429906542055,
+      "median_natural_minus_other_fevals": -13
+    },
+    "static_fisher": {
+      "both_success_cases": 328,
+      "natural_lower_fraction": 0.04878048780487805,
+      "equal_fraction": 0.9512195121951219,
+      "natural_higher_fraction": 0,
+      "median_natural_minus_other_fevals": 0
+    }
+  },
+  "natural_gradient_by_initial_sigma_factor": [
+    {
+      "factor": 0.01,
+      "success_rate": 1,
+      "median_iterations": 629,
+      "median_fevals": 635.5
+    },
+    {
+      "factor": 0.1,
+      "success_rate": 1,
+      "median_iterations": 230,
+      "median_fevals": 232
+    },
+    {
+      "factor": 1,
+      "success_rate": 1,
+      "median_iterations": 10.5,
+      "median_fevals": 11.5
+    },
+    {
+      "factor": 10,
+      "success_rate": 1,
+      "median_iterations": 8,
+      "median_fevals": 9
+    },
+    {
+      "factor": 100,
+      "success_rate": 1,
+      "median_iterations": 12,
+      "median_fevals": 13
+    }
+  ],
+  "jacobi_hessian_by_initial_sigma_factor": [
+    {
+      "factor": 0.01,
+      "success_rate": 1,
+      "median_iterations": 12,
+      "median_fevals": 13
+    },
+    {
+      "factor": 0.1,
+      "success_rate": 1,
+      "median_iterations": 8,
+      "median_fevals": 9
+    },
+    {
+      "factor": 1,
+      "success_rate": 1,
+      "median_iterations": 3.5,
+      "median_fevals": 5
+    },
+    {
+      "factor": 10,
+      "success_rate": 1,
+      "median_iterations": 4,
+      "median_fevals": 7.5
+    },
+    {
+      "factor": 100,
+      "success_rate": 1,
+      "median_iterations": 5,
+      "median_fevals": 15
+    }
+  ],
+  "interpretation": {
+    "supported": "Exact Fisher natural gradient removed the severe truth-scale sensitivity of unpreconditioned gradient descent and succeeded in every tested scenario.",
+    "attacking": "A generic adaptive Hessian-diagonal preconditioner and exact-Hessian trust-region method also succeeded in every scenario. The Jacobi preconditioner used fewer function evaluations than natural gradient in 64.6% of matched cases, and trust-exact did so in 65.0%.",
+    "boundary": "This is a synthetic Normal-family discovery benchmark, not a climate likelihood and not claim evidence. It motivates a preregistered confirmation that treats strong generic preconditioning as a required baseline rather than comparing natural gradient only with raw gradient descent."
+  }
+}

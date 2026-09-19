@@ -49,6 +49,10 @@ A JAX 0.9.0.1 `jacfwd` route independently differentiated all five analytic geom
 
 A follow-up FP64 stress separated derivative correctness from downstream geometry conditioning. On the sphere polar chart, JAX metric derivatives remained exact while the metric condition number grew from about `1e2` to `1e16`; scalar-curvature error grew from `3.6e-15` to `0.5`, collapsing at the most singular sample. On the Poincaré fixture, the metric remained isotropically conditioned (`κ₂=1`) while component magnitudes diverged near the disk boundary; absolute derivative error grew, but scale-normalized error remained near machine epsilon and scalar curvature stayed at `-2`. See `jax-geometry-conditioning-stress.json`. This supports keeping derivative validation, scale-aware tolerance, and conditioning/refusal as distinct contracts.
 
+## Information-geometry recovery discovery
+
+A 500-scenario Normal location-scale recovery sweep tested truth scales from `0.01` to `100`, five initial scale errors from `0.01x` to `100x`, two mean offsets, and ten synthetic train/holdout seeds. Exact-Fisher natural gradient succeeded in all 500 scenarios and strongly improved on unpreconditioned gradient descent (`42.8%` success). However, a generic adaptive Hessian-diagonal/Jacobi preconditioner also succeeded in all 500 and used fewer function evaluations than natural gradient in `64.6%` of matched cases; SciPy `trust-exact` did so in `65.0%`. This is exploratory attacking evidence against attributing robust recovery to Fisher geometry when an equally informed generic curvature baseline is available. See `information-geometry-recovery-discovery.json`; a confirmation experiment must be preregistered before this affects claim authority.
+
 ## Resource accounting
 
 No GitHub Codespaces compute was consumed by this campaign.
