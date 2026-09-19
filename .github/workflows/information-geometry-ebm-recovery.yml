@@ -1,0 +1,109 @@
+name: Information-geometry EBM recovery confirmation
+
+on:
+  push:
+    paths:
+      - 'reference/information_geometry_ebm_recovery.py'
+      - 'reference/two_layer_energy_balance.py'
+      - 'reference/two_layer_forcing_protocols.py'
+      - 'reference/two_layer_parameter_identifiability.py'
+      - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
+      - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
+      - 'fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json'
+      - 'experiments/information-geometry-two-layer-ebm-recovery-confirmation.v1.json'
+      - 'methods/registry.json'
+      - 'requirements/reference-two-layer-ebm.txt'
+      - 'tests/reference/test_information_geometry_ebm_recovery.py'
+      - '.github/workflows/information-geometry-ebm-recovery.yml'
+  pull_request:
+    paths:
+      - 'reference/information_geometry_ebm_recovery.py'
+      - 'reference/two_layer_energy_balance.py'
+      - 'reference/two_layer_forcing_protocols.py'
+      - 'reference/two_layer_parameter_identifiability.py'
+      - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
+      - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
+      - 'fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json'
+      - 'experiments/information-geometry-two-layer-ebm-recovery-confirmation.v1.json'
+      - 'methods/registry.json'
+      - 'requirements/reference-two-layer-ebm.txt'
+      - 'tests/reference/test_information_geometry_ebm_recovery.py'
+      - '.github/workflows/information-geometry-ebm-recovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  confirmation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements/reference-two-layer-ebm.txt
+      - name: Install pinned EBM reference dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements/reference-two-layer-ebm.txt
+      - name: Record implementation versions
+        run: |
+          python --version
+          python - <<'PY'
+          import numpy
+          import scipy
+          print(f"numpy {numpy.__version__}")
+          print(f"scipy {scipy.__version__}")
+          PY
+      - name: Run focused confirmation-control tests
+        run: python -m unittest discover -s tests/reference -p 'test_information_geometry_ebm_recovery.py' -v
+      - name: Execute frozen 16-trial confirmation
+        run: |
+          mkdir -p run-artifacts/information-geometry-ebm-recovery
+          python reference/information_geometry_ebm_recovery.py \
+            --output run-artifacts/information-geometry-ebm-recovery/result.json
+      - name: Verify confirmation result shape and frozen thresholds
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("run-artifacts/information-geometry-ebm-recovery/result.json")
+          result = json.loads(path.read_text(encoding="utf-8"))
+
+          if result["trial_count"] != 16:
+              raise SystemExit(f"expected 16 confirmation trials, got {result['trial_count']}")
+          required = {
+              "information_geometry.natural_gradient.armijo_v1",
+              "optimization.scipy_trf_least_squares.jac_scaled_v1",
+              "optimization.scipy_lbfgsb.exact_gradient_v1",
+              "information_geometry.fixed_initial_fisher.armijo_v1",
+          }
+          if set(result["summaries"]) != required:
+              raise SystemExit("confirmation result method set changed")
+          for method_id, summary in result["summaries"].items():
+              if summary["trial_count"] != 16:
+                  raise SystemExit(f"{method_id} did not report all 16 trials")
+          equivalence = result["gauss_newton_equivalence"]
+          if equivalence["max_relative_step_difference"] > equivalence["threshold"]:
+              raise SystemExit(
+                  "Fisher/Gauss-Newton step identity exceeded frozen threshold: "
+                  f"{equivalence['max_relative_step_difference']} > {equivalence['threshold']}"
+              )
+          comparison = result["primary_comparison"]
+          print(json.dumps({
+              "natural": result["summaries"]["information_geometry.natural_gradient.armijo_v1"],
+              "trf": result["summaries"]["optimization.scipy_trf_least_squares.jac_scaled_v1"],
+              "lbfgsb": result["summaries"]["optimization.scipy_lbfgsb.exact_gradient_v1"],
+              "fixed_fisher": result["summaries"]["information_geometry.fixed_initial_fisher.armijo_v1"],
+              "primary_comparison": comparison,
+              "gauss_newton_equivalence": equivalence,
+          }, indent=2, sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: information-geometry-ebm-recovery-confirmation
+          path: run-artifacts/information-geometry-ebm-recovery/result.json
+          if-no-files-found: error
+          retention-days: 30
