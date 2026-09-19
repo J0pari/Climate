@@ -181,6 +181,13 @@
       "max_abs_scalar_curvature_error": 0.0000026206714665022446,
       "result_uri": "jax-geometry-ad-witness-fp32.json"
     },
-    "promotion": "exploratory_non_promotional"
+    "promotion": "exploratory_non_promotional",
+    "conditioning_stress": {
+      "repository_revision": "552652f68eb98d7aa2604669336c523ef68917c9",
+      "result_uri": "jax-geometry-conditioning-stress.json",
+      "sphere_polar_chart": "Derivative error remains zero while curvature degrades as chart condition number approaches 1e12–1e16.",
+      "poincare_radial_boundary": "Absolute derivative error grows with component scale while normalized error remains near FP64 epsilon and curvature stays stable.",
+      "interpretation": "Exploratory non-promotional stress; derivative correctness does not replace canonical conditioning/refusal semantics."
+    }
   }
 }

@@ -45,6 +45,10 @@ A follow-up exploratory seed-offset robustness sweep evaluated eight independent
 
 A JAX 0.9.0.1 `jacfwd` route independently differentiated all five analytic geometry fixtures at 64 interior points each and compared first/second metric derivatives with exact SymPy derivatives. In FP64, the worst first-derivative, second-derivative, and scalar-curvature errors were `2.13e-14`, `1.71e-13`, and `3.55e-15`. In FP32 they rose to `1.02e-5`, `9.68e-5`, and `2.62e-6`, respectively. This is an exploratory maintained-library AD witness, not yet a canonical repository execution route.
 
+### Conditioning stress
+
+A follow-up FP64 stress separated derivative correctness from downstream geometry conditioning. On the sphere polar chart, JAX metric derivatives remained exact while the metric condition number grew from about `1e2` to `1e16`; scalar-curvature error grew from `3.6e-15` to `0.5`, collapsing at the most singular sample. On the Poincaré fixture, the metric remained isotropically conditioned (`κ₂=1`) while component magnitudes diverged near the disk boundary; absolute derivative error grew, but scale-normalized error remained near machine epsilon and scalar curvature stayed at `-2`. See `jax-geometry-conditioning-stress.json`. This supports keeping derivative validation, scale-aware tolerance, and conditioning/refusal as distinct contracts.
+
 ## Resource accounting
 
 No GitHub Codespaces compute was consumed by this campaign.

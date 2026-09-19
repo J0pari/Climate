@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "classification": "exploratory_non_promotional",
+  "repository_revision": "552652f68eb98d7aa2604669336c523ef68917c9",
+  "route": "JAX 0.9.0.1 jacfwd FP64 metric derivatives plus direct Levi-Civita scalar-curvature evaluation",
+  "purpose": "Separate derivative-generation accuracy from downstream conditioning and scale effects near analytic chart/domain boundaries.",
+  "sphere_polar_chart": {
+    "expected_scalar_curvature": 0.5,
+    "fixed_phi": 0.7,
+    "samples": [
+      [
+        0.1,
+        100.33400105968445,
+        0,
+        0,
+        0.5000000000000036,
+        3.552713678800501e-15
+      ],
+      [
+        0.01,
+        10000.333340000107,
+        0,
+        0,
+        0.5000000000010375,
+        1.0375034165122088e-12
+      ],
+      [
+        0.001,
+        1000000.3333334001,
+        0,
+        0,
+        0.49999999990455435,
+        9.544565138241978e-11
+      ],
+      [
+        0.0001,
+        100000000.33333333,
+        0,
+        0,
+        0.5000000030392558,
+        3.0392558469927167e-9
+      ],
+      [
+        0.00001,
+        10000000000.333332,
+        0,
+        0,
+        0.4999997431376699,
+        2.568623300724937e-7
+      ],
+      [
+        0.000001,
+        1000000000000.3335,
+        0,
+        0,
+        0.5001110158775343,
+        0.00011101587753425957
+      ],
+      [
+        1e-7,
+        100000000000000.34,
+        0,
+        0,
+        0.4970246229790982,
+        0.0029753770209017816
+      ],
+      [
+        1e-8,
+        9999999999999998,
+        0,
+        0,
+        0,
+        0.5
+      ]
+    ],
+    "columns": [
+      "theta",
+      "metric_condition_number_2",
+      "first_abs_error",
+      "second_abs_error",
+      "scalar_curvature",
+      "scalar_curvature_abs_error"
+    ],
+    "interpretation": "AD derivatives remain exact for this analytic metric while inversion/contraction error grows with chart conditioning; derivative correctness is not a conditioning guarantee."
+  },
+  "poincare_radial_boundary": {
+    "expected_scalar_curvature": -2,
+    "fixed_y": 0,
+    "samples": [
+      [
+        0.5,
+        1,
+        7.111111111111111,
+        18.962962962962962,
+        113.77777777777777,
+        0,
+        0,
+        0,
+        0,
+        -2,
+        0
+      ],
+      [
+        0.8,
+        1,
+        30.864197530864217,
+        274.34842249657095,
+        4000.914494741661,
+        0,
+        0,
+        9.094947017729282e-13,
+        2.273217043174161e-16,
+        -1.999999999999999,
+        1.1102230246251565e-15
+      ],
+      [
+        0.9,
+        1,
+        110.80332409972306,
+        2099.431403994753,
+        62000.75198931876,
+        4.547473508864641e-13,
+        2.1660500553682327e-16,
+        7.275957614183426e-12,
+        1.173527317126234e-16,
+        -2,
+        0
+      ],
+      [
+        0.95,
+        1,
+        420.77580539118975,
+        16399.467287041236,
+        976000.6846943565,
+        0,
+        0,
+        2.3283064365386963e-10,
+        2.3855581999594874e-16,
+        -2.000000000000001,
+        8.881784197001252e-16
+      ],
+      [
+        0.99,
+        1,
+        10100.75503143857,
+        2009999.4936933005,
+        602000000.6363789,
+        2.3283064365386963e-10,
+        1.158361702997506e-16,
+        0,
+        0,
+        -2.0000000000000004,
+        4.440892098500626e-16
+      ],
+      [
+        0.999,
+        1,
+        1001000.7505003397,
+        2000999999.4994557,
+        6002000000000.951,
+        4.76837158203125e-7,
+        2.38299429446479e-16,
+        0.001953125,
+        3.2541236254576647e-16,
+        -2,
+        0
+      ],
+      [
+        0.9999,
+        1,
+        100010000.75012228,
+        2000100000001.6685,
+        60002000000086744,
+        0.000244140625,
+        1.220642092894337e-16,
+        16,
+        2.666577780736787e-16,
+        -2,
+        0
+      ]
+    ],
+    "columns": [
+      "radius",
+      "metric_condition_number_2",
+      "metric_max_abs",
+      "first_derivative_max_abs",
+      "second_derivative_max_abs",
+      "first_abs_error",
+      "first_scaled_error",
+      "second_abs_error",
+      "second_scaled_error",
+      "scalar_curvature",
+      "scalar_curvature_abs_error"
+    ],
+    "interpretation": "The isotropic metric stays condition-number 1 while component magnitudes diverge near the disk boundary; absolute errors grow with scale while normalized errors remain near machine epsilon."
+  },
+  "conclusion": "Derivative-generation accuracy, scale-aware acceptance, and downstream conditioning/refusal are distinct numerical contracts."
+}
