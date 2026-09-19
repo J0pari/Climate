@@ -44,6 +44,23 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/information_geometry_ebm_recovery.py",
+      "family": "reference_information_geometry_ebm_recovery",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "preregistered synthetic two-layer EBM parameter-recovery confirmation comparing a local Fisher natural-gradient candidate against SciPy-owned Jacobian-scaled trust-region least squares and L-BFGS-B under identical fixed Gaussian observations, parameter bounds, held-out forcing histories, and existing Climate EBM/sensitivity semantics",
+      "claim_ids": [
+        "climate.information_geometry.optimization"
+      ],
+      "known_gaps": [
+        "the fixed-variance Gaussian likelihood makes the full-rank local Fisher natural-gradient direction algebraically identical to ordinary Gauss-Newton, so this benchmark tests globalization and recovery behavior rather than a distinct local search direction",
+        "the synthetic two-layer EBM omits forcing uncertainty, model discrepancy, priors, non-Gaussian observation error, and real-climate calibration",
+        "the executor is an independent reference experiment and does not by itself promote claim maturity or create evidence authority"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/information_geometry_sympy.py",
       "family": "reference_information_geometry",
       "language": "python",
