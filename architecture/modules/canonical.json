@@ -36,10 +36,11 @@
       "family": "ncei_ghcnh_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical GHCNh provider-catalog adapter that parses the documented global fixed-width station list, preserves the captured catalog digest, creates distinct hourly-provider roots for unmatched stations, and emits explicit digest-bound aliases for stations sharing NCEI-managed GHCN identifiers with captured GHCN-Daily roots",
+      "intended_role": "canonical GHCNh provider adapter that parses the documented global fixed-width station list, federates exact shared GHCN identifiers as explicit digest-bound aliases, creates distinct hourly-provider roots for unmatched stations, and streams self-describing station/year PSV rows to bounded canonical station/shard/year sinks while preserving every provider field including source/QC attributes",
       "known_gaps": [
-        "this slice realizes GHCNh station catalog federation only; hourly PSV/Parquet observation routing and immutable partition publication remain a separate provider adapter obligation",
+        "hourly PSV routing is streaming and lossless at the provider-field boundary, but immutable content-addressed partition publication for GHCNh remains a separate adapter obligation",
         "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
+        "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations rather than ingestion defaults",
         "shared identity uses exact documented GHCN identifier equality only and does not infer crosswalks from names, coordinates, ICAO codes, WMO codes, or proximity"
       ],
       "authority_kind": "canonical_implementation",

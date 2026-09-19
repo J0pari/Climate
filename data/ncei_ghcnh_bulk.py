@@ -10,17 +10,20 @@ observation routing/publication remains a separate adapter obligation.
 """
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
 import hashlib
 import json
 import math
-from typing import Sequence
+from datetime import datetime
+from typing import Iterable, Protocol, Sequence
 
 from src.station_federation import (
     AliasBinding,
     CrossProviderAliasEvidence,
     FederatedStation,
     ProviderAlias,
+    StationCatalogShard,
     StationLocationEpoch,
     apply_cross_provider_alias_evidence,
     canonical_station_id,
@@ -79,6 +82,66 @@ class GHCNhStationCatalog:
     records: tuple[GHCNhStationRecord, ...]
     sha256: str
     source_url: str = STATION_LIST_URL
+
+
+@dataclass(frozen=True, order=True)
+class GHCNhObservationPartitionKey:
+    source_id: str
+    spatial_partition: str
+    year: int
+
+
+@dataclass(frozen=True)
+class RoutedGHCNhObservation:
+    canonical_station_id: str
+    observation_datetime: str
+    provider_fields: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class GHCNhRoutingSummary:
+    row_count: int
+    partition_count: int
+    field_names: tuple[str, ...]
+
+
+class GHCNhObservationSink(Protocol):
+    def write(
+        self,
+        key: GHCNhObservationPartitionKey,
+        record: RoutedGHCNhObservation,
+    ) -> None:
+        ...
+
+
+class GHCNhAliasShardLookup:
+    """Resolve captured GHCNh aliases to canonical station/shard identity."""
+
+    def __init__(self, shards: Sequence[StationCatalogShard]) -> None:
+        mapping: dict[str, tuple[str, str]] = {}
+        for shard in shards:
+            for station in shard.stations:
+                for binding in station.aliases:
+                    alias = binding.alias
+                    if alias.source_id != SOURCE_ID:
+                        continue
+                    previous = mapping.get(alias.provider_station_id)
+                    value = (station.canonical_station_id, shard.shard_id)
+                    if previous is not None and previous != value:
+                        raise ValueError(
+                            "GHCNh alias resolves to multiple canonical stations/shards"
+                        )
+                    mapping[alias.provider_station_id] = value
+        self._mapping = mapping
+
+    def resolve(self, station_id: str) -> tuple[str, str]:
+        try:
+            return self._mapping[station_id]
+        except KeyError as exc:
+            raise ValueError(
+                f"GHCNh station {station_id!r} is absent from the captured "
+                "federation catalog"
+            ) from exc
 
 
 @dataclass(frozen=True)
@@ -265,4 +328,78 @@ def federate_station_catalog(
         crosswalk_evidence_digest=crosswalk_digest,
         shared_station_count=len(shared),
         new_root_station_count=len(catalog.records) - len(shared),
+    )
+
+def stream_station_year_psv(
+    lines: Iterable[str],
+    *,
+    expected_year: int,
+    lookup: GHCNhAliasShardLookup,
+    sink: GHCNhObservationSink,
+) -> GHCNhRoutingSummary:
+    """Stream one GHCNh station/year PSV without normalizing provider fields."""
+    if expected_year < 0:
+        raise ValueError("expected_year must be non-negative")
+
+    reader = csv.DictReader(lines, delimiter="|")
+    field_names = tuple(reader.fieldnames or ())
+    if not field_names:
+        raise ValueError("GHCNh PSV requires a header row")
+    if len(set(field_names)) != len(field_names):
+        raise ValueError("GHCNh PSV header contains duplicate field names")
+    for required in ("STATION", "DATE"):
+        if required not in field_names:
+            raise ValueError(f"GHCNh PSV header is missing required field {required!r}")
+
+    row_count = 0
+    partitions: set[GHCNhObservationPartitionKey] = set()
+    for row_number, row in enumerate(reader, start=2):
+        if None in row:
+            raise ValueError(
+                f"GHCNh PSV row {row_number} contains more values than the header"
+            )
+        if any(value is None for value in row.values()):
+            raise ValueError(
+                f"GHCNh PSV row {row_number} contains fewer values than the header"
+            )
+        station_id = row["STATION"].strip()
+        timestamp = row["DATE"].strip()
+        if not station_id:
+            raise ValueError(f"GHCNh PSV row {row_number} has empty STATION")
+        if not timestamp:
+            raise ValueError(f"GHCNh PSV row {row_number} has empty DATE")
+        try:
+            parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError(
+                f"GHCNh PSV row {row_number} DATE is not ISO-8601"
+            ) from exc
+        if parsed.year != expected_year:
+            raise ValueError(
+                f"GHCNh PSV row {row_number} year {parsed.year} does not match "
+                f"artifact year {expected_year}"
+            )
+
+        canonical_station_id, shard_id = lookup.resolve(station_id)
+        key = GHCNhObservationPartitionKey(
+            source_id=SOURCE_ID,
+            spatial_partition=shard_id,
+            year=expected_year,
+        )
+        record = RoutedGHCNhObservation(
+            canonical_station_id=canonical_station_id,
+            observation_datetime=timestamp,
+            provider_fields=tuple(
+                (name, row[name])
+                for name in field_names
+            ),
+        )
+        sink.write(key, record)
+        partitions.add(key)
+        row_count += 1
+
+    return GHCNhRoutingSummary(
+        row_count=row_count,
+        partition_count=len(partitions),
+        field_names=field_names,
     )

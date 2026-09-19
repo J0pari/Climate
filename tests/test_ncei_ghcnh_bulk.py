@@ -4,13 +4,16 @@ import unittest
 
 from data.ncei_ghcnh_bulk import (
     SOURCE_ID,
+    GHCNhAliasShardLookup,
     federate_station_catalog,
     parse_station_catalog,
+    stream_station_year_psv,
 )
 from src.station_federation import (
     AliasBinding,
     FederatedStation,
     ProviderAlias,
+    StationCatalogShard,
     StationLocationEpoch,
     canonical_station_id,
 )
@@ -143,6 +146,86 @@ class GHCNhFederationTests(unittest.TestCase):
         self.assertEqual(result.shared_station_count, 0)
         self.assertEqual(result.new_root_station_count, 1)
         self.assertEqual(len(result.stations), 2)
+
+    def test_psv_stream_preserves_raw_provider_qc_and_source_fields(self):
+        daily = daily_station("USW00094846")
+        catalog = parse_station_catalog(
+            station_line(
+                "USW00094846", 41.98, -87.90, 204.0, "CHICAGO OHARE"
+            ).encode("ascii")
+        )
+        result = federate_station_catalog(
+            (daily,),
+            catalog,
+            metadata_effective_date="2026-09-18",
+        )
+        shard = StationCatalogShard("cell-1", "cell-1", result.stations)
+        lookup = GHCNhAliasShardLookup((shard,))
+        writes = []
+
+        class Sink:
+            def write(self, key, record):
+                writes.append((key, record))
+
+        summary = stream_station_year_psv(
+            [
+                "STATION|DATE|temperature|temperature_QC|SOURCE|Remarks\n",
+                "USW00094846|2026-09-18T12:00:00Z|19.4|V020|USAF|raw remark\n",
+                "USW00094846|2026-09-18T13:00:00Z||V030|NOAA|\n",
+            ],
+            expected_year=2026,
+            lookup=lookup,
+            sink=Sink(),
+        )
+        self.assertEqual(summary.row_count, 2)
+        self.assertEqual(summary.partition_count, 1)
+        self.assertEqual(writes[0][0].source_id, SOURCE_ID)
+        fields = dict(writes[0][1].provider_fields)
+        self.assertEqual(fields["temperature_QC"], "V020")
+        self.assertEqual(fields["SOURCE"], "USAF")
+        self.assertEqual(fields["Remarks"], "raw remark")
+        self.assertEqual(dict(writes[1][1].provider_fields)["temperature"], "")
+
+    def test_psv_stream_rejects_unknown_station_and_wrong_year(self):
+        station = daily_station("USW00094846")
+        hourly_alias = ProviderAlias(SOURCE_ID, "USW00094846")
+        linked = FederatedStation(
+            canonical_station_id=station.canonical_station_id,
+            aliases=(
+                *station.aliases,
+                AliasBinding(hourly_alias, "provider_crosswalk", D1),
+            ),
+            location_history=station.location_history,
+            variable_ids=station.variable_ids,
+        )
+        lookup = GHCNhAliasShardLookup(
+            (StationCatalogShard("cell-1", "cell-1", (linked,)),)
+        )
+
+        class Sink:
+            def write(self, key, record):
+                raise AssertionError("invalid row must not reach sink")
+
+        with self.assertRaisesRegex(ValueError, "absent"):
+            stream_station_year_psv(
+                [
+                    "STATION|DATE|temperature\n",
+                    "USW00000000|2026-09-18T12:00:00Z|19.4\n",
+                ],
+                expected_year=2026,
+                lookup=lookup,
+                sink=Sink(),
+            )
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            stream_station_year_psv(
+                [
+                    "STATION|DATE|temperature\n",
+                    "USW00094846|2025-09-18T12:00:00Z|19.4\n",
+                ],
+                expected_year=2026,
+                lookup=lookup,
+                sink=Sink(),
+            )
 
     def test_duplicate_station_identifier_fails_closed(self):
         line = station_line(
