@@ -9,7 +9,7 @@ External implementation ownership does not remove integration correctness from s
 
 ## Planning summary
 
-- Active: 4
+- Active: 5
 - Ready: 16
 - Blocked: 13
 - Done: 16
@@ -22,6 +22,7 @@ External implementation ownership does not remove integration correctness from s
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
 | `integration.aimip_production_archive` — Use the public AIMIP production archive | `active` | `P0` | `R5_large_data` | — |
 | `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_toolchain_ci` | — |
+| `orchestration.codespaces_cpu_experiment_campaign` — Turn included Codespaces CPU into receipted experiments | `active` | `P0` | `R2_toolchain_ci` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
