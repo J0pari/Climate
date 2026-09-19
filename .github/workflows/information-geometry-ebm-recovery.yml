@@ -23,7 +23,6 @@ on:
       - 'reference/two_layer_parameter_identifiability.py'
       - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
       - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
-      - 'fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json'
       - 'experiments/information-geometry-two-layer-ebm-recovery-confirmation.v1.json'
       - 'methods/registry.json'
       - 'requirements/reference-two-layer-ebm.txt'
@@ -91,19 +90,14 @@ jobs:
                   "Fisher/Gauss-Newton step identity exceeded frozen threshold: "
                   f"{equivalence['max_relative_step_difference']} > {equivalence['threshold']}"
               )
-          comparison = result["primary_comparison"]
           print(json.dumps({
               "natural": result["summaries"]["information_geometry.natural_gradient.armijo_v1"],
               "trf": result["summaries"]["optimization.scipy_trf_least_squares.jac_scaled_v1"],
               "lbfgsb": result["summaries"]["optimization.scipy_lbfgsb.exact_gradient_v1"],
               "fixed_fisher": result["summaries"]["information_geometry.fixed_initial_fisher.armijo_v1"],
-              "primary_comparison": comparison,
+              "primary_comparison": result["primary_comparison"],
               "gauss_newton_equivalence": equivalence,
           }, indent=2, sort_keys=True))
           PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: information-geometry-ebm-recovery-confirmation
-          path: run-artifacts/information-geometry-ebm-recovery/result.json
-          if-no-files-found: error
-          retention-days: 30
+      - name: Emit exact confirmation result for repository persistence
+        run: cat run-artifacts/information-geometry-ebm-recovery/result.json
