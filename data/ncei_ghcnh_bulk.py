@@ -15,8 +15,16 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+from pathlib import Path
+import re
 from datetime import datetime
 from typing import Iterable, Protocol, Sequence
+
+from data.ncei_ghcnd_bulk import (
+    DownloadedHTTPArtifact,
+    HTTPRangeTransport,
+    download_resumable_http_artifact,
+)
 
 from src.station_federation import (
     AliasBinding,
@@ -35,6 +43,40 @@ STATION_LIST_URL = (
     "https://www.ncei.noaa.gov/oa/global-historical-climatology-network/"
     "hourly/doc/ghcnh-station-list.txt"
 )
+ARCHIVE_BASE_URL = (
+    "https://www.ncei.noaa.gov/oa/global-historical-climatology-network/"
+    "hourly/archive/"
+)
+_ARCHIVE_NAME = re.compile(
+    r"^ghcn-hourly_v1\.[A-Za-z0-9.]+_d[0-9]{4}_c[0-9]{8}\.tar\.gz$"
+)
+
+
+def download_year_archive(
+    archive_url: str,
+    destination: Path,
+    *,
+    transport: HTTPRangeTransport | None = None,
+    timeout_seconds: float = 120.0,
+    chunk_bytes: int = 1024 * 1024,
+) -> DownloadedHTTPArtifact:
+    """Capture one explicitly versioned/creation-dated GHCNh annual archive."""
+    if not archive_url.startswith(ARCHIVE_BASE_URL):
+        raise ValueError("GHCNh archive URL must use the official NCEI archive path")
+    name = archive_url.removeprefix(ARCHIVE_BASE_URL)
+    if "/" in name or _ARCHIVE_NAME.fullmatch(name) is None:
+        raise ValueError(
+            "GHCNh archive URL must name one versioned data-year/creation-date tar.gz"
+        )
+    return download_resumable_http_artifact(
+        archive_url,
+        destination,
+        transport=transport,
+        timeout_seconds=timeout_seconds,
+        chunk_bytes=chunk_bytes,
+    )
+
+
 
 
 def _sha256(payload: bytes) -> str:

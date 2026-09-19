@@ -25,6 +25,14 @@ from src.station_federation import ObservationPartitionRef
 SCHEMA = "climate-ghcnh-raw-psv-partition/v1"
 MEDIA_TYPE = "application/vnd.climate.ghcnh-raw-psv-partition"
 VARIABLE_ID = "GHCNH_RAW_PSV"
+_IDENTITY_FIELDS = frozenset({"STATION", "DATE"})
+
+
+def _coverage_variable_ids(provider_fields: set[str]) -> tuple[str, ...]:
+    fields = sorted(provider_fields - _IDENTITY_FIELDS)
+    if not fields:
+        return (VARIABLE_ID,)
+    return tuple(f"GHCNH_FIELD:{name}" for name in fields)
 _MEMBER = re.compile(r"^GHCNh_([A-Za-z0-9]{11})_([0-9]{4})\.psv$")
 
 
@@ -154,6 +162,7 @@ class GHCNhRawPartitionSink(GHCNhObservationSink):
             if state.row_count <= 0 or state.time_start is None or state.time_end is None:
                 raise ValueError("GHCNh partition cannot finalize empty state")
             records_digest = "sha256:" + state.hasher.hexdigest()
+            variable_ids = _coverage_variable_ids(state.provider_fields)
             manifest = {
                 "schema": SCHEMA,
                 "source_id": SOURCE_ID,
@@ -162,7 +171,7 @@ class GHCNhRawPartitionSink(GHCNhObservationSink):
                 "year": key.year,
                 "time_start": state.time_start,
                 "time_end": state.time_end,
-                "variable_ids": [VARIABLE_ID],
+                "variable_ids": list(variable_ids),
                 "provider_field_names": sorted(state.provider_fields),
                 "row_count": state.row_count,
                 "records_digest": records_digest,
@@ -192,7 +201,7 @@ class GHCNhRawPartitionSink(GHCNhObservationSink):
                     spatial_partition=key.spatial_partition,
                     time_start=state.time_start,
                     time_end=state.time_end,
-                    variable_ids=(VARIABLE_ID,),
+                    variable_ids=variable_ids,
                     digest=digest,
                     source_revision=self.source_revision,
                     media_type=MEDIA_TYPE,

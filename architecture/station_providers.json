@@ -30,7 +30,8 @@
         "data/ncei_ghcnd_bulk.py::download_by_year_artifact",
         "data/ncei_ghcnd_bulk.py::stream_by_year_partitions",
         "reference/ncei_ghcnd.py::DailySummariesPayload",
-        "reference/station_temperature_sheaf.py::to_station_catalog"
+        "reference/station_temperature_sheaf.py::to_station_catalog",
+        "data/ncei_ghcnd_parquet.py::publish_gzip_by_year"
       ],
       "access": "NCEI HTTPS archive and Common Access Data/Search Service REST APIs",
       "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",
@@ -45,7 +46,7 @@
       "access": "NCEI HTTPS bulk archive and data access applications",
       "license_or_access_constraints": "NOAA public data; source and quality-control attributes remain part of provenance",
       "update_semantics": "Version 1 is updated daily; immutable inputs pin the exact station-list or bulk archive artifact digest, and yearly archive filenames carry product version plus creation date",
-      "revision_identity": "station-catalog federation binds the exact ghcnh-station-list artifact SHA-256; shared GHCN-Daily/GHCNh identifiers are emitted as a separate deterministic crosswalk evidence digest; future hourly observation partitions must bind the exact versioned/creation-dated bulk archive artifact digest before publication",
+      "revision_identity": "station-catalog federation binds the exact ghcnh-station-list artifact SHA-256; shared GHCN-Daily/GHCNh identifiers are emitted as a separate deterministic crosswalk evidence digest; annual observations require an explicit versioned/creation-dated official archive URL, use resumable validator/content-length capture, and bind every published raw partition to the captured compressed archive SHA-256",
       "geographic_scope": "global",
       "station_identity_namespace": "GHCNh managed GHCN identifier",
       "discovery_mode": "provider_catalog",
@@ -53,7 +54,9 @@
       "current_boundaries": [
         "data/ncei_ghcnh_bulk.py::parse_station_catalog",
         "data/ncei_ghcnh_bulk.py::federate_station_catalog",
-        "data/ncei_ghcnh_partition.py::publish_year_archive"
+        "data/ncei_ghcnh_partition.py::publish_year_archive",
+        "data/ncei_ghcnh_bulk.py::download_year_archive",
+        "data/ncei_ghcnh_bulk.py::stream_station_year_psv"
       ]
     }
   ]

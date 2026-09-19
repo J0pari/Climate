@@ -36,7 +36,7 @@
       "family": "ncei_ghcnh_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical GHCNh provider adapter that parses the documented global fixed-width station list, federates exact shared GHCN identifiers as explicit digest-bound aliases, creates distinct hourly-provider roots for unmatched stations, and streams self-describing station/year PSV rows to bounded canonical station/shard/year sinks while preserving every provider field including source/QC attributes",
+      "intended_role": "canonical GHCNh provider adapter that parses the documented global fixed-width station list, captures explicitly versioned annual archives through the resumable immutable HTTP transport, federates exact shared GHCN identifiers as explicit digest-bound aliases, creates distinct hourly-provider roots for unmatched stations, and streams self-describing station/year PSV rows while preserving every provider field including source/QC attributes",
       "known_gaps": [
         "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
         "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations rather than ingestion defaults",
@@ -50,11 +50,11 @@
       "family": "ncei_ghcnh_raw_partition_publication",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical bounded-memory publication adapter for captured annual GHCNh tar archives, streaming station PSV members through canonical alias/shard routing into immutable content-addressed spatial/year raw-row partitions that preserve every provider field and bind the compressed source archive SHA-256",
+      "intended_role": "canonical bounded-memory publication adapter for captured annual GHCNh tar archives, streaming station PSV members through canonical alias/shard routing into immutable content-addressed spatial/year raw-row partitions that preserve every provider field, expose exact provider-field availability as prefixed coverage identities, and bind the compressed source archive SHA-256",
       "known_gaps": [
         "the raw partition contract deliberately stores provider fields without physical-unit conversion or quality-policy filtering; downstream projections must interpret documented GHCNh measurement/QC/source codes explicitly",
         "the local content-addressed filesystem is the canonical publication witness; durable remote object-store transport remains an adapter responsibility",
-        "the raw opaque variable identity supports provenance-preserving federation but does not itself expose field-level variable coverage in StationFederationManifest summaries"
+        "coverage variable identities use the explicit GHCNH_FIELD:<provider-header> namespace and therefore expose provider-field availability without claiming a normalized scientific variable ontology"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false
