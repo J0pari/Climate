@@ -66,20 +66,27 @@ jobs:
           target="$PWD/areacella.nc"
           curl --fail --location --silent --show-error "$CMIP6_URL" --output "$target"
           printf '%s  %s\n' "$CMIP6_SHA256" "$target" | sha256sum --check --strict
-      - name: Install pinned ESMValCore owner implementation
+      - name: Checkout pinned ESMValCore owner implementation
         run: |
           set -euo pipefail
           git clone --filter=blob:none https://github.com/ESMValGroup/ESMValCore.git upstream-esmvalcore
           git -C upstream-esmvalcore checkout "$ESMVALCORE_SHA"
-          python -m pip install --disable-pip-version-check ./upstream-esmvalcore
+      - name: Set up ESMValCore native Pixi environment
+        uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e
+        with:
+          manifest-path: upstream-esmvalcore/pyproject.toml
+          lockfile: upstream-esmvalcore/pixi.lock
+          frozen: true
+          environments: esmvalcore
       - name: Apply native ESMValCore regional preprocessing
         run: |
-          python - <<'PY'
+          cd upstream-esmvalcore
+          pixi run -e esmvalcore python - <<'PY'
           import numpy as np
           import iris
           from esmvalcore.preprocessor import extract_region
 
-          cube = iris.load_cube("areacella.nc")
+          cube = iris.load_cube("../areacella.nc")
           assert cube.var_name == "areacella"
           subset = extract_region(
               cube,
@@ -124,7 +131,11 @@ jobs:
           import numpy as np
           from aqua.core.intake_drivers.xarray.netcdf import IntakeNetCDFSource
 
-          source = IntakeNetCDFSource("areacella.nc", chunks=None)
+          source = IntakeNetCDFSource(
+              "areacella.nc",
+              xarray_kwargs={"engine": "h5netcdf"},
+              chunks=None,
+          )
           dataset = source.reader.read()
           assert "areacella" in dataset
           field = dataset["areacella"]
@@ -135,6 +146,7 @@ jobs:
           assert dataset.attrs.get("source_id") == "ACCESS-CM2"
           print("aqua_dims", dict(dataset.sizes))
           print("aqua_area_sum_m2", float(values.sum()))
+          dataset.close()
           PY
 
   aimip-production-archive:
@@ -157,7 +169,7 @@ jobs:
 
           path = (
               "s3://ai-mip/Ai2/ACE2-1-ERA5/aimip/r1i1p1f1/Amon/tas/gn/v20251130/"
-              "tas_Amon_ACE2-1-ERA5_aimip_r1i1p1f1_gn_197810-202412.nc"
+              "tas_Amon_ACE2-ERA5_aimip_r1i1p1f1_gn_197810-202412.nc"
           )
           storage_options = {
               "anon": True,

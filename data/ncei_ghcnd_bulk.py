@@ -271,7 +271,7 @@ def download_resumable_http_artifact(
     Climate owns the immutable identity/checkpoint/digest contract only. curl
     owns HTTP/TLS/redirect/range mechanics. A missing curl executable, changed
     remote validator, unsupported byte range, or curl failure aborts acquisition;
-    no alternate client or unvalidated restart path is selected.
+    no alternate client or unchecked restart path is selected.
     """
     if timeout_seconds <= 0.0:
         raise ValueError("timeout_seconds must be positive")
