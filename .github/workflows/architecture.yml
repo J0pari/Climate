@@ -28,7 +28,7 @@ jobs:
         run: python architecture/check_station_providers.py
       - name: Configuration provenance integrity
         run: python architecture/check_configurations.py
-      - name: Semantic input default integrity
+      - name: No implicit semantic substitution
         run: python architecture/check_semantic_defaults.py
       - name: Workflow artifact persistence integrity
         run: python architecture/check_workflow_artifacts.py
