@@ -231,7 +231,8 @@ def analyze_protocols(
     for protocol in protocols:
         if not isinstance(protocol, dict):
             raise ValueError("forcing protocol must be an object")
-        protocol_id = str(protocol.get("protocol_id", ""))
+        _validate_protocol(protocol)
+        protocol_id = protocol["protocol_id"]
         if protocol_id in ids:
             raise ValueError(f"duplicate forcing protocol {protocol_id}")
         ids.add(protocol_id)
