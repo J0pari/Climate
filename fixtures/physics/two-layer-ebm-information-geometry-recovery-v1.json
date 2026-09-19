@@ -50,13 +50,13 @@
       -0.3978280211579419
     ]
   ],
-  "log_parameter_bound_factor": 10.0,
+  "log_parameter_bound_factor": 10,
   "centered_log_jacobian_step": 0.0001,
   "natural_gradient_policy": {
     "max_iterations": 30,
     "armijo_c1": 0.0001,
     "max_backtracks": 18,
-    "parameter_step_tolerance": 1e-08
+    "parameter_step_tolerance": 1e-8
   },
   "scipy_trf_policy": {
     "max_function_evaluations": 100,
@@ -68,15 +68,18 @@
   "scipy_lbfgsb_policy": {
     "max_iterations": 100,
     "ftol": 1e-12,
-    "gtol": 1e-08,
+    "gtol": 1e-8,
     "max_line_search_steps": 30
   },
   "negative_control": "A fixed Fisher matrix evaluated only at initialization is reported separately and may fail; it is not the strong standard comparator.",
   "confirmation_interpretation": "Natural gradient has a distinct optimization advantage only if it improves held-out likelihood or recovery/cost without reducing convergence relative to the standard Jacobian-aware trust-region baseline. Matched outcomes do not establish a uniquely information-geometric benefit because the local Fisher step equals Gauss-Newton for this likelihood.",
   "primary_comparator": "scipy_trf_least_squares_jac_scaled",
   "interpretation_thresholds": {
-    "heldout_nll_median_abs_delta_equivalence": 1e-06,
-    "log_parameter_rmse_median_abs_delta_equivalence": 1e-06,
+    "heldout_nll_median_abs_delta_equivalence": 0.000001,
+    "log_parameter_rmse_median_abs_delta_equivalence": 0.000001,
     "gauss_newton_step_max_relative_difference": 1e-10
-  }
+  },
+  "trial_pairing": "cartesian_product_dataset_seeds_x_start_log_parameter_offsets",
+  "noise_generation_policy": "For each dataset seed, numpy.default_rng(seed) draws discovery noise first and confirmation noise second; the resulting dataset is reused unchanged across all declared optimizer starts and methods.",
+  "log_parameter_bound_policy": "Each log parameter is bounded to the literature-fixed reference value plus or minus log(log_parameter_bound_factor); every method receives identical bounds."
 }
