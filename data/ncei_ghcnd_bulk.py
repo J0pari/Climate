@@ -19,7 +19,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Iterable, Mapping, Sequence
+from typing import Iterable, Mapping, Protocol, Sequence
 
 from src.station_federation import (
     AliasBinding,
