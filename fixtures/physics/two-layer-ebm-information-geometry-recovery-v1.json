@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "fixture_id": "physics.two-layer-ebm-information-geometry-recovery.v1",
+  "description": "Preregistered confirmation policy for four-parameter two-layer EBM recovery under fixed-variance Gaussian temperature observations, comparing local Fisher natural gradient with standard curvature-aware optimization on held-out forcing histories.",
+  "parameter_ids": [
+    "surface_heat_capacity_w_yr_m2_k",
+    "deep_heat_capacity_w_yr_m2_k",
+    "ocean_heat_exchange_w_m2_k",
+    "climate_feedback_w_m2_k"
+  ],
+  "discovery_protocol_ids": [
+    "held_out_step",
+    "held_out_ramp"
+  ],
+  "confirmation_protocol_ids": [
+    "overshoot_reversal",
+    "sign_reversal"
+  ],
+  "samples_per_segment": 2,
+  "observation_noise_std_k": 0.05,
+  "dataset_seeds": [
+    9401,
+    9402,
+    9403,
+    9404
+  ],
+  "start_log_parameter_offsets": [
+    [
+      1.1489624604452437,
+      0.32490820990623215,
+      0.7185304278682692,
+      0.45616637784607317
+    ],
+    [
+      -0.8574282020234258,
+      0.018871346116603238,
+      -0.0009611247417500302,
+      0.4581310208939504
+    ],
+    [
+      0.4697168471675308,
+      -0.013520566109721077,
+      0.4696093446772749,
+      0.11099977056669497
+    ],
+    [
+      0.5668874444980718,
+      0.4378736353247079,
+      1.0592681954761467,
+      -0.3978280211579419
+    ]
+  ],
+  "log_parameter_bound_factor": 10.0,
+  "centered_log_jacobian_step": 0.0001,
+  "natural_gradient_policy": {
+    "max_iterations": 30,
+    "armijo_c1": 0.0001,
+    "max_backtracks": 18,
+    "parameter_step_tolerance": 1e-08
+  },
+  "scipy_trf_policy": {
+    "max_function_evaluations": 100,
+    "ftol": 1e-10,
+    "xtol": 1e-10,
+    "gtol": 1e-10,
+    "x_scale": "jac"
+  },
+  "scipy_lbfgsb_policy": {
+    "max_iterations": 100,
+    "ftol": 1e-12,
+    "gtol": 1e-08,
+    "max_line_search_steps": 30
+  },
+  "negative_control": "A fixed Fisher matrix evaluated only at initialization is reported separately and may fail; it is not the strong standard comparator.",
+  "confirmation_interpretation": "Natural gradient has a distinct optimization advantage only if it improves held-out likelihood or recovery/cost without reducing convergence relative to the standard Jacobian-aware trust-region baseline. Matched outcomes do not establish a uniquely information-geometric benefit because the local Fisher step equals Gauss-Newton for this likelihood."
+}
