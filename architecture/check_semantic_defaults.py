@@ -73,6 +73,7 @@ SEMANTIC_PREFIXES = (
     "required_", "provided_", "supplied_", "input_", "alternate_",
 )
 SEMANTIC_SUFFIXES = ("_id", "_ref", "_digest", "_policy")
+OPTIONAL_ABSENCE_SEMANTICS = frozenset({"configuration"})
 
 
 @dataclass(frozen=True)
@@ -82,7 +83,7 @@ class Finding:
     message: str
 
 
-def _is_semantic_name(name: str) -> bool:
+def _semantic_base_name(name: str) -> str | None:
     normalized = name.strip().lower()
     changed = True
     while changed:
@@ -92,7 +93,13 @@ def _is_semantic_name(name: str) -> bool:
                 normalized = normalized[len(prefix):]
                 changed = True
                 break
-    return normalized in SEMANTIC_NAMES or normalized.endswith(SEMANTIC_SUFFIXES)
+    if normalized in SEMANTIC_NAMES or normalized.endswith(SEMANTIC_SUFFIXES):
+        return normalized
+    return None
+
+
+def _is_semantic_name(name: str) -> bool:
+    return _semantic_base_name(name) is not None
 
 
 def _reference_symbols(root: Path) -> set[str]:
@@ -196,9 +203,15 @@ def _python_expr_name(node: ast.AST | None) -> str | None:
     return None
 
 
-def _is_semantic_expr(node: ast.AST | None) -> bool:
+def _semantic_expr_name(node: ast.AST | None) -> str | None:
     name = _python_expr_name(node)
-    return name is not None and _is_semantic_name(name)
+    if name is None:
+        return None
+    return _semantic_base_name(name)
+
+
+def _is_semantic_expr(node: ast.AST | None) -> bool:
+    return _semantic_expr_name(node) is not None
 
 
 def _is_none(node: ast.AST | None) -> bool:
@@ -221,21 +234,51 @@ def _target_names(target: ast.AST) -> set[str]:
     return names
 
 
-def _semantic_assignments(statements: list[ast.stmt]) -> set[str]:
-    names: set[str] = set()
+def _is_empty_container(node: ast.AST | None) -> bool:
+    return (
+        isinstance(node, ast.Dict) and not node.keys
+        or isinstance(node, (ast.List, ast.Tuple, ast.Set)) and not node.elts
+    )
+
+
+def _semantic_assignment_values(
+    statements: list[ast.stmt],
+) -> list[tuple[str, ast.AST | None]]:
+    assignments: list[tuple[str, ast.AST | None]] = []
     for statement in statements:
         for node in ast.walk(statement):
             targets: list[ast.AST] = []
+            value: ast.AST | None = None
             if isinstance(node, ast.Assign):
                 targets.extend(node.targets)
+                value = node.value
             elif isinstance(node, ast.AnnAssign):
                 targets.append(node.target)
+                value = node.value
             elif isinstance(node, ast.NamedExpr):
                 targets.append(node.target)
+                value = node.value
             for target in targets:
                 for name in _target_names(target):
                     if _is_semantic_name(name):
-                        names.add(name)
+                        assignments.append((name, value))
+    return assignments
+
+
+def _semantic_replacement_assignments(
+    statements: list[ast.stmt],
+    missing_semantic: str | None = None,
+) -> set[str]:
+    names: set[str] = set()
+    for name, value in _semantic_assignment_values(statements):
+        base = _semantic_base_name(name)
+        if (
+            missing_semantic in OPTIONAL_ABSENCE_SEMANTICS
+            and base == missing_semantic
+            and (_is_none(value) or _is_empty_container(value))
+        ):
+            continue
+        names.add(name)
     return names
 
 
@@ -294,7 +337,7 @@ def _handler_catches_import_failure(handler: ast.ExceptHandler) -> bool:
 
 
 def _handler_has_semantic_substitution(handler: ast.ExceptHandler) -> bool:
-    if _semantic_assignments(handler.body):
+    if _semantic_replacement_assignments(handler.body):
         return True
     return any(
         isinstance(item, (ast.Import, ast.ImportFrom))
@@ -303,31 +346,77 @@ def _handler_has_semantic_substitution(handler: ast.ExceptHandler) -> bool:
     )
 
 
-def _semantic_unavailable_branch(node: ast.If) -> list[ast.stmt]:
-    test = node.test
+def _semantic_unavailable_branch(
+    test: ast.AST,
+    body: list[ast.stmt],
+    orelse: list[ast.stmt],
+) -> tuple[list[ast.stmt], str | None]:
     if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):
-        if _is_semantic_expr(test.operand):
-            return node.body
+        semantic = _semantic_expr_name(test.operand)
+        if semantic is not None:
+            return body, semantic
 
     if not isinstance(test, ast.Compare):
-        return []
+        return [], None
     if len(test.ops) != 1 or len(test.comparators) != 1:
-        return []
+        return [], None
 
     left = test.left
     right = test.comparators[0]
-    if not _is_semantic_expr(left):
-        return []
-    if not (_is_none(right) or _is_false(right)):
-        return []
-
     op = test.ops[0]
-    if isinstance(op, (ast.Is, ast.Eq)):
-        return node.body
-    if isinstance(op, (ast.IsNot, ast.NotEq)):
-        return node.orelse
-    return []
 
+    semantic = _semantic_expr_name(left)
+    if semantic is not None and (_is_none(right) or _is_false(right)):
+        if isinstance(op, (ast.Is, ast.Eq)):
+            return body, semantic
+        if isinstance(op, (ast.IsNot, ast.NotEq)):
+            return orelse, semantic
+
+    if isinstance(left, ast.Constant) and isinstance(left.value, str):
+        semantic = _semantic_base_name(left.value)
+        if semantic is not None:
+            if isinstance(op, ast.NotIn):
+                return body, semantic
+            if isinstance(op, ast.In):
+                return orelse, semantic
+
+    return [], None
+
+
+def _semantic_unavailable_expression(
+    node: ast.IfExp,
+) -> tuple[ast.AST | None, str | None]:
+    test = node.test
+    if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):
+        semantic = _semantic_expr_name(test.operand)
+        if semantic is not None:
+            return node.body, semantic
+
+    if not isinstance(test, ast.Compare):
+        return None, None
+    if len(test.ops) != 1 or len(test.comparators) != 1:
+        return None, None
+
+    left = test.left
+    right = test.comparators[0]
+    op = test.ops[0]
+
+    semantic = _semantic_expr_name(left)
+    if semantic is not None and (_is_none(right) or _is_false(right)):
+        if isinstance(op, (ast.Is, ast.Eq)):
+            return node.body, semantic
+        if isinstance(op, (ast.IsNot, ast.NotEq)):
+            return node.orelse, semantic
+
+    if isinstance(left, ast.Constant) and isinstance(left.value, str):
+        semantic = _semantic_base_name(left.value)
+        if semantic is not None:
+            if isinstance(op, ast.NotIn):
+                return node.body, semantic
+            if isinstance(op, ast.In):
+                return node.orelse, semantic
+
+    return None, None
 
 def _explicit_unavailable_return(value: ast.AST | None) -> bool:
     if value is None or _is_none(value):
@@ -480,6 +569,22 @@ def _check_python(relative_path: str, text: str) -> list[Finding]:
                 ),
             ))
 
+        if isinstance(node, ast.IfExp):
+            unavailable_value, semantic = _semantic_unavailable_expression(node)
+            if (
+                unavailable_value is not None
+                and semantic not in OPTIONAL_ABSENCE_SEMANTICS
+                and not _explicit_unavailable_return(unavailable_value)
+            ):
+                findings.append(Finding(
+                    "semantic_substitution.python_conditional_coalescing",
+                    relative_path,
+                    (
+                        f"line {node.lineno}: missing semantic {semantic!r} is "
+                        "replaced by a successful conditional-expression value"
+                    ),
+                ))
+
         if isinstance(node, ast.Try):
             import_try = _try_contains_import(node)
             for handler in node.handlers:
@@ -513,9 +618,13 @@ def _check_python(relative_path: str, text: str) -> list[Finding]:
                     ))
 
         if isinstance(node, ast.If):
-            branch = _semantic_unavailable_branch(node)
+            branch, semantic = _semantic_unavailable_branch(
+                node.test,
+                node.body,
+                node.orelse,
+            )
             if branch and not _fail_closed_block(branch):
-                assigned = _semantic_assignments(branch)
+                assigned = _semantic_replacement_assignments(branch, semantic)
                 if assigned:
                     findings.append(Finding(
                         "semantic_substitution.python_availability_rewrite",
@@ -526,7 +635,10 @@ def _check_python(relative_path: str, text: str) -> list[Finding]:
                             "or require a separately declared alternative"
                         ),
                     ))
-                elif _block_has_success_return(branch):
+                elif (
+                    semantic not in OPTIONAL_ABSENCE_SEMANTICS
+                    and _block_has_success_return(branch)
+                ):
                     findings.append(Finding(
                         "semantic_substitution.python_missing_success",
                         relative_path,
