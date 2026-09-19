@@ -70,6 +70,16 @@ An interactive environment is useful for diagnosis, proof construction, or integ
 
 Repository identity must be explicit before an interactive result is treated as evidence. A stale checkout is a different implementation identity, not an approximation of `main`.
 
+### GitHub Codespaces
+
+GitHub Codespaces is an execution venue for work that already qualifies as `R1_portable_cpu` or `R2_toolchain_ci`; it is not a new resource class and does not weaken a requirement for `R3_cuda_device`, `R4_integrated_system`, or `R5_large_data`. The repository Codespaces environment should therefore reproduce the same experiment identity, method/configuration resolution, failure semantics, and artifact contracts used elsewhere rather than define Codespaces-specific science.
+
+The repository supplies a dev-container bootstrap and a Codespaces campaign runner for the local CPU experiment runtime. Their purpose is to turn otherwise idle included personal-account compute into falsifiable registered runs, not to manufacture activity. A campaign records the exact checkout revision and environment receipt, runs only experiment identities supported by the canonical runtime, writes results under `run-artifacts/`, and leaves durable scientific promotion to the normal evidence registry/review path.
+
+Personal Codespaces included usage, machine availability, billing ownership, and quotas are account-level GitHub policy and may change independently of Climate. Do not hardcode a monthly hour allowance into an experiment or claim. Use included/no-cost capacity when available, configure account spending controls so exhaustion cannot silently become paid execution when that is not intended, stop compute when a campaign is complete, and delete unneeded environments to avoid ongoing storage consumption. Repetition merely to consume quota is not an experiment; repeated runs require a declared stochastic, robustness, scaling, or replication purpose.
+
+A Codespaces result becomes evidence only to the extent its declared resource class is satisfied and its exact environment/revision/artifacts are bound. Network access from a Codespace does not turn an emulated or locally reimplemented external model into an `R4` native-runtime witness, and a small downloaded sample does not turn an `R1`/`R2` run into `R5` large-data evidence.
+
 ### CUDA-equipped device
 
 A CUDA-equipped machine is authoritative only for questions that require real hardware: execution correctness, differential behavior, race/determinism, precision ladders, VRAM/transfers, profiling, and integrated device-resource behavior.
