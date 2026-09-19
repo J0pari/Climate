@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import hashlib
-import io
 import json
 import os
 from pathlib import Path
@@ -260,18 +259,17 @@ def publish_year_archive(
                         raise ValueError(
                             f"GHCNh archive member {basename!r} could not be read"
                         )
-                    with io.TextIOWrapper(
-                        extracted,
-                        encoding="utf-8",
-                        newline="",
-                    ) as text:
-                        stream_station_year_psv(
-                            text,
-                            expected_year=expected_year,
-                            expected_station_id=station_id,
-                            lookup=lookup,
-                            sink=sink,
-                        )
+                    lines = (
+                        line.decode("utf-8")
+                        for line in extracted
+                    )
+                    stream_station_year_psv(
+                        lines,
+                        expected_year=expected_year,
+                        expected_station_id=station_id,
+                        lookup=lookup,
+                        sink=sink,
+                    )
                     member_count += 1
         if member_count == 0:
             raise ValueError("GHCNh annual archive contains no PSV station members")
