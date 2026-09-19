@@ -1,0 +1,180 @@
+{
+  "experiment_id": "information_geometry.two_layer_ebm.recovery_confirmation.v1",
+  "semantic_version": "0.1.0",
+  "question": "Does local Fisher natural-gradient optimization provide parameter-recovery, held-out likelihood, or optimization-cost benefit beyond strong conventional curvature-aware optimization for a fixed-variance Gaussian likelihood over the exact two-layer EBM?",
+  "hypothesis": "If Fisher geometry contributes an optimization advantage beyond generic local curvature on this task, the preregistered local-Fisher natural-gradient method should improve held-out likelihood, log-parameter recovery, or residual-evaluation cost without reducing convergence relative to SciPy Jacobian-scaled trust-region least squares. Equivalent outcomes do not establish a uniquely information-geometric benefit because the local Fisher step equals Gauss-Newton for this likelihood.",
+  "candidate_methods": [
+    "information_geometry.natural_gradient.armijo_v1"
+  ],
+  "baseline_methods": [
+    "optimization.scipy_trf_least_squares.jac_scaled_v1",
+    "optimization.scipy_lbfgsb.exact_gradient_v1",
+    "information_geometry.fixed_initial_fisher.armijo_v1"
+  ],
+  "datasets": [
+    {
+      "id": "physics.two_layer_ebm.geoffroy_mean.v1",
+      "digest": "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9",
+      "source_family": "literature_parameterized_two_layer_energy_balance_reference",
+      "source_version": "1",
+      "variables": [
+        "surface_heat_capacity_w_yr_m2_k",
+        "deep_heat_capacity_w_yr_m2_k",
+        "ocean_heat_exchange_w_m2_k",
+        "climate_feedback_w_m2_k"
+      ],
+      "spatial_domain": "global mean two-reservoir climate control",
+      "grid": "not spatially resolved",
+      "units_metadata": {
+        "surface_heat_capacity": "W yr m^-2 K^-1",
+        "deep_heat_capacity": "W yr m^-2 K^-1",
+        "ocean_heat_exchange": "W m^-2 K^-1",
+        "climate_feedback": "W m^-2 K^-1"
+      },
+      "quality_control_policy": "literature-fixed positive finite reference parameters; truth is used only to generate synthetic observations and score recovery",
+      "citation": "fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json"
+    },
+    {
+      "id": "physics.two_layer_ebm.forcing_protocols.v1",
+      "digest": "sha256:8c761934353feef7563c8a57a96863afbd08ab547d88fc88228a240c9fa16743",
+      "source_family": "deterministic_synthetic_forcing_protocol_fixture",
+      "source_version": "1",
+      "variables": [
+        "held_out_step",
+        "held_out_ramp",
+        "overshoot_reversal",
+        "sign_reversal"
+      ],
+      "time_domain": "step and ramp discovery histories with separately held-out nonmonotone confirmation histories",
+      "units_metadata": {
+        "forcing": "W m^-2",
+        "time": "years",
+        "temperature": "K anomaly"
+      },
+      "quality_control_policy": "protocol identities and forcing histories are immutable; confirmation protocols are never used in fitting",
+      "citation": "fixtures/physics/two-layer-ebm-forcing-protocols-v1.json"
+    },
+    {
+      "id": "physics.two-layer-ebm-information-geometry-recovery.v1",
+      "digest": "sha256:9117ee7949162ab9c5ed2d1eb916642dee3d210ffe4ee5ad62e7f7335a82311b",
+      "source_family": "preregistered_synthetic_parameter_recovery_policy",
+      "source_version": "1",
+      "variables": [
+        "observation_noise_std_k",
+        "dataset_seeds",
+        "start_log_parameter_offsets",
+        "optimizer_policies",
+        "interpretation_thresholds"
+      ],
+      "time_domain": "four fresh synthetic observation realizations crossed with four frozen optimizer starts",
+      "units_metadata": {
+        "observation_noise_std": "K",
+        "log_parameter_offsets": "dimensionless",
+        "optimizer_tolerances": "declared by method policy"
+      },
+      "quality_control_policy": "all seeds, starts, bounds, optimizer tolerances, pairing, confirmation thresholds, and interpretation rules were committed before confirmation execution",
+      "citation": "fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json"
+    }
+  ],
+  "primary_metrics": [
+    {
+      "metric_id": "information_geometry.recovery.gauss_newton_step_max_relative_difference",
+      "semantic_version": "0.1.0",
+      "units": "relative vector difference",
+      "direction": "lower",
+      "target": 1e-10,
+      "aggregation_domain": "local Fisher natural-gradient step versus ordinary least-squares Gauss-Newton step at the frozen optimizer starts on the first fresh discovery dataset",
+      "missing_data_policy": "all four frozen starts require finite full-rank Jacobians",
+      "uncertainty_method": "deterministic numerical identity witness under the fixed Gaussian likelihood"
+    },
+    {
+      "metric_id": "information_geometry.recovery.heldout_nll_median_delta_natural_minus_trf",
+      "semantic_version": "0.1.0",
+      "units": "negative log likelihood per observation",
+      "direction": "target",
+      "target": 0,
+      "aggregation_domain": "median across the 16 matched fresh seed/start trials on held-out overshoot/reversal and sign-reversal forcing histories",
+      "missing_data_policy": "all 16 matched trials are required; optimizer nonconvergence remains part of method diagnostics rather than dropping the trial",
+      "uncertainty_method": "matched synthetic confirmation trials"
+    },
+    {
+      "metric_id": "information_geometry.recovery.log_parameter_rmse_median_delta_natural_minus_trf",
+      "semantic_version": "0.1.0",
+      "units": "log-parameter RMSE",
+      "direction": "target",
+      "target": 0,
+      "aggregation_domain": "median recovery error difference across the 16 matched fresh seed/start trials",
+      "missing_data_policy": "all four parameter coordinates and all 16 trials are required",
+      "uncertainty_method": "matched synthetic confirmation trials"
+    }
+  ],
+  "secondary_metrics": [
+    {
+      "metric_id": "information_geometry.recovery.natural_gradient_convergence_rate",
+      "semantic_version": "0.1.0",
+      "units": "fraction",
+      "direction": "descriptive",
+      "aggregation_domain": "16 preregistered matched trials",
+      "missing_data_policy": "every declared trial is counted"
+    },
+    {
+      "metric_id": "information_geometry.recovery.trf_convergence_rate",
+      "semantic_version": "0.1.0",
+      "units": "fraction",
+      "direction": "descriptive",
+      "aggregation_domain": "16 preregistered matched trials",
+      "missing_data_policy": "every declared trial is counted"
+    },
+    {
+      "metric_id": "information_geometry.recovery.residual_evaluation_median_delta_natural_minus_trf",
+      "semantic_version": "0.1.0",
+      "units": "residual evaluations",
+      "direction": "descriptive",
+      "aggregation_domain": "median method-reported standardized-residual evaluation count across 16 matched trials",
+      "missing_data_policy": "all method trials are required; counts are interpreted only within this fixed executor"
+    },
+    {
+      "metric_id": "information_geometry.recovery.distinct_information_geometry_advantage_supported",
+      "semantic_version": "0.1.0",
+      "units": "indicator",
+      "direction": "descriptive",
+      "aggregation_domain": "preregistered interpretation rule comparing candidate outcome, convergence, and cost against the primary TRF comparator",
+      "missing_data_policy": "all primary comparison fields are required"
+    }
+  ],
+  "negative_controls": [
+    "freeze the Fisher matrix at initialization while retaining the same observations, bounds, Armijo policy, and optimization budget",
+    "compare against SciPy Jacobian-scaled trust-region least squares using the same full local centered log-parameter Jacobian rather than only against raw gradient descent",
+    "compare against SciPy L-BFGS-B with the same exact centered-sensitivity gradient and common log-parameter bounds",
+    "use held-out overshoot/reversal and sign-reversal forcing histories only for confirmation scoring and never for parameter fitting"
+  ],
+  "falsifiers": [
+    "the local Fisher and ordinary Gauss-Newton steps disagree beyond the preregistered 1e-10 relative tolerance",
+    "the natural-gradient candidate has lower convergence than the primary TRF comparator without a compensating preregistered held-out likelihood or recovery improvement",
+    "natural gradient and TRF have equivalent held-out likelihood and recovery within preregistered tolerances while natural gradient does not use fewer residual evaluations",
+    "the frozen-Fisher negative control is treated as the primary conventional baseline",
+    "a matched or weaker result is nevertheless described as evidence for a Fisher-specific optimization advantage"
+  ],
+  "split_policy": "Fit only noisy temperatures from held_out_step and held_out_ramp. Score recovery and likelihood on overshoot_reversal and sign_reversal, which remain unavailable to every optimizer during fitting. Four fresh dataset seeds are crossed with four preregistered log-parameter starts for 16 matched trials.",
+  "preprocessing": "Use both EBM temperature-state coordinates in kelvin anomaly. Add fixture-seeded independent Gaussian noise with fixed known standard deviation 0.05 K. Optimize four positive parameters in log coordinates under identical bounds. Use the existing centered log-parameter sensitivity route with fixed step 1e-4.",
+  "seeds": [
+    9401,
+    9402,
+    9403,
+    9404
+  ],
+  "stopping_rule": "Execute exactly the 16 seed/start combinations and all four registered methods under frozen budgets. Report every trial, convergence status, held-out likelihood, log-parameter recovery, residual/Jacobian evaluation counts, and the Gauss-Newton equivalence witness. Do not retune starts, seeds, bounds, tolerances, or interpretation thresholds after execution.",
+  "multiple_comparison_policy": "The primary comparison is local Fisher natural gradient versus SciPy Jacobian-scaled TRF. L-BFGS-B and frozen-initial-Fisher are secondary baseline/negative-control diagnostics and cannot replace the primary comparator after seeing results.",
+  "expected_artifact_types": [
+    "information_geometry_parameter_recovery/v1",
+    "optimizer_diagnostics/v1",
+    "metric_results/v1"
+  ],
+  "resource": {
+    "cpu_cores": 1,
+    "memory_bytes": 2147483648,
+    "gpu_count": 0,
+    "network": "none",
+    "max_seconds": 600
+  }
+}
