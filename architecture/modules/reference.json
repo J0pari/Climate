@@ -168,14 +168,14 @@
     },
     {
       "path": "reference/ncei_ghcnd.py",
-      "family": "reference_ncei_ghcnd_access",
+      "family": "reference_ncei_ghcnd_payload_parser",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "provider-specific reference adapter for NOAA/NCEI GHCN-Daily REST retrieval that preserves station/date fields, provider payloads, request identity, and content digests without imputation or hidden station selection",
+      "intended_role": "provider-specific independent reference for NOAA/NCEI GHCN-Daily request identity and captured-payload validation, preserving station/date fields, provider attributes, exact request URL, and content digest while delegating HTTP transport to the workflow-selected native transport",
       "known_gaps": [
-        "live NCEI responses are mutable and become experiment inputs only after the exact response is captured and digested",
+        "HTTP transport is not implemented here; live workflows must bind and fail on the explicitly selected transport identity",
         "GHCN-Daily is not homogenized for historical observing-practice changes and provider quality/source flags remain scientifically relevant",
-        "the adapter does not choose stations, geographic coverage, temporal aggregation, or a sheaf cover rule"
+        "the parser does not choose stations, geographic coverage, temporal aggregation, regridding, or a sheaf cover rule"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -196,13 +196,13 @@
     },
     {
       "path": "reference/nsidc_sea_ice_index.py",
-      "family": "reference_nsidc_sea_ice_index_access",
+      "family": "reference_nsidc_sea_ice_index_parser",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "provider-specific reference adapter for NOAA@NSIDC Sea Ice Index Version 4 monthly extent/area CSV downloads with exact source URL, schema validation, physical units, and content digest preservation",
+      "intended_role": "provider-specific independent reference for NOAA@NSIDC Sea Ice Index Version 4 URL identity and captured monthly extent/area CSV validation, preserving schema, units, source transitions, and content digest while delegating HTTP transport to the workflow-selected native transport",
       "known_gaps": [
-        "the adapter covers hemisphere-wide monthly extent/area files rather than gridded concentration products",
-        "the maintained provider file can be revised, so evidence requires a captured artifact digest and access identity",
+        "HTTP transport is not implemented here; live workflows must bind and fail on the explicitly selected transport identity",
+        "the parser covers hemisphere-wide monthly extent/area files rather than gridded concentration products",
         "sea-ice extent is not albedo and does not by itself define an ice-albedo feedback observation"
       ],
       "authority_kind": "independent_reference",

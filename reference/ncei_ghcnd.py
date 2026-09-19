@@ -1,18 +1,16 @@
-"""Narrow reference adapter for NOAA/NCEI GHCN-Daily REST retrieval.
+"""Provider-specific request identity and parser for NOAA/NCEI GHCN-Daily.
 
-The adapter owns provider-specific request and payload semantics only. It does
-not invent station metadata, fill missing observations, homogenize records, or
-choose a scientific aggregation. Live HTTP uses the maintained ``requests``
-library; parsing and provenance helpers remain usable in network-free CI.
+The adapter owns the exact request parameters, URL construction, provider
+payload validation, and content identity. HTTP transport is deliberately not a
+Climate capability; live workflows invoke curl explicitly and pass captured
+bytes into this parser.
 """
 from __future__ import annotations
 
-import argparse
 import hashlib
 import json
 from dataclasses import dataclass
 from datetime import date
-from pathlib import Path
 from typing import Any, Mapping, Sequence
 from urllib.parse import urlencode
 
@@ -96,46 +94,3 @@ def parse_daily_summaries(payload: bytes, *, request_url: str) -> DailySummaries
         byte_count=len(payload),
         records=tuple(records),
     )
-
-
-def fetch_daily_summaries(
-    stations: Sequence[str],
-    start_date: str,
-    end_date: str,
-    *,
-    timeout_seconds: float = 30.0,
-) -> tuple[bytes, DailySummariesPayload]:
-    """Fetch one explicit NCEI GHCN-Daily subset without imputation or fallback."""
-    import requests
-
-    params = request_parameters(stations, start_date, end_date)
-    response = requests.get(DATA_ENDPOINT, params=params, timeout=timeout_seconds)
-    response.raise_for_status()
-    raw = response.content
-    parsed = parse_daily_summaries(raw, request_url=response.url)
-    return raw, parsed
-
-
-def _main() -> int:
-    parser = argparse.ArgumentParser(description="retrieve an explicit NCEI GHCN-Daily subset")
-    parser.add_argument("--station", action="append", required=True)
-    parser.add_argument("--start-date", required=True)
-    parser.add_argument("--end-date", required=True)
-    parser.add_argument("--output", type=Path, required=True)
-    args = parser.parse_args()
-
-    raw, parsed = fetch_daily_summaries(args.station, args.start_date, args.end_date)
-    args.output.write_bytes(raw)
-    print(json.dumps({
-        "source_id": SOURCE_ID,
-        "request_url": parsed.request_url,
-        "sha256": parsed.sha256,
-        "byte_count": parsed.byte_count,
-        "record_count": len(parsed.records),
-        "output": str(args.output),
-    }, sort_keys=True))
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(_main())
