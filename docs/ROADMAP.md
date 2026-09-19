@@ -10,8 +10,8 @@ External implementation ownership does not remove integration correctness from s
 ## Planning summary
 
 - Active: 5
-- Ready: 14
-- Blocked: 13
+- Ready: 15
+- Blocked: 12
 - Done: 18
 - Dropped: 0
 
@@ -37,6 +37,7 @@ External implementation ownership does not remove integration correctness from s
 | `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_toolchain_ci` | `data.immutable_observational_projection` |
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
+| `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `ready` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `integration.aqua_production_reader` — Use AQUA production data access | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
 | `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
@@ -50,7 +51,6 @@ External implementation ownership does not remove integration correctness from s
 | `experimental.clifford_task` — Give Clifford representations a falsifiable climate task | `blocked` | `P2` | `R2_toolchain_ci` | `diagnostics.spectral_oscillation_contracts` |
 | `gpu.justified_geometry_acceleration` — Prepare GPU differential execution only for a justified workload | `blocked` | `P2` | `R3_cuda_device` | `geometry.nonlinear_coordinate_witness`, `geometry.independent_derivative_route` |
 | `multirepresentation.neighborhood_geometry` — Make neighborhood geometry a first-class representation evaluator | `blocked` | `P2` | `R2_toolchain_ci` | `multirepresentation.structure_baselines`, `experimentation.claim_evidence_vertical_slice` |
-| `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `blocked` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
 | `architecture.layered_configuration` — Define layered runtime configuration contracts | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `architecture.legacy_source_depletion` — Deplete and delete legacy root monoliths | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `architecture.reference_values` — Focused atmospheric reference-value authority | `done` | `P0` | `R2_toolchain_ci` | — |
