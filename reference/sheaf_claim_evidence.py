@@ -302,6 +302,13 @@ def run_evaluation(
 
     candidate_method = candidate_methods[0]
     run_id = f"{run_scope}.{experiment['experiment_id']}.{candidate_method}"
+    if "configuration" in experiment:
+        configuration = experiment["configuration"]
+        if not isinstance(configuration, dict):
+            raise ValueError("experiment configuration must be an object")
+        resolved_configuration = dict(configuration)
+    else:
+        resolved_configuration = {}
     toolchains = {
         "python": platform.python_version(),
         "rustc": _tool_version(("rustc", "--version")),
@@ -337,7 +344,7 @@ def run_evaluation(
         },
         "scientific_output_eligible": True,
         "resolved_dataset_digests": dataset_digests,
-        "resolved_configuration": dict(experiment.get("configuration", {})),
+        "resolved_configuration": resolved_configuration,
         "seeds": list(experiment.get("seeds", [])),
         "environment": {
             "os": platform.platform(),
