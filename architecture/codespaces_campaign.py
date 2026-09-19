@@ -66,11 +66,21 @@ def _git(*args: str) -> str:
 def repository_state() -> dict[str, Any]:
     revision = _git("rev-parse", "HEAD")
     branch = _git("rev-parse", "--abbrev-ref", "HEAD")
-    dirty = bool(_git("status", "--porcelain", "--untracked-files=normal"))
+    dirty = bool(
+        _git(
+            "status",
+            "--porcelain",
+            "--untracked-files=normal",
+            "--",
+            ".",
+            ":(exclude)run-artifacts/**",
+        )
+    )
     return {
         "repository_revision": revision,
         "branch": branch,
         "dirty": dirty,
+        "dirty_check_excludes": ["run-artifacts/"],
     }
 
 
