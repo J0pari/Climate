@@ -14,11 +14,9 @@ path = "src/lib.rs"
 nalgebra = "0.32"
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
-commons-kernel = { git = "https://github.com/J0pari/Commons", rev = "5b4ce6e1ab0759aee59bca2badf3c624cba0bde3", package = "commons-kernel" }
 
 [dev-dependencies]
 serde_json = "1.0"
-tempfile = "3"
 
 [profile.release]
 opt-level = 3
