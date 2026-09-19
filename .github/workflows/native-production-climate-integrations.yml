@@ -121,19 +121,34 @@ jobs:
           set -euo pipefail
           git clone --filter=blob:none https://github.com/DestinE-Climate-DT/AQUA.git upstream-aqua
           git -C upstream-aqua checkout "$AQUA_SHA"
-      - name: Set up AQUA owner-locked no-FDB environment
+      - name: Build AQUA native environment specification
+        run: |
+          set -euo pipefail
+          awk '/^  - pip:/{exit} {print}' upstream-aqua/environment.yml > aqua-native-environment.yml
+          grep -F 'python>=3.11,<3.15' aqua-native-environment.yml
+          grep -F 'netcdf4>=1.7.2,<=1.7.4' aqua-native-environment.yml
+          grep -F 'hdf5>=2.1.0,<=2.2.0' aqua-native-environment.yml
+      - name: Solve AQUA owner environment consistently
         uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39
         with:
-          environment-file: upstream-aqua/conda-linux-64.nofdb.lock
+          environment-file: aqua-native-environment.yml
           environment-name: aqua
           cache-downloads: true
           cache-environment: false
-      - name: Install AQUA pip lock entries and exact source
+      - name: Install exact AQUA source and record resolved runtime
         shell: bash -el {0}
         run: |
           set -euo pipefail
-          sed -n 's/^# pip //p' upstream-aqua/conda-linux-64.nofdb.lock | python -m pip install -r /dev/stdin
-          python -m pip install --no-deps -e ./upstream-aqua
+          python -m pip install -e './upstream-aqua[all]'
+          python -VV
+          python - <<'PY'
+          import h5py
+          import netCDF4
+          print("h5py", h5py.__version__)
+          print("netCDF4", netCDF4.__version__)
+          PY
+          micromamba list -n aqua --explicit | tee aqua-runtime-explicit.txt
+          sha256sum aqua-runtime-explicit.txt
       - name: Read and use production CMIP6 object through AQUA native NetCDF driver
         shell: bash -el {0}
         run: |

@@ -60,6 +60,32 @@ class SourceGateTests(unittest.TestCase):
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0].gate, "capability_fallback")
 
+
+    def test_optional_dependency_substitution_is_rejected(self):
+        findings = gates.gate_optional_capability_substitution({
+            "reference/example.py": [
+                "try:",
+                "    import accelerated_backend",
+                "except ImportError:",
+                "    import cpu_backend",
+                "    backend = cpu_backend",
+            ],
+        })
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].gate, "optional_capability_substitution")
+
+    def test_optional_dependency_failure_that_logs_and_raises_is_allowed(self):
+        findings = gates.gate_optional_capability_substitution({
+            "reference/example.py": [
+                "try:",
+                "    import required_backend",
+                "except ImportError as exc:",
+                "    logger.error('required backend unavailable')",
+                "    raise RuntimeError('required backend unavailable') from exc",
+            ],
+        })
+        self.assertEqual(findings, [])
+
     def test_placeholder_marker_is_inventoried(self):
         findings = gates.gate_placeholder_inventory({
             "physics/example.f90": ["! TODO: placeholder tendency"],

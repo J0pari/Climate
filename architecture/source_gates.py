@@ -13,6 +13,7 @@ has never demonstrated it can catch its target failure is not evidence.
 from __future__ import annotations
 
 import argparse
+import ast
 import re
 import sys
 from dataclasses import dataclass
@@ -147,6 +148,77 @@ def gate_silent_capability_fallback(files: dict[str, list[str]]) -> list[Finding
     return findings
 
 
+
+def _caught_exception_names(node: ast.expr | None) -> set[str]:
+    if node is None:
+        return set()
+    if isinstance(node, ast.Name):
+        return {node.id}
+    if isinstance(node, ast.Tuple):
+        names: set[str] = set()
+        for item in node.elts:
+            names.update(_caught_exception_names(item))
+        return names
+    return set()
+
+
+def _allowed_failure_log(statement: ast.stmt) -> bool:
+    if not isinstance(statement, ast.Expr) or not isinstance(statement.value, ast.Call):
+        return False
+    func = statement.value.func
+    if not isinstance(func, ast.Attribute):
+        return False
+    root = func.value
+    return isinstance(root, ast.Name) and root.id in {"logger", "logging"}
+
+
+def gate_optional_capability_substitution(
+    files: dict[str, list[str]],
+) -> list[Finding]:
+    """Require optional-capability import failures to terminate, never substitute.
+
+    An ImportError/ModuleNotFoundError handler may optionally emit a log record,
+    but its only semantic exit is a raise. Importing another backend, assigning
+    replacement state, returning a different implementation, or continuing is
+    a source-integrity violation.
+    """
+    findings: list[Finding] = []
+    for path, lines in files.items():
+        if not path.endswith(".py"):
+            continue
+        try:
+            tree = ast.parse("\n".join(lines), filename=path)
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Try):
+                continue
+            for handler in node.handlers:
+                caught = _caught_exception_names(handler.type)
+                if not caught.intersection({"ImportError", "ModuleNotFoundError"}):
+                    continue
+                body = handler.body
+                valid = bool(body) and isinstance(body[-1], ast.Raise)
+                if valid:
+                    valid = all(
+                        isinstance(statement, ast.Raise)
+                        or _allowed_failure_log(statement)
+                        for statement in body
+                    )
+                if valid:
+                    continue
+                line_no = getattr(handler, "lineno", 1)
+                source_line = lines[line_no - 1] if 0 < line_no <= len(lines) else ""
+                findings.append(Finding(
+                    "optional_capability_substitution",
+                    path,
+                    line_no,
+                    "missing optional capability must fail closed; the handler may log and raise only, never select or construct an alternate implementation",
+                    source_line,
+                ))
+    return findings
+
+
 PLACEHOLDER_MARKERS = re.compile(
     r"\b(TODO|FIXME|placeholder|stub|unimplemented|not implemented|unvalidated)\b",
     re.IGNORECASE,
@@ -246,6 +318,7 @@ GATES: tuple[Gate, ...] = (
     gate_managed_memory,
     gate_unchecked_cuda_calls,
     gate_silent_capability_fallback,
+    gate_optional_capability_substitution,
     gate_placeholder_inventory,
     gate_ambient_rng,
     gate_interpretive_probability,
