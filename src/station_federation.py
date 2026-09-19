@@ -7,7 +7,7 @@ explicit; cross-provider identity is never inferred from geographic proximity.
 """
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import date
 import hashlib
 import json
@@ -81,6 +81,22 @@ class AliasBinding:
             raise ValueError(
                 f"binding_method must be one of {sorted(_BINDING_METHODS)}"
             )
+        _digest(self.evidence_digest, "evidence_digest")
+
+
+@dataclass(frozen=True)
+class CrossProviderAliasEvidence:
+    root_alias: ProviderAlias
+    alias: ProviderAlias
+    evidence_digest: str
+
+    def __post_init__(self) -> None:
+        if self.root_alias.source_id == self.alias.source_id:
+            raise ValueError(
+                "cross-provider alias evidence must bind different provider namespaces"
+            )
+        if self.root_alias == self.alias:
+            raise ValueError("cross-provider alias cannot equal the root alias")
         _digest(self.evidence_digest, "evidence_digest")
 
 
@@ -175,6 +191,115 @@ class FederatedStation:
         if len(matches) > 1:
             raise ValueError("resolved station location history overlaps")
         return matches[0] if matches else None
+
+
+def apply_cross_provider_alias_evidence(
+    stations: Sequence[FederatedStation],
+    evidence: Sequence[CrossProviderAliasEvidence],
+) -> tuple[FederatedStation, ...]:
+    """Apply explicit cross-provider identity evidence without changing root ids.
+
+    No coordinate, name, or proximity heuristic participates in this operation.
+    Existing bindings are idempotent only when they name the same canonical
+    station, binding method, and evidence artifact.
+    """
+    records = tuple(stations)
+    root_owner: dict[ProviderAlias, int] = {}
+    alias_owner: dict[ProviderAlias, tuple[int, AliasBinding]] = {}
+    for index, station in enumerate(records):
+        for binding in station.aliases:
+            previous = alias_owner.get(binding.alias)
+            if previous is not None and previous[0] != index:
+                raise ValueError(
+                    "provider alias is already bound to multiple canonical stations"
+                )
+            alias_owner[binding.alias] = (index, binding)
+            if binding.binding_method == "root":
+                if binding.alias in root_owner and root_owner[binding.alias] != index:
+                    raise ValueError(
+                        "root provider alias resolves to multiple canonical stations"
+                    )
+                root_owner[binding.alias] = index
+
+    additions: dict[int, list[AliasBinding]] = {}
+    requested_aliases: dict[ProviderAlias, int] = {}
+    for item in evidence:
+        owner = root_owner.get(item.root_alias)
+        if owner is None:
+            raise ValueError(
+                f"crosswalk root alias does not resolve: {item.root_alias!r}"
+            )
+        requested_owner = requested_aliases.get(item.alias)
+        if requested_owner is not None and requested_owner != owner:
+            raise ValueError(
+                "one crosswalk alias cannot bind multiple canonical stations"
+            )
+        requested_aliases[item.alias] = owner
+
+        existing = alias_owner.get(item.alias)
+        expected = AliasBinding(
+            item.alias,
+            "provider_crosswalk",
+            item.evidence_digest,
+        )
+        if existing is not None:
+            existing_owner, binding = existing
+            if existing_owner != owner:
+                raise ValueError(
+                    "crosswalk alias is already owned by another canonical station"
+                )
+            if binding != expected:
+                raise ValueError(
+                    "crosswalk alias already exists with different binding evidence"
+                )
+            continue
+        additions.setdefault(owner, []).append(expected)
+        alias_owner[item.alias] = (owner, expected)
+
+    updated = list(records)
+    for index, new_bindings in additions.items():
+        station = records[index]
+        updated[index] = replace(
+            station,
+            aliases=tuple((*station.aliases, *new_bindings)),
+        )
+    return tuple(updated)
+
+
+def remove_cross_provider_alias_evidence(
+    stations: Sequence[FederatedStation],
+    evidence_digest: str,
+) -> tuple[FederatedStation, ...]:
+    """Reverse only crosswalk aliases introduced by one evidence artifact."""
+    _digest(evidence_digest, "evidence_digest")
+    updated: list[FederatedStation] = []
+    for station in stations:
+        removable = {
+            binding.alias
+            for binding in station.aliases
+            if (
+                binding.binding_method == "provider_crosswalk"
+                and binding.evidence_digest == evidence_digest
+            )
+        }
+        if not removable:
+            updated.append(station)
+            continue
+        if any(
+            epoch.source_alias in removable
+            for epoch in station.location_history
+        ):
+            raise ValueError(
+                "cannot remove crosswalk evidence while location history depends "
+                "on one of its provider aliases"
+            )
+        aliases = tuple(
+            binding
+            for binding in station.aliases
+            if binding.alias not in removable
+        )
+        updated.append(replace(station, aliases=aliases))
+    return tuple(updated)
 
 
 @dataclass(frozen=True)

@@ -516,11 +516,11 @@
       "family": "global_station_data_federation",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, explicit evidence-bound provider aliases, resolved location epochs, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
+      "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, explicit evidence-bound and reversible cross-provider alias application, resolved location epochs, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
       "known_gaps": [
         "the current provider registry realizes NCEI GHCN-Daily only; additional lawfully accessible no-fee providers remain a data-integration obligation rather than hardcoded kernel branches",
         "durable remote object-store publication remains an adapter responsibility; canonical local publication is content-addressed and the NCEI scale adapter now provides resumable bulk acquisition",
-        "cross-provider alias bindings require explicit upstream crosswalk evidence; no cross-provider crosswalk adapter is registered yet",
+        "real external crosswalk evidence for a second provider has not yet been integrated; the canonical substrate now applies and reverses only explicit digest-bound cross-provider alias evidence and never infers identity from proximity",
         "catalog-record counts in manifest coverage are shard record totals, not a claim that unresolved aliases across different shards have already been deduplicated"
       ],
       "authority_kind": "canonical_implementation",

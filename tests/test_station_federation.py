@@ -4,6 +4,7 @@ import unittest
 
 from src.station_federation import (
     AliasBinding,
+    CrossProviderAliasEvidence,
     CatalogShardRef,
     FederatedStation,
     ObservationPartitionRef,
@@ -11,7 +12,9 @@ from src.station_federation import (
     StationCatalogShard,
     StationFederationManifest,
     StationLocationEpoch,
+    apply_cross_provider_alias_evidence,
     canonical_station_id,
+    remove_cross_provider_alias_evidence,
 )
 
 
@@ -44,6 +47,63 @@ def station(provider="ncei.ghcnd.v3", provider_id="AAA", *, alias=None):
 
 
 class StationFederationTests(unittest.TestCase):
+    def test_crosswalk_evidence_is_explicit_idempotent_and_reversible(self):
+        original = station()
+        alias = ProviderAlias("other.provider", "XYZ")
+        evidence = CrossProviderAliasEvidence(
+            ProviderAlias("ncei.ghcnd.v3", "AAA"),
+            alias,
+            D3,
+        )
+        linked = apply_cross_provider_alias_evidence((original,), (evidence,))
+        self.assertEqual(
+            linked[0].canonical_station_id,
+            original.canonical_station_id,
+        )
+        self.assertEqual(linked[0].aliases[-1].alias, alias)
+        self.assertEqual(linked[0].aliases[-1].binding_method, "provider_crosswalk")
+        self.assertEqual(linked[0].aliases[-1].evidence_digest, D3)
+        self.assertEqual(
+            apply_cross_provider_alias_evidence(linked, (evidence,)),
+            linked,
+        )
+        self.assertEqual(
+            remove_cross_provider_alias_evidence(linked, D3),
+            (original,),
+        )
+
+    def test_crosswalk_alias_conflict_fails_closed(self):
+        first = station(provider_id="AAA")
+        second = station(
+            provider_id="BBB",
+            alias=ProviderAlias("other.provider", "XYZ"),
+        )
+        evidence = CrossProviderAliasEvidence(
+            ProviderAlias("ncei.ghcnd.v3", "AAA"),
+            ProviderAlias("other.provider", "XYZ"),
+            D3,
+        )
+        with self.assertRaisesRegex(ValueError, "owned by another"):
+            apply_cross_provider_alias_evidence(
+                (first, second),
+                (evidence,),
+            )
+
+    def test_crosswalk_requires_resolved_root_and_distinct_provider(self):
+        with self.assertRaisesRegex(ValueError, "different provider"):
+            CrossProviderAliasEvidence(
+                ProviderAlias("ncei.ghcnd.v3", "AAA"),
+                ProviderAlias("ncei.ghcnd.v3", "BBB"),
+                D3,
+            )
+        evidence = CrossProviderAliasEvidence(
+            ProviderAlias("ncei.ghcnd.v3", "MISSING"),
+            ProviderAlias("other.provider", "XYZ"),
+            D3,
+        )
+        with self.assertRaisesRegex(ValueError, "root alias does not resolve"):
+            apply_cross_provider_alias_evidence((station(),), (evidence,))
+
     def test_alias_addition_does_not_mutate_canonical_station_identity(self):
         root_only = station()
         linked = station(alias=ProviderAlias("other.provider", "XYZ"))

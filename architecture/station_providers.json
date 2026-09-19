@@ -4,7 +4,8 @@
   "identity_policy": {
     "canonical_station_id": "stable opaque identity derived from one immutable root provider alias; later provider aliases are explicit crosswalk bindings and do not mutate the canonical id",
     "cross_provider_deduplication": "explicit provider crosswalk/evidence only; geographic proximity is never sufficient identity evidence",
-    "location_history": "resolved non-overlapping epochs with source alias and source-artifact digest; conflicting provider locations remain unresolved upstream"
+    "location_history": "resolved non-overlapping epochs with source alias and source-artifact digest; conflicting provider locations remain unresolved upstream",
+    "crosswalk_application": "cross-provider aliases are applied only from explicit digest-bound crosswalk evidence referencing an already resolved immutable root alias; application is idempotent for identical evidence, conflicting ownership fails closed, and removing an evidence digest reverses exactly its crosswalk aliases when no location history depends on them"
   },
   "storage_policy": {
     "catalog": "content-addressed bounded catalog shards referenced by manifest; no global station table is required in memory",
