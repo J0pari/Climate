@@ -5,13 +5,14 @@ This guard is intentionally semantic rather than a numeric-literal linter. The
 registry reviews concrete climate-facing usage seams and records whether each
 value belongs to a local mathematical/model/policy contract or to an external
 standard, literature source, dataset, or API. Externalized usages must resolve
-to declared data authorities with reproducible access/update semantics.
+to declared data authorities with reproducible access/update semantics. Source-
+level implicit semantic substitution is enforced centrally by
+architecture/check_semantic_defaults.py rather than inferred from function names.
 """
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -36,19 +37,6 @@ OWNERSHIP_CLASSES = {
 }
 EXTERNAL_OWNERSHIP_CLASSES = {"external_dataset", "external_api"}
 DISPOSITIONS = {"retain_local", "externalize"}
-EXTERNAL_FALLBACK_PATTERNS = (
-    ("data_authority.external_default_impl", re.compile(r"\bimpl\s+Default\s+for\b")),
-    (
-        "data_authority.external_fallback_constructor",
-        re.compile(
-            r"\b(?:(?:pub\s+)?(?:const\s+)?fn|def|subroutine|function)\s+"
-            r"(?:legacy_reference|default_reference|fallback)\s*\(",
-            re.IGNORECASE,
-        ),
-    ),
-)
-
-
 @dataclass(frozen=True)
 class Finding:
     code: str
@@ -368,14 +356,6 @@ def check(root: Path = ROOT, registry: dict | None = None) -> list[Finding]:
                                 f"witness anchor {witness_anchor!r} is not present",
                             ))
 
-                if candidate_text is not None:
-                    for code, pattern in EXTERNAL_FALLBACK_PATTERNS:
-                        if pattern.search(candidate_text):
-                            findings.append(_finding(
-                                code,
-                                relative_path if isinstance(relative_path, str) else path,
-                                "current externalized inputs must not share a canonical source file with an implicit or fallback constructor",
-                            ))
         if ownership == "external_api" and resolved_sources and not any(
             source.get("kind") == "api_dataset" for source in resolved_sources
         ):
