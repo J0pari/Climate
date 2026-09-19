@@ -21,25 +21,31 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Capture and parse complete NCEI GHCN-D station catalog through curl
+      - name: Capture and parse complete NCEI GHCN-D station catalog through native curl
         run: |
+          set -euo pipefail
           mkdir -p live-data
-          python - <<'PY'
+          url="$(python - <<'PY'
+          from data.ncei_ghcnd_bulk import GHCN_STATION_CATALOG_URL
+          print(GHCN_STATION_CATALOG_URL)
+          PY
+          )"
+          target='live-data/ghcnd-stations.txt'
+          curl_bin="$(command -v curl)"
+          test -x "$curl_bin"
+          "$curl_bin" --version | head -n 1
+          sha256sum "$curl_bin"
+          "$curl_bin"             --fail --location --silent --show-error             --proto '=https' --proto-redir '=https'             --max-time 180             "$url" --output "$target"
+          sha256sum "$target"
+          TARGET="$target" python - <<'PY'
+          import os
           from pathlib import Path
-          from data.ncei_ghcnd_bulk import (
-              GHCN_STATION_CATALOG_URL,
-              capture_http_artifact,
-              parse_station_catalog,
-          )
-          target = Path("live-data/ghcnd-stations.txt")
-          receipt = capture_http_artifact(
-              GHCN_STATION_CATALOG_URL, target, timeout_seconds=180.0
-          )
-          catalog = parse_station_catalog(target.read_bytes())
+          from data.ncei_ghcnd_bulk import parse_station_catalog
+          raw = Path(os.environ["TARGET"]).read_bytes()
+          catalog = parse_station_catalog(raw)
           assert len(catalog.records) > 100_000
-          assert catalog.sha256 == receipt.sha256
-          print(receipt)
           print("station_count", len(catalog.records))
+          print("catalog_sha256", catalog.sha256)
           PY
       - name: Capture and parse fixed NCEI GHCN-D API subset through curl
         run: |

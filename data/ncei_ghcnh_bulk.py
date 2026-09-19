@@ -15,15 +15,9 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
-from pathlib import Path
 import re
 from datetime import datetime
 from typing import Iterable, Protocol, Sequence
-
-from data.ncei_ghcnd_bulk import (
-    DownloadedHTTPArtifact,
-    capture_http_artifact,
-)
 
 from src.station_federation import (
     AliasBinding,
@@ -51,13 +45,8 @@ _ARCHIVE_NAME = re.compile(
 )
 
 
-def download_year_archive(
-    archive_url: str,
-    destination: Path,
-    *,
-    timeout_seconds: float = 120.0,
-) -> DownloadedHTTPArtifact:
-    """Capture one explicitly versioned/creation-dated GHCNh annual archive."""
+def validate_year_archive_url(archive_url: str) -> str:
+    """Validate exact provider archive identity without performing transport."""
     if not archive_url.startswith(ARCHIVE_BASE_URL):
         raise ValueError("GHCNh archive URL must use the official NCEI archive path")
     name = archive_url.removeprefix(ARCHIVE_BASE_URL)
@@ -65,11 +54,7 @@ def download_year_archive(
         raise ValueError(
             "GHCNh archive URL must name one versioned data-year/creation-date tar.gz"
         )
-    return capture_http_artifact(
-        archive_url,
-        destination,
-        timeout_seconds=timeout_seconds,
-    )
+    return name
 
 
 

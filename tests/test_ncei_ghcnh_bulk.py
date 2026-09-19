@@ -16,7 +16,7 @@ from data.ncei_ghcnh_bulk import (
     ARCHIVE_BASE_URL,
     SOURCE_ID,
     GHCNhAliasShardLookup,
-    download_year_archive,
+    validate_year_archive_url,
     federate_station_catalog,
     parse_station_catalog,
     stream_station_year_psv,
@@ -84,12 +84,15 @@ def write_year_archive(path: Path, members: dict[str, str]) -> None:
 
 class GHCNhFederationTests(unittest.TestCase):
     def test_versioned_annual_archive_url_refuses_unversioned_name(self):
-        with tempfile.TemporaryDirectory() as temp:
-            with self.assertRaisesRegex(ValueError, "versioned"):
-                download_year_archive(
-                    ARCHIVE_BASE_URL + "latest.tar.gz",
-                    Path(temp) / "latest.tar.gz",
-                )
+        with self.assertRaisesRegex(ValueError, "versioned"):
+            validate_year_archive_url(ARCHIVE_BASE_URL + "latest.tar.gz")
+
+    def test_versioned_annual_archive_url_preserves_provider_identity(self):
+        name = "ghcn-hourly_v1.0.0_d2026_c20260918.tar.gz"
+        self.assertEqual(
+            validate_year_archive_url(ARCHIVE_BASE_URL + name),
+            name,
+        )
     def test_station_list_parses_documented_fixed_width_fields(self):
         payload = station_line(
             "USW00094846",

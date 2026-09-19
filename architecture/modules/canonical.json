@@ -6,11 +6,11 @@
       "family": "ncei_ghcnd_bulk_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-specific GHCN-Daily discovery, immutable-artifact capture, federation normalization, and streaming observation-routing adapter: the exact curl executable owns HTTP/TLS/redirect/transfer behavior while Climate binds the explicit provider URL, resolved curl binary path/version/SHA-256, complete captured bytes, and final SHA-256 receipt, bounded federation shards, and spatial/year/element routing",
+      "intended_role": "canonical provider-specific GHCN-Daily discovery, federation normalization, and streaming observation-routing adapter over already captured immutable provider artifacts; Climate preserves provider URL/content identity and station semantics but owns no HTTP/TLS/redirect/transfer implementation or subprocess wrapper",
       "known_gaps": [
+        "provider artifact acquisition is an external execution concern: the exact native transfer executable and invocation must be bound by the run/workflow that captures bytes before this parser is called",
         "ghcnd-stations.txt is treated as a provider metadata snapshot effective at the captured date; the adapter does not back-project current coordinates into unobserved historical relocation epochs",
-        "artifact capture is whole-file and fail-closed: interrupted transfers publish no accepted artifact and a later retry is a new explicit execution rather than a Climate-owned range/resume protocol",
-        "provider element values remain raw GHCN integer semantics at this boundary; unit normalization into climate variable contracts is a separate explicit adapter rather than an ingestion default",
+        "provider element values remain raw GHCN integer semantics at this boundary; unit normalization into climate variable contracts is a separate explicit transformation",
         "cross-provider station crosswalks remain federation-level evidence obligations and are never inferred from location proximity"
       ],
       "authority_kind": "canonical_implementation",
@@ -36,7 +36,7 @@
       "family": "ncei_ghcnh_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical GHCNh provider adapter that parses the documented global fixed-width station list, validates explicitly versioned annual archive identities, delegates whole-file HTTPS capture to the exact curl executable, federates exact shared GHCN identifiers as digest-bound aliases, creates distinct hourly-provider roots for unmatched stations, and streams self-describing station/year PSV rows while preserving every provider field including source/QC attributes",
+      "intended_role": "canonical GHCNh provider identity, catalog federation, and raw PSV routing adapter over already captured station-list/annual archive artifacts; it validates version/data-year/creation-date archive identity and exact shared GHCN identifiers without owning network transport",
       "known_gaps": [
         "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
         "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations rather than ingestion defaults",

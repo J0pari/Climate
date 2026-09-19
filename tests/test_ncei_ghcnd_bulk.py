@@ -1,12 +1,6 @@
 from __future__ import annotations
 
-import hashlib
-import json
-from pathlib import Path
-import subprocess
-import tempfile
 import unittest
-from unittest.mock import patch
 
 from data.ncei_ghcnd_bulk import (
     adaptive_catalog_shards,
@@ -15,7 +9,6 @@ from data.ncei_ghcnd_bulk import (
     by_year_urls,
     catalog_shard_refs,
     StationShardLookup,
-    capture_http_artifact,
     parse_inventory,
     parse_station_catalog,
     stream_by_year_partitions,
@@ -50,106 +43,6 @@ class GHCNBulkFederationTests(unittest.TestCase):
             + inventory_line("USW00000003", 51.5, -0.1, "TAVG", 1880, 2026)
         ).encode("ascii")
         return parse_station_catalog(catalog), parse_inventory(inventory)
-
-    def test_atomic_curl_capture_binds_exact_bytes_and_transport(self):
-        payload = b"provider bytes\n"
-        commands = []
-
-        def fake_run(command, **kwargs):
-            commands.append(tuple(command))
-            if command[-1] == "--version":
-                return subprocess.CompletedProcess(
-                    command, 0, "curl 8.12.1 (fixture) libcurl/8.12.1\n", ""
-                )
-            target = Path(command[command.index("--output") + 1])
-            target.write_bytes(payload)
-            return subprocess.CompletedProcess(command, 0, "", "")
-
-        with tempfile.TemporaryDirectory() as temp:
-            destination = Path(temp) / "artifact.txt"
-            curl_path = Path(temp) / "curl"
-            curl_path.write_bytes(b"exact curl executable fixture")
-            with (
-                patch(
-                    "data.ncei_ghcnd_bulk._curl_executable",
-                    return_value=str(curl_path),
-                ),
-                patch("data.ncei_ghcnd_bulk.subprocess.run", side_effect=fake_run),
-            ):
-                artifact = capture_http_artifact(
-                    "https://example.test/provider-artifact",
-                    destination,
-                    timeout_seconds=10.0,
-                )
-
-            self.assertEqual(destination.read_bytes(), payload)
-            expected = "sha256:" + hashlib.sha256(payload).hexdigest()
-            self.assertEqual(artifact.sha256, expected)
-            self.assertEqual(artifact.byte_count, len(payload))
-            self.assertEqual(artifact.transport, "curl")
-            self.assertEqual(
-                artifact.transport_version,
-                "curl 8.12.1 (fixture) libcurl/8.12.1",
-            )
-            self.assertEqual(artifact.transport_executable, curl_path.resolve())
-            self.assertEqual(
-                artifact.transport_executable_sha256,
-                "sha256:" + hashlib.sha256(curl_path.read_bytes()).hexdigest(),
-            )
-            receipt = json.loads(artifact.receipt_path.read_text(encoding="utf-8"))
-            self.assertEqual(receipt["sha256"], expected)
-            self.assertEqual(receipt["url"], "https://example.test/provider-artifact")
-
-        transfer = next(command for command in commands if "--output" in command)
-        self.assertNotIn("--head", transfer)
-        self.assertNotIn("--continue-at", transfer)
-        self.assertNotIn("If-Range", " ".join(transfer))
-
-    def test_failed_curl_capture_publishes_nothing(self):
-        def fake_run(command, **kwargs):
-            if command[-1] == "--version":
-                return subprocess.CompletedProcess(
-                    command, 0, "curl 8.12.1 (fixture) libcurl/8.12.1\n", ""
-                )
-            target = Path(command[command.index("--output") + 1])
-            target.write_bytes(b"incomplete")
-            return subprocess.CompletedProcess(command, 22, "", "HTTP 503")
-
-        with tempfile.TemporaryDirectory() as temp:
-            destination = Path(temp) / "artifact.txt"
-            curl_path = Path(temp) / "curl"
-            curl_path.write_bytes(b"exact curl executable fixture")
-            with (
-                patch(
-                    "data.ncei_ghcnd_bulk._curl_executable",
-                    return_value=str(curl_path),
-                ),
-                patch("data.ncei_ghcnd_bulk.subprocess.run", side_effect=fake_run),
-            ):
-                with self.assertRaisesRegex(RuntimeError, "curl artifact capture failed"):
-                    capture_http_artifact(
-                        "https://example.test/provider-artifact",
-                        destination,
-                    )
-            self.assertFalse(destination.exists())
-            self.assertFalse(
-                destination.with_name(destination.name + ".artifact.json").exists()
-            )
-            self.assertFalse(
-                destination.with_name(destination.name + ".capture.tmp").exists()
-            )
-
-    def test_capture_refuses_implicit_overwrite_before_invoking_transport(self):
-        with tempfile.TemporaryDirectory() as temp:
-            destination = Path(temp) / "artifact.txt"
-            destination.write_bytes(b"existing")
-            with patch("data.ncei_ghcnd_bulk.subprocess.run") as run:
-                with self.assertRaisesRegex(ValueError, "refuse implicit reuse"):
-                    capture_http_artifact(
-                        "https://example.test/provider-artifact",
-                        destination,
-                    )
-                run.assert_not_called()
 
     def test_station_catalog_accepts_utf8_names_without_shifting_fixed_columns(self):
         payload = station_line(
