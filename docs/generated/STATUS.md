@@ -10,17 +10,17 @@ External implementation ownership is not treated as local realization. A Climate
 
 ## Module authority
 
-Registered modules: **67**.
+Registered modules: **68**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 37 |
-| `reference` | 30 |
+| `reference` | 31 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 65 |
+| `runnable` | 66 |
 
 ### Canonical and reference modules
 
@@ -66,6 +66,7 @@ Registered modules: **67**.
 | `reference` | `independent_reference` | `reference/dmd_common.py` | `reference_shared_dmd_adapter` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/external_contract_reasoning.py` | `reference_external_model_contract_reasoning` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/geometry_sympy.py` | `reference_geometry` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/information_geometry_ebm_recovery.py` | `reference_information_geometry_ebm_recovery` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/information_geometry_sympy.py` | `reference_information_geometry` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/lie_bracket_sympy.py` | `reference_lie_algebra` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/multirepresentation_baselines.py` | `reference_multirepresentation_fitted_baselines` | `runnable` | no |
@@ -112,11 +113,12 @@ Registered claims: **5**.
 
 ## Registered experiments
 
-Experiment specifications: **10**.
+Experiment specifications: **11**.
 
 | Experiment | File |
 | --- | --- |
 | `geometry.correctness.v1` | `experiments/geometry-correctness.v1.json` |
+| `information_geometry.two_layer_ebm.recovery_confirmation.v1` | `experiments/information-geometry-two-layer-ebm-recovery-confirmation.v1.json` |
 | `multirepresentation.common_coordinate.v1` | `experiments/multirepresentation-common.v1.json` |
 | `multirepresentation.ebm_dynamics.v1` | `experiments/multirepresentation-ebm-dynamics.v1.json` |
 | `multirepresentation.ebm_forced_ood.v1` | `experiments/multirepresentation-ebm-forced-ood.v1.json` |
