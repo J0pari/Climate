@@ -1,0 +1,116 @@
+{
+  "execution_identity": {
+    "venue": "openai_ephemeral_cpu_sandbox",
+    "repository_revision": "27689bf3b27e8980a904cb70075091e01222e759",
+    "canonical_runtime": false,
+    "python": "3.13.5",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "scikit_learn": "1.8.0",
+    "cpu_count": 5
+  },
+  "policy": {
+    "alpha": 0.005,
+    "permutations": 255,
+    "seed_offsets": [
+      0,
+      100000,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000
+    ]
+  },
+  "summary": {
+    "fibered": {
+      "expected_decision": "shared_coordinate_supported",
+      "realizations": 8,
+      "calibrated_count": 8,
+      "failure_count": 0,
+      "pvalue_min": 0.00390625,
+      "pvalue_median": 0.00390625,
+      "pvalue_max": 0.00390625,
+      "statistic_min": 4.397555330822895,
+      "statistic_median": 4.410844653804601,
+      "statistic_max": 4.423352965263106
+    },
+    "independent_null": {
+      "expected_decision": "abstain_no_cross_view_evidence",
+      "realizations": 8,
+      "calibrated_count": 8,
+      "failure_count": 0,
+      "pvalue_min": 0.1953125,
+      "pvalue_median": 0.580078125,
+      "pvalue_max": 0.88671875,
+      "statistic_min": 0.0022396589763458152,
+      "statistic_median": 0.020907738902745443,
+      "statistic_max": 0.039368899842203486
+    },
+    "nuisance_dominated": {
+      "expected_decision": "shared_coordinate_supported",
+      "realizations": 8,
+      "calibrated_count": 8,
+      "failure_count": 0,
+      "pvalue_min": 0.00390625,
+      "pvalue_median": 0.00390625,
+      "pvalue_max": 0.00390625,
+      "statistic_min": 4.385708854816262,
+      "statistic_median": 4.4107661027983145,
+      "statistic_max": 4.422270248067108
+    },
+    "product": {
+      "expected_decision": "abstain_no_cross_view_evidence",
+      "realizations": 8,
+      "calibrated_count": 8,
+      "failure_count": 0,
+      "pvalue_min": 0.16015625,
+      "pvalue_median": 0.62890625,
+      "pvalue_max": 1,
+      "statistic_min": 0,
+      "statistic_median": 0.014175052882056116,
+      "statistic_max": 0.03990702333180085
+    },
+    "quotient_noninjective": {
+      "expected_decision": "shared_coordinate_supported",
+      "realizations": 8,
+      "calibrated_count": 8,
+      "failure_count": 0,
+      "pvalue_min": 0.00390625,
+      "pvalue_median": 0.00390625,
+      "pvalue_max": 0.00390625,
+      "statistic_min": 3.10077280976505,
+      "statistic_median": 3.1248288235071584,
+      "statistic_max": 3.174673644075045
+    },
+    "shared_manifold": {
+      "expected_decision": "shared_coordinate_supported",
+      "realizations": 8,
+      "calibrated_count": 8,
+      "failure_count": 0,
+      "pvalue_min": 0.00390625,
+      "pvalue_median": 0.00390625,
+      "pvalue_max": 0.00390625,
+      "statistic_min": 4.4850061178830565,
+      "statistic_median": 4.490952685963413,
+      "statistic_max": 4.500782252555676
+    },
+    "stratified_regime": {
+      "expected_decision": "shared_coordinate_supported",
+      "realizations": 8,
+      "calibrated_count": 8,
+      "failure_count": 0,
+      "pvalue_min": 0.00390625,
+      "pvalue_median": 0.00390625,
+      "pvalue_max": 0.00390625,
+      "statistic_min": 4.068104546410985,
+      "statistic_median": 4.109586459754102,
+      "statistic_max": 4.132167252490239
+    }
+  },
+  "total_world_realizations": 56,
+  "calibrated_world_realizations": 56,
+  "all_realizations_calibrated": true,
+  "interpretation": "Exploratory seed-offset robustness sweep. Offsets beyond 0 and 100000 are not preregistered experiment inputs and are used only to test selector fragility; this is not canonical evidence."
+}

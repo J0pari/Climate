@@ -37,7 +37,9 @@ A GNU Fortran RK4 implementation was compared with the Python/SciPy exact affine
 
 For `multirepresentation.structure_baselines`, the sandbox executed the authoritative seven-world semantics, the 255-permutation mutual-information selector, available PCA/CCA/spectral/factor-analysis baselines, and the matched-information probe for raw/PCA/CCA/factor representations.
 
-All discovery and confirmation selector decisions were calibrated on this realization. `datafold`/JSF and PyDMD temporal state-space remained unavailable and were not substituted.
+All discovery and confirmation selector decisions were calibrated on this realization.
+
+A follow-up exploratory seed-offset robustness sweep evaluated eight independent realizations of each of the seven worlds (56 world realizations total) with the same 255-permutation selector policy. All 56 decisions were calibrated. The product and independent-null worlds abstained in every realization; every world with an authoritative shared target supported a shared coordinate in every realization. See `structural-selector-robustness.json` for per-world p-value and statistic ranges. `datafold`/JSF and PyDMD temporal state-space remained unavailable and were not substituted.
 
 ## Resource accounting
 
