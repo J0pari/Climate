@@ -351,14 +351,22 @@
     {
       "id": "geometry.independent_derivative_route",
       "title": "Add a second independent metric-derivative route",
-      "status": "ready",
+      "status": "done",
       "priority": "P1",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Add an AD or complex-step derivative witness where supported, keeping derivative-estimation acceptance policy outside the mathematical MetricJet contract.",
+      "summary": "A pinned JAX jacfwd reference route now independently differentiates the shared analytic metric fixtures and agrees with exact SymPy first/second derivatives in FP64; derivative failures remain fail-closed and precision identity is explicit.",
       "depends_on": [],
       "completion": [
         "At least two materially independent derivative-generation routes agree on shared analytic fixtures.",
         "Conditioning and derivative-estimation failures remain explicit diagnostics rather than repaired tensors."
+      ],
+      "evidence": [
+        "tests/reference/test_geometry_jax.py",
+        "requirements/reference-geometry-ad.txt",
+        ".github/workflows/reference-geometry-ad.yml",
+        "reference/geometry_sympy.py",
+        "fixtures/geometry/analytic-fixtures.json",
+        "docs/GEOMETRY-VERIFICATION.md"
       ]
     },
     {
