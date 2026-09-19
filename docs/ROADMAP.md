@@ -9,8 +9,8 @@ External implementation ownership does not remove integration correctness from s
 
 ## Planning summary
 
-- Active: 2
-- Ready: 17
+- Active: 3
+- Ready: 16
 - Blocked: 10
 - Done: 15
 - Dropped: 0
@@ -20,8 +20,8 @@ External implementation ownership does not remove integration correctness from s
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
+| `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_toolchain_ci` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
-| `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `ready` | `P0` | `R2_toolchain_ci` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_toolchain_ci` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` | — |

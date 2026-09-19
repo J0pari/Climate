@@ -486,6 +486,7 @@ package climate
 		run_experiment:    [...string & !=""] & [_, ...]
 		submit_experiment: [...string & !=""] & [_, ...]
 		live_read_witness: [...string & !=""] & [_, ...]
+		validate_external_import: [...string & !=""] & [_, ...]
 	}
 	produces: [...string & !=""] & [_, ...]
 	accepts:  [...string & !=""] & [_, ...]
@@ -508,7 +509,48 @@ package climate
 }
 
 
-#ExternalModelRuntimeStatus: "unavailable" | "available"
+#ExternalModelRuntimeStatus: "unavailable" | "native_output_import" | "available"
+
+#ExternalRuntimeTransformation: {
+	transform_id:             #Id
+	implementation:           string & !=""
+	implementation_version:   string & !=""
+	configuration_digest?:    #Sha256
+}
+
+#ExternalModelRuntimeReceipt: {
+	schema: "climate.external-model-runtime-receipt/v1"
+	interface: "climate.external-model-runtime/v1"
+	execution_mode: "native_output_import" | "native_execution"
+	producer_system: string & !=""
+	implementation: string & !=""
+	implementation_version: string & !=""
+	subject: {
+		producer_repository: string & =~"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+		artifact_contract: string & !=""
+		digest: #Fingerprint
+	}
+	configuration_digest: #Sha256
+	transformations: [...#ExternalRuntimeTransformation]
+	status: "succeeded" | "failed"
+	exit_code?: int
+	prediction_digest?: #Sha256
+	failure_class?: #ExecutionFailureClass
+	failure_detail?: string & !=""
+
+	if status == "succeeded" {
+		exit_code: 0
+		prediction_digest: #Sha256
+		failure_class?: _|_
+		failure_detail?: _|_
+	}
+
+	if status == "failed" {
+		prediction_digest?: _|_
+		failure_class: #ExecutionFailureClass
+		failure_detail: string & !=""
+	}
+}
 
 #ClimateContractChoiceTask: {
 	task_id: #Id
@@ -543,6 +585,15 @@ package climate
 		status: #ExternalModelRuntimeStatus
 		required_capabilities: [...string & !=""] & [_, ...]
 		implementation?: string & !=""
+		receipt_contract?: "climate.external-model-runtime-receipt/v1"
+
+		if status == "native_output_import" {
+			receipt_contract: "climate.external-model-runtime-receipt/v1"
+		}
+		if status == "available" {
+			implementation: string & !=""
+			receipt_contract: "climate.external-model-runtime-receipt/v1"
+		}
 	}
 	task_set: #ArtifactRef & {
 		schema: "climate-contract-reasoning-taskset/v1"
@@ -580,6 +631,8 @@ package climate
 	runtime: {
 		interface: "climate.external-model-runtime/v1"
 		implementation: string & !=""
+		implementation_version: string & !=""
+		configuration_digest: #Sha256
 		subject_digest: #Fingerprint
 	}
 	responses: [...#ContractReasoningPrediction] & [_, ...]

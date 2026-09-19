@@ -46,6 +46,19 @@
       "<run-scope>",
       "--ram",
       "<MiB>"
+    ],
+    "validate_external_import": [
+      "python",
+      "architecture/commons_control.py",
+      "validate-external-import",
+      "--evaluation",
+      "<evaluation-id>",
+      "--subject-ref",
+      "<external-artifact-ref.json>",
+      "--predictions",
+      "<native-predictions.json>",
+      "--receipt",
+      "<native-runtime-receipt.json>"
     ]
   },
   "produces": [
@@ -60,7 +73,8 @@
     "Commons run/trace/correlation/causation identity",
     "Commons scheduler contract verification",
     "content-addressed Training artifact identity for explicit Climate evaluation",
-    "Commons evaluation-exchange/v1 external artifact references"
+    "Commons evaluation-exchange/v1 external artifact references",
+    "content-addressed native external runtime receipts for exact output import"
   ],
   "scientific_authority": {
     "contract": "contracts/climate.cue",
@@ -72,6 +86,6 @@
   "limitations": [
     "work-scheduler/v1 contract compatibility does not itself satisfy the R4 live integrated-execution witness",
     "Commons does not own Climate scientific interpretation or evidence promotion",
-    "The registered Training-artifact contract-reasoning evaluator cannot execute until climate.external-model-runtime/v1 is available."
+    "The Training-artifact evaluator can validate exact native-output imports, but Climate still does not launch or emulate the Training model runtime itself."
   ]
 }

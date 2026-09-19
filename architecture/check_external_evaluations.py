@@ -59,6 +59,17 @@ def check(root: Path = ROOT) -> list[Finding]:
         )
         if not is_external_artifact_evaluation:
             continue
+        adapter = spec.get("adapter")
+        if isinstance(adapter, dict):
+            status = adapter.get("status")
+            if status not in {"unavailable", "native_output_import", "available"}:
+                findings.append(Finding(
+                    "external_evaluations.adapter_status_invalid", rel,
+                    f"unknown external adapter status: {status!r}"))
+            if status in {"native_output_import", "available"} and adapter.get("receipt_contract") != "climate.external-model-runtime-receipt/v1":
+                findings.append(Finding(
+                    "external_evaluations.receipt_contract_missing", rel,
+                    "available external adapter must bind climate.external-model-runtime-receipt/v1"))
         task_set = spec.get("task_set")
         if not isinstance(task_set, dict):
             findings.append(Finding(

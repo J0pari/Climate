@@ -1,17 +1,20 @@
 {
   "schema_version": 1,
   "evaluation_id": "external.training_artifact.climate_contract_reasoning.v1",
-  "semantic_version": "1.0.0",
+  "semantic_version": "1.1.0",
   "evaluator_repository": "J0pari/Climate",
   "subject_contract": "training.model-artifact/v1",
   "adapter": {
     "interface": "climate.external-model-runtime/v1",
-    "status": "unavailable",
+    "status": "native_output_import",
     "required_capabilities": [
       "load_training_artifact",
       "generate_structured_choice",
-      "bind_subject_digest"
-    ]
+      "bind_subject_digest",
+      "emit_native_runtime_receipt",
+      "bind_prediction_digest"
+    ],
+    "receipt_contract": "climate.external-model-runtime-receipt/v1"
   },
   "task_set": {
     "artifact_id": "climate.contract_reasoning.tasks.v1",

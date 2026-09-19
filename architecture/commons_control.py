@@ -184,6 +184,7 @@ _EVAL_ABI_KEYS = (
     "schema", "contractVersion", "compatibility", "types", "invariants",
 )
 _SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
+_SHA256_REF = re.compile(r"^sha256:[0-9a-f]{64}$")
 _REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 
@@ -215,6 +216,127 @@ def validate_external_artifact_ref(ref: Mapping[str, Any]) -> dict[str, Any]:
     return dict(ref)
 
 
+def _sha256_file(path: Path) -> str:
+    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _load_json_object(path: Path, *, label: str) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CommonsControlError(f"{label} is not readable JSON: {path}") from exc
+    if not isinstance(value, dict):
+        raise CommonsControlError(f"{label} must contain a JSON object")
+    return value
+
+
+def _validate_transformations(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        raise CommonsControlError("native runtime transformations must be a list")
+    normalized = []
+    for item in value:
+        if not isinstance(item, dict):
+            raise CommonsControlError("native runtime transformation must be an object")
+        for field in ("transform_id", "implementation", "implementation_version"):
+            if not isinstance(item.get(field), str) or not item[field].strip():
+                raise CommonsControlError(f"native runtime transformation {field} is missing")
+        digest = item.get("configuration_digest")
+        if digest is not None and not _SHA256_REF.fullmatch(str(digest)):
+            raise CommonsControlError("native runtime transformation configuration_digest must be sha256:<64 hex>")
+        normalized.append(dict(item))
+    return normalized
+
+
+def validate_external_output_import(
+    *,
+    subject: Mapping[str, Any],
+    evaluation_id: str,
+    predictions_path: Path,
+    receipt_path: Path,
+) -> dict[str, Any]:
+    """Validate an externally executed model output without impersonating its runtime."""
+    validated = validate_external_artifact_ref(subject)
+    spec = load_external_evaluation_spec(evaluation_id)
+    if validated["artifact_contract"] != spec.get("subject_contract"):
+        raise CommonsControlError(
+            f"evaluator {evaluation_id!r} expects subject contract "
+            f"{spec.get('subject_contract')!r}, got {validated['artifact_contract']!r}")
+
+    adapter = spec.get("adapter") or {}
+    if adapter.get("status") not in {"native_output_import", "available"}:
+        raise ExternalEvaluationUnavailable(
+            f"Climate evaluator {evaluation_id!r} has no available native import/runtime path")
+    receipt_contract = adapter.get("receipt_contract")
+    if receipt_contract != "climate.external-model-runtime-receipt/v1":
+        raise CommonsControlError("external evaluator does not declare the native runtime receipt contract")
+
+    predictions_path = predictions_path.resolve()
+    receipt_path = receipt_path.resolve()
+    predictions = _load_json_object(predictions_path, label="prediction artifact")
+    receipt = _load_json_object(receipt_path, label="native runtime receipt")
+
+    if receipt.get("schema") != receipt_contract:
+        raise CommonsControlError("native runtime receipt schema does not match evaluator")
+    if receipt.get("interface") != adapter.get("interface"):
+        raise CommonsControlError("native runtime receipt interface does not match evaluator")
+    if receipt.get("execution_mode") != "native_output_import":
+        raise CommonsControlError("import path requires execution_mode=native_output_import")
+    if receipt.get("status") != "succeeded":
+        failure_class = receipt.get("failure_class", "unknown")
+        failure_detail = receipt.get("failure_detail", "no failure detail")
+        raise CommonsControlError(
+            f"native runtime receipt records failed execution: {failure_class}: {failure_detail}")
+    if receipt.get("exit_code") != 0:
+        raise CommonsControlError("successful native runtime receipt must have exit_code=0")
+    for field in ("producer_system", "implementation", "implementation_version"):
+        if not isinstance(receipt.get(field), str) or not receipt[field].strip():
+            raise CommonsControlError(f"native runtime receipt {field} is missing")
+    configuration_digest = receipt.get("configuration_digest")
+    if not isinstance(configuration_digest, str) or not _SHA256_REF.fullmatch(configuration_digest):
+        raise CommonsControlError("native runtime configuration_digest must be sha256:<64 hex>")
+    _validate_transformations(receipt.get("transformations"))
+
+    receipt_subject = receipt.get("subject")
+    if not isinstance(receipt_subject, dict):
+        raise CommonsControlError("native runtime receipt subject is missing")
+    for field in ("producer_repository", "artifact_contract", "digest"):
+        if receipt_subject.get(field) != validated.get(field):
+            raise CommonsControlError(f"native runtime receipt subject {field} mismatch")
+
+    actual_prediction_digest = _sha256_file(predictions_path)
+    if receipt.get("prediction_digest") != actual_prediction_digest:
+        raise CommonsControlError("native runtime receipt prediction_digest mismatch")
+    if predictions.get("schema") != spec.get("prediction_contract"):
+        raise CommonsControlError("prediction artifact schema does not match evaluator")
+    if predictions.get("evaluation_id") != evaluation_id:
+        raise CommonsControlError("prediction artifact evaluation_id does not match evaluator")
+    if predictions.get("subject_digest") != validated["digest"]:
+        raise CommonsControlError("prediction artifact subject digest mismatch")
+
+    runtime = predictions.get("runtime")
+    if not isinstance(runtime, dict):
+        raise CommonsControlError("prediction artifact runtime identity is missing")
+    expected_runtime = {
+        "interface": adapter.get("interface"),
+        "implementation": receipt.get("implementation"),
+        "implementation_version": receipt.get("implementation_version"),
+        "configuration_digest": configuration_digest,
+        "subject_digest": validated["digest"],
+    }
+    for field, expected in expected_runtime.items():
+        if runtime.get(field) != expected:
+            raise CommonsControlError(f"prediction runtime {field} mismatch")
+
+    return {
+        "evaluation_id": evaluation_id,
+        "subject": validated,
+        "runtime": expected_runtime,
+        "prediction_digest": actual_prediction_digest,
+        "receipt_digest": _sha256_file(receipt_path),
+        "transformations": list(receipt["transformations"]),
+    }
+
+
 def load_external_evaluation_spec(evaluation_id: str) -> dict[str, Any]:
     matches = []
     if EVALUATIONS_DIR.is_dir():
@@ -236,7 +358,7 @@ def require_external_evaluator(
     subject: Mapping[str, Any],
     evaluation_id: str,
 ) -> dict[str, Any]:
-    """Resolve a registered evaluator and fail closed when its runtime is absent."""
+    """Resolve a registered evaluator only when a native execution/import path exists."""
     validated = validate_external_artifact_ref(subject)
     spec = load_external_evaluation_spec(evaluation_id)
     if validated["artifact_contract"] != spec.get("subject_contract"):
@@ -245,7 +367,7 @@ def require_external_evaluator(
             f"{spec.get('subject_contract')!r}, got "
             f"{validated['artifact_contract']!r}")
     adapter = spec.get("adapter") or {}
-    if adapter.get("status") != "available":
+    if adapter.get("status") not in {"available", "native_output_import"}:
         raise ExternalEvaluationUnavailable(
             f"Climate evaluator {evaluation_id!r} is registered but "
             f"adapter {adapter.get('interface')!r} is unavailable; "
@@ -271,13 +393,19 @@ def main(argv=None) -> int:
     submit_parser.add_argument("--max-minutes", type=float, default=30.0)
     submit_parser.add_argument("--priority", type=int, default=0)
 
+    import_parser = sub.add_parser("validate-external-import")
+    import_parser.add_argument("--evaluation", required=True)
+    import_parser.add_argument("--subject-ref", type=Path, required=True)
+    import_parser.add_argument("--predictions", type=Path, required=True)
+    import_parser.add_argument("--receipt", type=Path, required=True)
+
     args = parser.parse_args(argv)
     try:
         if args.command == "status":
             result = scheduler_status()
         elif args.command == "inspect":
             result = inspect_job(args.job)
-        else:
+        elif args.command == "submit-cpu":
             result = submit_cpu_experiment(
                 experiment_path=args.experiment,
                 repository_revision=args.repository_revision,
@@ -285,6 +413,14 @@ def main(argv=None) -> int:
                 ram_mib=args.ram_mib,
                 max_minutes=args.max_minutes,
                 priority=args.priority,
+            )
+        else:
+            subject = _load_json_object(args.subject_ref, label="external subject reference")
+            result = validate_external_output_import(
+                subject=subject,
+                evaluation_id=args.evaluation,
+                predictions_path=args.predictions,
+                receipt_path=args.receipt,
             )
     except CommonsControlError as error:
         print(str(error), file=sys.stderr)

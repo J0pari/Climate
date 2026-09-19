@@ -85,6 +85,15 @@ def score_predictions(
         raise ContractReasoningError("prediction runtime interface does not match evaluator")
     if runtime.get("subject_digest") != subject_digest:
         raise ContractReasoningError("runtime subject digest does not match prediction subject")
+    implementation = runtime.get("implementation")
+    if not isinstance(implementation, str) or not implementation.strip():
+        raise ContractReasoningError("prediction runtime implementation is missing")
+    implementation_version = runtime.get("implementation_version")
+    if not isinstance(implementation_version, str) or not implementation_version.strip():
+        raise ContractReasoningError("prediction runtime implementation_version is missing")
+    configuration_digest = runtime.get("configuration_digest")
+    if not isinstance(configuration_digest, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", configuration_digest):
+        raise ContractReasoningError("prediction runtime configuration_digest is invalid")
 
     tasks = task_set.get("tasks")
     if not isinstance(tasks, list) or not tasks:

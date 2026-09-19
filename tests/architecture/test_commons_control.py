@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import tempfile
 import unittest
@@ -115,7 +116,7 @@ class CommonsControlTests(unittest.TestCase):
         with self.assertRaises(commons_control.CommonsControlError):
             commons_control.validate_external_artifact_ref(bad)
 
-    def test_registered_external_evaluator_fails_closed_on_missing_runtime(self):
+    def test_registered_external_evaluator_exposes_native_import_path(self):
         subject = {
             "producer_repository": "J0pari/Training",
             "local_artifact_id": "0123456789abcdef",
@@ -125,12 +126,122 @@ class CommonsControlTests(unittest.TestCase):
         evaluation_id = "external.training_artifact.climate_contract_reasoning.v1"
         spec = commons_control.load_external_evaluation_spec(evaluation_id)
         self.assertEqual(spec["subject_contract"], "training.model-artifact/v1")
-        self.assertEqual(spec["adapter"]["status"], "unavailable")
-        with self.assertRaisesRegex(
-            commons_control.ExternalEvaluationUnavailable,
-            "registered but adapter",
-        ):
-            commons_control.require_external_evaluator(subject, evaluation_id)
+        self.assertEqual(spec["adapter"]["status"], "native_output_import")
+        self.assertEqual(
+            commons_control.require_external_evaluator(subject, evaluation_id)["evaluation_id"],
+            evaluation_id,
+        )
+
+
+    def _write_external_import_fixture(self, root: Path):
+        evaluation_id = "external.training_artifact.climate_contract_reasoning.v1"
+        subject = {
+            "producer_repository": "J0pari/Training",
+            "local_artifact_id": "0123456789abcdef",
+            "digest": "a" * 64,
+            "artifact_contract": "training.model-artifact/v1",
+        }
+        predictions = {
+            "schema": "climate-contract-reasoning-predictions/v1",
+            "evaluation_id": evaluation_id,
+            "subject_digest": subject["digest"],
+            "runtime": {
+                "interface": "climate.external-model-runtime/v1",
+                "implementation": "fixture-native-runtime",
+                "implementation_version": "1.2.3",
+                "configuration_digest": "sha256:" + "b" * 64,
+                "subject_digest": subject["digest"],
+            },
+            "responses": [],
+        }
+        predictions_path = root / "predictions.json"
+        predictions_path.write_text(json.dumps(predictions, sort_keys=True) + "\n", encoding="utf-8")
+        prediction_digest = "sha256:" + hashlib.sha256(predictions_path.read_bytes()).hexdigest()
+        receipt = {
+            "schema": "climate.external-model-runtime-receipt/v1",
+            "interface": "climate.external-model-runtime/v1",
+            "execution_mode": "native_output_import",
+            "producer_system": "fixture-upstream",
+            "implementation": "fixture-native-runtime",
+            "implementation_version": "1.2.3",
+            "subject": {
+                "producer_repository": subject["producer_repository"],
+                "artifact_contract": subject["artifact_contract"],
+                "digest": subject["digest"],
+            },
+            "configuration_digest": "sha256:" + "b" * 64,
+            "transformations": [],
+            "status": "succeeded",
+            "prediction_digest": prediction_digest,
+            "exit_code": 0,
+        }
+        receipt_path = root / "receipt.json"
+        receipt_path.write_text(json.dumps(receipt, sort_keys=True) + "\n", encoding="utf-8")
+        return evaluation_id, subject, predictions_path, receipt_path
+
+    def test_native_output_import_binds_subject_runtime_and_prediction_bytes(self):
+        with tempfile.TemporaryDirectory() as td:
+            evaluation_id, subject, predictions_path, receipt_path = self._write_external_import_fixture(Path(td))
+            result = commons_control.validate_external_output_import(
+                subject=subject,
+                evaluation_id=evaluation_id,
+                predictions_path=predictions_path,
+                receipt_path=receipt_path,
+            )
+        self.assertEqual(result["subject"]["digest"], "a" * 64)
+        self.assertEqual(result["runtime"]["implementation_version"], "1.2.3")
+        self.assertTrue(result["prediction_digest"].startswith("sha256:"))
+        self.assertTrue(result["receipt_digest"].startswith("sha256:"))
+
+    def test_native_output_import_rejects_subject_substitution(self):
+        with tempfile.TemporaryDirectory() as td:
+            evaluation_id, subject, predictions_path, receipt_path = self._write_external_import_fixture(Path(td))
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            receipt["subject"]["digest"] = "c" * 64
+            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+            with self.assertRaisesRegex(commons_control.CommonsControlError, "subject digest mismatch"):
+                commons_control.validate_external_output_import(
+                    subject=subject, evaluation_id=evaluation_id,
+                    predictions_path=predictions_path, receipt_path=receipt_path)
+
+    def test_native_output_import_rejects_runtime_substitution(self):
+        with tempfile.TemporaryDirectory() as td:
+            evaluation_id, subject, predictions_path, receipt_path = self._write_external_import_fixture(Path(td))
+            predictions = json.loads(predictions_path.read_text(encoding="utf-8"))
+            predictions["runtime"]["implementation"] = "replacement-runtime"
+            predictions_path.write_text(json.dumps(predictions), encoding="utf-8")
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            receipt["prediction_digest"] = commons_control._sha256_file(predictions_path)
+            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+            with self.assertRaisesRegex(commons_control.CommonsControlError, "runtime implementation mismatch"):
+                commons_control.validate_external_output_import(
+                    subject=subject, evaluation_id=evaluation_id,
+                    predictions_path=predictions_path, receipt_path=receipt_path)
+
+    def test_native_output_import_rejects_prediction_digest_drift(self):
+        with tempfile.TemporaryDirectory() as td:
+            evaluation_id, subject, predictions_path, receipt_path = self._write_external_import_fixture(Path(td))
+            predictions_path.write_text(predictions_path.read_text(encoding="utf-8") + " ", encoding="utf-8")
+            with self.assertRaisesRegex(commons_control.CommonsControlError, "prediction_digest mismatch"):
+                commons_control.validate_external_output_import(
+                    subject=subject, evaluation_id=evaluation_id,
+                    predictions_path=predictions_path, receipt_path=receipt_path)
+
+    def test_unavailable_external_adapter_still_refuses(self):
+        subject = {
+            "producer_repository": "J0pari/Training",
+            "local_artifact_id": "0123456789abcdef",
+            "digest": "d" * 64,
+            "artifact_contract": "training.model-artifact/v1",
+        }
+        spec = commons_control.load_external_evaluation_spec(
+            "external.training_artifact.climate_contract_reasoning.v1")
+        spec = copy.deepcopy(spec)
+        spec["adapter"]["status"] = "unavailable"
+        with patch.object(commons_control, "load_external_evaluation_spec", return_value=spec):
+            with self.assertRaises(commons_control.ExternalEvaluationUnavailable):
+                commons_control.require_external_evaluator(
+                    subject, "external.training_artifact.climate_contract_reasoning.v1")
 
     def test_unknown_external_evaluator_refuses(self):
         with self.assertRaises(commons_control.ExternalEvaluationUnavailable):

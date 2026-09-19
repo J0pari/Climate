@@ -715,7 +715,7 @@
         "orchestration.commons_read_execution"
       ],
       "blockers": [
-        "Climate can validate and score a digest-bound prediction artifact against the registered contract-reasoning task set, but no exact native runtime/import binding currently produces those predictions from the requested external model artifact under a verifiable receipt. The missing piece is the integration seam, not a Climate-owned generic serving runtime."
+        "Climate now has an exact native-output import validator bound to subject, runtime version, configuration, transformations, prediction bytes, and failed-run semantics. Completion still requires the unresolved Commons R4 dependency and one real producer-side Training runtime output/receipt evaluated through that integrated path."
       ],
       "completion": [
         "A versioned Climate evaluation specification declares the external artifact contract, native execution/import identity, climate task, metrics, controls, resource class, and falsifiers.",
@@ -886,10 +886,10 @@
     {
       "id": "integration.native_capability_boundaries",
       "title": "Bind external native capabilities without shadow implementations",
-      "status": "ready",
+      "status": "active",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Make external ownership and Climate integration simultaneously explicit: Climate-REF/ESMValTool/AQUA/AIMIP/ClimSim-Online/Anemoi/ACE-family or comparable systems retain their native cataloging, preprocessing, execution, training, inference, intercomparison, and provenance responsibilities while Climate binds exact versions/configuration/receipts and adds only Climate-specific scientific semantics.",
+      "summary": "Bind externally owned capabilities through exact native identity, configuration, transformation, receipt, and failure semantics while keeping upstream cataloging, preprocessing, execution, training/inference, intercomparison, and provenance implementations in their native systems. The first realized seam is content-addressed native-output import for external model evaluation.",
       "depends_on": [],
       "completion": [
         "Each realized external integration names the exact native capability being consumed, the Climate-owned semantic gap it fills, and the upstream identity/configuration/receipt required for reproducibility.",
@@ -897,6 +897,14 @@
         "Architecture tests contain at least one negative witness showing that an unavailable or mismatched native capability fails closed rather than selecting a local substitute with the same identity.",
         "A capability inventory demonstrates that common cataloging, preprocessing, standard diagnostics, training/inference, intercomparison, and orchestration are reused from their native owners wherever they already satisfy the experiment contract.",
         "Any retained local duplicate is justified as an independently valuable bounded reference or a concrete missing upstream semantic, with a distinct implementation identity."
+      ],
+      "evidence": [
+        "contracts/climate.cue",
+        "architecture/commons_control.py",
+        "architecture/commons_interface.json",
+        "evaluations/external-training-artifact-climate-contract-reasoning.v1.json",
+        "tests/architecture/test_commons_control.py",
+        "contracts/testdata/external-model-runtime-receipt.good.json"
       ]
     },
     {

@@ -1,0 +1,18 @@
+{
+  "schema": "climate.external-model-runtime-receipt/v1",
+  "interface": "climate.external-model-runtime/v1",
+  "execution_mode": "native_output_import",
+  "producer_system": "fixture.native-runtime",
+  "implementation": "fixture-runtime",
+  "implementation_version": "1.0.0",
+  "subject": {
+    "producer_repository": "J0pari/Training",
+    "artifact_contract": "training.model-artifact/v1",
+    "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "configuration_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "transformations": [],
+  "status": "succeeded",
+  "prediction_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "exit_code": 1
+}

@@ -30,6 +30,8 @@ class ExternalContractReasoningTests(unittest.TestCase):
             "runtime": {
                 "interface": self.spec["adapter"]["interface"],
                 "implementation": "fixture-runtime",
+                "implementation_version": "1.0.0",
+                "configuration_digest": "sha256:" + "b" * 64,
                 "subject_digest": self.subject,
             },
             "responses": responses,
@@ -64,6 +66,17 @@ class ExternalContractReasoningTests(unittest.TestCase):
                 task_set_digest=self.task_digest,
             )
 
+
+    def test_runtime_configuration_identity_is_required(self):
+        predictions = self.predictions()
+        predictions["runtime"]["configuration_digest"] = "not-a-digest"
+        with self.assertRaisesRegex(
+            scorer.ContractReasoningError, "configuration_digest"
+        ):
+            scorer.score_predictions(
+                predictions, spec=self.spec, task_set=self.tasks,
+                task_set_digest=self.task_digest,
+            )
     def test_missing_task_refuses_instead_of_scoring_partial_surface(self):
         predictions = self.predictions()
         predictions["responses"].pop()

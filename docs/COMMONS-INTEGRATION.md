@@ -356,11 +356,17 @@ exact task coverage, computes the declared behavioral metrics, and runs the
 permuted-answer-key negative control. Its result binds the task-set and
 prediction digests.
 
-`architecture/commons_control.py` resolves the registered specification and fails
-closed unless a `climate.external-model-runtime/v1` adapter produces the
-structured choices from the exact requested Training artifact under a runtime
-receipt bound to the full subject digest. A scored prediction artifact is not
-by itself a Commons attestation or a Training promotion decision.
+`architecture/commons_control.py` exposes the executable native-output import boundary. It does not launch or emulate the Training runtime. `validate-external-import` accepts the full external artifact reference, the exact prediction artifact emitted by the upstream runtime, and a `climate.external-model-runtime-receipt/v1` receipt. Validation binds producer repository and artifact contract, full subject digest, upstream implementation and version, configuration digest, declared transformations, successful native exit status, and the SHA-256 digest of the exact prediction bytes. Any subject, runtime, configuration, or prediction substitution fails before scoring.
+
+```text
+python architecture/commons_control.py validate-external-import \
+  --evaluation external.training_artifact.climate_contract_reasoning.v1 \
+  --subject-ref <external-artifact-ref.json> \
+  --predictions <native-predictions.json> \
+  --receipt <native-runtime-receipt.json>
+```
+
+The registered evaluator therefore has a real `native_output_import` path while model execution remains externally owned. A validated or scored prediction artifact is not by itself a Commons attestation or a Training promotion decision.
 
 Any eventual evaluation attestation is evidence about the immutable model
 artifact. It does not mutate that artifact and cannot accept, reject, deploy,

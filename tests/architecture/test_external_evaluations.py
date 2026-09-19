@@ -73,6 +73,21 @@ class ExternalEvaluationIntegrityTests(unittest.TestCase):
             self.assertIn(
                 "external_evaluations.task_set_digest_mismatch", codes)
 
+
+    def test_native_output_import_requires_receipt_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_spec(root)
+            path = root / "evaluations" / "eval.one.v1.json"
+            spec = json.loads(path.read_text(encoding="utf-8"))
+            spec["adapter"] = {
+                "interface": "climate.external-model-runtime/v1",
+                "status": "native_output_import",
+                "required_capabilities": ["bind_subject_digest"],
+            }
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            codes = {f.code for f in check_external_evaluations.check(root)}
+            self.assertIn("external_evaluations.receipt_contract_missing", codes)
     def test_duplicate_evaluation_id_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

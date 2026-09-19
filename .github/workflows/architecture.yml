@@ -85,6 +85,11 @@ jobs:
         run: |
           "$(go env GOPATH)/bin/cue" vet -d '#ClimateContractReasoningTaskSet' contracts/climate.cue fixtures/evaluation/climate-contract-reasoning-v1.json
           "$(go env GOPATH)/bin/cue" vet -d '#ExternalArtifactEvaluationSpec' contracts/climate.cue evaluations/external-training-artifact-climate-contract-reasoning.v1.json
+          "$(go env GOPATH)/bin/cue" vet -d '#ExternalModelRuntimeReceipt' contracts/climate.cue contracts/testdata/external-model-runtime-receipt.good.json
+          if "$(go env GOPATH)/bin/cue" vet -d '#ExternalModelRuntimeReceipt' contracts/climate.cue contracts/testdata/external-model-runtime-receipt.succeeded-exit.bad.json; then
+            echo 'successful external runtime receipt with nonzero exit was accepted' >&2
+            exit 1
+          fi
           if "$(go env GOPATH)/bin/cue" vet -d '#ExternalArtifactEvaluationSpec' contracts/climate.cue contracts/testdata/external-artifact-evaluation.promotion.bad.json; then
             echo 'external evaluator with foreign promotion authority was accepted' >&2
             exit 1
