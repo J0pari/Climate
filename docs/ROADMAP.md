@@ -20,7 +20,7 @@ External implementation ownership does not remove integration correctness from s
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
-| `integration.aimip_production_archive` — Use the public AIMIP production archive | `active` | `P0` | `R3_network_cpu` | — |
+| `integration.aimip_production_archive` — Use the public AIMIP production archive | `active` | `P0` | `R5_large_data` | — |
 | `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_toolchain_ci` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_toolchain_ci` | — |
@@ -39,8 +39,8 @@ External implementation ownership does not remove integration correctness from s
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` | — |
-| `integration.aqua_production_reader` — Use AQUA production data access | `blocked` | `P0` | `R3_network_cpu` | `integration.climate_ref_production_cmip` |
-| `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `blocked` | `P0` | `R3_network_cpu` | `integration.climate_ref_production_cmip` |
+| `integration.aqua_production_reader` — Use AQUA production data access | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
+| `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
 | `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` | `sheaf.climate_data_semantics`, `data.global_free_station_federation` |
 | `experimentation.multifidelity_response_interrogation` — Use cheap model exploration to choose discriminating high-fidelity experiments | `blocked` | `P1` | `R5_large_data` | `integration.native_capability_boundaries`, `orchestration.external_artifact_evaluation`, `validation.cross_model_evidence_transport` |
 | `integration.commons_storage_distribution` — Resolve Commons storage distribution into public Climate CI | `blocked` | `P1` | `R4_integrated_system` | — |
@@ -62,7 +62,7 @@ External implementation ownership does not remove integration correctness from s
 | `experimentation.common_cpu_runtime` — Run one contract-valid CPU experiment end to end | `done` | `P0` | `R1_portable_cpu` | — |
 | `experimentation.failure_provenance` — Persist structured provenance for failed experiment execution | `done` | `P0` | `R2_toolchain_ci` | `experimentation.common_cpu_runtime` |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `done` | `P0` | `R2_toolchain_ci` | — |
-| `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `done` | `P0` | `R3_network_cpu` | — |
+| `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `done` | `P0` | `R4_integrated_system` | — |
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_toolchain_ci` | `architecture.reference_values` |
 | `physics.streaming_budget_accounting` — Compose physical kernels through a streaming budget ledger | `done` | `P0` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 | `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `done` | `P0` | `R2_toolchain_ci` | `data.external_authority_audit`, `data.immutable_observational_projection` |

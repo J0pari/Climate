@@ -954,7 +954,7 @@
       "title": "Use Climate-REF on production CMIP data",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R3_network_cpu",
+      "resource_class": "R4_integrated_system",
       "summary": "The pinned Climate-REF production stack successfully ingests a checksum-pinned ACCESS-CM2 CMIP6 object from the full ESGF archive through its production DRS ingestion path. This is a real replacement witness for CMIP catalog/ingest ownership, not a reduced development dataset.",
       "depends_on": [],
       "completion": [
@@ -972,7 +972,7 @@
       "title": "Use the public AIMIP production archive",
       "status": "active",
       "priority": "P0",
-      "resource_class": "R3_network_cpu",
+      "resource_class": "R5_large_data",
       "summary": "Exercise the anonymous DKRZ AIMIP archive through the exact published model path, then bind AIMIP model/experiment/realization/grid/version identity into Climate evidence semantics without mirroring the intercomparison archive or evaluation protocol.",
       "depends_on": [],
       "blockers": [
@@ -994,7 +994,7 @@
       "title": "Use ESMValCore production preprocessing",
       "status": "blocked",
       "priority": "P0",
-      "resource_class": "R3_network_cpu",
+      "resource_class": "R4_integrated_system",
       "summary": "Run the pinned ESMValCore source revision with its documented production dependency stack on the same checksum-pinned CMIP6 ESGF object, then use that native preprocessing boundary before deleting any overlapping Climate preprocessing code.",
       "depends_on": [
         "integration.climate_ref_production_cmip"
@@ -1017,7 +1017,7 @@
       "title": "Use AQUA production data access",
       "status": "blocked",
       "priority": "P0",
-      "resource_class": "R3_network_cpu",
+      "resource_class": "R4_integrated_system",
       "summary": "Use the exact pinned AQUA implementation to read and compute from production climate data through AQUA's native reader without retaining a Climate-owned generic reader/catalog/regrid layer.",
       "depends_on": [
         "integration.climate_ref_production_cmip"
