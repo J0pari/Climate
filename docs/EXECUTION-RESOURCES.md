@@ -4,7 +4,7 @@ Status: **binding execution semantics specification**.
 
 This document defines the resource classes, execution environments, and evidence boundaries used by Climate. It does not choose, prioritize, or schedule repository work.
 
-`architecture/planning_graph.json` is the sole authority for planned work, priority, dependencies, blockers, completion criteria, and each obligation's `resource_class`. `docs/ROADMAP.md` is only its generated planning projection. `docs/generated/STATUS.md` is only the scoped structural-realization projection declared by `architecture/state_authorities.json`; it does not project committed evaluations, exact-head CI, or commit history. Present-state and execution decisions must reconcile the relevant surfaces at one exact commit using `docs/REPOSITORY-STATE.md`.
+`architecture/planning_graph.json` is the sole authority for planned work, priority, dependencies, blockers, completion criteria, and each obligation's `resource_class`. `docs/ROADMAP.md` is its generated planning projection. Repository-local research state is generated in `docs/generated/STATE.md`; exact-head execution results remain GitHub Actions evidence.
 
 ## 1. Resource classes
 
@@ -110,7 +110,7 @@ DRY is primarily semantic, not stylistic. Prefer one authored authority for:
 
 Generated documentation may project existing authorities. Do not invent a second registry or prose queue solely to restate them.
 
-The generated status projection is deliberately local/offline; it does not scrape transient GitHub Actions pass/fail state into committed documentation. CI state is execution evidence, not durable repository status prose.
+`docs/generated/STATE.md` is generated from repository-local authorities. Exact-head CI remains execution evidence in GitHub Actions.
 
 ## 4. Scarce-resource handoff contract
 
