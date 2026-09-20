@@ -4,7 +4,7 @@ Status: **binding execution semantics specification**.
 
 This document defines the resource classes, execution environments, and evidence boundaries used by Climate. It does not choose, prioritize, or schedule repository work.
 
-`architecture/planning_graph.json` is the sole authority for planned work, priority, dependencies, blockers, completion criteria, and each obligation's `resource_class`. `docs/ROADMAP.md` is its generated planning projection. Repository-local research state is generated in `docs/generated/STATE.md`; exact-head execution results remain GitHub Actions evidence.
+`architecture/planning_graph.json` is the sole authority for planned work, priority, dependencies, blockers, completion criteria, and each obligation's `resource_class`. `docs/ROADMAP.md` is its generated planning projection. Repository-local research state is generated in `docs/generated/STATE.md`; uncommitted execution is not repository authority, and durable execution evidence must be committed as a receipt or evaluation artifact under the owning contract.
 
 ## 1. Resource classes
 
@@ -18,13 +18,13 @@ Examples include architecture/contracts, source/module/claim audits, dependency 
 
 ### `R1_portable_cpu`
 
-Requires common CPU tooling and is suitable for ordinary hosted CI.
+Requires common CPU tooling and is suitable for ordinary local or explicitly provisioned CPU environments.
 
 Examples include canonical Rust tests, portable Fortran/C/C++, Python/SymPy references, small numerical fixtures, property/metamorphic tests, deterministic serialization/fingerprint checks, and small baseline statistics.
 
 ### `R2_toolchain_ci`
 
-Requires a specific portable toolchain that can be provisioned reproducibly in CI.
+Requires a specific portable toolchain that can be provisioned reproducibly in a local or explicitly provisioned environment.
 
 Examples include Lean/Mathlib kernel checks, CUE vetting, selected language-specific jobs, unusual compiler versions, and cross-language differential checks.
 
@@ -58,15 +58,15 @@ When the external data system already supports data-local lazy/scalable evaluati
 
 ## 2. Execution-environment semantics
 
-### GitHub Actions
+### Repository verification
 
-Hosted CI is the durable execution authority for work whose declared resource class and dependencies can be reproduced there. It is appropriate for portable compilation/tests, symbolic or formal references, contract vetting, architecture integrity, and deterministic synthetic or analytic experiments.
+Hosted CI is prohibited for this repository. Repository pushes must not trigger compute, and `.github/workflows/` must remain absent. Portable verification is run explicitly from the checkout under test using local commands or a separately declared execution environment. A passing local check proves only what that check exercises.
 
-A dedicated workflow or job is justified by a distinct authority/kernel, dependency profile, failure-attribution boundary, hardware class, or meaningful caching boundary—not merely by the existence of another test.
+Execution that matters scientifically must bind the exact repository revision, environment, inputs, commands, outputs, and failure state. If the result must remain durable, its receipt or evaluation artifact is committed under the owning contract or stored in an explicitly declared immutable external system; transient runner state is never authority.
 
 ### Interactive development environments
 
-An interactive environment is useful for diagnosis, proof construction, or integration work that materially benefits from interactivity. Results that are portable should be reduced to a durable repository witness in CI or another declared evidence-producing environment.
+An interactive environment is useful for diagnosis, proof construction, or integration work that materially benefits from interactivity. Results that are portable should be reduced to a durable repository witness or another explicitly declared evidence-producing environment.
 
 Repository identity must be explicit before an interactive result is treated as evidence. A stale checkout is a different implementation identity, not an approximation of `main`.
 
@@ -110,7 +110,7 @@ DRY is primarily semantic, not stylistic. Prefer one authored authority for:
 
 Generated documentation may project existing authorities. Do not invent a second registry or prose queue solely to restate them.
 
-`docs/generated/STATE.md` is generated from repository-local authorities. Exact-head CI remains execution evidence in GitHub Actions.
+`docs/generated/STATE.md` is generated from repository-local authorities. Uncommitted execution remains transient; durable execution evidence must live in the owning committed authority or an explicitly declared immutable external store.
 
 ## 4. Scarce-resource handoff contract
 
