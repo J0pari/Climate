@@ -390,6 +390,6 @@ The witness submits through `work-scheduler/v1`, polls only the public
 that Climate's `outcome.json` has the requested experiment identity and
 repository revision. It never reads Commons private queue/state files.
 
-A passing mocked/CI witness proves the harness semantics only. Integrated-system
+A passing mocked/local witness proves the harness semantics only. Integrated-system
 R4 evidence requires this command to succeed against the machine-local Commons
 daemon after the one-writer scheduler-state cutover.
