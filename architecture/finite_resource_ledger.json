@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "resources": {
+    "github_actions": {
+      "enabled": false,
+      "accounting_unit": "runner_minutes",
+      "self_hard_limit": 0,
+      "note": "Hosted CI is prohibited; no repository action may reserve or consume this resource."
+    },
+    "github_codespaces": {
+      "enabled": false,
+      "accounting_scope": "Climate-initiated/self-use only",
+      "accounting_policy": "A reservation is charged in full against the self-budget before execution. Actual measurements are audit data and do not automatically refund unused reservation.",
+      "budget_period": null,
+      "self_hard_limits": {
+        "core_minutes": 0,
+        "storage_gib_hours": 0
+      },
+      "authorizations": []
+    }
+  }
+}
