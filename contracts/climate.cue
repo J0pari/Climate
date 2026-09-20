@@ -25,7 +25,7 @@ package climate
 	identity: string & !=""
 	digest?: #Sha256
 }
-#ExecutionClass: "R0_static" | "R1_portable_cpu" | "R2_toolchain_ci" | "R3_cuda_device" | "R4_integrated_system" | "R5_large_data"
+#ExecutionClass: "R0_static" | "R1_portable_cpu" | "R2_portable_toolchain" | "R3_cuda_device" | "R4_integrated_system" | "R5_large_data"
 #ExecutionFailureClass: "capability_unavailable" | "required_input_missing" | "configuration_invalid" | "implementation_unavailable" | "implementation_substituted" | "backend_mismatch" | "precision_mismatch" | "resource_mismatch" | "dataset_mismatch" | "undeclared_default" | "process_failed" | "output_invalid"
 #RunFailureStage: "identity_resolution" | "input_resolution" | "process_launch" | "process_exit" | "output_decode" | "evaluation" | "artifact_materialization"
 
