@@ -10,17 +10,17 @@ External implementation ownership is not treated as local realization. A Climate
 
 ## Module authority
 
-Registered modules: **68**.
+Registered modules: **69**.
 
 | Lifecycle | Count |
 | --- | ---: |
 | `canonical` | 37 |
-| `reference` | 31 |
+| `reference` | 32 |
 
 | Declared maturity | Count |
 | --- | ---: |
 | `prototype` | 2 |
-| `runnable` | 66 |
+| `runnable` | 67 |
 
 ### Canonical and reference modules
 
@@ -82,6 +82,7 @@ Registered modules: **68**.
 | `reference` | `independent_reference` | `reference/sheaf_cohomology.py` | `reference_sheaf_cohomology` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/station_temperature_sheaf.py` | `reference_station_temperature_sheaf` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_dynamic_observability.py` | `reference_two_layer_dynamic_observability` | `runnable` | no |
+| `reference` | `independent_reference` | `reference/two_layer_ebm_recovery_objective.py` | `reference_two_layer_ebm_recovery_objective` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_energy_balance.py` | `reference_two_layer_energy_balance` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_forced_representation.py` | `reference_two_layer_forced_representation_ood` | `runnable` | no |
 | `reference` | `independent_reference` | `reference/two_layer_forcing_protocols.py` | `reference_two_layer_forcing_protocols` | `runnable` | no |
