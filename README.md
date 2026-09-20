@@ -67,9 +67,8 @@ python architecture/check_methods.py
 python architecture/check_modules.py
 python architecture/check_planning.py
 python architecture/check_experiments.py
-python architecture/render_repository_state.py --check
 python architecture/render_roadmap.py --check
-python architecture/render_status.py --check
+python architecture/render_state.py --check
 ```
 
 Additional workflows exercise language-specific references, canonical Rust/Fortran surfaces, mathematical oracles, and registered experiment paths. Exact-head GitHub Actions results are execution evidence for the commit they ran against; they are not inferred from this README or from generated status projections.
