@@ -1030,14 +1030,24 @@ def iter_by_year_records(
     *,
     expected_year: int,
 ) -> Iterable[GHCNByYearRecord]:
-    """Stream provider rows; no year-sized list or station-time tensor is built."""
-    reader = csv.reader(lines)
-    for row_number, row in enumerate(reader, start=1):
-        if not row:
+    """Stream provider rows with one physical input line per logical record."""
+    for row_number, line in enumerate(lines, start=1):
+        if not isinstance(line, str):
+            raise ValueError(
+                f"invalid GHCN by-year row {row_number}: input line must be text"
+            )
+        physical = line.rstrip("\r\n")
+        if not physical:
             continue
+        if "\n" in physical or "\r" in physical:
+            raise ValueError(
+                f"invalid GHCN by-year row {row_number}: "
+                "multiline CSV records are not permitted"
+            )
         try:
+            row = next(csv.reader([physical], strict=True))
             yield parse_by_year_row(row, expected_year=expected_year)
-        except ValueError as exc:
+        except (csv.Error, ValueError) as exc:
             raise ValueError(
                 f"invalid GHCN by-year row {row_number}: {exc}"
             ) from exc
@@ -1047,11 +1057,36 @@ def iter_gzip_by_year(
     path: Path,
     *,
     expected_year: int,
+    max_source_bytes: int,
+    max_csv_line_bytes: int,
 ) -> Iterable[GHCNByYearRecord]:
-    """Stream a captured provider .csv.gz artifact directly from disk."""
+    """Stream a captured provider .csv.gz under explicit source/line budgets."""
+    if max_source_bytes <= 0:
+        raise ValueError("max_source_bytes must be positive")
+    if max_csv_line_bytes <= 0:
+        raise ValueError("max_csv_line_bytes must be positive")
+    path = Path(path)
+    if path.stat().st_size > max_source_bytes:
+        raise ValueError("captured GHCN source exceeds max_source_bytes")
+
     def generate():
-        with gzip.open(path, mode="rt", encoding="ascii", newline="") as handle:
-            yield from iter_by_year_records(handle, expected_year=expected_year)
+        with gzip.open(path, mode="rb") as handle:
+            while True:
+                raw = handle.readline(max_csv_line_bytes + 1)
+                if not raw:
+                    break
+                if len(raw) > max_csv_line_bytes:
+                    raise ValueError(
+                        f"GHCN CSV line exceeds {max_csv_line_bytes} bytes"
+                    )
+                try:
+                    line = raw.decode("ascii")
+                except UnicodeDecodeError as exc:
+                    raise ValueError("GHCN by-year CSV must be ASCII") from exc
+                yield from iter_by_year_records(
+                    (line,),
+                    expected_year=expected_year,
+                )
     return generate()
 
 

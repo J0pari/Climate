@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 from pathlib import Path
 import tempfile
 import unittest
@@ -17,6 +18,8 @@ from data.ncei_ghcnd_bulk import (
     by_year_urls,
     catalog_shard_refs,
     StationShardLookup,
+    iter_by_year_records,
+    iter_gzip_by_year,
     parse_inventory,
     parse_station_catalog,
     stream_by_year_partitions,
@@ -477,6 +480,54 @@ class GHCNBulkFederationTests(unittest.TestCase):
         refs = catalog_shard_refs(shards)
         self.assertEqual(len(refs), len(shards))
         self.assertTrue(all(ref.digest.startswith("sha256:") for ref in refs))
+
+    def test_by_year_parser_refuses_multiline_csv_aggregation(self):
+        with self.assertRaisesRegex(ValueError, "multiline|unexpected end"):
+            tuple(
+                iter_by_year_records(
+                    (
+                        '"USW00000001,20240101,TMAX,123,,,S,0700\n',
+                        'continued"\n',
+                    ),
+                    expected_year=2024,
+                )
+            )
+
+    def test_gzip_iterator_requires_finite_source_and_line_budgets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "2024.csv.gz"
+            with gzip.open(path, mode="wb") as handle:
+                handle.write(
+                    b"USW00000001,20240101,TMAX,123,,,S,0700\n"
+                )
+
+            with self.assertRaisesRegex(ValueError, "max_source_bytes"):
+                tuple(
+                    iter_gzip_by_year(
+                        path,
+                        expected_year=2024,
+                        max_source_bytes=1,
+                        max_csv_line_bytes=4096,
+                    )
+                )
+            with self.assertRaisesRegex(ValueError, "CSV line exceeds"):
+                tuple(
+                    iter_gzip_by_year(
+                        path,
+                        expected_year=2024,
+                        max_source_bytes=1024 * 1024,
+                        max_csv_line_bytes=16,
+                    )
+                )
+            records = tuple(
+                iter_gzip_by_year(
+                    path,
+                    expected_year=2024,
+                    max_source_bytes=1024 * 1024,
+                    max_csv_line_bytes=4096,
+                )
+            )
+            self.assertEqual(len(records), 1)
 
     def test_by_year_urls_are_provider_bulk_artifacts_not_station_requests(self):
         self.assertEqual(
