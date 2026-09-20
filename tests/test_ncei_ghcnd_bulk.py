@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import unittest
 
+from src.station_federation import (
+    adaptive_catalog_shards as generic_adaptive_catalog_shards,
+    catalog_shard_refs as generic_catalog_shard_refs,
+)
 from data.ncei_ghcnd_bulk import (
     adaptive_catalog_shards,
     build_federated_stations,
@@ -76,6 +80,10 @@ class GHCNBulkFederationTests(unittest.TestCase):
         self.assertEqual(stations[0].variable_ids, ("PRCP", "TMAX"))
         self.assertIsNone(stations[0].location_at("2000-01-01"))
         self.assertIsNotNone(stations[0].location_at("2026-09-18"))
+
+    def test_provider_module_reexports_provider_neutral_sharding(self):
+        self.assertIs(adaptive_catalog_shards, generic_adaptive_catalog_shards)
+        self.assertIs(catalog_shard_refs, generic_catalog_shard_refs)
 
     def test_adaptive_shards_are_bounded_and_content_addressed(self):
         catalog, inventory = self.payloads()

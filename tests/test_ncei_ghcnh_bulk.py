@@ -26,8 +26,11 @@ from src.station_federation import (
     FederatedStation,
     ProviderAlias,
     StationCatalogShard,
+    StationFederationManifest,
     StationLocationEpoch,
+    adaptive_catalog_shards,
     canonical_station_id,
+    catalog_shard_refs,
 )
 
 
@@ -178,6 +181,85 @@ class GHCNhFederationTests(unittest.TestCase):
         self.assertEqual(result.shared_station_count, 0)
         self.assertEqual(result.new_root_station_count, 1)
         self.assertEqual(len(result.stations), 2)
+
+    def test_second_provider_composes_through_provider_neutral_shards_and_manifest(self):
+        catalog = parse_station_catalog(
+            (
+                station_line(
+                    "USW00094846", 41.98, -87.90, 204.0, "CHICAGO OHARE"
+                )
+                + station_line(
+                    "CAW00099999", 50.0, -100.0, 300.0, "HOURLY ONLY"
+                )
+            ).encode("ascii")
+        )
+        result = federate_station_catalog(
+            (daily_station("USW00094846"),),
+            catalog,
+            metadata_effective_date="2026-09-18",
+        )
+        shards = adaptive_catalog_shards(
+            result.stations,
+            metadata_effective_date="2026-09-18",
+            max_station_records=1,
+        )
+        self.assertEqual(sum(len(shard.stations) for shard in shards), 2)
+        self.assertEqual(
+            sum(
+                shard.to_station_catalog("2026-09-18").station_count
+                for shard in shards
+            ),
+            2,
+        )
+
+        lookup = GHCNhAliasShardLookup(shards)
+        header = "STATION|DATE|temperature|temperature_QC|SOURCE|Remarks\n"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            archive = root / "ghcn-hourly_v1.0.0_d2026_c20260918.tar.gz"
+            write_year_archive(
+                archive,
+                {
+                    "GHCNh_USW00094846_2026.psv": (
+                        header
+                        + "USW00094846|2026-09-18T12:00:00Z|19.4|V020|USAF|raw\n"
+                    ),
+                    "GHCNh_CAW00099999_2026.psv": (
+                        header
+                        + "CAW00099999|2026-09-18T12:00:00Z||V030|NOAA|\n"
+                    ),
+                },
+            )
+            publication = publish_year_archive(
+                archive,
+                expected_year=2026,
+                lookup=lookup,
+                object_root=root / "store",
+            )
+            manifest = StationFederationManifest(
+                "global-free-stations.v1",
+                "1.0.0",
+                D1,
+                catalog_shard_refs(shards),
+                publication.partitions,
+            )
+            coverage = manifest.coverage_manifest()
+
+        self.assertEqual(
+            set(coverage["provider_source_ids"]),
+            {"ncei.ghcnd.v3", SOURCE_ID},
+        )
+        self.assertEqual(
+            {item["source_id"] for item in coverage["observation_availability"]},
+            {SOURCE_ID},
+        )
+        self.assertTrue(
+            any(
+                set(item["provider_source_ids"])
+                == {"ncei.ghcnd.v3", SOURCE_ID}
+                for item in coverage["catalog_availability"]
+            )
+        )
 
     def test_psv_stream_preserves_raw_provider_qc_and_source_fields(self):
         daily = daily_station("USW00094846")

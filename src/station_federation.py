@@ -364,6 +364,84 @@ class StationCatalogShard:
         return tuple(station.variable_ids for station in self.active_records(at_date))
 
 
+def _resolved_location_for_sharding(
+    station: FederatedStation,
+    at_date: str,
+) -> StationLocationEpoch:
+    location = station.location_at(at_date)
+    if location is None:
+        raise ValueError(
+            f"station {station.canonical_station_id} has no resolved location "
+            f"at metadata effective date {at_date}"
+        )
+    return location
+
+
+def adaptive_catalog_shards(
+    stations: Sequence[FederatedStation],
+    *,
+    metadata_effective_date: str,
+    max_station_records: int,
+) -> tuple[StationCatalogShard, ...]:
+    """Build bounded provider-neutral spatial shards over resolved station metadata."""
+    if max_station_records <= 0:
+        raise ValueError("max_station_records must be positive")
+    records = tuple(stations)
+    if not records:
+        return ()
+
+    def split(
+        subset: tuple[FederatedStation, ...],
+        lat_min: float,
+        lat_max: float,
+        lon_min: float,
+        lon_max: float,
+        key: str,
+    ) -> list[StationCatalogShard]:
+        if len(subset) <= max_station_records:
+            return [StationCatalogShard(key, key, subset)]
+
+        lat_mid = (lat_min + lat_max) / 2.0
+        lon_mid = (lon_min + lon_max) / 2.0
+        buckets: list[list[FederatedStation]] = [[], [], [], []]
+        for station in subset:
+            location = _resolved_location_for_sharding(
+                station, metadata_effective_date
+            )
+            north = location.latitude_deg >= lat_mid
+            east = location.longitude_deg >= lon_mid
+            index = (2 if north else 0) + (1 if east else 0)
+            buckets[index].append(station)
+
+        nonempty = [bucket for bucket in buckets if bucket]
+        if len(nonempty) == 1:
+            ordered = sorted(subset, key=lambda item: item.canonical_station_id)
+            return [
+                StationCatalogShard(
+                    f"{key}/id-{start // max_station_records:06d}",
+                    f"{key}/id-{start // max_station_records:06d}",
+                    tuple(ordered[start:start + max_station_records]),
+                )
+                for start in range(0, len(ordered), max_station_records)
+            ]
+
+        bounds = (
+            (lat_min, lat_mid, lon_min, lon_mid),
+            (lat_min, lat_mid, lon_mid, lon_max),
+            (lat_mid, lat_max, lon_min, lon_mid),
+            (lat_mid, lat_max, lon_mid, lon_max),
+        )
+        result: list[StationCatalogShard] = []
+        for index, bucket in enumerate(buckets):
+            if not bucket:
+                continue
+            a, b, c, d = bounds[index]
+            result.extend(split(tuple(bucket), a, b, c, d, f"{key}{index}"))
+        return result
+
+    return tuple(split(records, -90.0, 90.0, -180.0, 180.0, "q"))
+
+
 @dataclass(frozen=True)
 class CatalogShardRef:
     shard_id: str
@@ -390,6 +468,33 @@ class CatalogShardRef:
             raise ValueError("variable_ids must be unique")
         for value in self.supersedes:
             _digest(value, "supersedes digest")
+
+
+def catalog_shard_refs(
+    shards: Sequence[StationCatalogShard],
+) -> tuple[CatalogShardRef, ...]:
+    """Derive provider-neutral content-addressed catalog references."""
+    refs: list[CatalogShardRef] = []
+    for shard in shards:
+        providers = sorted({
+            binding.alias.source_id
+            for station in shard.stations
+            for binding in station.aliases
+        })
+        variables = sorted({
+            variable
+            for station in shard.stations
+            for variable in station.variable_ids
+        })
+        refs.append(CatalogShardRef(
+            shard_id=shard.shard_id,
+            spatial_partition=shard.spatial_partition,
+            digest=shard.digest(),
+            station_count=len(shard.stations),
+            provider_source_ids=tuple(providers),
+            variable_ids=tuple(variables),
+        ))
+    return tuple(refs)
 
 
 @dataclass(frozen=True)

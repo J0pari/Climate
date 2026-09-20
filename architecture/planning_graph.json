@@ -572,7 +572,7 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R5_large_data",
-      "summary": "Build an extensible station-data federation whose target population is every station worldwide that can be lawfully and reproducibly accessed without paid data access, while retaining provider identity, revision history, quality flags, units, location history, and explicit cross-provider alias/deduplication lineage.",
+      "summary": "Build an extensible station-data federation whose target population is every station worldwide that can be lawfully and reproducibly accessed without paid data access. GHCN-Daily and GHCNh now enter through distinct provider adapters but share one provider-neutral identity, adaptive catalog-sharding, manifest, coverage, and canonical sheaf/topology substrate; provider identity, revision history, quality/source fields, units, location history, and explicit reversible cross-provider alias lineage remain preserved.",
       "depends_on": [
         "data.external_authority_audit"
       ],
@@ -595,7 +595,10 @@
         "data/ncei_ghcnd_bulk.py",
         "data/ncei_ghcnd_parquet.py",
         "tests/test_ncei_ghcnd_bulk.py",
-        "tests/test_ncei_ghcnd_parquet.py"
+        "tests/test_ncei_ghcnd_parquet.py",
+        "data/ncei_ghcnh_bulk.py",
+        "data/ncei_ghcnh_partition.py",
+        "tests/test_ncei_ghcnh_bulk.py"
       ]
     },
     {

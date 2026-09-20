@@ -26,11 +26,12 @@
       "current_boundaries": [
         "data/ncei_ghcnd_bulk.py::parse_station_catalog",
         "data/ncei_ghcnd_bulk.py::parse_inventory",
-        "data/ncei_ghcnd_bulk.py::adaptive_catalog_shards",
         "data/ncei_ghcnd_bulk.py::stream_by_year_partitions",
         "reference/ncei_ghcnd.py::DailySummariesPayload",
         "reference/station_temperature_sheaf.py::to_station_catalog",
-        "data/ncei_ghcnd_parquet.py::publish_gzip_by_year"
+        "data/ncei_ghcnd_parquet.py::publish_gzip_by_year",
+        "src/station_federation.py::adaptive_catalog_shards",
+        "src/station_federation.py::catalog_shard_refs"
       ],
       "access": "NCEI HTTPS archive and Common Access Data/Search Service REST APIs",
       "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",
@@ -55,7 +56,9 @@
         "data/ncei_ghcnh_bulk.py::federate_station_catalog",
         "data/ncei_ghcnh_bulk.py::validate_year_archive_url",
         "data/ncei_ghcnh_partition.py::publish_year_archive",
-        "data/ncei_ghcnh_bulk.py::stream_station_year_psv"
+        "data/ncei_ghcnh_bulk.py::stream_station_year_psv",
+        "src/station_federation.py::adaptive_catalog_shards",
+        "src/station_federation.py::catalog_shard_refs"
       ]
     }
   ]
