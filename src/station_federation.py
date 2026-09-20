@@ -575,4 +575,28 @@ class StationFederationManifest:
             "spatial_partitions": sorted({
                 item.spatial_partition for item in (*catalogs, *observations)
             }),
+            "catalog_availability": [
+                {
+                    "shard_id": item.shard_id,
+                    "spatial_partition": item.spatial_partition,
+                    "digest": item.digest,
+                    "station_count": item.station_count,
+                    "provider_source_ids": list(item.provider_source_ids),
+                    "variable_ids": list(item.variable_ids),
+                }
+                for item in catalogs
+            ],
+            "observation_availability": [
+                {
+                    "source_id": item.source_id,
+                    "spatial_partition": item.spatial_partition,
+                    "time_start": item.time_start,
+                    "time_end": item.time_end,
+                    "variable_ids": list(item.variable_ids),
+                    "digest": item.digest,
+                    "source_revision": item.source_revision,
+                    "row_count": item.row_count,
+                }
+                for item in observations
+            ],
         }

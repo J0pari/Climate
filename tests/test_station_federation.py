@@ -195,6 +195,90 @@ class StationFederationTests(unittest.TestCase):
             ["tombstone", "data"],
         )
 
+    def test_coverage_preserves_provider_variable_and_spatial_gaps(self):
+        manifest = StationFederationManifest(
+            "global-free-stations.v1", "1.0.0", D1,
+            (
+                CatalogShardRef(
+                    "cell-east", "cell-east", D2, 8,
+                    ("ncei.ghcnd.v3",), ("TMAX", "TMIN"),
+                ),
+                CatalogShardRef(
+                    "cell-west", "cell-west", D3, 5,
+                    ("ncei.ghcnh.v1",), ("TAVG",),
+                ),
+            ),
+            (
+                ObservationPartitionRef(
+                    "ncei.ghcnd.v3", "cell-east",
+                    "2024-01-01", "2024-12-31",
+                    ("TMAX",), D4, "ghcnd-2024",
+                    "application/json", 20, 200,
+                ),
+                ObservationPartitionRef(
+                    "ncei.ghcnh.v1", "cell-west",
+                    "2022-01-01", "2022-12-31",
+                    ("TAVG",), D5, "ghcnh-2022",
+                    "application/json", 15, 150,
+                ),
+            ),
+        )
+        coverage = manifest.coverage_manifest()
+
+        self.assertEqual(
+            coverage["catalog_availability"],
+            [
+                {
+                    "shard_id": "cell-east",
+                    "spatial_partition": "cell-east",
+                    "digest": D2,
+                    "station_count": 8,
+                    "provider_source_ids": ["ncei.ghcnd.v3"],
+                    "variable_ids": ["TMAX", "TMIN"],
+                },
+                {
+                    "shard_id": "cell-west",
+                    "spatial_partition": "cell-west",
+                    "digest": D3,
+                    "station_count": 5,
+                    "provider_source_ids": ["ncei.ghcnh.v1"],
+                    "variable_ids": ["TAVG"],
+                },
+            ],
+        )
+        self.assertEqual(
+            coverage["observation_availability"],
+            [
+                {
+                    "source_id": "ncei.ghcnd.v3",
+                    "spatial_partition": "cell-east",
+                    "time_start": "2024-01-01",
+                    "time_end": "2024-12-31",
+                    "variable_ids": ["TMAX"],
+                    "digest": D4,
+                    "source_revision": "ghcnd-2024",
+                    "row_count": 20,
+                },
+                {
+                    "source_id": "ncei.ghcnh.v1",
+                    "spatial_partition": "cell-west",
+                    "time_start": "2022-01-01",
+                    "time_end": "2022-12-31",
+                    "variable_ids": ["TAVG"],
+                    "digest": D5,
+                    "source_revision": "ghcnh-2022",
+                    "row_count": 15,
+                },
+            ],
+        )
+        self.assertFalse(
+            any(
+                item["source_id"] == "ncei.ghcnh.v1"
+                and "TMIN" in item["variable_ids"]
+                for item in coverage["observation_availability"]
+            )
+        )
+
     def test_unknown_superseded_digest_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "unknown digest"):
             StationFederationManifest(
