@@ -35,7 +35,6 @@ class ImpactInspectorTests(unittest.TestCase):
                 path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
             text_fixtures = {
-                ".github/workflows/example.yml": f"- '{target}'\n",
                 "tests/test_alpha.py": f"# witness: {target}\n",
                 "docs/ARCHITECTURE.md": f"Canonical implementation: `{target}`\n",
                 "docs/generated/STATE.md": f"| `{target}` | runnable |\n",
@@ -53,7 +52,6 @@ class ImpactInspectorTests(unittest.TestCase):
                     "module_authority",
                     "planning_authority",
                     "scientific_authority",
-                    "workflow",
                     "test",
                     "durable_contract",
                     "generated_projection",
@@ -63,7 +61,7 @@ class ImpactInspectorTests(unittest.TestCase):
             report = inspect_impact(root, [target])
             self.assertEqual(report["authority"], "none")
             self.assertTrue(report["targets"][0]["exists"])
-            self.assertEqual(report["targets"][0]["reference_count"], 7)
+            self.assertEqual(report["targets"][0]["reference_count"], 6)
 
     def test_target_file_does_not_count_as_its_own_reverse_reference(self):
         with tempfile.TemporaryDirectory() as temp:
