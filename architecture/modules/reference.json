@@ -203,9 +203,9 @@
       "family": "reference_ncei_ghcnd_payload_parser",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "provider-specific independent reference for NOAA/NCEI GHCN-Daily request identity and captured-payload validation, preserving station/date fields, provider attributes, exact request URL, and content digest while delegating HTTP transport to the workflow-selected native transport",
+      "intended_role": "provider-specific independent reference for NOAA/NCEI GHCN-Daily request identity and captured-payload validation, preserving station/date fields, provider attributes, exact request URL, and content digest while delegating HTTP transport to the execution-selected native transport",
       "known_gaps": [
-        "HTTP transport is not implemented here; live workflows must bind and fail on the explicitly selected transport identity",
+        "HTTP transport is not implemented here; live execution must bind and fail on the explicitly selected transport identity",
         "GHCN-Daily is not homogenized for historical observing-practice changes and provider quality/source flags remain scientifically relevant",
         "the parser does not choose stations, geographic coverage, temporal aggregation, regridding, or a sheaf cover rule"
       ],
@@ -231,9 +231,9 @@
       "family": "reference_nsidc_sea_ice_index_parser",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "provider-specific independent reference for NOAA@NSIDC Sea Ice Index Version 4 URL identity and captured monthly extent/area CSV validation, preserving schema, units, source transitions, and content digest while delegating HTTP transport to the workflow-selected native transport",
+      "intended_role": "provider-specific independent reference for NOAA@NSIDC Sea Ice Index Version 4 URL identity and captured monthly extent/area CSV validation, preserving schema, units, source transitions, and content digest while delegating HTTP transport to the execution-selected native transport",
       "known_gaps": [
-        "HTTP transport is not implemented here; live workflows must bind and fail on the explicitly selected transport identity",
+        "HTTP transport is not implemented here; live execution must bind and fail on the explicitly selected transport identity",
         "the parser covers hemisphere-wide monthly extent/area files rather than gridded concentration products",
         "sea-ice extent is not albedo and does not by itself define an ice-albedo feedback observation"
       ],
