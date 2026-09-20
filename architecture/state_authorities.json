@@ -59,7 +59,7 @@
       "id": "scientific_evaluations",
       "kind": "repository_records",
       "authority_paths": [
-        "evaluations/**"
+        "evaluations/**/*"
       ],
       "projection": null,
       "scope": "Committed evaluation and exploratory result records. Evaluation records do not become claim evidence merely by existing."
