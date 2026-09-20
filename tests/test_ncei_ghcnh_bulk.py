@@ -257,6 +257,65 @@ class GHCNhFederationTests(unittest.TestCase):
             40.0,
         )
 
+    def test_hourly_only_refresh_is_idempotent_bounded_and_advances_root_epoch(self):
+        first_catalog = parse_station_catalog(
+            station_line(
+                "CAW00099999",
+                50.0,
+                -100.0,
+                300.0,
+                "HOURLY ONLY",
+            ).encode("ascii")
+        )
+        first = federate_station_catalog(
+            (),
+            first_catalog,
+            metadata_effective_date="2026-09-18",
+        )
+        self.assertEqual(first.new_root_station_count, 1)
+        self.assertEqual(len(first.stations), 1)
+
+        second_catalog = parse_station_catalog(
+            station_line(
+                "CAW00099999",
+                50.1,
+                -99.9,
+                301.0,
+                "HOURLY ONLY",
+            ).encode("ascii")
+        )
+        second = federate_station_catalog(
+            first.stations,
+            second_catalog,
+            metadata_effective_date="2026-09-19",
+        )
+        self.assertEqual(second.new_root_station_count, 0)
+        self.assertEqual(len(second.stations), 1)
+        item = second.stations[0]
+        self.assertEqual(len(item.provider_location_snapshots), 1)
+        self.assertEqual(len(item.location_history), 2)
+        self.assertEqual(item.location_at("2026-09-18").latitude_deg, 50.0)
+        self.assertEqual(item.location_at("2026-09-19").latitude_deg, 50.1)
+        self.assertEqual(
+            item.provider_location_snapshots[0].evidence_digest,
+            second_catalog.sha256,
+        )
+
+        replay = federate_station_catalog(
+            second.stations,
+            second_catalog,
+            metadata_effective_date="2026-09-19",
+        )
+        self.assertEqual(replay.new_root_station_count, 0)
+        self.assertEqual(replay.stations, second.stations)
+
+        with self.assertRaisesRegex(ValueError, "out-of-order"):
+            federate_station_catalog(
+                second.stations,
+                first_catalog,
+                metadata_effective_date="2026-09-17",
+            )
+
     def test_catalog_federation_does_not_use_proximity_or_station_name(self):
         daily = daily_station("USW00000001")
         catalog = parse_station_catalog(
@@ -406,6 +465,7 @@ class GHCNhFederationTests(unittest.TestCase):
             ),
             location_history=station.location_history,
             variable_ids=station.variable_ids,
+            provider_location_snapshots=station.provider_location_snapshots,
         )
         lookup = GHCNhAliasShardLookup(
             (StationCatalogShard("cell-1", "cell-1", (linked,)),)

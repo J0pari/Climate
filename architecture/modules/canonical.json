@@ -36,7 +36,7 @@
       "family": "ncei_ghcnh_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical GHCNh provider identity, catalog federation, metadata-snapshot refresh, and raw PSV routing adapter over already captured station-list/annual archive artifacts; exact shared managed GHCN identifiers bind revision-stable cross-provider identity while each station-list revision updates one bounded GHCNh metadata snapshot without overriding the resolved topology location, then the adapter composes through the provider-neutral sharding/manifest substrate without owning network transport",
+      "intended_role": "canonical GHCNh provider identity, catalog federation, metadata-snapshot refresh, and raw PSV routing adapter over already captured station-list/annual archive artifacts; exact shared managed GHCN identifiers bind revision-stable cross-provider identity, shared-station GHCNh snapshots never override another root provider's resolved topology, and GHCNh-root stations advance explicit metadata-effective resolved epochs when their own provider location changes; the adapter composes through the provider-neutral sharding/manifest substrate without owning network transport",
       "known_gaps": [
         "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
         "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations rather than ingestion defaults",

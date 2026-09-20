@@ -5,9 +5,12 @@ that a station shares the same managed GHCN identifier with GHCN-Daily.
 Identity linkage is emitted as explicit digest-bound crosswalk evidence; no
 name, coordinate, or proximity matching is performed here.
 
-Catalog federation and raw hourly routing remain separate semantic layers:
-provider metadata snapshots are retained without becoming resolved topology
-locations, while annual PSV fields remain provider-native observation payloads.
+Catalog federation and raw hourly routing remain separate semantic layers.
+Provider metadata snapshots stay distinct from resolved topology locations:
+cross-provider snapshots never override another root provider's resolution, while
+GHCNh-root stations advance explicit metadata-effective resolved epochs when the
+provider's own current location changes. Annual PSV fields remain provider-native
+observation payloads.
 """
 from __future__ import annotations
 
@@ -268,6 +271,106 @@ def _daily_root_aliases(
     return out
 
 
+def _ghcnh_root_aliases(
+    stations: Sequence[FederatedStation],
+) -> dict[str, ProviderAlias]:
+    out: dict[str, ProviderAlias] = {}
+    for station in stations:
+        roots = [
+            binding.alias
+            for binding in station.aliases
+            if (
+                binding.binding_method == "root"
+                and binding.alias.source_id == SOURCE_ID
+            )
+        ]
+        if not roots:
+            continue
+        if len(roots) != 1:
+            raise ValueError("GHCNh station has ambiguous root aliases")
+        station_id = roots[0].provider_station_id
+        if station_id in out:
+            raise ValueError("GHCNh root station ID is not unique")
+        out[station_id] = roots[0]
+    return out
+
+
+def _same_location(
+    epoch: StationLocationEpoch,
+    snapshot: ProviderLocationSnapshot,
+) -> bool:
+    return (
+        epoch.latitude_deg == snapshot.latitude_deg
+        and epoch.longitude_deg == snapshot.longitude_deg
+        and epoch.elevation_m == snapshot.elevation_m
+    )
+
+
+def _refresh_ghcnh_root_location(
+    station: FederatedStation,
+    snapshot: ProviderLocationSnapshot,
+) -> FederatedStation:
+    roots = [
+        binding.alias
+        for binding in station.aliases
+        if (
+            binding.binding_method == "root"
+            and binding.alias.source_id == SOURCE_ID
+        )
+    ]
+    if not roots:
+        return station
+    if len(roots) != 1:
+        raise ValueError("GHCNh station has ambiguous root aliases")
+    if roots[0] != snapshot.source_alias:
+        return station
+
+    open_epochs = [
+        epoch for epoch in station.location_history if epoch.valid_to is None
+    ]
+    if len(open_epochs) != 1:
+        raise ValueError(
+            "GHCNh root metadata refresh requires exactly one open resolved "
+            "location epoch"
+        )
+    current = open_epochs[0]
+    if current.source_alias != snapshot.source_alias:
+        return station
+
+    current_start = (
+        datetime.fromisoformat(current.valid_from).date()
+        if current.valid_from is not None
+        else datetime.min.date()
+    )
+    target = datetime.fromisoformat(snapshot.metadata_effective_date).date()
+    if target < current_start:
+        raise ValueError(
+            "GHCNh root metadata refresh is out-of-order relative to the current "
+            "resolved location epoch"
+        )
+
+    replacement = StationLocationEpoch(
+        snapshot.latitude_deg,
+        snapshot.longitude_deg,
+        snapshot.elevation_m,
+        snapshot.metadata_effective_date,
+        None,
+        snapshot.source_alias,
+        snapshot.evidence_digest,
+    )
+    epochs = list(station.location_history)
+    index = epochs.index(current)
+    if target == current_start:
+        epochs[index] = replacement
+    elif not _same_location(current, snapshot):
+        epochs[index] = replace(
+            current,
+            valid_to=snapshot.metadata_effective_date,
+        )
+        epochs.append(replacement)
+    return replace(station, location_history=tuple(epochs))
+
+
 def _crosswalk_digest(station_id: str) -> str:
     """Stable identity evidence for one exact shared managed GHCN identifier.
 
@@ -306,6 +409,7 @@ def federate_station_catalog(
     """Add GHCNh metadata using NCEI's documented shared-GHCN-ID semantics."""
     existing_records = tuple(existing)
     daily_roots = _daily_root_aliases(existing_records)
+    ghcnh_roots = _ghcnh_root_aliases(existing_records)
     hourly_by_id = {item.station_id: item for item in catalog.records}
     shared = sorted(set(daily_roots) & set(hourly_by_id))
     evidence = tuple(
@@ -341,18 +445,38 @@ def federate_station_catalog(
             current = snapshot_by_alias.get(binding.alias)
             if current is not None:
                 snapshots[binding.alias] = current
-        updated_existing.append(
-            replace(
-                station,
-                provider_location_snapshots=tuple(
-                    snapshots[alias] for alias in sorted(snapshots)
-                ),
-            )
+        updated = replace(
+            station,
+            provider_location_snapshots=tuple(
+                snapshots[alias] for alias in sorted(snapshots)
+            ),
         )
+        ghcnh_root = next(
+            (
+                binding.alias
+                for binding in updated.aliases
+                if (
+                    binding.binding_method == "root"
+                    and binding.alias.source_id == SOURCE_ID
+                )
+            ),
+            None,
+        )
+        if ghcnh_root is not None:
+            current_snapshot = snapshots.get(ghcnh_root)
+            if current_snapshot is not None:
+                updated = _refresh_ghcnh_root_location(
+                    updated, current_snapshot
+                )
+        updated_existing.append(updated)
     federated = updated_existing
 
+    new_root_station_count = 0
     for record in catalog.records:
-        if record.station_id in daily_roots:
+        if (
+            record.station_id in daily_roots
+            or record.station_id in ghcnh_roots
+        ):
             continue
         alias = ProviderAlias(SOURCE_ID, record.station_id)
         federated.append(
@@ -385,13 +509,14 @@ def federate_station_catalog(
                 ),
             )
         )
+        new_root_station_count += 1
 
     ordered = tuple(sorted(federated, key=lambda item: item.canonical_station_id))
     return GHCNhFederationResult(
         stations=ordered,
         crosswalk_evidence=evidence,
         shared_station_count=len(shared),
-        new_root_station_count=len(catalog.records) - len(shared),
+        new_root_station_count=new_root_station_count,
     )
 
 def stream_station_year_psv(
