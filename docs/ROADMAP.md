@@ -4,6 +4,8 @@
 
 Repository-local research state is summarized in `docs/generated/STATE.md`.
 
+External-integration obligations bind native external capabilities while keeping Climate-specific scientific semantics local; completion cannot be satisfied by a local shadow implementation of the upstream capability.
+
 ## Planning summary
 
 - Active: 5
