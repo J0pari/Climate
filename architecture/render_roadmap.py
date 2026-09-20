@@ -39,9 +39,9 @@ def render(graph: dict[str, Any]) -> str:
     lines = [
         "# Climate obligation roadmap",
         "",
-        "> Generated from \`architecture/planning_graph.json\`. Do not hand-edit.",
+        "> Generated from `architecture/planning_graph.json`. Do not hand-edit.",
         "",
-        "Repository-local research state is summarized in \`docs/generated/STATE.md\`.",
+        "Repository-local research state is summarized in `docs/generated/STATE.md`.",
         "",
         "## Planning summary",
         "",
@@ -58,16 +58,16 @@ def render(graph: dict[str, Any]) -> str:
     ]
     for node in nodes:
         deps = node["depends_on"]
-        dependency_text = ", ".join(f"\`{dep}\`" for dep in deps) if deps else "—"
+        dependency_text = ", ".join(f"`{dep}`" for dep in deps) if deps else "—"
         lines.append(
-            f"| \`{node['id']}\` — {node['title']} | \`{node['status']}\` | "
-            f"\`{node['priority']}\` | \`{node['resource_class']}\` | {dependency_text} |"
+            f"| `{node['id']}` — {node['title']} | `{node['status']}` | "
+            f"`{node['priority']}` | `{node['resource_class']}` | {dependency_text} |"
         )
     lines.extend(
         [
             "",
             "Summaries, blockers, completion criteria, and evidence paths remain in "
-            "\`architecture/planning_graph.json\`.",
+            "`architecture/planning_graph.json`.",
         ]
     )
     return "\n".join(lines).rstrip() + "\n"
