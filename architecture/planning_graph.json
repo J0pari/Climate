@@ -1101,7 +1101,7 @@
         ".devcontainer/bootstrap.sh",
         "architecture/codespaces_campaign.py",
         "tests/architecture/test_codespaces_campaign.py",
-        "docs/EXECUTION-TOPOLOGY.md"
+        "docs/EXECUTION-RESOURCES.md"
       ]
     }
   ]
