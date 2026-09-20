@@ -82,8 +82,7 @@
       "statement": "For one real rank-one identity-restriction edge, the compatibility energy expands to the scalar graph quadratic form, is invariant under edge-orientation reversal, and is zero if and only if the endpoint values agree; these statements are kernel-checked in Lean without project-authored axioms or proof escape hatches.",
       "status": "reference_realized",
       "witnesses": [
-        "formal/ClimateFormal/SheafScalar.lean",
-        ".github/workflows/formal-lean.yml"
+        "formal/ClimateFormal/SheafScalar.lean"
       ]
     },
     {
@@ -95,8 +94,7 @@
         "src/station_sheaf.py",
         "tests/test_station_sheaf.py",
         "reference/station_temperature_sheaf.py",
-        "tests/reference/test_station_temperature_sheaf.py",
-        ".github/workflows/station-sheaf.yml"
+        "tests/reference/test_station_temperature_sheaf.py"
       ]
     },
     {
@@ -118,8 +116,7 @@
       "status": "canonical_realized",
       "witnesses": [
         "src/station_sheaf.py",
-        "tests/test_station_sheaf.py",
-        ".github/workflows/station-sheaf.yml"
+        "tests/test_station_sheaf.py"
       ]
     },
     {
@@ -141,8 +138,7 @@
       "status": "canonical_realized",
       "witnesses": [
         "src/station_sheaf.py",
-        "tests/test_station_sheaf.py",
-        ".github/workflows/station-sheaf.yml"
+        "tests/test_station_sheaf.py"
       ]
     },
     {
@@ -152,8 +148,7 @@
       "status": "canonical_realized",
       "witnesses": [
         "src/station_sheaf.py",
-        "tests/test_station_sheaf.py",
-        ".github/workflows/station-sheaf.yml"
+        "tests/test_station_sheaf.py"
       ]
     },
     {
@@ -165,8 +160,7 @@
         "src/station_sheaf.py",
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
-        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json",
-        ".github/workflows/reference-sheaf-climate.yml"
+        "fixtures/data_authorities/ncei-ghcnd-NYC-three-station-2024-01-01-to-2024-01-03.json"
       ]
     },
     {
