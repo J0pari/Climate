@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'reference/information_geometry_ebm_recovery.py'
+      - 'reference/two_layer_ebm_recovery_objective.py'
       - 'reference/two_layer_energy_balance.py'
       - 'reference/two_layer_forcing_protocols.py'
       - 'reference/two_layer_parameter_identifiability.py'
@@ -14,10 +15,12 @@ on:
       - 'methods/registry.json'
       - 'requirements/reference-two-layer-ebm.txt'
       - 'tests/reference/test_information_geometry_ebm_recovery.py'
+      - 'tests/reference/test_two_layer_ebm_recovery_objective.py'
       - '.github/workflows/information-geometry-ebm-recovery.yml'
   pull_request:
     paths:
       - 'reference/information_geometry_ebm_recovery.py'
+      - 'reference/two_layer_ebm_recovery_objective.py'
       - 'reference/two_layer_energy_balance.py'
       - 'reference/two_layer_forcing_protocols.py'
       - 'reference/two_layer_parameter_identifiability.py'
@@ -27,6 +30,7 @@ on:
       - 'methods/registry.json'
       - 'requirements/reference-two-layer-ebm.txt'
       - 'tests/reference/test_information_geometry_ebm_recovery.py'
+      - 'tests/reference/test_two_layer_ebm_recovery_objective.py'
       - '.github/workflows/information-geometry-ebm-recovery.yml'
   workflow_dispatch:
 
@@ -56,7 +60,7 @@ jobs:
           print(f"scipy {scipy.__version__}")
           PY
       - name: Run focused confirmation-control tests
-        run: python -m unittest discover -s tests/reference -p 'test_information_geometry_ebm_recovery.py' -v
+        run: python -m unittest discover -s tests/reference -p 'test_*ebm_recovery*.py' -v
       - name: Execute frozen 16-trial confirmation
         run: |
           mkdir -p run-artifacts/information-geometry-ebm-recovery
