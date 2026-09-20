@@ -1,21 +1,35 @@
 {
-  "schema_version": 1,
-  "authority": "repository authority for generated research-state and planning projections",
+  "schema_version": 2,
+  "authority": "repository authority for typed state surfaces and generated orientation composition",
   "surfaces": [
     {
       "id": "planning",
-      "kind": "machine_authority",
+      "kind": "planning_authority",
       "authority_paths": [
         "architecture/planning_graph.json"
       ],
       "projection": "docs/ROADMAP.md",
-      "renderer": "architecture/render_roadmap.py"
+      "renderer": "architecture/render_roadmap.py",
+      "owns": [
+        "planned work",
+        "priority",
+        "dependencies",
+        "blockers",
+        "resource class",
+        "completion criteria",
+        "planning evidence paths"
+      ],
+      "does_not_own": [
+        "implementation realization",
+        "experiment outcomes",
+        "claim promotion",
+        "exact-head execution status"
+      ]
     },
     {
-      "id": "repository_state",
-      "kind": "machine_authority_set",
+      "id": "structural_realization",
+      "kind": "realization_authority_set",
       "authority_paths": [
-        "architecture/planning_graph.json",
         "architecture/modules/*.json",
         "architecture/data_authorities.json",
         "architecture/station_providers.json",
@@ -23,20 +37,96 @@
         "architecture/commons_interface.json",
         "methods/registry.json",
         "methods/sheaf-realization.v1.json",
-        "claims/registry.json",
-        "evidence/registry.json",
-        "experiments/*.json",
-        "configurations/**/*.json",
+        "configurations/**/*.json"
+      ],
+      "owns": [
+        "registered implementation/module identity",
+        "method identity and declared assumptions",
+        "realization obligations",
+        "configuration authority",
+        "data-source and provider authority",
+        "semantic hazard registration",
+        "Commons interface identity"
+      ],
+      "does_not_own": [
+        "scientific claim support",
+        "experiment outcomes",
+        "planning priority",
+        "exact-head execution status"
+      ]
+    },
+    {
+      "id": "experiment_definitions",
+      "kind": "experiment_spec_authority_set",
+      "authority_paths": [
+        "experiments/*.json"
+      ],
+      "owns": [
+        "preregistered experiment question and hypothesis",
+        "candidate and baseline identities",
+        "dataset identities",
+        "metrics and controls",
+        "split/seeds/stopping policy",
+        "resource envelope"
+      ],
+      "does_not_own": [
+        "experiment outcome",
+        "claim promotion",
+        "implementation realization"
+      ]
+    },
+    {
+      "id": "evaluation_records",
+      "kind": "committed_evaluation_record_set",
+      "authority_paths": [
         "evaluations/**/*"
       ],
-      "projection": "docs/generated/STATE.md",
-      "renderer": "architecture/render_state.py"
+      "owns": [
+        "committed evaluation specifications",
+        "committed confirmation results",
+        "committed exploratory and sandbox results",
+        "evaluation-local interpretation boundaries"
+      ],
+      "does_not_own": [
+        "claim maturity",
+        "evidence promotion",
+        "planning completion unless the planning authority cites the record",
+        "exact-head execution status"
+      ]
+    },
+    {
+      "id": "claim_evidence",
+      "kind": "scientific_promotion_authority_set",
+      "authority_paths": [
+        "claims/registry.json",
+        "evidence/registry.json"
+      ],
+      "owns": [
+        "scientific claim identity and maturity",
+        "supporting and attacking evidence relations",
+        "evidence class",
+        "verification state",
+        "claim-scoped evidence scope and threats to validity"
+      ],
+      "does_not_own": [
+        "planning priority",
+        "implementation realization",
+        "unregistered evaluation outcomes"
+      ]
     },
     {
       "id": "execution",
       "kind": "external_exact_head",
       "authority_paths": [
         "GitHub Actions workflow runs keyed by exact commit SHA"
+      ],
+      "owns": [
+        "workflow/job outcome for the exact repository revision and declared environment"
+      ],
+      "does_not_own": [
+        "scientific validation",
+        "claim promotion",
+        "planning completion by itself"
       ]
     },
     {
@@ -44,13 +134,36 @@
       "kind": "git_history",
       "authority_paths": [
         "Git commit history"
+      ],
+      "owns": [
+        "change narration and revision lineage"
+      ],
+      "does_not_own": [
+        "present scientific authority by itself"
       ]
     }
   ],
+  "orientation_view": {
+    "projection": "docs/generated/STATE.md",
+    "renderer": "architecture/render_state.py",
+    "includes": [
+      "planning",
+      "structural_realization",
+      "experiment_definitions",
+      "evaluation_records",
+      "claim_evidence"
+    ],
+    "excludes": [
+      "execution",
+      "history"
+    ],
+    "composition_rule": "The generated orientation view preserves each included surface as a distinct semantic section. Presence in one surface never implies status in another; in particular, an evaluation record does not become scientific evidence unless claim/evidence authority records the relation."
+  },
   "worker_orientation": [
     "Resolve the current main commit before substantial work.",
     "Read AGENTS.md and docs/generated/STATE.md from that commit.",
     "If main moved since the last orientation, inspect the intervening commits before reusing prior state conclusions.",
+    "Read the focused contract and underlying authority records relevant to the task rather than treating the generated view as a replacement for them.",
     "Consult exact-head GitHub Actions whenever execution status matters."
   ]
 }
