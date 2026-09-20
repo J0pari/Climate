@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Repository-state authority manifest helpers.
-
-The manifest names state surfaces and generated-projection inputs. A projection
-fingerprint proves only that the projection matches those declared inputs; it
-never proves repository-wide completeness or exact-head CI success.
-"""
+"""Helpers for generated repository-state and planning projections."""
 from __future__ import annotations
 
 import hashlib
@@ -23,16 +18,21 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     surfaces = payload.get("surfaces")
     if not isinstance(surfaces, list) or not surfaces:
         raise ValueError("repository-state authority manifest requires surfaces")
-    ids = [item.get("id") for item in surfaces if isinstance(item, dict)]
-    if len(ids) != len(surfaces) or any(not isinstance(value, str) or not value for value in ids):
-        raise ValueError("every repository-state surface requires a non-empty id")
+    ids: list[str] = []
+    for surface in surfaces:
+        if not isinstance(surface, dict):
+            raise ValueError("repository-state surfaces must be objects")
+        surface_id = surface.get("id")
+        if not isinstance(surface_id, str) or not surface_id:
+            raise ValueError("every repository-state surface requires a non-empty id")
+        ids.append(surface_id)
     if len(ids) != len(set(ids)):
         raise ValueError("repository-state surface ids must be unique")
-    sequence = payload.get("reorientation_sequence")
-    if not isinstance(sequence, list) or not sequence or not all(
-        isinstance(item, str) and item for item in sequence
+    orientation = payload.get("worker_orientation")
+    if not isinstance(orientation, list) or not orientation or not all(
+        isinstance(item, str) and item for item in orientation
     ):
-        raise ValueError("repository-state authority manifest requires reorientation_sequence")
+        raise ValueError("repository-state authority manifest requires worker_orientation")
     return payload
 
 
@@ -51,10 +51,7 @@ def _is_local_pattern(value: str) -> bool:
     )
 
 
-def expand_local_authority_paths(
-    root: Path,
-    surface: dict[str, Any],
-) -> list[Path]:
+def expand_local_authority_paths(root: Path, surface: dict[str, Any]) -> list[Path]:
     paths: list[Path] = []
     patterns = surface.get("authority_paths")
     if not isinstance(patterns, list) or not patterns:
@@ -78,25 +75,7 @@ def expand_local_authority_paths(
                     f"surface {surface['id']} authority path is missing: {raw}"
                 )
             paths.append(path)
-    unique = sorted({path.resolve() for path in paths})
-    return unique
-
-
-def fingerprint_paths(root: Path, paths: list[Path]) -> str:
-    digest = hashlib.sha256()
-    root = root.resolve()
-    for path in sorted(paths):
-        resolved = path.resolve()
-        try:
-            relative = resolved.relative_to(root).as_posix()
-        except ValueError as exc:
-            raise ValueError(f"authority path escapes repository: {path}") from exc
-        content_digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
-        digest.update(relative.encode("utf-8"))
-        digest.update(b"\0")
-        digest.update(content_digest.encode("ascii"))
-        digest.update(b"\n")
-    return "sha256:" + digest.hexdigest()
+    return sorted({path.resolve() for path in paths})
 
 
 def projection_authority_paths(
@@ -113,16 +92,14 @@ def projection_authority_paths(
     return paths
 
 
-def projection_fingerprint(
-    root: Path,
-    manifest: dict[str, Any],
-    surface_id: str,
-) -> str:
-    return fingerprint_paths(
-        root,
-        projection_authority_paths(root, manifest, surface_id),
-    )
-
-
-def manifest_fingerprint(path: Path = DEFAULT_MANIFEST) -> str:
-    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+def fingerprint_paths(root: Path, paths: list[Path]) -> str:
+    digest = hashlib.sha256()
+    root = root.resolve()
+    for path in sorted(paths):
+        resolved = path.resolve()
+        relative = resolved.relative_to(root).as_posix()
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(hashlib.sha256(resolved.read_bytes()).hexdigest().encode("ascii"))
+        digest.update(b"\n")
+    return "sha256:" + digest.hexdigest()
