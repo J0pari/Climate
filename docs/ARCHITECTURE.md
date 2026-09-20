@@ -20,7 +20,7 @@ The intended frontier role is therefore not another simulator, generic diagnosti
 
 ### Repository-state surfaces
 
-Repository state is not one document or one boolean. `architecture/state_authorities.json` separates binding contracts, planning, structural realization, committed scientific evaluations, exact-head execution, and commit history. `docs/generated/STATE.md` is the generated reorientation contract for reconciling those surfaces at one exact `main` SHA. `docs/ROADMAP.md` and `docs/generated/STATE.md` are scoped generated projections of declared inputs; freshness of either projection proves only equality to those inputs and must not be interpreted as complete repository-state freshness.
+Repository state is not one document or one boolean. `architecture/state_authorities.json` separates binding contracts, planning, structural realization, committed scientific evaluations, and commit history. `docs/generated/STATE.md` is the generated reorientation contract for reconciling those surfaces at one exact `main` SHA. `docs/ROADMAP.md` and `docs/generated/STATE.md` are scoped generated projections of declared inputs; freshness of either projection proves only equality to those inputs and must not be interpreted as complete repository-state freshness.
 
 ## 2. The stable waist
 
@@ -145,7 +145,7 @@ parent/causation ids
 
 ### `ArtifactRef`
 
-Large arrays, checkpoints, NetCDF/Zarr outputs, logs, figures, and reports should live outside event envelopes and be referenced by digest plus media/schema metadata. Retention-limited GitHub Actions upload artifacts are not a durable scientific authority for this repository; CI may generate and vet receipts ephemerally, while durable authority must be committed by identity/digest or persisted in an explicitly declared immutable external store.
+Large arrays, checkpoints, NetCDF/Zarr outputs, logs, figures, and reports should live outside event envelopes and be referenced by digest plus media/schema metadata. Transient runner artifacts are not durable scientific authority for this repository; durable authority must be committed by identity/digest or persisted in an explicitly declared immutable external store.
 
 ### `EvidenceRecord`
 
