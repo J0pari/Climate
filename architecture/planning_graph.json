@@ -7,7 +7,7 @@
       "title": "Focused atmospheric reference-value authority",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Shared conventional atmospheric defaults live in small immutable thermodynamic and geophysical authorities; domain kernels own narrow caller-overridable parameter records rather than duplicated literals or a global mutable configuration object.",
       "depends_on": [],
       "completion": [
@@ -27,7 +27,7 @@
       "title": "Define layered runtime configuration contracts",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Keep immutable shared reference values, kernel parameters, experiment inputs, numerical policy, data-source configuration, and execution policy in separate focused ownership surfaces rather than duplicated literals or one flat global configuration object.",
       "depends_on": [
         "architecture.reference_values"
@@ -53,7 +53,7 @@
       "title": "Deplete and delete legacy root monoliths",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Mine useful domain semantics from non-authoritative root prototypes into canonical code, contracts, tests, or another planning node, then delete the depleted source. Git history is the archive; the working tree does not keep compatibility monoliths merely for historical reference.",
       "depends_on": [
         "architecture.reference_values"
@@ -74,7 +74,7 @@
       "title": "Recompose pressure-coordinate physics around authoritative fluxes",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Compose mass continuity, conservative tracer transport, pressure work, and energy exchange around the same authoritative carrier-mass flux with explicit geometry, area, layer-pressure thickness, gravity, and sign conventions.",
       "depends_on": [
         "architecture.reference_values"
@@ -98,7 +98,7 @@
       "title": "Define pressure, sigma, and hybrid vertical-coordinate semantics",
       "status": "ready",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Extend the pressure-coordinate foundation with explicit sigma or hybrid-coordinate mapping only through declared coefficients, surface-pressure dependence, layer mass, orientation, and metric terms; old coefficient tables are not authority by themselves.",
       "depends_on": [
         "architecture.reference_values"
@@ -114,7 +114,7 @@
       "title": "Establish physical parameterization seams and library boundaries",
       "status": "ready",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Keep climate-owned equations, coupling semantics, and diagnostics local while delegating commodity radiation, remapping, integration, transforms, optimization, and linear algebra to mature libraries.",
       "depends_on": [
         "physics.authoritative_flux_recomposition"
@@ -130,7 +130,7 @@
       "title": "Define typed physical-state boundaries",
       "status": "done",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Represent prognostic physical state, derived diagnostics, and experimental representations as distinct contracts with explicit units, coordinates, missingness, and initialization semantics.",
       "depends_on": [
         "physics.authoritative_flux_recomposition"
@@ -152,7 +152,7 @@
       "title": "Define reproducible integration and restart state",
       "status": "ready",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Specify the minimum climate-owned state required to reproduce an integration across restart boundaries while solver implementation, global scheduling, and resource arbitration remain external concerns.",
       "depends_on": [
         "physics.authoritative_flux_recomposition",
@@ -169,7 +169,7 @@
       "title": "Define library-backed numerical conditioning guardrails",
       "status": "ready",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Separate numerical conditioning, refusal, and recovery diagnostics from scientific tipping interpretation, using maintained linear-algebra routines rather than project-local power iteration or fabricated fallback eigenvalues.",
       "depends_on": [],
       "completion": [
@@ -183,7 +183,7 @@
       "title": "Rebuild spectral and oscillation diagnostics from narrow contracts",
       "status": "ready",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Define scientifically narrow spectra, coherence, wavelet, climate-index, and oscillation diagnostics around maintained transform/statistics libraries rather than omnibus placeholder algorithms.",
       "depends_on": [],
       "completion": [
@@ -222,7 +222,7 @@
       "title": "Verify model-selection criteria under climate dependence",
       "status": "ready",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Use maintained statistical implementations or transparent formula references to test information criteria and model comparisons under autocorrelation, spatial dependence, effective sample size, and held-out climate tasks.",
       "depends_on": [],
       "completion": [
@@ -270,7 +270,7 @@
       "title": "Create one immutable observational or reanalysis projection",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Build a narrow CF-aware data projection with explicit retrieval identity, QC, missingness, transformation lineage, coordinates, units, and content digests before expanding acquisition breadth.",
       "depends_on": [
         "data.external_authority_audit",
@@ -295,7 +295,7 @@
       "title": "Define narrow versioned array FFI contracts",
       "status": "ready",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Cross-language adapters expose only implemented backends with explicit dtype, shape, layout, ownership, lifetime, error, and capability-discovery semantics.",
       "depends_on": [
         "state.typed_physical_state"
@@ -334,7 +334,7 @@
       "title": "Verify nonlinear coordinate covariance",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Extend independent geometry verification to a nonlinear coordinate transformation including the inhomogeneous Christoffel transformation term.",
       "depends_on": [],
       "completion": [
@@ -353,7 +353,7 @@
       "title": "Add a second independent metric-derivative route",
       "status": "done",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "A pinned JAX jacfwd reference route now independently differentiates the shared analytic metric fixtures and agrees with exact SymPy first/second derivatives in FP64; derivative failures remain fail-closed and precision identity is explicit.",
       "depends_on": [],
       "completion": [
@@ -374,7 +374,7 @@
       "title": "Test multirepresentation structure against simpler baselines",
       "status": "active",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Use structural-worlds-v1 and multirepresentation_worlds.py as the sole authority for world relationships, observation maps, and shared-target semantics. Static evaluation is byte-bound to that authority, uses separately seeded confirmation worlds, calibrated abstention, existing PCA/CCA/spectral/JSF plus factor analysis, and a common downstream probe for raw/PCA/CCA/factor representations. The role-based temporal extension now has an explicit PyDMD state-space baseline using the same discovery-fitted representation transforms and separately seeded confirmation trajectories. Maintained dimension/topology-selection witnesses and fuller structural relationship selection remain open.",
       "depends_on": [],
       "completion": [
@@ -409,7 +409,7 @@
       "title": "Validate information-geometry primitives on explicit statistical models",
       "status": "done",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Preregistered Normal-family discovery and a fresh 16-trial two-layer EBM confirmation now compare local Fisher natural gradient against strong conventional curvature-aware baselines under explicit Gaussian observations and held-out forcing histories. The confirmation found equivalent recovery/held-out likelihood to Jacobian-scaled TRF, no distinct Fisher-specific advantage under the frozen rule, and numerical Fisher/Gauss-Newton step equivalence.",
       "depends_on": [],
       "completion": [
@@ -432,7 +432,7 @@
       "title": "Realize scale-native climate-data sheaf semantics",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Build climate-data sheaf semantics on the actual production path: provider-neutral station identity and chunked observations, global geodesic locality, sparse/matrix-free restrictions and cochains, deterministic partition ownership, and scalable gluing/nullspace operations. Tiny fixtures exercise this path but cannot substitute for it.",
       "depends_on": [
         "data.external_authority_audit",
@@ -479,7 +479,7 @@
       "title": "Test climate encodings for exact ultrametric primitives",
       "status": "ready",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Keep exact p-adic mathematics separate from the empirical hypothesis that a climate encoding improves teleconnection tasks, and compare against generic hierarchy, graph, spectral, Euclidean, learned, and randomized controls.",
       "depends_on": [],
       "completion": [
@@ -492,7 +492,7 @@
       "title": "Give Clifford representations a falsifiable climate task",
       "status": "blocked",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Evaluate canonical Clifford algebra representations on a declared multicomponent or oriented-dynamics task against complex spectra, Hilbert phase, wavelets, bispectra, and DMD/Koopman baselines.",
       "depends_on": [
         "diagnostics.spectral_oscillation_contracts"
@@ -507,7 +507,7 @@
       "title": "Separate climate feasibility from modal truth",
       "status": "ready",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Construct climate-specific worlds, propositions, and accessibility relations through an explicit adapter while keeping canonical Kripke satisfaction semantics independent of heuristic plausibility scores.",
       "depends_on": [
         "data.immutable_observational_projection"
@@ -522,7 +522,7 @@
       "title": "Separate approximate climate symmetry diagnostics from exact Noether structure",
       "status": "ready",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Use exact variational-symmetry references as mathematical authority and evaluate approximate climate symmetry indicators as diagnostics with explicit baselines rather than conservation-law claims.",
       "depends_on": [],
       "completion": [
@@ -535,7 +535,7 @@
       "title": "Isolate climate-specific optimization objectives",
       "status": "done",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "The two-layer EBM recovery likelihood now has an isolated climate-owned objective/constraint module for temperature observation mapping, fixed-variance Gaussian residual/likelihood semantics, positive log-parameter coordinates, and common bounds, while SciPy owns generic TRF/L-BFGS-B optimization. Independent objective tests and the preregistered 16-trial recovery confirmation verify the boundary under equivalent information and frozen stopping rules.",
       "depends_on": [
         "information_geometry.recovery_validation"
@@ -657,7 +657,7 @@
       "title": "Build a climate-representation benchmark ladder",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Complete immutable two-layer EBM representation benchmark ladder spanning exact forcing controls, discovery-trained OOD closure, sparse/noisy and exactly redundant observations, local parameter degeneracy/identifiability, seeded internal variability with climate-statistics preservation, and a simple regime-dependent feedback control. State reconstruction, forced response, parameter sensitivity, statistics preservation, and OOD behavior remain separate metric families and every executable rung uses the common run/artifact/metric spine without manufacturing claim evidence.",
       "depends_on": [
         "experimentation.common_cpu_runtime"
@@ -707,7 +707,7 @@
       "title": "Compose physical kernels through a streaming budget ledger",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Make conservation/balance accounting a common streaming sidecar rather than kernel-specific diagnostics. Extensive quantities use one signed ledger across boundaries, resolved sources/sinks, internal and coupling exchanges, numerical corrections, solver residual effects, and roundoff; partition merges must preserve accounting semantics without materializing global state.",
       "depends_on": [
         "physics.authoritative_flux_recomposition"
@@ -768,7 +768,7 @@
       "title": "Persist structured provenance for failed experiment execution",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Close the gap between the run contract and runtime behavior so nonzero subprocess exits and invalid method output materialize a durable, contract-valid ineligible run receipt before control is surfaced as an error. Scientific falsification remains a successful execution with attacking/inconclusive evidence; infrastructure or execution failure is recorded separately.",
       "depends_on": [
         "experimentation.common_cpu_runtime"
@@ -793,7 +793,7 @@
       "title": "Close one claim-to-evidence scientific loop",
       "status": "done",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Exercise the epistemic architecture end to end on one narrowly scoped existing claim using a preregistered claim mapping, baselines, controls, immutable run receipts, metrics, threat analysis, and an explicit supporting, attacking, or inconclusive evidence record. A null or attacking result satisfies the architecture more honestly than manufacturing a positive result.",
       "depends_on": [
         "experimentation.failure_provenance"
@@ -823,7 +823,7 @@
       "title": "Decompose experiment runtime into composable execution protocols",
       "status": "done",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "After one complete claim/evidence vertical slice exposes the stable seams, separate generic experiment resolution, method execution, receipt materialization, and metric/evaluator protocols from experiment-family logic so new experiments become primarily declarative without hiding scientific semantics in a universal plugin framework.",
       "depends_on": [
         "experimentation.claim_evidence_vertical_slice"
@@ -846,7 +846,7 @@
       "title": "Resolve a complete repository verification environment",
       "status": "ready",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Retain focused per-experiment dependency slices while adding one resolved environment identity capable of running the complete verification suite from a clean checkout, including Python, Rust, Fortran/LAPACK, CUE, and numerical-library versions.",
       "depends_on": [],
       "completion": [
@@ -861,7 +861,7 @@
       "title": "Define uncertainty-aware sheaf observation compatibility",
       "status": "ready",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Keep exact global-section/restriction equality as the algebraic reference control while introducing a distinct observation-uncertainty method for noisy station data with explicit units, covariance/weights, residual semantics, and falsifiable interpretation rather than silent floating tolerances.",
       "depends_on": [
         "sheaf.climate_data_semantics",
@@ -879,7 +879,7 @@
       "title": "Separate logical observation identity from storage realization",
       "status": "blocked",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Promote the existing logical-content digest versus Parquet/fragments/materialization distinction into an explicit data identity contract so scientifically equivalent observation content can retain stable identity across storage rewrites while physical realizations remain independently content-addressed.",
       "depends_on": [
         "data.global_free_station_federation"
@@ -895,7 +895,7 @@
       "title": "Make neighborhood geometry a first-class representation evaluator",
       "status": "blocked",
       "priority": "P2",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Promote k-nearest-neighbor relations from an implicit substrate of spectral embedding, JSF kernels, mutual-information estimation, and downstream kNN probes into an implementation-independent evaluation layer. Establish neighborhood preservation, cross-view consensus, perturbation stability, nuisance retention, and dynamic-neighbor behavior on controlled worlds before adding UMAP as one discovery-fitted nonlinear baseline; visualization alone is never evidence.",
       "depends_on": [
         "multirepresentation.structure_baselines",
@@ -916,7 +916,7 @@
       "title": "Bind external native capabilities without shadow implementations",
       "status": "active",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Bind externally owned capabilities through exact native identity, configuration, transformation, receipt, and failure semantics while pruning Climate-owned shadows only after the exact replacement has executed successfully on production-scale resources. Realized so far: native-output import for external model evaluation, direct native curl acquisition in workflows with Climate HTTP transport orchestration removed, Climate-REF production CMIP ingestion, ESMValCore native preprocessing, AQUA native production-data access, and AIMIP full-archive access through an immutable upstream snapshot.",
       "depends_on": [],
       "completion": [
@@ -945,7 +945,7 @@
       "title": "Make cross-model evidence transport explicit and testable",
       "status": "ready",
       "priority": "P1",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Represent how evidence from idealized models, learned emulators, parent GCMs, model ensembles, reanalysis, and observations may inform one claim without treating those sources as interchangeable or allowing agreement at one fidelity to silently promote another.",
       "depends_on": [
         "experimentation.claim_evidence_vertical_slice"
@@ -1077,7 +1077,7 @@
       "title": "Turn included Codespaces CPU into receipted experiments",
       "status": "active",
       "priority": "P0",
-      "resource_class": "R2_toolchain_ci",
+      "resource_class": "R2_portable_toolchain",
       "summary": "Use available included personal-account GitHub Codespaces CPU for the registered portable experiment frontier through the canonical runtime, capturing exact revision/environment receipts and contract-valid outcomes so ready experiments produce evidence before discretionary framework refinement consumes effort.",
       "depends_on": [],
       "completion": [
