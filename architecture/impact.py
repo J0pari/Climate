@@ -4,7 +4,7 @@
 This tool creates no new authority. It answers a narrower question: which
 existing repository surfaces mention a path exactly? The result is useful
 before edits because it exposes module registrations, planning evidence,
-realization/evidence authorities, workflows, tests, generated projections, and
+realization/evidence authorities, tests, generated projections, and
 durable contracts that may need to be re-read when the target changes.
 
 Absence from this view is not proof of independence: dynamic imports, semantic
@@ -65,8 +65,6 @@ def _reference_kind(relative: Path) -> str:
         return "scientific_authority"
     if parts and parts[0] == "contracts":
         return "contract"
-    if len(parts) >= 2 and parts[:2] == (".github", "workflows"):
-        return "workflow"
     if parts and parts[0] == "tests":
         return "test"
     if relative == Path("docs/ROADMAP.md") or parts[:2] == ("docs", "generated"):
@@ -84,9 +82,6 @@ def _candidate_text_files(root: Path) -> Iterable[Path]:
             continue
         relative = path.relative_to(root)
         if any(part in _EXCLUDED_PARTS or part.startswith(".pytest") for part in relative.parts):
-            continue
-        if relative.parts[:2] == (".github", "workflows"):
-            yield path
             continue
         if path.name in {"AGENTS.md", "CMakeLists.txt", "Cargo.toml"}:
             yield path
