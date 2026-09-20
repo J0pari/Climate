@@ -32,6 +32,7 @@ Repository-local research state is generated into `docs/generated/STATE.md`. Pla
 - **Migrate semantic dependents together.** A change to an authority, schema, identity model, or generated state surface is incomplete until its renderers, guards, tests, workflows, and affected durable docs agree. Do not leave mixed old/new contracts on `main`.
 - **Require a negative witness for collapsed distinctions.** When a refactor reduces representational structure, retain or add a machine check proving that the previously invalid conflation still fails.
 - **Keep scope locked.** Do not fold adjacent scientific or architectural work into the current change unless it is required for correctness or the declared completion criteria. Independent obligations stay independent.
+- **Do not claim completion before exact-head verification.** If a required check is failing, skipped because of an earlier failure, or still pending, describe the change as unverified/in progress rather than current, complete, or green.
 
 ## Focused contracts
 
