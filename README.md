@@ -77,7 +77,7 @@ The repository does not assume that every one of these belongs inside a single s
 
 ## Executable foundations
 
-The executable surface is intentionally narrower than the research agenda. It contains small portable physical kernels, independently checkable mathematical references, canonical numerical primitives, and explicit verification fixtures. Exact module inventory, lifecycle, maturity, registered experiments, and claim status are generated from machine-readable authorities in [`docs/generated/STATUS.md`](docs/generated/STATUS.md).
+The executable surface is intentionally narrower than the research agenda. It contains small portable physical kernels, independently checkable mathematical references, canonical numerical primitives, and explicit verification fixtures. [`docs/generated/STATUS.md`](docs/generated/STATUS.md) is a scoped structural-realization projection of the machine authorities declared for that surface; it is not a complete repository-state snapshot and does not include planning, unpromoted evaluation records, exact-head CI, or commit history. Repository-wide present-state claims follow the commit-scoped reconciliation protocol in [`docs/REPOSITORY-STATE.md`](docs/REPOSITORY-STATE.md).
 
 The physical realization boundary is described in [`docs/FORTRAN-PHYSICS-FRONTIER.md`](docs/FORTRAN-PHYSICS-FRONTIER.md); geometry, sheaf, and other method-specific verification obligations live in their corresponding specifications.
 
