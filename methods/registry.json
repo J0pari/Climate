@@ -298,6 +298,7 @@
         "policy": "source_digest_at_run",
         "sources": [
           "reference/information_geometry_ebm_recovery.py",
+          "reference/two_layer_ebm_recovery_objective.py",
           "reference/two_layer_parameter_identifiability.py",
           "reference/two_layer_forcing_protocols.py",
           "reference/two_layer_energy_balance.py"
@@ -346,6 +347,7 @@
         "policy": "source_digest_at_run",
         "sources": [
           "reference/information_geometry_ebm_recovery.py",
+          "reference/two_layer_ebm_recovery_objective.py",
           "reference/two_layer_parameter_identifiability.py",
           "reference/two_layer_forcing_protocols.py",
           "reference/two_layer_energy_balance.py"
@@ -768,6 +770,7 @@
         "policy": "source_digest_at_run",
         "sources": [
           "reference/information_geometry_ebm_recovery.py",
+          "reference/two_layer_ebm_recovery_objective.py",
           "reference/two_layer_parameter_identifiability.py",
           "reference/two_layer_forcing_protocols.py",
           "reference/two_layer_energy_balance.py"
@@ -813,6 +816,7 @@
         "policy": "source_digest_at_run",
         "sources": [
           "reference/information_geometry_ebm_recovery.py",
+          "reference/two_layer_ebm_recovery_objective.py",
           "reference/two_layer_parameter_identifiability.py",
           "reference/two_layer_forcing_protocols.py",
           "reference/two_layer_energy_balance.py"
