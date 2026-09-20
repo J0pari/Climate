@@ -24,7 +24,6 @@ REQUIRED_SURFACES = {
     "experiment_definitions",
     "evaluation_records",
     "claim_evidence",
-    "execution",
     "history",
 }
 REQUIRED_ORIENTATION_INCLUDES = {
@@ -34,7 +33,7 @@ REQUIRED_ORIENTATION_INCLUDES = {
     "evaluation_records",
     "claim_evidence",
 }
-REQUIRED_ORIENTATION_EXCLUDES = {"execution", "history"}
+REQUIRED_ORIENTATION_EXCLUDES = {"history"}
 REQUIRED_REFERENCES = {
     "AGENTS.md": (
         "docs/generated/STATE.md",
@@ -151,7 +150,7 @@ def check(root: Path = ROOT) -> list[Finding]:
     if set(orientation["includes"]) != REQUIRED_ORIENTATION_INCLUDES:
         findings.append(Finding("repository_state.orientation_includes_invalid", "architecture/state_authorities.json", "orientation view must compose the five typed repository-local research surfaces"))
     if set(orientation["excludes"]) != REQUIRED_ORIENTATION_EXCLUDES:
-        findings.append(Finding("repository_state.orientation_excludes_invalid", "architecture/state_authorities.json", "orientation view must exclude exact-head execution and git history"))
+        findings.append(Finding("repository_state.orientation_excludes_invalid", "architecture/state_authorities.json", "orientation view must exclude git history"))
     if orientation["projection"] != "docs/generated/STATE.md":
         findings.append(Finding("repository_state.orientation_projection_invalid", "architecture/state_authorities.json", "orientation projection must remain docs/generated/STATE.md"))
     if orientation["renderer"] != "architecture/render_state.py":
