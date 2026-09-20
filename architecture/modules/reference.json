@@ -293,6 +293,23 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/two_layer_ebm_recovery_objective.py",
+      "family": "reference_two_layer_ebm_recovery_objective",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "climate-owned objective and constraint semantics for the preregistered two-layer EBM parameter-recovery benchmark: explicit temperature observation mapping, fixed-variance Gaussian residual/likelihood, positive log-parameter coordinates, and common bounds, while generic optimization remains external",
+      "claim_ids": [
+        "climate.information_geometry.optimization"
+      ],
+      "known_gaps": [
+        "the objective is specific to the synthetic two-layer EBM and fixed independent Gaussian observation model rather than a generic climate optimization framework",
+        "forcing uncertainty, model discrepancy, priors, correlated observation errors, and real-climate calibration require distinct objective identities",
+        "the centered sensitivity route remains a finite-difference reference and does not define production automatic-differentiation semantics"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/two_layer_energy_balance.py",
       "family": "reference_two_layer_energy_balance",
       "language": "python",
