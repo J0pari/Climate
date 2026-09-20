@@ -23,7 +23,7 @@
         "implementation realization",
         "experiment outcomes",
         "claim promotion",
-        "exact-head execution status"
+        "uncommitted execution status"
       ]
     },
     {
@@ -52,7 +52,7 @@
         "scientific claim support",
         "experiment outcomes",
         "planning priority",
-        "exact-head execution status"
+        "uncommitted execution status"
       ]
     },
     {
@@ -91,7 +91,7 @@
         "claim maturity",
         "evidence promotion",
         "planning completion unless the planning authority cites the record",
-        "exact-head execution status"
+        "uncommitted execution status"
       ]
     },
     {
@@ -112,21 +112,6 @@
         "planning priority",
         "implementation realization",
         "unregistered evaluation outcomes"
-      ]
-    },
-    {
-      "id": "execution",
-      "kind": "external_exact_head",
-      "authority_paths": [
-        "GitHub Actions workflow runs keyed by exact commit SHA"
-      ],
-      "owns": [
-        "workflow/job outcome for the exact repository revision and declared environment"
-      ],
-      "does_not_own": [
-        "scientific validation",
-        "claim promotion",
-        "planning completion by itself"
       ]
     },
     {
@@ -154,7 +139,6 @@
       "claim_evidence"
     ],
     "excludes": [
-      "execution",
       "history"
     ],
     "composition_rule": "The generated orientation view preserves each included surface as a distinct semantic section. Presence in one surface never implies status in another; in particular, an evaluation record does not become scientific evidence unless claim/evidence authority records the relation."
@@ -164,6 +148,7 @@
     "Read AGENTS.md and docs/generated/STATE.md from that commit.",
     "If main moved since the last orientation, inspect the intervening commits before reusing prior state conclusions.",
     "Read the focused contract and underlying authority records relevant to the task rather than treating the generated view as a replacement for them.",
-    "Consult exact-head GitHub Actions whenever execution status matters."
+    "Run the relevant repository checks locally against the exact current checkout when execution status matters; hosted CI is prohibited.",
+    "Treat execution as durable authority only when the owning contract records a committed receipt, evaluation artifact, or explicitly declared immutable external record."
   ]
 }
