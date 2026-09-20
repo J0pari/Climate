@@ -5,7 +5,6 @@ This directory stores the repository-persisted result of the preregistered confi
 Execution identity:
 
 - source commit: \`2d371769aaed9a554e51b51a13919d9b56e2ccfc\`;
-- GitHub Actions run: \`35467905594\`, workflow \`Information-geometry EBM recovery confirmation\`;
 - Python 3.12;
 - NumPy 2.5.3;
 - SciPy 1.18.1;
