@@ -25,6 +25,14 @@ Repository-local research state is generated into `docs/generated/STATE.md`. Pla
 - **Durable prose states contracts and facts, not prestige or edit history.** Use commit history for change narration. `architecture/check_documentation_quality.py` and `architecture/check_durable_text.py` enforce this boundary.
 - **Unavailable resources remain unavailable.** Compilation, mocks, source inspection, or local imitation do not substitute for CUDA hardware, native external runtimes, or declared large-data evidence.
 
+## Change-quality gates
+
+- **Preserve semantics before simplifying.** A cleanup, consolidation, abstraction, rename, deletion, or schema reduction must first identify the distinctions, authorities, failure states, provenance, and evidence boundaries it could erase. "Simpler" or "cleaner" is not sufficient justification.
+- **Prove equivalence or retire semantics explicitly.** If a change removes a state, field, path, type, authority surface, or execution branch, preserve its meaning with an equivalent representation and witness, or retire it through the owning contract/planning authority. Do not silently collapse distinctions.
+- **Migrate semantic dependents together.** A change to an authority, schema, identity model, or generated state surface is incomplete until its renderers, guards, tests, workflows, and affected durable docs agree. Do not leave mixed old/new contracts on `main`.
+- **Require a negative witness for collapsed distinctions.** When a refactor reduces representational structure, retain or add a machine check proving that the previously invalid conflation still fails.
+- **Keep scope locked.** Do not fold adjacent scientific or architectural work into the current change unless it is required for correctness or the declared completion criteria. Independent obligations stay independent.
+
 ## Focused contracts
 
 - Architecture and ownership boundaries: `docs/ARCHITECTURE.md`
