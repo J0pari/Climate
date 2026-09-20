@@ -8,7 +8,7 @@
       "maturity": "runnable",
       "intended_role": "canonical provider-specific GHCN-Daily discovery, federation normalization, and streaming observation-routing adapter over already captured immutable provider artifacts; Climate preserves provider URL/content identity and station semantics but owns no HTTP/TLS/redirect/transfer implementation or subprocess wrapper",
       "known_gaps": [
-        "provider artifact acquisition is an external execution concern: the exact native transfer executable and invocation must be bound by the run/workflow that captures bytes before this parser is called",
+        "provider artifact acquisition is an external execution concern: the exact native transfer executable and invocation must be bound by the run receipt that captures bytes before this parser is called",
         "ghcnd-stations.txt is treated as a provider metadata snapshot effective at the captured date; the adapter does not back-project current coordinates into unobserved historical relocation epochs",
         "provider element values remain raw GHCN integer semantics at this boundary; unit normalization into climate variable contracts is a separate explicit transformation",
         "cross-provider station crosswalks remain federation-level evidence obligations and are never inferred from location proximity"
