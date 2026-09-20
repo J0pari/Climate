@@ -4,8 +4,8 @@
 Documentation should state mechanisms, contracts, tests, metrics, limitations,
 and authority paths. It should not award the repository or a method prestige
 qualities by adjective, and it should not maintain hand-authored repository
-state snapshots that belong in machine authorities, exact-head execution
-records, or Git history.
+state snapshots that belong in machine authorities, committed execution
+receipts, or Git history.
 """
 from __future__ import annotations
 
