@@ -17,7 +17,7 @@ The geometry program uses complementary portable authorities and executable witn
 
 These authorities deliberately stop before choosing a climate metric or mapping curvature to tipping/risk/timescale. The canonical object now enforces the Riemannian SPD contract and exposes conditioning; task-specific conditioning limits remain experiment policy. Their verified scope includes an independent maintained-library automatic-differentiation route for analytic metric derivatives; it does not by itself establish geodesic-solver correctness or CUDA differential equivalence. `architecture/planning_graph.json` is the sole authority for work that extends this scope.
 
-Module and claim lifecycle state is rendered from machine authorities in `docs/generated/STATUS.md`; this document owns verification semantics and obligations rather than duplicating generated status.
+Module and claim lifecycle state is rendered from machine authorities in `docs/generated/STATE.md`; this document owns verification semantics and obligations rather than duplicating generated status.
 
 ## 1. Separation of questions
 
