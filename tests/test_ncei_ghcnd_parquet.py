@@ -100,6 +100,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_partitions=10,
                 batch_rows=1,
             )
             self.assertEqual(result.routing.row_count, 4)
@@ -160,6 +161,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_partitions=10,
                 batch_rows=1,
             )
             second = publish_gzip_by_year(
@@ -167,6 +169,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_partitions=10,
                 batch_rows=1,
             )
             self.assertEqual(first.partitions, second.partitions)
@@ -197,6 +200,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
             partial = GHCNParquetPartitionPublisher(
                 store,
                 source_revision=source_revision,
+                max_partitions=10,
                 batch_rows=2,
             )
             stream_by_year_partitions(
@@ -204,6 +208,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 sink=partial,
+                max_partition_keys=10,
             )
             partial.abort()
             checkpoints = list((store / ".staging").glob("*/checkpoint.json"))
@@ -216,6 +221,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_partitions=10,
                 batch_rows=2,
             )
             clean = publish_gzip_by_year(
@@ -223,6 +229,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=clean_store,
+                max_partitions=10,
                 batch_rows=2,
             )
             self.assertEqual(resumed.routing.row_count, 4)
@@ -245,6 +252,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
             partial = GHCNParquetPartitionPublisher(
                 root / "store",
                 source_revision=source_revision,
+                max_partitions=10,
                 batch_rows=2,
             )
             stream_by_year_partitions(
@@ -252,6 +260,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 sink=partial,
+                max_partition_keys=10,
             )
             partial.abort()
 
@@ -271,7 +280,31 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                     expected_year=2024,
                     lookup=AlteredLookup(),
                     root=root / "store",
+                max_partitions=10,
                     batch_rows=2,
+                )
+
+    def test_partition_budget_fails_before_unbounded_state_growth(self):
+        lookup, _ = self.substrate()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "2024.csv.gz"
+            store = root / "store"
+            write_gzip(
+                source,
+                (
+                    "USW00000001,20240101,TMAX,123,,,S,0700\n"
+                    "USW00000002,20240101,TMIN,45,,,S,0700\n"
+                ),
+            )
+            with self.assertRaisesRegex(ValueError, "max_partition"):
+                publish_gzip_by_year(
+                    source,
+                    expected_year=2024,
+                    lookup=lookup,
+                    root=store,
+                    max_partitions=1,
+                    batch_rows=8,
                 )
 
     def test_provider_revision_requires_explicit_supersession_in_manifest(self):
@@ -288,6 +321,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_partitions=10,
                 batch_rows=8,
             )
             old = first.partitions[0]
@@ -306,6 +340,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_partitions=10,
                 batch_rows=8,
                 supersedes_by_key={key: (old.digest,)},
             )

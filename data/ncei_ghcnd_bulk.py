@@ -1040,6 +1040,7 @@ def stream_by_year_partitions(
     expected_year: int,
     lookup: StationRoutingLookup,
     sink: ObservationPartitionSink,
+    max_partition_keys: int,
     elements: Sequence[str] | None = None,
 ) -> GHCNRoutingSummary:
     """Route one provider year to bounded partition sinks without row buffering.
@@ -1048,6 +1049,8 @@ def stream_by_year_partitions(
     store writers can implement publication without changing provider parsing,
     station identity, partition keys, or missing/flag semantics.
     """
+    if max_partition_keys <= 0:
+        raise ValueError("max_partition_keys must be positive")
     selected = None if elements is None else frozenset(elements)
     if selected is not None and (
         not selected or any(len(item) != 4 for item in selected)
@@ -1079,7 +1082,12 @@ def stream_by_year_partitions(
                 observation_time=record.observation_time,
             ),
         )
-        partition_keys.add(key)
+        if key not in partition_keys:
+            if len(partition_keys) >= max_partition_keys:
+                raise ValueError(
+                    "observation routing exceeded max_partition_keys"
+                )
+            partition_keys.add(key)
         row_count += 1
         missing += record.value is None
     return GHCNRoutingSummary(

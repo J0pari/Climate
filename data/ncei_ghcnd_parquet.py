@@ -26,7 +26,7 @@ from data.ncei_ghcnd_bulk import (
     GHCNRoutingSummary,
     RoutedGHCNObservation,
     SOURCE_ID,
-    StationShardLookup,
+    StationRoutingLookup,
     stream_by_year_partitions,
 )
 from src.station_federation import ObservationPartitionRef
@@ -155,15 +155,19 @@ class GHCNParquetPartitionPublisher:
         root: Path,
         *,
         source_revision: str,
+        max_partitions: int,
         batch_rows: int = 50_000,
         compression: str = "zstd",
     ) -> None:
+        if max_partitions <= 0:
+            raise ValueError("max_partitions must be positive")
         if batch_rows <= 0:
             raise ValueError("batch_rows must be positive")
         if not compression or not compression.strip():
             raise ValueError("compression must be non-empty")
         self.root = Path(root)
         self.source_revision = _require_digest(source_revision, "source_revision")
+        self.max_partitions = int(max_partitions)
         self.batch_rows = batch_rows
         self.compression = compression.strip()
         self._buffer: list[
@@ -179,6 +183,7 @@ class GHCNParquetPartitionPublisher:
                 {
                     "schema": _CHECKPOINT_SCHEMA,
                     "source_revision": self.source_revision,
+                    "max_partitions": self.max_partitions,
                     "batch_rows": self.batch_rows,
                     "compression": self.compression,
                     "pyarrow_version": pa.__version__,
@@ -233,6 +238,7 @@ class GHCNParquetPartitionPublisher:
         return {
             "schema": _CHECKPOINT_SCHEMA,
             "source_revision": self.source_revision,
+            "max_partitions": self.max_partitions,
             "batch_rows": self.batch_rows,
             "compression": self.compression,
             "pyarrow_version": pa.__version__,
@@ -255,6 +261,7 @@ class GHCNParquetPartitionPublisher:
             raise ValueError("GHCN Parquet resume checkpoint schema is invalid")
         expected = {
             "source_revision": self.source_revision,
+            "max_partitions": self.max_partitions,
             "batch_rows": self.batch_rows,
             "compression": self.compression,
             "pyarrow_version": pa.__version__,
@@ -411,6 +418,10 @@ class GHCNParquetPartitionPublisher:
     def _state(self, key: GHCNObservationPartitionKey) -> _PartitionState:
         state = self._states.get(key)
         if state is None:
+            if len(self._states) >= self.max_partitions:
+                raise ValueError(
+                    "GHCN Parquet publication exceeded max_partitions"
+                )
             state = _PartitionState(key)
             self._states[key] = state
         return state
@@ -679,8 +690,9 @@ def publish_gzip_by_year(
     path: Path,
     *,
     expected_year: int,
-    lookup: StationShardLookup,
+    lookup: StationRoutingLookup,
     root: Path,
+    max_partitions: int,
     batch_rows: int = 50_000,
     compression: str = "zstd",
     supersedes_by_key: Mapping[
@@ -692,6 +704,7 @@ def publish_gzip_by_year(
     publisher = GHCNParquetPartitionPublisher(
         root,
         source_revision=source_revision,
+        max_partitions=max_partitions,
         batch_rows=batch_rows,
         compression=compression,
     )
@@ -702,6 +715,7 @@ def publish_gzip_by_year(
                 expected_year=expected_year,
                 lookup=lookup,
                 sink=publisher,
+                max_partition_keys=max_partitions,
             )
         partitions = publisher.finalize(
             supersedes_by_key=supersedes_by_key

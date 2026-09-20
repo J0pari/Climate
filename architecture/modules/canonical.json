@@ -21,12 +21,13 @@
       "family": "ncei_ghcnd_parquet_partition_publication",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-specific bounded-memory and fragment-resumable Parquet publication adapter for routed GHCN-Daily observations, binding the compressed source-artifact digest, replay-verified canonical input prefix, raw provider value/flag semantics, immutable fragment identity, explicit supersession lineage, and provider-neutral ObservationPartitionRef metadata",
+      "intended_role": "canonical provider-specific bounded-row, bounded-partition-cardinality and fragment-resumable Parquet publication adapter for routed GHCN-Daily observations; callers declare max_partitions, each row batch is capped by batch_rows, source identity and replay prefix are bound, and immutable content-addressed outputs preserve raw provider semantics plus explicit supersession lineage",
       "known_gaps": [
         "resume checkpoints commit only complete fsynced Parquet-fragment boundaries and require exact replay of the committed canonical input prefix; a crash after the full source is consumed but during short final object publication restarts deterministic publication from the captured source artifact",
         "the canonical backend publishes to a local filesystem content-addressed object root; remote object-store transport remains an adapter responsibility",
         "Parquet object identity deliberately includes writer version, compression, and batch layout, so changing physical serialization produces a distinct artifact even when logical rows are unchanged",
-        "provider values remain raw GHCN integer semantics; unit normalization into climate variable contracts is a separate explicit adapter"
+        "provider values remain raw GHCN integer semantics; unit normalization into climate variable contracts is a separate explicit adapter",
+        "batch_rows and max_partitions bound Climate-owned Python row/state cardinality, but PyArrow/allocator/filesystem overhead is not mislabeled as a hard whole-process memory ceiling"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false

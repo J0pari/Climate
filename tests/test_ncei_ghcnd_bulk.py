@@ -325,6 +325,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                     expected_year=2024,
                     lookup=spool,
                     sink=Sink(),
+                    max_partition_keys=10,
                 )
             self.assertEqual(summary.row_count, 2)
             self.assertEqual(len(writes), 2)
@@ -395,6 +396,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
             expected_year=2024,
             lookup=lookup,
             sink=Sink(),
+                    max_partition_keys=10,
         )
         self.assertEqual(summary.row_count, 3)
         self.assertEqual(summary.missing_value_count, 1)
@@ -402,6 +404,35 @@ class GHCNBulkFederationTests(unittest.TestCase):
         self.assertIsNone(writes[1][1].value)
         self.assertEqual(writes[1][1].quality_flag, "Q")
         self.assertEqual(writes[0][0].source_id, "ncei.ghcnd.v3")
+
+    def test_by_year_partition_key_budget_fails_closed(self):
+        catalog, inventory = self.payloads()
+        stations = build_federated_stations(
+            catalog, inventory, metadata_effective_date="2026-09-18"
+        )
+        lookup = StationShardLookup(
+            adaptive_catalog_shards(
+                stations,
+                metadata_effective_date="2026-09-18",
+                max_station_records=1,
+            )
+        )
+
+        class Sink:
+            def write(self, key, record):
+                pass
+
+        with self.assertRaisesRegex(ValueError, "max_partition_keys"):
+            stream_by_year_partitions(
+                [
+                    "USW00000001,20240101,TMAX,100,,,S,0700\n",
+                    "USW00000002,20240101,TMIN,100,,,S,0700\n",
+                ],
+                expected_year=2024,
+                lookup=lookup,
+                sink=Sink(),
+                max_partition_keys=1,
+            )
 
     def test_by_year_unknown_station_fails_closed(self):
         catalog, inventory = self.payloads()
@@ -424,6 +455,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 sink=Sink(),
+                    max_partition_keys=10,
             )
 
     def test_by_year_wrong_artifact_year_refuses(self):
@@ -447,6 +479,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 sink=Sink(),
+                    max_partition_keys=10,
             )
 
 

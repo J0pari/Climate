@@ -463,7 +463,7 @@
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "worldwide GHCN-Daily provider discovery consumes complete captured station/inventory artifacts through a one-pass byte-hashing parser into a caller-owned SQLite scratch spool with explicit disk/cache/transaction/line limits; station capability chronology and both artifact digests are preserved, bounded catalog shards are materialized one at a time, and observation routing uses the indexed spool rather than a global in-memory alias map",
+      "rationale": "worldwide GHCN-Daily provider discovery consumes complete captured station/inventory artifacts through a one-pass byte-hashing parser into a caller-owned SQLite scratch spool with explicit disk/cache/transaction/line limits; station capability chronology and both artifact digests are preserved, bounded catalog shards are materialized one at a time, and observation routing uses the indexed spool rather than a global in-memory alias map; observation routing additionally requires an explicit max_partition_keys ceiling so exact routing summaries cannot accumulate an unbounded key set",
       "witness_path": "tests/test_ncei_ghcnd_bulk.py",
       "witness_anchor": "test_bounded_metadata_spool_streams_catalog_and_routes_from_disk"
     },
