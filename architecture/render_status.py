@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Render objective repository status from existing machine-readable authorities.
+"""Render the scoped structural-realization projection.
 
-This projection deliberately excludes CI pass/fail state and scientific priority judgments.
-Those require execution or human interpretation and must not be inferred from file presence.
+The declared authority set comes from architecture/state_authorities.json.
+A matching projection proves equality to that authority set only; it does not
+prove repository-wide completeness or exact-head execution success.
 """
 from __future__ import annotations
 
@@ -12,7 +13,14 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from architecture.state_authorities import (
+    ROOT,
+    load_manifest,
+    projection_authority_paths,
+    projection_fingerprint,
+    surface_by_id,
+)
+
 DEFAULT_OUTPUT = ROOT / "docs" / "generated" / "STATUS.md"
 
 
@@ -20,10 +28,46 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _module_records(root: Path) -> list[tuple[str, dict]]:
+def _partition_authorities(root: Path, paths: list[Path]) -> dict[str, list[Path]]:
+    groups = {
+        "modules": [],
+        "claims": [],
+        "evidence": [],
+        "experiments": [],
+        "sheaf": [],
+    }
+    for path in paths:
+        relative = path.relative_to(root).as_posix()
+        if relative.startswith("architecture/modules/") and relative.endswith(".json"):
+            groups["modules"].append(path)
+        elif relative == "claims/registry.json":
+            groups["claims"].append(path)
+        elif relative == "evidence/registry.json":
+            groups["evidence"].append(path)
+        elif relative.startswith("experiments/") and relative.endswith(".json"):
+            groups["experiments"].append(path)
+        elif relative == "methods/sheaf-realization.v1.json":
+            groups["sheaf"].append(path)
+        else:
+            raise ValueError(
+                "structural-realization authority has no renderer semantics: "
+                + relative
+            )
+    if len(groups["claims"]) != 1 or len(groups["evidence"]) != 1 or len(groups["sheaf"]) != 1:
+        raise ValueError(
+            "structural-realization authority requires exactly one claim registry, "
+            "evidence registry, and sheaf-realization authority"
+        )
+    if not groups["modules"] or not groups["experiments"]:
+        raise ValueError(
+            "structural-realization authority requires module registries and experiments"
+        )
+    return groups
+
+
+def _module_records(root: Path, paths: list[Path]) -> list[tuple[str, dict]]:
     records: list[tuple[str, dict]] = []
-    module_dir = root / "architecture" / "modules"
-    for path in sorted(module_dir.glob("*.json")):
+    for path in sorted(paths):
         payload = _load_json(path)
         lifecycle = path.stem
         for record in payload.get("modules", []):
@@ -31,34 +75,37 @@ def _module_records(root: Path) -> list[tuple[str, dict]]:
     return records
 
 
-def _claim_records(root: Path) -> list[dict]:
-    return _load_json(root / "claims" / "registry.json").get("claims", [])
+def _claim_records(path: Path) -> list[dict]:
+    return _load_json(path).get("claims", [])
 
 
-def _evidence_records(root: Path) -> list[dict]:
-    return _load_json(root / "evidence" / "registry.json").get("evidence", [])
+def _evidence_records(path: Path) -> list[dict]:
+    return _load_json(path).get("evidence", [])
 
 
-def _experiment_records(root: Path) -> list[tuple[str, dict]]:
-    records: list[tuple[str, dict]] = []
-    for path in sorted((root / "experiments").glob("*.json")):
-        records.append((path.name, _load_json(path)))
-    return records
+def _experiment_records(root: Path, paths: list[Path]) -> list[tuple[str, dict]]:
+    return [
+        (path.relative_to(root).as_posix(), _load_json(path))
+        for path in sorted(paths)
+    ]
 
 
-def _sheaf_obligations(root: Path) -> list[dict]:
-    path = root / "methods" / "sheaf-realization.v1.json"
-    if not path.exists():
-        return []
+def _sheaf_obligations(path: Path) -> list[dict]:
     return _load_json(path).get("obligations", [])
 
 
 def render_status(root: Path = ROOT) -> str:
-    modules = _module_records(root)
-    claims = _claim_records(root)
-    evidence = _evidence_records(root)
-    experiments = _experiment_records(root)
-    obligations = _sheaf_obligations(root)
+    manifest = load_manifest()
+    surface = surface_by_id(manifest, "structural_realization")
+    authority_paths = projection_authority_paths(root, manifest, "structural_realization")
+    fingerprint = projection_fingerprint(root, manifest, "structural_realization")
+    groups = _partition_authorities(root, authority_paths)
+
+    modules = _module_records(root, groups["modules"])
+    claims = _claim_records(groups["claims"][0])
+    evidence = _evidence_records(groups["evidence"][0])
+    experiments = _experiment_records(root, groups["experiments"])
+    obligations = _sheaf_obligations(groups["sheaf"][0])
 
     lifecycle_counts = Counter(lifecycle for lifecycle, _ in modules)
     maturity_counts = Counter(record.get("maturity", "unknown") for _, record in modules)
@@ -70,11 +117,33 @@ def render_status(root: Path = ROOT) -> str:
     )
 
     lines = [
-        "# Generated repository status",
+        "# Generated structural repository projection",
         "",
         "<!-- Generated by architecture/render_status.py. Do not hand-edit. -->",
         "",
-        "This file is a deterministic projection of repository-local authorities. It does **not** infer CI success, empirical validation, GPU correctness, scientific priority, or successful external-system integration from file presence.",
+        "This file is a deterministic projection of a **declared structural-realization authority set**, not a complete repository-status snapshot.",
+        "",
+        f"Authority-set fingerprint: `{fingerprint}`.",
+        "",
+        "Declared inputs:",
+        "",
+    ]
+    for path in authority_paths:
+        lines.append(f"- `{path.relative_to(root).as_posix()}`")
+
+    lines.extend([
+        "",
+        "A successful freshness check means only that this file matches those inputs. It does **not** establish planning state, exact-head CI success, empirical validation, GPU correctness, scientific priority, committed evaluation outcomes that are not promoted through the declared evidence authorities, commit-history state, or unregistered implementation facts.",
+        "",
+        "Explicitly excluded from this projection:",
+        "",
+    ])
+    for exclusion in surface.get("excludes", []):
+        lines.append(f"- {exclusion}")
+
+    lines.extend([
+        "",
+        "Repository-wide present-state conclusions require the commit-scoped reconciliation protocol in `docs/REPOSITORY-STATE.md`.",
         "",
         "External implementation ownership is not treated as local realization. A Climate result that depends on a native external data/model/evaluation capability becomes reproducible only when the corresponding adapter/import path binds exact upstream identity, configuration, transformations, failures, and receipts; availability of the external project alone proves none of those facts.",
         "",
@@ -86,7 +155,7 @@ def render_status(root: Path = ROOT) -> str:
         "",
         "| Lifecycle | Count |",
         "| --- | ---: |",
-    ]
+    ])
     for lifecycle, count in sorted(lifecycle_counts.items()):
         lines.append(f"| `{lifecycle}` | {count} |")
 
@@ -135,7 +204,8 @@ def render_status(root: Path = ROOT) -> str:
     for claim in sorted(claims, key=lambda item: item["claim_id"]):
         lines.append(
             f"| `{claim['claim_id']}` | `{claim.get('claim_type', '')}` | "
-            f"`{claim.get('maturity', 'unknown')}` | {len(claim.get('supporting_evidence', []))} |"
+            f"`{claim.get('maturity', 'unknown')}` | "
+            f"{len(claim.get('supporting_evidence', []))} |"
         )
 
     lines.extend([
@@ -147,8 +217,10 @@ def render_status(root: Path = ROOT) -> str:
         "| Experiment | File |",
         "| --- | --- |",
     ])
-    for filename, experiment in experiments:
-        lines.append(f"| `{experiment.get('experiment_id', '<missing>')}` | `experiments/{filename}` |")
+    for relative, experiment in experiments:
+        lines.append(
+            f"| `{experiment.get('experiment_id', '<missing>')}` | `{relative}` |"
+        )
 
     if obligations:
         by_layer: dict[str, Counter] = defaultdict(Counter)
@@ -185,13 +257,16 @@ def render_status(root: Path = ROOT) -> str:
         if open_items:
             lines.extend(["", "Open obligations:", ""])
             for item in open_items:
-                lines.append(f"- `{item['obligation_id']}` (`{item.get('layer', 'unknown')}`): {item['statement']}")
+                lines.append(
+                    f"- `{item['obligation_id']}` "
+                    f"(`{item.get('layer', 'unknown')}`): {item['statement']}"
+                )
 
     lines.extend([
         "",
         "## Interpretation boundary",
         "",
-        "This projection reports declared repository structure only. `canonical_implementation` means repository authority for the declared object, not scientific endorsement. A module listed as runnable is not thereby verified; reference-realized obligations are independent correctness oracles rather than production completion; canonical realization is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity. Likewise, an externally owned native capability is neither out of scope nor locally realized merely because it exists: Climate must bind and verify the integration boundary without shadowing the upstream implementation.",
+        "This projection reports only the declared structural authority set above. `canonical_implementation` means repository authority for the declared object, not scientific endorsement. A module listed as runnable is not thereby verified; reference-realized obligations are independent correctness oracles rather than production completion; canonical realization is not empirical climate validation; and the absence of supporting evidence records keeps the corresponding scientific claim at its declared maturity. Likewise, an externally owned native capability is neither out of scope nor locally realized merely because it exists: Climate must bind and verify the integration boundary without shadowing the upstream implementation.",
         "",
     ])
     return "\n".join(lines)
@@ -201,7 +276,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--write", action="store_true", help="write the generated projection")
-    mode.add_argument("--check", action="store_true", help="fail if the checked-in projection is stale")
+    mode.add_argument("--check", action="store_true", help="fail if the checked-in projection does not match its declared inputs")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
 
@@ -215,26 +290,30 @@ def main() -> int:
         return 0
 
     if not output.exists():
-        print(f"generated status missing: {output.relative_to(ROOT)}")
+        print(f"generated structural projection missing: {output.relative_to(ROOT)}")
         return 1
 
     actual = output.read_text(encoding="utf-8")
     if actual != rendered:
         print(
-            f"generated status stale: {output.relative_to(ROOT)}; "
-            "run `python architecture/render_status.py --write`"
+            f"generated structural projection does not match declared authority inputs: "
+            f"{output.relative_to(ROOT)}; run "
+            "`python architecture/render_status.py --write`"
         )
         diff = difflib.unified_diff(
             actual.splitlines(),
             rendered.splitlines(),
             fromfile=str(output.relative_to(ROOT)),
-            tofile="rendered status",
+            tofile="rendered structural projection",
             lineterm="",
         )
         for line in diff:
             print(line)
         return 1
-    print(f"generated status current: {output.relative_to(ROOT)}")
+    print(
+        "generated structural projection matches declared authority inputs: "
+        f"{output.relative_to(ROOT)}"
+    )
     return 0
 
 
