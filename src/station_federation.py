@@ -350,14 +350,50 @@ def remove_cross_provider_alias_evidence(
 
 
 @dataclass(frozen=True)
+class StationSpatialBounds:
+    latitude_min_deg: float
+    latitude_max_deg: float
+    longitude_min_deg: float
+    longitude_max_deg: float
+
+    def __post_init__(self) -> None:
+        values = (
+            self.latitude_min_deg,
+            self.latitude_max_deg,
+            self.longitude_min_deg,
+            self.longitude_max_deg,
+        )
+        if not all(math.isfinite(value) for value in values):
+            raise ValueError("station spatial bounds must be finite")
+        if not -90.0 <= self.latitude_min_deg <= self.latitude_max_deg <= 90.0:
+            raise ValueError("latitude bounds must satisfy -90 <= min <= max <= 90")
+        if not -180.0 <= self.longitude_min_deg <= self.longitude_max_deg <= 180.0:
+            raise ValueError("longitude bounds must satisfy -180 <= min <= max <= 180")
+
+    def as_dict(self) -> dict[str, float]:
+        return {
+            "latitude_min_deg": self.latitude_min_deg,
+            "latitude_max_deg": self.latitude_max_deg,
+            "longitude_min_deg": self.longitude_min_deg,
+            "longitude_max_deg": self.longitude_max_deg,
+        }
+
+
+@dataclass(frozen=True)
 class StationCatalogShard:
     shard_id: str
     spatial_partition: str
     stations: tuple[FederatedStation, ...]
+    spatial_bounds: StationSpatialBounds | None = None
 
     def __post_init__(self) -> None:
         _nonempty(self.shard_id, "shard_id")
         _nonempty(self.spatial_partition, "spatial_partition")
+        if (
+            self.spatial_bounds is not None
+            and not isinstance(self.spatial_bounds, StationSpatialBounds)
+        ):
+            raise ValueError("spatial_bounds must be StationSpatialBounds or null")
         stations = tuple(self.stations)
         if not stations:
             raise ValueError("catalog shard must contain at least one station")
@@ -424,6 +460,24 @@ def _resolved_location_for_sharding(
     return location
 
 
+def _station_spatial_bounds(
+    stations: Sequence[FederatedStation],
+    at_date: str,
+) -> StationSpatialBounds:
+    locations = [
+        _resolved_location_for_sharding(station, at_date)
+        for station in stations
+    ]
+    if not locations:
+        raise ValueError("cannot derive spatial bounds for an empty station set")
+    return StationSpatialBounds(
+        latitude_min_deg=min(item.latitude_deg for item in locations),
+        latitude_max_deg=max(item.latitude_deg for item in locations),
+        longitude_min_deg=min(item.longitude_deg for item in locations),
+        longitude_max_deg=max(item.longitude_deg for item in locations),
+    )
+
+
 def adaptive_catalog_shards(
     stations: Sequence[FederatedStation],
     *,
@@ -446,7 +500,14 @@ def adaptive_catalog_shards(
         key: str,
     ) -> list[StationCatalogShard]:
         if len(subset) <= max_station_records:
-            return [StationCatalogShard(key, key, subset)]
+            return [
+                StationCatalogShard(
+                    key,
+                    key,
+                    subset,
+                    _station_spatial_bounds(subset, metadata_effective_date),
+                )
+            ]
 
         lat_mid = (lat_min + lat_max) / 2.0
         lon_mid = (lon_min + lon_max) / 2.0
@@ -468,6 +529,10 @@ def adaptive_catalog_shards(
                     f"{key}/id-{start // max_station_records:06d}",
                     f"{key}/id-{start // max_station_records:06d}",
                     tuple(ordered[start:start + max_station_records]),
+                    _station_spatial_bounds(
+                        tuple(ordered[start:start + max_station_records]),
+                        metadata_effective_date,
+                    ),
                 )
                 for start in range(0, len(ordered), max_station_records)
             ]
@@ -497,6 +562,7 @@ class CatalogShardRef:
     station_count: int
     provider_source_ids: tuple[str, ...]
     variable_ids: tuple[str, ...]
+    spatial_bounds: StationSpatialBounds | None = None
     supersedes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
@@ -513,6 +579,11 @@ class CatalogShardRef:
             raise ValueError("provider_source_ids must be unique")
         if len(set(self.variable_ids)) != len(self.variable_ids):
             raise ValueError("variable_ids must be unique")
+        if (
+            self.spatial_bounds is not None
+            and not isinstance(self.spatial_bounds, StationSpatialBounds)
+        ):
+            raise ValueError("spatial_bounds must be StationSpatialBounds or null")
         for value in self.supersedes:
             _digest(value, "supersedes digest")
 
@@ -540,6 +611,7 @@ def catalog_shard_refs(
             station_count=len(shard.stations),
             provider_source_ids=tuple(providers),
             variable_ids=tuple(variables),
+            spatial_bounds=shard.spatial_bounds,
         ))
     return tuple(refs)
 
@@ -713,8 +785,39 @@ class StationFederationManifest:
             for item in observations
             for variable in item.variable_ids
         })
+
+        bounds_by_partition: dict[str, StationSpatialBounds] = {}
+        unresolved_partitions: set[str] = set()
+        for shard in catalogs:
+            partition = shard.spatial_partition
+            bounds = shard.spatial_bounds
+            if bounds is None:
+                unresolved_partitions.add(partition)
+                bounds_by_partition.pop(partition, None)
+                continue
+            previous = bounds_by_partition.get(partition)
+            if previous is not None and previous != bounds:
+                unresolved_partitions.add(partition)
+                bounds_by_partition.pop(partition, None)
+                continue
+            if partition not in unresolved_partitions:
+                bounds_by_partition[partition] = bounds
+
+        all_partitions = {
+            item.spatial_partition for item in (*catalogs, *observations)
+        }
+        unresolved_partitions.update(
+            partition
+            for partition in all_partitions
+            if partition not in bounds_by_partition
+        )
+
+        def geographic_bounds(partition: str) -> dict[str, float] | None:
+            bounds = bounds_by_partition.get(partition)
+            return None if bounds is None else bounds.as_dict()
+
         return {
-            "schema": "station-federation-coverage/v1",
+            "schema": "station-federation-coverage/v2",
             "manifest_id": self.manifest_id,
             "manifest_digest": self.digest(),
             "provider_source_ids": providers,
@@ -724,9 +827,8 @@ class StationFederationManifest:
             "variables": variables,
             "time_start": min((item.time_start for item in observations), default=None),
             "time_end": max((item.time_end for item in observations), default=None),
-            "spatial_partitions": sorted({
-                item.spatial_partition for item in (*catalogs, *observations)
-            }),
+            "spatial_partitions": sorted(all_partitions),
+            "unresolved_geographic_partitions": sorted(unresolved_partitions),
             "catalog_availability": [
                 {
                     "shard_id": item.shard_id,
@@ -735,6 +837,11 @@ class StationFederationManifest:
                     "station_count": item.station_count,
                     "provider_source_ids": list(item.provider_source_ids),
                     "variable_ids": list(item.variable_ids),
+                    "geographic_bounds": (
+                        None
+                        if item.spatial_bounds is None
+                        else item.spatial_bounds.as_dict()
+                    ),
                 }
                 for item in catalogs
             ],
@@ -748,6 +855,9 @@ class StationFederationManifest:
                     "digest": item.digest,
                     "source_revision": item.source_revision,
                     "row_count": item.row_count,
+                    "geographic_bounds": geographic_bounds(
+                        item.spatial_partition
+                    ),
                 }
                 for item in observations
             ],

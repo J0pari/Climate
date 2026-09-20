@@ -13,6 +13,7 @@ from src.station_federation import (
     StationCatalogShard,
     StationFederationManifest,
     StationLocationEpoch,
+    StationSpatialBounds,
     apply_cross_provider_alias_evidence,
     canonical_station_id,
     remove_cross_provider_alias_evidence,
@@ -215,6 +216,21 @@ class StationFederationTests(unittest.TestCase):
         self.assertEqual(shard.station_variable_ids("2024-01-01"),
                          (("TMAX", "TMIN"), ("TMAX", "TMIN")))
 
+    def test_adaptive_shards_carry_actual_station_geographic_bounds(self):
+        shards = adaptive_catalog_shards(
+            (station(provider_id="A"), station(provider_id="B")),
+            metadata_effective_date="2024-01-01",
+            max_station_records=1,
+        )
+        self.assertEqual(len(shards), 2)
+        for shard in shards:
+            self.assertEqual(
+                shard.spatial_bounds,
+                StationSpatialBounds(40.1, 40.1, -74.9, -74.9),
+            )
+            ref = catalog_shard_refs((shard,))[0]
+            self.assertEqual(ref.spatial_bounds, shard.spatial_bounds)
+
     def test_partition_revision_requires_explicit_supersession(self):
         old = ObservationPartitionRef(
             "ncei.ghcnd.v3", "cell-1", "2024-01-01", "2024-12-31",
@@ -282,10 +298,12 @@ class StationFederationTests(unittest.TestCase):
                 CatalogShardRef(
                     "cell-east", "cell-east", D2, 8,
                     ("ncei.ghcnd.v3",), ("TMAX", "TMIN"),
+                    StationSpatialBounds(30.0, 50.0, -90.0, -70.0),
                 ),
                 CatalogShardRef(
                     "cell-west", "cell-west", D3, 5,
                     ("ncei.ghcnh.v1",), ("TAVG",),
+                    StationSpatialBounds(45.0, 60.0, -130.0, -95.0),
                 ),
             ),
             (
@@ -315,6 +333,12 @@ class StationFederationTests(unittest.TestCase):
                     "station_count": 8,
                     "provider_source_ids": ["ncei.ghcnd.v3"],
                     "variable_ids": ["TMAX", "TMIN"],
+                    "geographic_bounds": {
+                        "latitude_min_deg": 30.0,
+                        "latitude_max_deg": 50.0,
+                        "longitude_min_deg": -90.0,
+                        "longitude_max_deg": -70.0,
+                    },
                 },
                 {
                     "shard_id": "cell-west",
@@ -323,6 +347,12 @@ class StationFederationTests(unittest.TestCase):
                     "station_count": 5,
                     "provider_source_ids": ["ncei.ghcnh.v1"],
                     "variable_ids": ["TAVG"],
+                    "geographic_bounds": {
+                        "latitude_min_deg": 45.0,
+                        "latitude_max_deg": 60.0,
+                        "longitude_min_deg": -130.0,
+                        "longitude_max_deg": -95.0,
+                    },
                 },
             ],
         )
@@ -338,6 +368,12 @@ class StationFederationTests(unittest.TestCase):
                     "digest": D4,
                     "source_revision": "ghcnd-2024",
                     "row_count": 20,
+                    "geographic_bounds": {
+                        "latitude_min_deg": 30.0,
+                        "latitude_max_deg": 50.0,
+                        "longitude_min_deg": -90.0,
+                        "longitude_max_deg": -70.0,
+                    },
                 },
                 {
                     "source_id": "ncei.ghcnh.v1",
@@ -348,15 +384,61 @@ class StationFederationTests(unittest.TestCase):
                     "digest": D5,
                     "source_revision": "ghcnh-2022",
                     "row_count": 15,
+                    "geographic_bounds": {
+                        "latitude_min_deg": 45.0,
+                        "latitude_max_deg": 60.0,
+                        "longitude_min_deg": -130.0,
+                        "longitude_max_deg": -95.0,
+                    },
                 },
             ],
         )
+        self.assertEqual(coverage["unresolved_geographic_partitions"], [])
         self.assertFalse(
             any(
                 item["source_id"] == "ncei.ghcnh.v1"
                 and "TMIN" in item["variable_ids"]
                 for item in coverage["observation_availability"]
             )
+        )
+
+    def test_coverage_marks_observation_partition_without_bounds_unresolved(self):
+        manifest = StationFederationManifest(
+            "global-free-stations.v1",
+            "1.0.0",
+            D1,
+            (
+                CatalogShardRef(
+                    "cell-1",
+                    "cell-1",
+                    D2,
+                    1,
+                    ("ncei.ghcnd.v3",),
+                    ("TMAX",),
+                ),
+            ),
+            (
+                ObservationPartitionRef(
+                    "ncei.ghcnd.v3",
+                    "cell-orphan",
+                    "2024-01-01",
+                    "2024-12-31",
+                    ("TMAX",),
+                    D3,
+                    "rev-1",
+                    "application/json",
+                    1,
+                    10,
+                ),
+            ),
+        )
+        coverage = manifest.coverage_manifest()
+        self.assertEqual(
+            coverage["unresolved_geographic_partitions"],
+            ["cell-1", "cell-orphan"],
+        )
+        self.assertIsNone(
+            coverage["observation_availability"][0]["geographic_bounds"]
         )
 
     def test_unknown_superseded_digest_fails_closed(self):

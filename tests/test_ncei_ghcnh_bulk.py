@@ -407,6 +407,19 @@ class GHCNhFederationTests(unittest.TestCase):
             {item["source_id"] for item in coverage["observation_availability"]},
             {SOURCE_ID},
         )
+        self.assertEqual(coverage["unresolved_geographic_partitions"], [])
+        self.assertTrue(
+            all(
+                item["geographic_bounds"] is not None
+                for item in coverage["catalog_availability"]
+            )
+        )
+        self.assertTrue(
+            all(
+                item["geographic_bounds"] is not None
+                for item in coverage["observation_availability"]
+            )
+        )
         self.assertTrue(
             any(
                 set(item["provider_source_ids"])

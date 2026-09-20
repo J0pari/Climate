@@ -12,7 +12,7 @@
     "catalog": "content-addressed bounded catalog shards referenced by manifest; each current station object keeps one provider-location snapshot per alias while prior snapshots remain in superseded immutable shard revisions, so no global station table or unbounded per-station metadata log is required in memory",
     "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones",
     "ingestion": "idempotent by artifact digest; source revisions append lineage rather than overwrite prior artifacts",
-    "coverage": "derived from active manifest references so station/provider/variable/time/spatial gaps remain observable"
+    "coverage": "derived from active manifest references; coverage v2 carries geographic bounds for adaptive catalog shards, propagates those bounds to observation partitions by spatial-partition identity, and reports unresolved geographic partitions explicitly rather than requiring consumers to reopen station records"
   },
   "providers": [
     {

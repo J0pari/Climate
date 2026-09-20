@@ -572,7 +572,7 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R5_large_data",
-      "summary": "Build an extensible station-data federation whose target population is every station worldwide that can be lawfully and reproducibly accessed without paid data access. GHCN-Daily and GHCNh enter through distinct provider adapters but share one provider-neutral identity, adaptive catalog-sharding, manifest, coverage, and canonical sheaf/topology substrate. The current immutable station revision keeps one provider-location snapshot per alias, distinct from resolved topology history, so routine provider refreshes update bounded provenance without rebinding identity or growing an unbounded in-memory metadata log; prior revisions remain content-addressed.",
+      "summary": "Build an extensible station-data federation whose target population is every station worldwide that can be lawfully and reproducibly accessed without paid data access. GHCN-Daily and GHCNh enter through distinct provider adapters but share one provider-neutral identity, adaptive catalog-sharding, manifest, coverage, and canonical sheaf/topology substrate. Current station revisions keep one provider-location snapshot per alias, distinct from resolved topology history; adaptive shards carry bounded geographic envelopes into coverage v2 so provider/variable/time/geography gaps remain inspectable without loading station records; routine provider refreshes update bounded provenance without rebinding identity or growing an unbounded in-memory metadata log.",
       "depends_on": [
         "data.external_authority_audit"
       ],

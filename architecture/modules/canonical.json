@@ -544,7 +544,7 @@
       "family": "global_station_data_federation",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, station-specific evidence-bound reversible cross-provider aliases, bounded current provider-location snapshots distinct from resolved location epochs, provider-neutral bounded spatial sharding and catalog-reference derivation, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
+      "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, station-specific evidence-bound reversible cross-provider aliases, bounded current provider-location snapshots distinct from resolved location epochs, provider-neutral adaptive shards carrying actual station geographic bounds, content-addressed catalog references that preserve those bounds, append-only observation partition revisions/tombstones, and coverage summaries that expose provider/variable/time/geography without station-by-time materialization",
       "known_gaps": [
         "the provider registry now realizes GHCN-Daily plus GHCNh catalog and raw-hourly observation federation; additional lawfully accessible no-fee authorities and normalized GHCNh projections remain integration obligations rather than numerical-kernel branches",
         "durable remote object-store publication remains an adapter responsibility; canonical local publication is content-addressed and the NCEI scale adapter now provides resumable bulk acquisition",
