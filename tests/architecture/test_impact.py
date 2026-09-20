@@ -38,7 +38,7 @@ class ImpactInspectorTests(unittest.TestCase):
                 ".github/workflows/example.yml": f"- '{target}'\n",
                 "tests/test_alpha.py": f"# witness: {target}\n",
                 "docs/ARCHITECTURE.md": f"Canonical implementation: `{target}`\n",
-                "docs/generated/STATUS.md": f"| `{target}` | runnable |\n",
+                "docs/generated/STATE.md": f"| `{target}` | runnable |\n",
             }
             for relative, content in text_fixtures.items():
                 path = root / relative
