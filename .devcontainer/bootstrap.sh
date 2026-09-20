@@ -4,6 +4,15 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
+if [[ "${CODESPACES:-false}" == "true" ]]; then
+  if [[ -z "${CLIMATE_CODESPACES_AUTHORIZATION:-}" ]]; then
+    echo "Codespaces bootstrap refused: no finite-resource authorization is set." >&2
+    exit 64
+  fi
+  python architecture/finite_resources.py claim-codespaces \
+    --authorization-id "$CLIMATE_CODESPACES_AUTHORIZATION"
+fi
+
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   gfortran \
