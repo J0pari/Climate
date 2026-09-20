@@ -52,9 +52,16 @@ def load_conditioning_fixture(path: Path = DEFAULT_CONDITIONING_FIXTURE) -> dict
     payload = json.loads(path.read_text(encoding="utf-8"))
     if payload.get("schema_version") != 1:
         raise ValueError("unsupported EBM conditioning-guardrail fixture schema")
-    if payload.get("verification_policy", {}).get("semantics") != "numerical_test_policy_only":
+    if "verification_policy" not in payload:
+        raise ValueError("conditioning fixture requires verification_policy")
+    policy = payload["verification_policy"]
+    if not isinstance(policy, dict):
+        raise ValueError("verification_policy must be a JSON object")
+    if "semantics" not in policy:
+        raise ValueError("verification_policy requires semantics")
+    if policy["semantics"] != "numerical_test_policy_only":
         raise ValueError("conditioning threshold must remain explicitly numerical-test-only")
-    maximum = float(payload["verification_policy"]["max_condition_number_2"])
+    maximum = float(policy["max_condition_number_2"])
     if not math.isfinite(maximum) or maximum < 1.0:
         raise ValueError("verification condition-number policy must be finite and >= 1")
     return payload
