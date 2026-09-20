@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Preregistered information-geometry recovery benchmark for the two-layer EBM.
 
-Climate owns the likelihood, train/confirmation split, parameter coordinates,
-controls, and interpretation. Existing two-layer EBM references own climate
-physics and centered log-parameter sensitivities. SciPy owns generic TRF and
-L-BFGS-B optimization implementations.
+Climate owns the train/confirmation split, experiment controls, and interpretation.
+The EBM-specific objective/constraint semantics live in
+`reference.two_layer_ebm_recovery_objective`; existing two-layer references own
+climate physics and centered log-parameter sensitivities. SciPy owns generic TRF
+and L-BFGS-B optimization implementations.
 """
 from __future__ import annotations
 
@@ -25,24 +26,24 @@ import numpy as np
 from scipy.optimize import least_squares, minimize
 
 from reference.two_layer_energy_balance import (
-    TwoLayerParameters,
     load_fixture as load_ebm_fixture,
     parameters_from_fixture,
 )
-from reference.two_layer_forcing_protocols import (
-    load_protocol_fixture,
-    simulate_protocol,
+from reference.two_layer_ebm_recovery_objective import (
+    gaussian_nll_per_observation,
+    log_parameter_bounds,
+    parameter_vector,
+    parameters_from_log,
+    protocol_temperature_outputs,
+    standardized_gaussian_temperature_jacobian,
+    standardized_gaussian_temperature_residual,
 )
-from reference.two_layer_parameter_identifiability import (
-    PARAMETER_IDS,
-    centered_log_parameter_jacobian,
-)
+from reference.two_layer_forcing_protocols import load_protocol_fixture
+from reference.two_layer_parameter_identifiability import PARAMETER_IDS
 
 DEFAULT_EBM_FIXTURE = ROOT / "fixtures" / "physics" / "two-layer-ebm-geoffroy-mean-v1.json"
 DEFAULT_PROTOCOL_FIXTURE = ROOT / "fixtures" / "physics" / "two-layer-ebm-forcing-protocols-v1.json"
 DEFAULT_RECOVERY_FIXTURE = ROOT / "fixtures" / "physics" / "two-layer-ebm-information-geometry-recovery-v1.json"
-
-LOG_TWO_PI = math.log(2.0 * math.pi)
 
 
 @dataclass
@@ -62,63 +63,6 @@ def load_recovery_fixture(path: Path = DEFAULT_RECOVERY_FIXTURE) -> dict[str, An
     return payload
 
 
-def _parameter_vector(parameters: TwoLayerParameters) -> np.ndarray:
-    return np.array([
-        parameters.surface_heat_capacity_w_yr_m2_k,
-        parameters.deep_heat_capacity_w_yr_m2_k,
-        parameters.ocean_heat_exchange_w_m2_k,
-        parameters.climate_feedback_w_m2_k,
-    ], dtype=float)
-
-
-def _parameters_from_log(log_parameters: np.ndarray) -> TwoLayerParameters:
-    values = np.exp(np.asarray(log_parameters, dtype=float))
-    if values.shape != (4,) or not np.isfinite(values).all() or np.any(values <= 0.0):
-        raise ValueError("log-parameter vector must resolve to four finite positive values")
-    return TwoLayerParameters(
-        surface_heat_capacity_w_yr_m2_k=float(values[0]),
-        deep_heat_capacity_w_yr_m2_k=float(values[1]),
-        ocean_heat_exchange_w_m2_k=float(values[2]),
-        climate_feedback_w_m2_k=float(values[3]),
-    )
-
-
-def _protocol_map(protocol_fixture: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    result = {item["protocol_id"]: item for item in protocol_fixture.get("protocols", [])}
-    if len(result) != len(protocol_fixture.get("protocols", [])):
-        raise ValueError("forcing protocol fixture contains duplicate IDs")
-    return result
-
-
-def _temperature_outputs(
-    parameters: TwoLayerParameters,
-    protocol_fixture: dict[str, Any],
-    protocol_ids: list[str],
-    *,
-    samples_per_segment: int,
-) -> np.ndarray:
-    protocols = _protocol_map(protocol_fixture)
-    outputs: list[np.ndarray] = []
-    for protocol_id in protocol_ids:
-        if protocol_id not in protocols:
-            raise ValueError("recovery protocol does not resolve: " + protocol_id)
-        run = simulate_protocol(
-            protocols[protocol_id], parameters, samples_per_segment=samples_per_segment
-        )
-        states = np.asarray(run["state_k"], dtype=float)
-        if states.ndim != 2 or states.shape[1] != 2 or not np.isfinite(states).all():
-            raise RuntimeError("recovery protocol emitted invalid temperature states")
-        outputs.append(states.reshape(-1))
-    if not outputs:
-        raise ValueError("recovery benchmark requires at least one protocol")
-    return np.concatenate(outputs)
-
-
-def _nll_per_observation(residual: np.ndarray, noise_std: float) -> float:
-    standardized = np.asarray(residual, dtype=float) / noise_std
-    return float(0.5 * np.mean(standardized * standardized + LOG_TWO_PI + 2.0 * math.log(noise_std)))
-
-
 def _log_parameter_rmse(log_parameters: np.ndarray, truth_log: np.ndarray) -> float:
     delta = np.asarray(log_parameters, dtype=float) - np.asarray(truth_log, dtype=float)
     return float(np.sqrt(np.mean(delta * delta)))
@@ -134,34 +78,30 @@ def _make_problem(
     log_step: float,
     counter: EvalCounter,
 ) -> tuple[Callable[[np.ndarray], np.ndarray], Callable[[np.ndarray], np.ndarray]]:
-    def raw_output(candidate: TwoLayerParameters) -> np.ndarray:
-        return _temperature_outputs(
-            candidate,
+    def residual(log_parameters: np.ndarray) -> np.ndarray:
+        counter.residual_calls += 1
+        return standardized_gaussian_temperature_residual(
+            log_parameters,
+            observed,
             protocol_fixture,
             protocol_ids,
             samples_per_segment=samples_per_segment,
+            noise_std_k=noise_std,
         )
-
-    def residual(log_parameters: np.ndarray) -> np.ndarray:
-        counter.residual_calls += 1
-        predicted = raw_output(_parameters_from_log(log_parameters))
-        values = (predicted - observed) / noise_std
-        if not np.isfinite(values).all():
-            raise RuntimeError("standardized recovery residual became non-finite")
-        return values
 
     def jacobian(log_parameters: np.ndarray) -> np.ndarray:
         counter.jacobian_calls += 1
-        parameters = _parameters_from_log(log_parameters)
-        derivative = centered_log_parameter_jacobian(
-            parameters, raw_output, log_step=log_step
-        ) / noise_std
-        if derivative.shape != (observed.size, 4) or not np.isfinite(derivative).all():
-            raise RuntimeError("recovery Jacobian is invalid")
-        return derivative
+        return standardized_gaussian_temperature_jacobian(
+            log_parameters,
+            observed.size,
+            protocol_fixture,
+            protocol_ids,
+            samples_per_segment=samples_per_segment,
+            noise_std_k=noise_std,
+            log_step=log_step,
+        )
 
     return residual, jacobian
-
 
 def _natural_gradient(
     residual: Callable[[np.ndarray], np.ndarray],
@@ -332,8 +272,8 @@ def _run_method(
     else:
         raise ValueError("unknown recovery method: " + method_id)
 
-    fitted_parameters = _parameters_from_log(x)
-    predicted_confirmation = _temperature_outputs(
+    fitted_parameters = parameters_from_log(x)
+    predicted_confirmation = protocol_temperature_outputs(
         fitted_parameters,
         protocol_fixture,
         confirmation_ids,
@@ -348,7 +288,7 @@ def _run_method(
         "residual_evaluations": int(counter.residual_calls),
         "jacobian_evaluations": int(counter.jacobian_calls),
         "log_parameter_rmse": _log_parameter_rmse(x, truth_log),
-        "heldout_nll_per_observation": _nll_per_observation(heldout_residual, noise_std),
+        "heldout_nll_per_observation": gaussian_nll_per_observation(heldout_residual, noise_std),
         "fitted_parameters": {
             parameter_id: float(value)
             for parameter_id, value in zip(PARAMETER_IDS, np.exp(x), strict=True)
@@ -412,10 +352,11 @@ def analyze_recovery(
     recovery_fixture: dict[str, Any],
 ) -> dict[str, Any]:
     truth = parameters_from_fixture(ebm_fixture)
-    truth_log = np.log(_parameter_vector(truth))
-    bound = math.log(float(recovery_fixture["log_parameter_bound_factor"]))
-    lower = truth_log - bound
-    upper = truth_log + bound
+    truth_log = np.log(parameter_vector(truth))
+    lower, upper = log_parameter_bounds(
+        truth,
+        float(recovery_fixture["log_parameter_bound_factor"]),
+    )
     starts = [truth_log + np.asarray(offset, dtype=float) for offset in recovery_fixture["start_log_parameter_offsets"]]
     if not all(np.all((start >= lower) & (start <= upper)) for start in starts):
         raise ValueError("preregistered optimizer start falls outside common parameter bounds")
@@ -423,10 +364,10 @@ def analyze_recovery(
     discovery_ids = list(recovery_fixture["discovery_protocol_ids"])
     confirmation_ids = list(recovery_fixture["confirmation_protocol_ids"])
     samples_per_segment = int(recovery_fixture["samples_per_segment"])
-    truth_discovery = _temperature_outputs(
+    truth_discovery = protocol_temperature_outputs(
         truth, protocol_fixture, discovery_ids, samples_per_segment=samples_per_segment
     )
-    truth_confirmation = _temperature_outputs(
+    truth_confirmation = protocol_temperature_outputs(
         truth, protocol_fixture, confirmation_ids, samples_per_segment=samples_per_segment
     )
     noise_std = float(recovery_fixture["observation_noise_std_k"])
