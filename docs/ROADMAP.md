@@ -9,9 +9,9 @@ External-integration obligations bind native external capabilities while keeping
 ## Planning summary
 
 - Active: 4
-- Ready: 14
-- Blocked: 10
-- Done: 22
+- Ready: 16
+- Blocked: 12
+- Done: 18
 - Dropped: 0
 
 ## Graph projection
@@ -22,6 +22,8 @@ External-integration obligations bind native external capabilities while keeping
 | `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_portable_toolchain` | — |
 | `orchestration.codespaces_cpu_experiment_campaign` — Turn included Codespaces CPU into receipted experiments | `active` | `P0` | `R2_portable_toolchain` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_portable_toolchain` | — |
+| `integration.aimip_production_archive` — Use the public AIMIP production archive | `ready` | `P0` | `R5_large_data` | — |
+| `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `ready` | `P0` | `R4_integrated_system` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_portable_toolchain` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_portable_toolchain` | — |
@@ -36,9 +38,11 @@ External-integration obligations bind native external capabilities while keeping
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_portable_toolchain` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_portable_toolchain` | — |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_portable_toolchain` | — |
+| `integration.aqua_production_reader` — Use AQUA production data access | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
+| `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
 | `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` | `sheaf.climate_data_semantics`, `data.global_free_station_federation` |
 | `experimentation.multifidelity_response_interrogation` — Use cheap model exploration to choose discriminating high-fidelity experiments | `blocked` | `P1` | `R5_large_data` | `integration.native_capability_boundaries`, `orchestration.external_artifact_evaluation`, `validation.cross_model_evidence_transport` |
-| `integration.commons_storage_distribution` — Resolve Commons storage distribution into public Climate CI | `blocked` | `P1` | `R4_integrated_system` | — |
+| `integration.commons_storage_distribution` — Resolve Commons storage distribution for public Climate consumption | `blocked` | `P1` | `R4_integrated_system` | — |
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `blocked` | `P1` | `R4_integrated_system` | — |
 | `orchestration.external_artifact_evaluation` — Evaluate external model artifacts through Climate-owned tasks | `blocked` | `P1` | `R4_integrated_system` | `orchestration.commons_read_execution` |
@@ -56,10 +60,6 @@ External-integration obligations bind native external capabilities while keeping
 | `experimentation.common_cpu_runtime` — Run one contract-valid CPU experiment end to end | `done` | `P0` | `R1_portable_cpu` | — |
 | `experimentation.failure_provenance` — Persist structured provenance for failed experiment execution | `done` | `P0` | `R2_portable_toolchain` | `experimentation.common_cpu_runtime` |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `done` | `P0` | `R2_portable_toolchain` | — |
-| `integration.aimip_production_archive` — Use the public AIMIP production archive | `done` | `P0` | `R5_large_data` | — |
-| `integration.aqua_production_reader` — Use AQUA production data access | `done` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
-| `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `done` | `P0` | `R4_integrated_system` | — |
-| `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `done` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_portable_toolchain` | `architecture.reference_values` |
 | `physics.streaming_budget_accounting` — Compose physical kernels through a streaming budget ledger | `done` | `P0` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition` |
 | `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `done` | `P0` | `R2_portable_toolchain` | `data.external_authority_audit`, `data.immutable_observational_projection` |
