@@ -57,7 +57,7 @@ This boundary is described in [docs/COMMONS-INTEGRATION.md](docs/COMMONS-INTEGRA
 
 ## Experiments and execution
 
-Portable repository checks include:
+Portable repository checks can be run together with `scripts/verify/repository.sh`; the baseline includes:
 
 ```text
 python -m unittest discover -s tests/architecture -v
