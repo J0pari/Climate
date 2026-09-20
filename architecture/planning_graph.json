@@ -44,8 +44,7 @@
         "configurations/execution/fail-closed.v1.json",
         "contracts/testdata/experiment.good.json",
         "architecture/check_experiments.py",
-        "tests/architecture/test_experiments.py",
-        ".github/workflows/architecture.yml"
+        "tests/architecture/test_experiments.py"
       ]
     },
     {
@@ -242,7 +241,7 @@
       "completion": [
         "Canonical and experiment-facing hardcoded climate data, empirical constants, thresholds, coefficient tables, climatologies, geographic or station metadata, and other externally owned assumptions are inventoried with usage sites and ownership class.",
         "Each externally owned item is bound to a primary authoritative dataset or API, or explicitly rejected with rationale; retrieval identity, version or time coverage, units, licensing or access constraints, and update semantics are recorded.",
-        "At least one downloaded immutable dataset path and one live or versioned API path are exercised through provenance-preserving adapters with network-free CI fixtures.",
+        "At least one downloaded immutable dataset path and one live or versioned API path are exercised through provenance-preserving adapters with network-free fixtures.",
         "Values that remain local are justified as mathematical or reference constants, numerical policy, experiment policy, or caller-owned model parameters rather than silently acting as observational truth.",
         "A usage marked current and externalized names a concrete implementation authority boundary, names an executable repository witness for that boundary, and cannot coexist with implicit Default/fallback constructors on that surface.",
         "Configuration records claiming literature-fixed, calibrated, or learned provenance resolve their authority references to the registered source authority rather than relying on provenance labels alone."
@@ -256,8 +255,6 @@
         "fixtures/data_authorities/ncei-ghcnd-USW00094728-2024-01-01-to-2024-01-03.json",
         "fixtures/data_authorities/nsidc-G02135-v4-N-september.csv",
         "tests/reference/test_data_authority_adapters.py",
-        ".github/workflows/data-authority-live-smoke.yml",
-        ".github/workflows/architecture.yml",
         "architecture/check_semantic_defaults.py",
         "tests/architecture/test_semantic_defaults.py",
         "architecture/check_configurations.py",
@@ -286,7 +283,6 @@
         "reference/ncei_ghcnd.py",
         "reference/ncei_ghcnd_projection.py",
         "tests/reference/test_ncei_ghcnd_projection.py",
-        ".github/workflows/reference-data-projection.yml",
         "architecture/modules/reference.json"
       ]
     },
@@ -344,8 +340,7 @@
       "evidence": [
         "fixtures/geometry/analytic-fixtures.json",
         "src/geometry.rs",
-        "tests/reference/test_geometry_sympy.py",
-        ".github/workflows/architecture.yml"
+        "tests/reference/test_geometry_sympy.py"
       ]
     },
     {
@@ -363,7 +358,6 @@
       "evidence": [
         "tests/reference/test_geometry_jax.py",
         "requirements/reference-geometry-ad.txt",
-        ".github/workflows/reference-geometry-ad.yml",
         "reference/geometry_sympy.py",
         "fixtures/geometry/analytic-fixtures.json",
         "docs/GEOMETRY-VERIFICATION.md"
@@ -394,7 +388,6 @@
         "reference/multirepresentation_structure_evaluation.py",
         "tests/reference/test_multirepresentation_structure_evaluation.py",
         "methods/registry.json",
-        ".github/workflows/reference-multirepresentation.yml",
         "fixtures/multirepresentation/structural-world-dynamics-v1.json",
         "tests/reference/test_multirepresentation_world_dynamics.py",
         "reference/dmd_common.py",
@@ -422,7 +415,6 @@
         "fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json",
         "experiments/information-geometry-two-layer-ebm-recovery-confirmation.v1.json",
         "tests/reference/test_information_geometry_ebm_recovery.py",
-        ".github/workflows/information-geometry-ebm-recovery.yml",
         "evaluations/information-geometry/two-layer-ebm-recovery-confirmation-v1/result.json",
         "evaluations/information-geometry/two-layer-ebm-recovery-confirmation-v1/README.md"
       ]
@@ -452,8 +444,7 @@
         "tests/test_station_sheaf.py",
         "reference/station_temperature_sheaf.py",
         "tests/reference/test_station_temperature_sheaf.py",
-        "methods/sheaf-realization.v1.json",
-        ".github/workflows/station-sheaf.yml"
+        "methods/sheaf-realization.v1.json"
       ]
     },
     {
@@ -551,8 +542,7 @@
         "fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json",
         "experiments/information-geometry-two-layer-ebm-recovery-confirmation.v1.json",
         "evaluations/information-geometry/two-layer-ebm-recovery-confirmation-v1/result.json",
-        "methods/registry.json",
-        ".github/workflows/information-geometry-ebm-recovery.yml"
+        "methods/registry.json"
       ]
     },
     {
@@ -633,20 +623,19 @@
       "status": "done",
       "priority": "P0",
       "resource_class": "R1_portable_cpu",
-      "summary": "Provide a narrow canonical local runtime that proves the common research spine by resolving registered experiments, methods, immutable datasets, and configuration; executing baseline/candidate processes; and emitting content-addressed artifacts, typed metrics, exact execution receipts, and contract-valid outcomes without manufacturing scientific evidence or treating retention-limited CI attachments as durable authority.",
+      "summary": "Provide a narrow canonical local runtime that proves the common research spine by resolving registered experiments, methods, immutable datasets, and configuration; executing baseline/candidate processes; and emitting content-addressed artifacts, typed metrics, exact execution receipts, and contract-valid outcomes without manufacturing scientific evidence or treating transient runner artifacts as durable authority.",
       "depends_on": [],
       "completion": [
         "The runtime resolves method descriptors and refuses unknown or non-runnable requested methods rather than substituting another implementation.",
         "The EBM fixture and numerical configuration are verified against immutable content digests before execution.",
         "Baseline and candidate execute as distinct subprocess identities with exact commands, repository revision, environment/library versions, stdout/stderr digests, and generated source-bound build identities recorded.",
         "Artifacts and metric results are JSON-portable, content-addressed, and represent rank deficiency explicitly rather than using NaN, Infinity, regularization, or sentinels.",
-        "RunManifest and ExperimentOutcome outputs pass the CUE contract in CI; CI-generated receipts remain ephemeral unless a committed identity or explicitly declared immutable external store provides durable persistence.",
+        "RunManifest and ExperimentOutcome outputs pass the CUE contract in the executing environment; Generated receipts remain ephemeral unless a committed identity or explicitly declared immutable external store provides durable persistence.",
         "No EvidenceRecord is emitted for this structural control until a claim mapping is declared; successful execution alone does not strengthen a scientific claim."
       ],
       "evidence": [
         "src/experiment_runtime.py",
         "tests/test_experiment_runtime.py",
-        ".github/workflows/experiment-ebm-runtime.yml",
         "configurations/numerical/multirepresentation-ebm-dynamics.v1.json",
         "experiments/multirepresentation-ebm-dynamics.v1.json",
         "contracts/climate.cue"
@@ -675,7 +664,6 @@
         "fixtures/physics/two-layer-ebm-forcing-protocols-v1.json",
         "experiments/two-layer-ebm-forcing-protocols.v1.json",
         "src/experiment_runtime.py",
-        ".github/workflows/experiment-ebm-runtime.yml",
         "reference/two_layer_forced_representation.py",
         "fixtures/physics/two-layer-ebm-forced-representation-v1.json",
         "experiments/multirepresentation-ebm-forced-ood.v1.json",
@@ -783,9 +771,7 @@
         "src/experiment_runtime.py",
         "tests/test_experiment_runtime.py",
         "contracts/climate.cue",
-        "contracts/testdata/run-manifest.ineligible-output.good.json",
-        ".github/workflows/architecture.yml",
-        ".github/workflows/experiment-ebm-runtime.yml"
+        "contracts/testdata/run-manifest.ineligible-output.good.json"
       ]
     },
     {
@@ -809,7 +795,6 @@
         "evaluations/sheaf-consistency-structural-residual-equivalence.v1.json",
         "reference/sheaf_claim_evidence.py",
         "tests/sheaf_claim_metrics.rs",
-        ".github/workflows/sheaf-claim-evidence.yml",
         "evidence/runs/climate.sheaf.consistency.structural_residual_equivalence.v1/run-candidate.json",
         "evidence/runs/climate.sheaf.consistency.structural_residual_equivalence.v1/metric-results.json",
         "evidence/runs/climate.sheaf.consistency.structural_residual_equivalence.v1/evidence-record.json",
@@ -837,7 +822,6 @@
       "evidence": [
         "src/experiment_runtime.py",
         "tests/test_experiment_runtime.py",
-        ".github/workflows/experiment-ebm-runtime.yml",
         "contracts/climate.cue"
       ]
     },
@@ -917,7 +901,7 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Bind externally owned capabilities through exact native identity, configuration, transformation, receipt, and failure semantics while pruning Climate-owned shadows only after the exact replacement has executed successfully on production-scale resources. Realized so far: native-output import for external model evaluation, direct native curl acquisition in workflows with Climate HTTP transport orchestration removed, Climate-REF production CMIP ingestion, ESMValCore native preprocessing, AQUA native production-data access, and AIMIP full-archive access through an immutable upstream snapshot.",
+      "summary": "Bind externally owned capabilities through exact native identity, configuration, transformation, receipt, and failure semantics. Static adapters and boundary checks may be realized locally, but production-scale native capabilities can authorize pruning only after a non-hosted execution produces a durable receipt or evaluation artifact through the interface that will remain in use.",
       "depends_on": [],
       "completion": [
         "Each realized external integration names the exact native capability being consumed, the Climate-owned semantic gap it fills, and the upstream identity/configuration/receipt required for reproducibility.",
@@ -934,8 +918,6 @@
         "evaluations/external-training-artifact-climate-contract-reasoning.v1.json",
         "tests/architecture/test_commons_control.py",
         "contracts/testdata/external-model-runtime-receipt.good.json",
-        ".github/workflows/data-authority-live-smoke.yml",
-        ".github/workflows/native-production-climate-integrations.yml",
         "data/ncei_ghcnd_bulk.py",
         "data/ncei_ghcnh_bulk.py"
       ]
@@ -980,28 +962,25 @@
     {
       "id": "integration.climate_ref_production_cmip",
       "title": "Use Climate-REF on production CMIP data",
-      "status": "done",
+      "status": "ready",
       "priority": "P0",
       "resource_class": "R4_integrated_system",
-      "summary": "The pinned Climate-REF production stack successfully ingests a checksum-pinned ACCESS-CM2 CMIP6 object from the full ESGF archive through its production DRS ingestion path. This is a real replacement witness for CMIP catalog/ingest ownership, not a reduced development dataset.",
+      "summary": "The Climate-REF production CMIP path is specified, but completion requires a new non-hosted execution against the production CMIP6 object with a durable committed or explicitly immutable receipt. No such durable receipt is registered after hosted CI was removed as an execution authority.",
       "depends_on": [],
       "completion": [
         "A real object from the production CMIP6 ESGF archive is retrieved with an expected SHA-256 digest.",
         "Climate-REF is pinned to an exact upstream revision and ingests the object through its native CMIP6 DRS path.",
         "The resulting native catalog resolves the model and variable identity without Climate implementing a parallel CMIP catalog.",
         "Future CMIP catalog/ingest pruning may rely on this owner path only where the local code overlaps this exact capability."
-      ],
-      "evidence": [
-        ".github/workflows/native-production-climate-integrations.yml"
       ]
     },
     {
       "id": "integration.aimip_production_archive",
       "title": "Use the public AIMIP production archive",
-      "status": "done",
+      "status": "ready",
       "priority": "P0",
       "resource_class": "R5_large_data",
-      "summary": "The public AIMIP Phase 1 submission archive was resolved through its published full Hugging Face dataset snapshot at immutable revision 88f580b391652908c841ef362c689145528dcebb. The workflow selected exactly one ACE2.1-ERA5 Amon/tas/gn/v20251130 object, downloaded and hashed that production object, opened all 555 monthly timesteps, and computed a finite bounded global-mean temperature diagnostic in GitHub Actions run 35454755985 without mirroring AIMIP's intercomparison archive or evaluation protocol.",
+      "summary": "The public AIMIP archive identity and assay are specified, but completion requires a new non-hosted full-archive execution with the immutable revision, selected object path, digest, and bounded diagnostic preserved in a durable receipt. No such durable receipt is registered.",
       "depends_on": [],
       "completion": [
         "A public full AIMIP archive snapshot resolves to an immutable upstream revision, and the selected object path is discovered from that exact snapshot rather than guessed or silently substituted.",
@@ -1009,18 +988,15 @@
         "The receipt binds AIMIP organization, model, experiment, realization, frequency, variable, grid, version, immutable archive revision, and exact object path.",
         "Missing variables or realizations fail the declared assay or define a separately preregistered partial experiment; they are never filled or substituted silently.",
         "Only after this native archive path passes may overlapping local AI-intercomparison/archive behavior be pruned."
-      ],
-      "evidence": [
-        ".github/workflows/native-production-climate-integrations.yml"
       ]
     },
     {
       "id": "integration.esmvalcore_production_preprocessing",
       "title": "Use ESMValCore production preprocessing",
-      "status": "done",
+      "status": "blocked",
       "priority": "P0",
       "resource_class": "R4_integrated_system",
-      "summary": "The pinned ESMValCore revision 2f249416243c25038c0c98c0309062746413235c ran in its frozen Pixi environment on the checksum-pinned ACCESS-CM2 CMIP6 areacella object. Native extract_region completed cleanly, reducing the 144x192 source to a 48x96 subset and reporting a finite positive subset area in GitHub Actions run 35454755985; that exact owner-environment witness retires the earlier missing-ESMPy blocker.",
+      "summary": "The pinned ESMValCore preprocessing path remains specified, but durable completion requires the production CMIP owner path to be re-established first and a new non-hosted native preprocessing receipt to be committed or stored immutably.",
       "depends_on": [
         "integration.climate_ref_production_cmip"
       ],
@@ -1030,17 +1006,17 @@
         "Input selection, preprocessing operation, upstream revision and output identity are recorded.",
         "Only capabilities demonstrated by that passing native path may authorize deletion of overlapping Climate preprocessing."
       ],
-      "evidence": [
-        ".github/workflows/native-production-climate-integrations.yml"
+      "blockers": [
+        "Blocked on a new non-hosted production CMIP owner-path receipt plus a native ESMValCore preprocessing receipt; the removed hosted run is not durable authority."
       ]
     },
     {
       "id": "integration.aqua_production_reader",
       "title": "Use AQUA production data access",
-      "status": "done",
+      "status": "blocked",
       "priority": "P0",
       "resource_class": "R4_integrated_system",
-      "summary": "The pinned AQUA revision 57c77589e1cf4053d988e3c87f67ad33cd593694 ran in an owner-consistent solved environment on the checksum-pinned ACCESS-CM2 CMIP6 areacella object. IntakeNetCDFSource.read() completed on the native NetCDF path, returned the expected ACCESS-CM2 field with a finite positive area sum, and the process exited cleanly in GitHub Actions run 35454755985; that clean execution retires the earlier native teardown-abort blocker.",
+      "summary": "The pinned AQUA reader path remains specified, but durable completion requires the production CMIP owner path to be re-established first and a new non-hosted native reader receipt to be committed or stored immutably.",
       "depends_on": [
         "integration.climate_ref_production_cmip"
       ],
@@ -1050,24 +1026,24 @@
         "Reader configuration, upstream revision, source digest and output identity are bound.",
         "Only after a clean native run may overlapping Climate generic reader/catalog/regrid/output behavior be pruned."
       ],
-      "evidence": [
-        ".github/workflows/native-production-climate-integrations.yml"
+      "blockers": [
+        "Blocked on a new non-hosted production CMIP owner-path receipt plus a native AQUA reader receipt; the removed hosted run is not durable authority."
       ]
     },
     {
       "id": "integration.commons_storage_distribution",
-      "title": "Resolve Commons storage distribution into public Climate CI",
+      "title": "Resolve Commons storage distribution for public Climate consumption",
       "status": "blocked",
       "priority": "P1",
       "resource_class": "R4_integrated_system",
-      "summary": "Use Commons as the exact owner of durable content-addressed persistence before deleting Climate station-publication storage mechanics, but only through a distribution boundary that public Climate CI can actually consume.",
+      "summary": "Use Commons as the exact owner of durable content-addressed persistence before deleting Climate station-publication storage mechanics, but only through a legitimate distribution boundary that public Climate consumers can access without repository-secret coupling.",
       "depends_on": [],
       "blockers": [
-        "Commons is private while Climate is public. A direct Cargo Git dependency on the pinned Commons revision failed in public Climate GitHub Actions because the runner could not authenticate to the private repository. Copying/vendoring the Commons implementation or embedding credentials in Climate is not an acceptable substitute."
+        "Commons is private while Climate is public. A direct Cargo Git dependency on the pinned Commons revision failed from the public Climate context because the private repository requires authentication. Copying/vendoring the Commons implementation or embedding credentials in Climate is not an acceptable substitute."
       ],
       "completion": [
-        "Commons exposes a legitimate versioned distribution surface consumable by public Climate CI without repository-secret coupling or copied implementation code.",
-        "Climate executes that exact owner implementation in CI and verifies content identity, idempotence and failure semantics.",
+        "Commons exposes a legitimate versioned distribution surface consumable by public Climate users/environments without repository-secret coupling or copied implementation code.",
+        "Climate executes that exact owner implementation in an explicitly provisioned integrated environment and verifies content identity, idempotence and failure semantics.",
         "Station partition encoding remains Climate-specific while durable object persistence is delegated to Commons.",
         "Only after the owner path passes are data/ncei_ghcnd_parquet.py or data/ncei_ghcnh_partition.py storage-engine mechanics eligible for pruning."
       ]
