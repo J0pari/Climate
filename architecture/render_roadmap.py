@@ -1,25 +1,14 @@
 #!/usr/bin/env python3
-"""Render a concise human-readable view of the sole-owner planning graph."""
+"""Render the sole-authority planning graph as Markdown."""
 from __future__ import annotations
 
 import argparse
 import difflib
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from architecture.state_authorities import (
-    ROOT,
-    fingerprint_paths,
-    load_manifest,
-    projection_authority_paths,
-)
-
+ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_GRAPH = ROOT / "architecture" / "planning_graph.json"
 DEFAULT_OUTPUT = ROOT / "docs" / "ROADMAP.md"
 
@@ -28,79 +17,64 @@ PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 
 
 def load_graph(path: Path = DEFAULT_GRAPH) -> dict[str, Any]:
-    with path.open(encoding="utf-8") as fh:
-        data = json.load(fh)
+    data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError("planning graph must contain a JSON object")
     return data
 
 
-def render(
-    graph: dict[str, Any],
-    *,
-    authority_fingerprint: str = "unbound-in-memory",
-    authority_paths: list[str] | None = None,
-) -> str:
-    nodes = list(graph.get("nodes", []))
-    nodes.sort(key=lambda node: (
-        STATUS_ORDER.get(node.get("status"), 99),
-        PRIORITY_ORDER.get(node.get("priority"), 99),
-        node.get("id", ""),
-    ))
-
-    counts: dict[str, int] = {}
+def render(graph: dict[str, Any]) -> str:
+    nodes = list(graph["nodes"])
+    nodes.sort(
+        key=lambda node: (
+            STATUS_ORDER[node["status"]],
+            PRIORITY_ORDER[node["priority"]],
+            node["id"],
+        )
+    )
+    counts = {status: 0 for status in STATUS_ORDER}
     for node in nodes:
-        status = str(node.get("status"))
-        counts[status] = counts.get(status, 0) + 1
+        counts[node["status"]] += 1
 
-    source_text = ", ".join(f"`{path}`" for path in (authority_paths or ["in-memory graph"]))
     lines = [
         "# Climate obligation roadmap",
         "",
-        "> Generated planning projection. Do not hand-edit this file.",
-        f"> Declared planning authority: {source_text}.",
-        f"> Planning-authority fingerprint: `{authority_fingerprint}`.",
+        "> Generated from \`architecture/planning_graph.json\`. Do not hand-edit.",
         "",
-        "Freshness of this file means only that it matches the declared planning authority inputs above. It does **not** establish implementation/realization state, scientific evaluation outcomes, claim-evidence promotion, exact-head CI success, or commit-history state.",
-        "",
-        "The planning graph is the sole authority for planned work, priority, dependencies, blockers, resource class, completion criteria, and planning evidence paths.",
-        "",
-        "Repository-local research state, including planning, structural registration, claims/evidence, and committed evaluations, is generated in `docs/generated/STATE.md`.",
-        "",
-        "External implementation ownership does not remove integration correctness from scope: planning nodes should bind native external capabilities and add Climate-specific scientific semantics rather than create shadow cataloging, preprocessing, execution, training/inference, intercomparison, or provenance stacks.",
+        "Repository-local research state is summarized in \`docs/generated/STATE.md\`.",
         "",
         "## Planning summary",
         "",
-        f"- Active: {counts.get('active', 0)}",
-        f"- Ready: {counts.get('ready', 0)}",
-        f"- Blocked: {counts.get('blocked', 0)}",
-        f"- Done: {counts.get('done', 0)}",
-        f"- Dropped: {counts.get('dropped', 0)}",
+        f"- Active: {counts['active']}",
+        f"- Ready: {counts['ready']}",
+        f"- Blocked: {counts['blocked']}",
+        f"- Done: {counts['done']}",
+        f"- Dropped: {counts['dropped']}",
         "",
         "## Graph projection",
         "",
         "| Obligation | Status | Priority | Resource | Dependencies |",
         "| --- | --- | --- | --- | --- |",
     ]
-
     for node in nodes:
-        deps = node.get("depends_on", [])
-        dependency_text = ", ".join(f"`{dep}`" for dep in deps) if deps else "—"
+        deps = node["depends_on"]
+        dependency_text = ", ".join(f"\`{dep}\`" for dep in deps) if deps else "—"
         lines.append(
-            f"| `{node['id']}` — {node['title']} | `{node['status']}` | "
-            f"`{node['priority']}` | `{node['resource_class']}` | {dependency_text} |"
+            f"| \`{node['id']}\` — {node['title']} | \`{node['status']}\` | "
+            f"\`{node['priority']}\` | \`{node['resource_class']}\` | {dependency_text} |"
         )
-
-    lines.extend([
-        "",
-        "Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.",
-        "External-integration obligations name both the native capability that remains externally owned and the Climate-specific semantic/evidence responsibility that remains in scope; completion must not be satisfied by a local shadow implementation with the same advertised identity.",
-    ])
+    lines.extend(
+        [
+            "",
+            "Summaries, blockers, completion criteria, and evidence paths remain in "
+            "\`architecture/planning_graph.json\`.",
+        ]
+    )
     return "\n".join(lines).rstrip() + "\n"
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="render Climate planning graph as Markdown")
+    parser = argparse.ArgumentParser()
     parser.add_argument("--graph", type=Path, default=DEFAULT_GRAPH)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     mode = parser.add_mutually_exclusive_group()
@@ -108,30 +82,11 @@ def main() -> int:
     mode.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    manifest = load_manifest()
-    declared_paths = projection_authority_paths(ROOT, manifest, "planning")
-    canonical_graph = declared_paths[0]
-    if len(declared_paths) != 1:
-        raise ValueError("planning projection must have exactly one declared authority file")
-
-    graph_path = args.graph.resolve()
-    if graph_path == canonical_graph.resolve():
-        fingerprint = fingerprint_paths(ROOT, declared_paths)
-        rendered_paths = [path.relative_to(ROOT).as_posix() for path in declared_paths]
-    else:
-        fingerprint = fingerprint_paths(ROOT, [graph_path])
-        rendered_paths = [graph_path.relative_to(ROOT).as_posix()]
-
-    expected = render(
-        load_graph(args.graph),
-        authority_fingerprint=fingerprint,
-        authority_paths=rendered_paths,
-    )
+    expected = render(load_graph(args.graph))
     if args.write:
         args.output.write_text(expected, encoding="utf-8")
         print(f"wrote {args.output}")
         return 0
-
     if args.check:
         try:
             observed = args.output.read_text(encoding="utf-8")
@@ -139,16 +94,20 @@ def main() -> int:
             print(f"roadmap.read_error: {error}")
             return 1
         if observed == expected:
-            print("roadmap: projection matches declared planning authority inputs")
+            print("roadmap: generated projection matches planning authority")
             return 0
-        diff = difflib.unified_diff(
-            observed.splitlines(), expected.splitlines(),
-            fromfile=str(args.output), tofile="generated planning projection",
-            lineterm="",
+        print(
+            "\n".join(
+                difflib.unified_diff(
+                    observed.splitlines(),
+                    expected.splitlines(),
+                    fromfile=str(args.output),
+                    tofile="generated planning projection",
+                    lineterm="",
+                )
+            )
         )
-        print("\n".join(diff))
         return 1
-
     print(expected, end="")
     return 0
 
