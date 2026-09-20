@@ -54,6 +54,8 @@ jobs:
         run: python architecture/check_sheaf_realization.py
       - name: Durable documentation and comment semantics
         run: python architecture/check_durable_text.py
+      - name: Factual documentation semantics
+        run: python architecture/check_documentation_quality.py
       - name: Repository root layout
         run: python architecture/check_root_layout.py
       - name: Source integrity gates
