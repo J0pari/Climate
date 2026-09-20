@@ -13,33 +13,33 @@ Active **4** · Ready **14** · Blocked **10** · Done **22** · Dropped **0**
 | Obligation | Status | Priority | Resource |
 | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` |
-| `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_toolchain_ci` |
-| `orchestration.codespaces_cpu_experiment_campaign` — Turn included Codespaces CPU into receipted experiments | `active` | `P0` | `R2_toolchain_ci` |
-| `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` |
-| `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_toolchain_ci` |
+| `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_portable_toolchain` |
+| `orchestration.codespaces_cpu_experiment_campaign` — Turn included Codespaces CPU into receipted experiments | `active` | `P0` | `R2_portable_toolchain` |
+| `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_portable_toolchain` |
+| `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_portable_toolchain` |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` |
-| `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_toolchain_ci` |
-| `numerics.conditioning_guardrails` — Define library-backed numerical conditioning guardrails | `ready` | `P1` | `R2_toolchain_ci` |
-| `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `ready` | `P1` | `R2_toolchain_ci` |
-| `physics.vertical_coordinate_contract` — Define pressure, sigma, and hybrid vertical-coordinate semantics | `ready` | `P1` | `R2_toolchain_ci` |
-| `sheaf.observation_uncertainty_compatibility` — Define uncertainty-aware sheaf observation compatibility | `ready` | `P1` | `R2_toolchain_ci` |
-| `simulation.reproducible_restart` — Define reproducible integration and restart state | `ready` | `P1` | `R2_toolchain_ci` |
-| `validation.cross_model_evidence_transport` — Make cross-model evidence transport explicit and testable | `ready` | `P1` | `R2_toolchain_ci` |
-| `adapters.versioned_array_ffi` — Define narrow versioned array FFI contracts | `ready` | `P2` | `R2_toolchain_ci` |
-| `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_toolchain_ci` |
-| `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` |
-| `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` |
-| `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` |
+| `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_portable_toolchain` |
+| `numerics.conditioning_guardrails` — Define library-backed numerical conditioning guardrails | `ready` | `P1` | `R2_portable_toolchain` |
+| `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `ready` | `P1` | `R2_portable_toolchain` |
+| `physics.vertical_coordinate_contract` — Define pressure, sigma, and hybrid vertical-coordinate semantics | `ready` | `P1` | `R2_portable_toolchain` |
+| `sheaf.observation_uncertainty_compatibility` — Define uncertainty-aware sheaf observation compatibility | `ready` | `P1` | `R2_portable_toolchain` |
+| `simulation.reproducible_restart` — Define reproducible integration and restart state | `ready` | `P1` | `R2_portable_toolchain` |
+| `validation.cross_model_evidence_transport` — Make cross-model evidence transport explicit and testable | `ready` | `P1` | `R2_portable_toolchain` |
+| `adapters.versioned_array_ffi` — Define narrow versioned array FFI contracts | `ready` | `P2` | `R2_portable_toolchain` |
+| `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_portable_toolchain` |
+| `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_portable_toolchain` |
+| `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_portable_toolchain` |
+| `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_portable_toolchain` |
 | `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` |
 | `experimentation.multifidelity_response_interrogation` — Use cheap model exploration to choose discriminating high-fidelity experiments | `blocked` | `P1` | `R5_large_data` |
 | `integration.commons_storage_distribution` — Resolve Commons storage distribution into public Climate CI | `blocked` | `P1` | `R4_integrated_system` |
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` |
 | `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `blocked` | `P1` | `R4_integrated_system` |
 | `orchestration.external_artifact_evaluation` — Evaluate external model artifacts through Climate-owned tasks | `blocked` | `P1` | `R4_integrated_system` |
-| `data.logical_materialization_identity` — Separate logical observation identity from storage realization | `blocked` | `P2` | `R2_toolchain_ci` |
-| `experimental.clifford_task` — Give Clifford representations a falsifiable climate task | `blocked` | `P2` | `R2_toolchain_ci` |
+| `data.logical_materialization_identity` — Separate logical observation identity from storage realization | `blocked` | `P2` | `R2_portable_toolchain` |
+| `experimental.clifford_task` — Give Clifford representations a falsifiable climate task | `blocked` | `P2` | `R2_portable_toolchain` |
 | `gpu.justified_geometry_acceleration` — Prepare GPU differential execution only for a justified workload | `blocked` | `P2` | `R3_cuda_device` |
-| `multirepresentation.neighborhood_geometry` — Make neighborhood geometry a first-class representation evaluator | `blocked` | `P2` | `R2_toolchain_ci` |
+| `multirepresentation.neighborhood_geometry` — Make neighborhood geometry a first-class representation evaluator | `blocked` | `P2` | `R2_portable_toolchain` |
 
 ## Registered implementation and experiment surface
 
