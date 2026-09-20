@@ -457,15 +457,15 @@
       "scope": "current",
       "path": "data/ncei_ghcnd_bulk.py",
       "anchor": "GHCN_STATION_CATALOG_URL",
-      "authority_boundary": "parse_station_catalog",
+      "authority_boundary": "build_metadata_spool",
       "ownership_class": "external_api",
       "disposition": "externalize",
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "worldwide GHCN-Daily provider discovery consumes the complete provider station/inventory artifacts and identifies bulk by-year observation artifacts; station capability metadata preserves each inventory element's first/last year and the exact inventory artifact digest rather than collapsing provenance to a variable-name set; the scale path neither embeds a selected station list nor enumerates per-station REST requests",
+      "rationale": "worldwide GHCN-Daily provider discovery consumes complete captured station/inventory artifacts through a one-pass byte-hashing parser into a caller-owned SQLite scratch spool with explicit disk/cache/transaction/line limits; station capability chronology and both artifact digests are preserved, bounded catalog shards are materialized one at a time, and observation routing uses the indexed spool rather than a global in-memory alias map",
       "witness_path": "tests/test_ncei_ghcnd_bulk.py",
-      "witness_anchor": "test_provider_fixed_width_catalog_and_inventory_parse"
+      "witness_anchor": "test_bounded_metadata_spool_streams_catalog_and_routes_from_disk"
     },
     {
       "usage_id": "data.ncei_ghcnh_station_federation_boundary",

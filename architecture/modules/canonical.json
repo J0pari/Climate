@@ -6,12 +6,12 @@
       "family": "ncei_ghcnd_bulk_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-specific GHCN-Daily discovery, station-record normalization, provider-variable capability chronology/provenance, and streaming observation-routing adapter over already captured immutable provider artifacts; first/last inventory years and inventory artifact digests are preserved rather than collapsed to names, while provider-neutral sharding/catalog-reference ownership remains in src.station_federation and Climate does not own HTTP/TLS/redirect/transfer implementation",
+      "intended_role": "canonical provider-specific GHCN-Daily discovery and observation-routing adapter over captured immutable provider artifacts; the worldwide metadata path streams station/inventory records into a caller-budgeted SQLite scratch spool, preserves variable chronology/provenance, assigns bounded spatial shards through indexed disk queries, and resolves observation routing from disk instead of requiring a worldwide Python station tuple or alias map",
       "known_gaps": [
         "provider artifact acquisition is an external execution concern: the exact native transfer executable and invocation must be bound by the run receipt that captures bytes before this parser is called",
         "ghcnd-stations.txt is treated as a provider metadata snapshot effective at the captured date; the adapter does not back-project current coordinates into unobserved historical relocation epochs",
         "provider element values remain raw GHCN integer semantics at this boundary; unit normalization into climate variable contracts is a separate explicit transformation",
-        "cross-provider station crosswalks remain federation-level evidence obligations and are never inferred from location proximity"
+        "the SQLite max_page_count is a hard main-database byte ceiling and Python shard materialization is bounded by max_station_records, but SQLite/library/process overhead outside the main database is not represented as a false whole-process memory hard limit"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false
@@ -40,7 +40,8 @@
       "known_gaps": [
         "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
         "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations rather than ingestion defaults",
-        "shared identity uses exact documented GHCN identifier equality only and does not infer crosswalks from names, coordinates, ICAO codes, WMO codes, or proximity"
+        "shared identity uses exact documented GHCN identifier equality only and does not infer crosswalks from names, coordinates, ICAO codes, WMO codes, or proximity",
+        "the current GHCNh station-list parser/federator still materializes the complete provider catalog and existing federation sequence in memory; this is acceptable for current fixtures but is not yet the worldwide bounded-memory scale path"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false
@@ -550,7 +551,8 @@
         "durable remote object-store publication remains an adapter responsibility; canonical local publication is content-addressed and the NCEI scale adapter now provides resumable bulk acquisition",
         "GHCNh supplies the first real second-provider catalog crosswalk via NCEI-managed shared GHCN identifiers; crosswalks for unrelated provider identity systems still require their own upstream evidence and never use proximity inference",
         "catalog-record counts in manifest coverage are shard record totals, not a claim that unresolved aliases across different shards have already been deduplicated",
-        "catalog-shard retirement/topology-change semantics are intentionally unresolved: refresh refuses disappearance or rename of an active shard rather than inferring replacement from geographic overlap or membership"
+        "catalog-shard retirement/topology-change semantics are intentionally unresolved: refresh refuses disappearance or rename of an active shard rather than inferring replacement from geographic overlap or membership",
+        "GHCN-Daily now has a bounded disk-backed worldwide metadata path, but GHCNh station-list federation still parses its complete catalog into an in-memory tuple; that path must gain equivalent bounded staging before the multi-provider metadata plane can claim worldwide bounded-memory execution"
       ],
       "authority_kind": "canonical_implementation",
       "scientific_evidence_eligible": false

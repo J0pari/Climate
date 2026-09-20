@@ -10,7 +10,7 @@
     "provider_variable_availability": "provider-declared station-variable capability is preserved as bounded per-alias metadata with exact variable id, first/last provider year, and source-artifact digest; capability chronology is provenance and does not fabricate observations"
   },
   "storage_policy": {
-    "catalog": "content-addressed bounded catalog shards referenced by manifest; each current station object keeps one provider-location snapshot per alias plus bounded provider-variable capability metadata, while prior snapshots remain in superseded immutable shard revisions, so no global station table or unbounded per-station metadata log is required in memory",
+    "catalog": "content-addressed bounded catalog shards referenced by manifest; GHCN-Daily worldwide metadata staging uses a caller-owned SQLite scratch spool with an explicit main-database byte ceiling, bounded SQLite page cache, bounded transaction rows, bounded input-line size, and at most max_station_records Python station objects materialized per yielded shard; the spool is rebuildable execution state, not scientific evidence",
     "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones",
     "ingestion": "idempotent by artifact digest; observation revisions append explicit supersession/tombstone lineage, while catalog refreshes preserve exact shard-id continuity, supersede changed content for the same shard, replay unchanged content idempotently, and fail closed if an active shard disappears because catalog-retirement semantics are not yet defined",
     "coverage": "derived from active manifest references; coverage v2 carries geographic bounds for adaptive catalog shards, propagates those bounds to observation partitions by spatial-partition identity, and reports unresolved geographic partitions explicitly rather than requiring consumers to reopen station records"
@@ -24,7 +24,7 @@
       "geographic_scope": "global",
       "station_identity_namespace": "GHCN-Daily STATION",
       "discovery_mode": "provider_catalog",
-      "scale_path": "complete ghcnd-stations.txt and ghcnd-inventory.txt provider artifacts feed bounded content-addressed catalog shards; execution environments invoke the exact native curl binary directly for provider HTTPS transfer and pass completed immutable bytes into Climate parsers; yearly observations use provider by-year artifacts rather than per-station requests",
+      "scale_path": "captured complete ghcnd-stations.txt and ghcnd-inventory.txt artifacts stream once into a caller-owned byte-capped SQLite metadata spool; indexed quadtree/count queries assign bounded catalog shards without a worldwide Python station tuple or alias dictionary, and the same on-disk index resolves by-year observations after sharding; execution environments still own exact native HTTPS transfer and pass only completed immutable provider bytes into Climate",
       "current_boundaries": [
         "data/ncei_ghcnd_bulk.py::parse_station_catalog",
         "data/ncei_ghcnd_bulk.py::parse_inventory",
@@ -34,7 +34,10 @@
         "data/ncei_ghcnd_parquet.py::publish_gzip_by_year",
         "src/station_federation.py::adaptive_catalog_shards",
         "src/station_federation.py::catalog_shard_refs",
-        "src/station_federation.py::revise_catalog_shard_refs"
+        "src/station_federation.py::revise_catalog_shard_refs",
+        "data/ncei_ghcnd_bulk.py::build_metadata_spool",
+        "data/ncei_ghcnd_bulk.py::GHCNMetadataSpool.iter_catalog_shards",
+        "data/ncei_ghcnd_bulk.py::GHCNMetadataSpool.resolve"
       ],
       "access": "NCEI HTTPS archive and Common Access Data/Search Service REST APIs",
       "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",

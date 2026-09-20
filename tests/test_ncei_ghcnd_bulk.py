@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+import tempfile
 import unittest
 
 from src.station_federation import (
@@ -9,6 +11,7 @@ from src.station_federation import (
 from data.ncei_ghcnd_bulk import (
     adaptive_catalog_shards,
     build_federated_stations,
+    build_metadata_spool,
     by_year_url,
     by_year_urls,
     catalog_shard_refs,
@@ -96,6 +99,239 @@ class GHCNBulkFederationTests(unittest.TestCase):
             availability["TMAX"].evidence_digest,
             inventory.sha256,
         )
+
+    def test_bounded_metadata_spool_streams_catalog_and_routes_from_disk(self):
+        catalog_text = (
+            station_line("USW00000001", 40.0, -75.0, 10.0, "ALPHA")
+            + station_line("USW00000002", -33.9, 151.2, 5.0, "BETA")
+            + station_line("USW00000003", 51.5, -0.1, -999.9, "GAMMA")
+        )
+        inventory_text = (
+            inventory_line("USW00000001", 40.0, -75.0, "TMAX", 1900, 2026)
+            + inventory_line("USW00000001", 40.0, -75.0, "PRCP", 1950, 2026)
+            + inventory_line("USW00000002", -33.9, 151.2, "TMIN", 1970, 2026)
+            + inventory_line("USW00000003", 51.5, -0.1, "TAVG", 1880, 2026)
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            catalog_path = root / "ghcnd-stations.txt"
+            inventory_path = root / "ghcnd-inventory.txt"
+            spool_path = root / "station-metadata.sqlite"
+            catalog_path.write_text(catalog_text, encoding="utf-8")
+            inventory_path.write_text(inventory_text, encoding="utf-8")
+
+            with build_metadata_spool(
+                catalog_path,
+                inventory_path,
+                spool_path=spool_path,
+                metadata_effective_date="2026-09-18",
+                max_database_bytes=1024 * 1024,
+                sqlite_cache_kib=256,
+                max_transaction_rows=2,
+            ) as spool:
+                summary = spool.summary()
+                self.assertEqual(summary.station_count, 3)
+                self.assertEqual(summary.availability_count, 4)
+                self.assertLessEqual(spool_path.stat().st_size, 1024 * 1024)
+
+                shards = list(
+                    spool.iter_catalog_shards(max_station_records=1)
+                )
+                self.assertEqual(len(shards), 3)
+                self.assertTrue(
+                    all(len(shard.stations) <= 1 for shard in shards)
+                )
+                alpha = next(
+                    station
+                    for shard in shards
+                    for station in shard.stations
+                    if any(
+                        binding.alias.provider_station_id
+                        == "USW00000001"
+                        for binding in station.aliases
+                    )
+                )
+                availability = {
+                    item.variable_id: item
+                    for item in alpha.provider_variable_availability
+                }
+                self.assertEqual(availability["TMAX"].first_year, 1900)
+                self.assertEqual(availability["PRCP"].first_year, 1950)
+                self.assertEqual(
+                    availability["TMAX"].evidence_digest,
+                    summary.inventory_digest,
+                )
+                canonical_id, shard_id = spool.resolve("USW00000001")
+                self.assertEqual(canonical_id, alpha.canonical_station_id)
+                self.assertTrue(shard_id)
+
+    def test_metadata_spool_refuses_unbudgeted_storage_and_overwrite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            catalog_path = root / "ghcnd-stations.txt"
+            inventory_path = root / "ghcnd-inventory.txt"
+            spool_path = root / "station-metadata.sqlite"
+            catalog_path.write_text(
+                station_line(
+                    "USW00000001", 40.0, -75.0, 10.0, "ALPHA"
+                ),
+                encoding="utf-8",
+            )
+            inventory_path.write_text(
+                inventory_line(
+                    "USW00000001", 40.0, -75.0, "TMAX", 1900, 2026
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "too small"):
+                build_metadata_spool(
+                    catalog_path,
+                    inventory_path,
+                    spool_path=spool_path,
+                    metadata_effective_date="2026-09-18",
+                    max_database_bytes=1024,
+                )
+            self.assertFalse(spool_path.exists())
+
+            spool = build_metadata_spool(
+                catalog_path,
+                inventory_path,
+                spool_path=spool_path,
+                metadata_effective_date="2026-09-18",
+                max_database_bytes=1024 * 1024,
+            )
+            spool.close()
+            with self.assertRaisesRegex(ValueError, "implicit overwrite"):
+                build_metadata_spool(
+                    catalog_path,
+                    inventory_path,
+                    spool_path=spool_path,
+                    metadata_effective_date="2026-09-18",
+                    max_database_bytes=1024 * 1024,
+                )
+
+    def test_metadata_spool_rejects_duplicate_or_orphan_inventory_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            catalog_path = root / "ghcnd-stations.txt"
+            inventory_path = root / "ghcnd-inventory.txt"
+            spool_path = root / "station-metadata.sqlite"
+            catalog_path.write_text(
+                station_line(
+                    "USW00000001", 40.0, -75.0, 10.0, "ALPHA"
+                ),
+                encoding="utf-8",
+            )
+            duplicate = inventory_line(
+                "USW00000001", 40.0, -75.0, "TMAX", 1900, 2026
+            )
+            inventory_path.write_text(
+                duplicate + duplicate,
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "inventory line 2"):
+                build_metadata_spool(
+                    catalog_path,
+                    inventory_path,
+                    spool_path=spool_path,
+                    metadata_effective_date="2026-09-18",
+                    max_database_bytes=1024 * 1024,
+                )
+            self.assertFalse(spool_path.exists())
+
+            inventory_path.write_text(
+                inventory_line(
+                    "USW99999999", 40.0, -75.0, "TMAX", 1900, 2026
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "inventory line 1"):
+                build_metadata_spool(
+                    catalog_path,
+                    inventory_path,
+                    spool_path=spool_path,
+                    metadata_effective_date="2026-09-18",
+                    max_database_bytes=1024 * 1024,
+                )
+            self.assertFalse(spool_path.exists())
+
+    def test_metadata_spool_bounds_corrupt_line_allocation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            catalog_path = root / "ghcnd-stations.txt"
+            inventory_path = root / "ghcnd-inventory.txt"
+            spool_path = root / "station-metadata.sqlite"
+            catalog_path.write_bytes(b"X" * 5000 + b"\n")
+            inventory_path.write_text(
+                inventory_line(
+                    "USW00000001", 40.0, -75.0, "TMAX", 1900, 2026
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "exceeds 4096 bytes"):
+                build_metadata_spool(
+                    catalog_path,
+                    inventory_path,
+                    spool_path=spool_path,
+                    metadata_effective_date="2026-09-18",
+                    max_database_bytes=1024 * 1024,
+                    max_metadata_line_bytes=4096,
+                )
+            self.assertFalse(spool_path.exists())
+
+    def test_disk_lookup_routes_observations_without_global_alias_dict(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            catalog_path = root / "ghcnd-stations.txt"
+            inventory_path = root / "ghcnd-inventory.txt"
+            spool_path = root / "station-metadata.sqlite"
+            catalog_path.write_text(
+                station_line(
+                    "USW00000001", 40.0, -75.0, 10.0, "ALPHA"
+                )
+                + station_line(
+                    "USW00000002", -33.9, 151.2, 5.0, "BETA"
+                ),
+                encoding="utf-8",
+            )
+            inventory_path.write_text(
+                inventory_line(
+                    "USW00000001", 40.0, -75.0, "TMAX", 1900, 2026
+                )
+                + inventory_line(
+                    "USW00000002", -33.9, 151.2, "TMIN", 1950, 2026
+                ),
+                encoding="utf-8",
+            )
+            writes = []
+
+            class Sink:
+                def write(self, key, record):
+                    writes.append((key, record))
+
+            with build_metadata_spool(
+                catalog_path,
+                inventory_path,
+                spool_path=spool_path,
+                metadata_effective_date="2026-09-18",
+                max_database_bytes=1024 * 1024,
+            ) as spool:
+                list(spool.iter_catalog_shards(max_station_records=1))
+                summary = stream_by_year_partitions(
+                    [
+                        "USW00000001,20240101,TMAX,123,,,S,0700\n",
+                        "USW00000002,20240101,TMIN,45,,,S,0700\n",
+                    ],
+                    expected_year=2024,
+                    lookup=spool,
+                    sink=Sink(),
+                )
+            self.assertEqual(summary.row_count, 2)
+            self.assertEqual(len(writes), 2)
+            self.assertNotEqual(
+                writes[0][0].spatial_partition,
+                writes[1][0].spatial_partition,
+            )
 
     def test_provider_module_reexports_provider_neutral_sharding(self):
         self.assertIs(adaptive_catalog_shards, generic_adaptive_catalog_shards)
