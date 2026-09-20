@@ -4,7 +4,7 @@ Status: **research-process specification**.
 
 Climate contains many choices that cannot be settled correctly by architecture review alone: metric construction, numerical schemes, representations, calibration methods, early-warning indicators, data products, interpolation/regridding choices, and experimental mathematical frameworks. The repository therefore needs infrastructure for experiments **about the methods themselves**, not only experiments using those methods.
 
-The goal is to make methodological choices testable, comparable, revisable, and difficult to overfit by narrative. This document defines experiment design; `architecture/planning_graph.json` owns cross-family planning priority and `docs/ROADMAP.md` is only its projection. Actual work selection must first reconcile exact-head planning, realization, evaluation/evidence, and execution state using `docs/REPOSITORY-STATE.md`.
+The goal is to make methodological choices testable, comparable, revisable, and difficult to overfit by narrative. This document defines experiment design; `architecture/planning_graph.json` owns cross-family planning priority and `docs/ROADMAP.md` is only its projection. Actual work selection must first reconcile exact-head planning, realization, evaluation/evidence, and execution state using `docs/generated/STATE.md`.
 
 ## 1. Unit of research: a contestable method choice
 
@@ -360,7 +360,7 @@ Useful multi-fidelity experiments include:
 Evidence transport must be explicit. Emulator evidence may motivate or select a parent-model experiment but does not automatically support the parent-model claim; multimodel agreement is not observational evidence; reanalysis is not an intervention oracle. A claim update must state which source produced the evidence and which bridge experiment, if any, justifies carrying information across sources.
 ## 16. Reference meta-experiment families
 
-The following are useful experiment designs when their prerequisites are ready. Their ordering here is not priority; the planning graph supplies priority, while executable work selection also requires the commit-scoped state reconciliation in `docs/REPOSITORY-STATE.md`.
+The following are useful experiment designs when their prerequisites are ready. Their ordering here is not priority; the planning graph supplies priority, while executable work selection also requires the commit-scoped state reconciliation in `docs/generated/STATE.md`.
 
 - **Geometry correctness** — known-curvature manifolds plus coordinate/scaling invariance tests before climate interpretation.
 - **Multirepresentation geometry** — synthetic coupled dynamical systems with known shared/product/fibered latent structure, observed through several nonlinear views; compare raw concatenation, linear multiview baselines, established common-manifold methods, and physically constrained factorizations before inventing a bespoke learner.
