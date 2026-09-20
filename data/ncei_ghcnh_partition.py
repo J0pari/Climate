@@ -60,6 +60,31 @@ def _sha256_file(path: Path) -> str:
     return "sha256:" + hasher.hexdigest()
 
 
+def _sha256_file_bounded(
+    path: Path,
+    *,
+    max_source_bytes: int,
+) -> tuple[str, int]:
+    if max_source_bytes <= 0:
+        raise ValueError("max_source_bytes must be positive")
+    path = Path(path)
+    if path.stat().st_size > max_source_bytes:
+        raise ValueError("captured GHCNh source exceeds max_source_bytes")
+    hasher = hashlib.sha256()
+    byte_count = 0
+    with path.open("rb") as handle:
+        while True:
+            remaining = max_source_bytes - byte_count
+            chunk = handle.read(min(1024 * 1024, remaining + 1))
+            if not chunk:
+                break
+            byte_count += len(chunk)
+            if byte_count > max_source_bytes:
+                raise ValueError("captured GHCNh source exceeds max_source_bytes")
+            hasher.update(chunk)
+    return "sha256:" + hasher.hexdigest(), byte_count
+
+
 @dataclass
 class _PartitionState:
     key: GHCNhObservationPartitionKey
@@ -238,6 +263,7 @@ class GHCNhRawPartitionSink(GHCNhObservationSink):
 @dataclass(frozen=True)
 class GHCNhArchivePublication:
     source_revision: str
+    source_byte_count: int
     archive_member_count: int
     partitions: tuple[ObservationPartitionRef, ...]
 
@@ -269,6 +295,7 @@ def publish_year_archive(
     expected_year: int,
     lookup: GHCNhRoutingLookup,
     object_root: Path,
+    max_source_bytes: int,
     max_rows: int,
     max_partitions: int,
     max_archive_members: int,
@@ -285,7 +312,10 @@ def publish_year_archive(
     if max_psv_line_bytes <= 0:
         raise ValueError("max_psv_line_bytes must be positive")
     archive_path = Path(archive_path)
-    source_revision = _sha256_file(archive_path)
+    source_revision, source_byte_count = _sha256_file_bounded(
+        archive_path,
+        max_source_bytes=max_source_bytes,
+    )
     sink = GHCNhRawPartitionSink(
         object_root,
         source_revision=source_revision,
@@ -347,6 +377,7 @@ def publish_year_archive(
         raise
     return GHCNhArchivePublication(
         source_revision=source_revision,
+        source_byte_count=source_byte_count,
         archive_member_count=member_count,
         partitions=partitions,
     )

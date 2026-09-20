@@ -6,7 +6,7 @@
       "family": "ncei_ghcnd_bulk_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-specific GHCN-Daily discovery and observation-routing adapter over captured immutable provider artifacts; the worldwide metadata path streams station/inventory records into a caller-budgeted SQLite scratch spool, preserves variable chronology/provenance, assigns bounded spatial shards through indexed disk queries, and resolves observation routing from disk instead of requiring a worldwide Python station tuple or alias map; observation routing additionally requires explicit max_rows/max_partition_keys budgets and disk routing is disabled until full catalog sharding completes",
+      "intended_role": "canonical provider-specific GHCN-Daily discovery and observation-routing adapter over captured immutable provider artifacts; the worldwide metadata path streams station/inventory records into a caller-budgeted SQLite scratch spool, preserves variable chronology/provenance, assigns bounded spatial shards through indexed disk queries without multi-bind leaf reads, and resolves observation routing from disk instead of requiring a worldwide Python station tuple or alias map; observation routing requires explicit max_rows/max_partition_keys budgets and disk routing is disabled until full catalog sharding completes",
       "known_gaps": [
         "provider artifact acquisition is an external execution concern: the exact native transfer executable and invocation must be bound by the run receipt that captures bytes before this parser is called",
         "ghcnd-stations.txt is treated as a provider metadata snapshot effective at the captured date; the adapter does not back-project current coordinates into unobserved historical relocation epochs",
@@ -21,7 +21,7 @@
       "family": "ncei_ghcnd_parquet_partition_publication",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-specific bounded-row, bounded-partition-cardinality and fragment-resumable Parquet publication adapter for routed GHCN-Daily observations; callers declare max_rows and max_partitions, each row batch is capped by batch_rows, source identity and replay prefix are bound, and immutable content-addressed outputs preserve raw provider semantics plus explicit supersession lineage",
+      "intended_role": "canonical provider-specific fragment-resumable Parquet publication adapter for routed GHCN-Daily observations; callers declare max_source_bytes, max_csv_line_bytes, max_rows, max_partitions, and batch_rows; exact compressed source SHA-256 and byte count plus replay-prefix identity are preserved, and immutable content-addressed outputs retain raw provider semantics with explicit supersession lineage",
       "known_gaps": [
         "resume checkpoints commit only complete fsynced Parquet-fragment boundaries and require exact replay of the committed canonical input prefix; a crash after the full source is consumed but during short final object publication restarts deterministic publication from the captured source artifact",
         "the canonical backend publishes to a local filesystem content-addressed object root; remote object-store transport remains an adapter responsibility",
@@ -52,7 +52,7 @@
       "family": "ncei_ghcnh_raw_partition_publication",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical content-addressed publication adapter for captured annual GHCNh tar archives with caller-owned ceilings on total rows, partition states, scanned tar members and PSV line bytes; station members stream through canonical disk/in-memory routing into immutable spatial/year raw-row partitions while preserving every provider field and compressed source archive SHA-256",
+      "intended_role": "canonical content-addressed publication adapter for captured annual GHCNh tar archives with caller-owned ceilings on compressed source bytes, total rows, partition states, every scanned tar member, and PSV line bytes; station members stream through canonical disk/in-memory routing into immutable spatial/year raw-row partitions while preserving every provider field, compressed source archive SHA-256, and source byte count",
       "known_gaps": [
         "the raw partition contract deliberately stores provider fields without physical-unit conversion or quality-policy filtering; downstream projections must interpret documented GHCNh measurement/QC/source codes explicitly",
         "the local content-addressed filesystem is the canonical publication witness; durable remote object-store transport remains an adapter responsibility",

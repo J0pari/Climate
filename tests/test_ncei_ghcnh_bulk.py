@@ -560,6 +560,7 @@ class GHCNhFederationTests(unittest.TestCase):
                 expected_year=2026,
                 lookup=lookup,
                 object_root=root / "store",
+                max_source_bytes=1024 * 1024,
                 max_rows=100,
                 max_partitions=10,
                 max_archive_members=10,
@@ -792,6 +793,7 @@ class GHCNhFederationTests(unittest.TestCase):
                 expected_year=2026,
                 lookup=lookup,
                 object_root=root / "store",
+                max_source_bytes=1024 * 1024,
                 max_rows=100,
                 max_partitions=10,
                 max_archive_members=10,
@@ -803,6 +805,10 @@ class GHCNhFederationTests(unittest.TestCase):
                 archive.read_bytes()
             ).hexdigest()
             self.assertEqual(publication.source_revision, expected_source)
+            self.assertEqual(
+                publication.source_byte_count,
+                archive.stat().st_size,
+            )
             self.assertTrue(
                 all(item.source_revision == expected_source for item in publication.partitions)
             )
@@ -837,12 +843,57 @@ class GHCNhFederationTests(unittest.TestCase):
                 expected_year=2026,
                 lookup=lookup,
                 object_root=root / "store",
+                max_source_bytes=1024 * 1024,
                 max_rows=100,
                 max_partitions=10,
                 max_archive_members=10,
                 max_psv_line_bytes=4096,
             )
             self.assertEqual(repeated.partitions, publication.partitions)
+
+    def test_annual_archive_source_byte_budget_fails_before_staging(self):
+        result = federate_station_catalog(
+            (daily_station("USW00094846"),),
+            parse_station_catalog(
+                station_line(
+                    "USW00094846",
+                    41.98,
+                    -87.90,
+                    204.0,
+                    "CHICAGO OHARE",
+                ).encode("ascii")
+            ),
+            metadata_effective_date="2026-09-18",
+        )
+        lookup = GHCNhAliasShardLookup(
+            (StationCatalogShard("cell-a", "cell-a", result.stations),)
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            archive = root / "fixture.tar.gz"
+            write_year_archive(
+                archive,
+                {
+                    "GHCNh_USW00094846_2026.psv": (
+                        "STATION|DATE|temperature\n"
+                        "USW00094846|2026-09-18T12:00:00Z|19.4\n"
+                    )
+                },
+            )
+            store = root / "store"
+            with self.assertRaisesRegex(ValueError, "max_source_bytes"):
+                publish_year_archive(
+                    archive,
+                    expected_year=2026,
+                    lookup=lookup,
+                    object_root=store,
+                    max_source_bytes=1,
+                    max_rows=100,
+                    max_partitions=10,
+                    max_archive_members=10,
+                    max_psv_line_bytes=4096,
+                )
+            self.assertFalse(store.exists())
 
     def test_annual_archive_member_budget_fails_closed(self):
         result = federate_station_catalog(
@@ -898,6 +949,7 @@ class GHCNhFederationTests(unittest.TestCase):
                     expected_year=2026,
                     lookup=lookup,
                     object_root=root / "store",
+                    max_source_bytes=1024 * 1024,
                     max_rows=100,
                     max_partitions=10,
                     max_archive_members=1,
@@ -936,6 +988,7 @@ class GHCNhFederationTests(unittest.TestCase):
                     expected_year=2026,
                     lookup=lookup,
                     object_root=root / "store",
+                    max_source_bytes=1024 * 1024,
                 max_rows=100,
                 max_partitions=10,
                 max_archive_members=10,

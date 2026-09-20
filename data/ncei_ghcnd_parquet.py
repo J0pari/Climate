@@ -64,6 +64,52 @@ def _sha256_file(path: Path) -> tuple[str, int]:
     return "sha256:" + hasher.hexdigest(), byte_count
 
 
+def _sha256_file_bounded(
+    path: Path,
+    *,
+    max_source_bytes: int,
+) -> tuple[str, int]:
+    if max_source_bytes <= 0:
+        raise ValueError("max_source_bytes must be positive")
+    path = Path(path)
+    if path.stat().st_size > max_source_bytes:
+        raise ValueError("captured GHCN source exceeds max_source_bytes")
+    hasher = hashlib.sha256()
+    byte_count = 0
+    with path.open("rb") as handle:
+        while True:
+            remaining = max_source_bytes - byte_count
+            chunk = handle.read(min(1024 * 1024, remaining + 1))
+            if not chunk:
+                break
+            byte_count += len(chunk)
+            if byte_count > max_source_bytes:
+                raise ValueError("captured GHCN source exceeds max_source_bytes")
+            hasher.update(chunk)
+    return "sha256:" + hasher.hexdigest(), byte_count
+
+
+def _bounded_gzip_lines(
+    handle,
+    *,
+    max_line_bytes: int,
+):
+    if max_line_bytes <= 0:
+        raise ValueError("max_csv_line_bytes must be positive")
+    while True:
+        raw = handle.readline(max_line_bytes + 1)
+        if not raw:
+            return
+        if len(raw) > max_line_bytes:
+            raise ValueError(
+                f"GHCN CSV line exceeds {max_line_bytes} bytes"
+            )
+        try:
+            yield raw.decode("ascii")
+        except UnicodeDecodeError as exc:
+            raise ValueError("GHCN by-year CSV must be ASCII") from exc
+
+
 def _require_digest(value: str, name: str) -> str:
     if not isinstance(value, str) or not _SHA256.fullmatch(value):
         raise ValueError(f"{name} must be sha256:<64 lowercase hex>")
@@ -706,6 +752,8 @@ def publish_gzip_by_year(
     expected_year: int,
     lookup: StationRoutingLookup,
     root: Path,
+    max_source_bytes: int,
+    max_csv_line_bytes: int,
     max_rows: int,
     max_partitions: int,
     batch_rows: int = 50_000,
@@ -715,7 +763,12 @@ def publish_gzip_by_year(
     ] | None = None,
 ) -> GHCNParquetPublication:
     """Publish one captured provider by-year artifact without full-year buffering."""
-    source_revision, source_byte_count = _sha256_file(Path(path))
+    if max_csv_line_bytes <= 0:
+        raise ValueError("max_csv_line_bytes must be positive")
+    source_revision, source_byte_count = _sha256_file_bounded(
+        Path(path),
+        max_source_bytes=max_source_bytes,
+    )
     publisher = GHCNParquetPartitionPublisher(
         root,
         source_revision=source_revision,
@@ -725,9 +778,12 @@ def publish_gzip_by_year(
         compression=compression,
     )
     try:
-        with gzip.open(path, mode="rt", encoding="ascii", newline="") as handle:
+        with gzip.open(path, mode="rb") as handle:
             routing = stream_by_year_partitions(
-                handle,
+                _bounded_gzip_lines(
+                    handle,
+                    max_line_bytes=max_csv_line_bytes,
+                ),
                 expected_year=expected_year,
                 lookup=lookup,
                 sink=publisher,

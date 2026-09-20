@@ -100,6 +100,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_source_bytes=1024 * 1024,
+                max_csv_line_bytes=4096,
                 max_rows=100,
                 max_partitions=10,
                 batch_rows=1,
@@ -109,6 +111,7 @@ class GHCNParquetPublicationTests(unittest.TestCase):
             self.assertEqual(result.routing.partition_count, 3)
             self.assertEqual(len(result.partitions), 3)
             self.assertTrue(result.source_revision.startswith("sha256:"))
+            self.assertEqual(result.source_byte_count, source.stat().st_size)
             self.assertEqual(
                 {ref.source_revision for ref in result.partitions},
                 {result.source_revision},
@@ -162,6 +165,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_source_bytes=1024 * 1024,
+                max_csv_line_bytes=4096,
                 max_rows=100,
                 max_partitions=10,
                 batch_rows=1,
@@ -171,6 +176,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_source_bytes=1024 * 1024,
+                max_csv_line_bytes=4096,
                 max_rows=100,
                 max_partitions=10,
                 batch_rows=1,
@@ -226,6 +233,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_source_bytes=1024 * 1024,
+                max_csv_line_bytes=4096,
                 max_rows=100,
                 max_partitions=10,
                 batch_rows=2,
@@ -235,6 +244,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=clean_store,
+                max_source_bytes=1024 * 1024,
+                max_csv_line_bytes=4096,
                 max_rows=100,
                 max_partitions=10,
                 batch_rows=2,
@@ -289,9 +300,58 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                     expected_year=2024,
                     lookup=AlteredLookup(),
                     root=root / "store",
+                    max_source_bytes=1024 * 1024,
+                    max_csv_line_bytes=4096,
                 max_rows=100,
                 max_partitions=10,
                     batch_rows=2,
+                )
+
+    def test_source_byte_budget_fails_before_publication_state_exists(self):
+        lookup, _ = self.substrate()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "2024.csv.gz"
+            store = root / "store"
+            write_gzip(
+                source,
+                "USW00000001,20240101,TMAX,123,,,S,0700\n",
+            )
+            with self.assertRaisesRegex(ValueError, "max_source_bytes"):
+                publish_gzip_by_year(
+                    source,
+                    expected_year=2024,
+                    lookup=lookup,
+                    root=store,
+                    max_source_bytes=1,
+                    max_csv_line_bytes=4096,
+                    max_rows=100,
+                    max_partitions=10,
+                    batch_rows=8,
+                )
+            self.assertFalse(store.exists())
+
+    def test_csv_line_budget_fails_before_row_publication(self):
+        lookup, _ = self.substrate()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "2024.csv.gz"
+            store = root / "store"
+            write_gzip(
+                source,
+                "USW00000001,20240101,TMAX,123,,,S,0700\n",
+            )
+            with self.assertRaisesRegex(ValueError, "CSV line exceeds"):
+                publish_gzip_by_year(
+                    source,
+                    expected_year=2024,
+                    lookup=lookup,
+                    root=store,
+                    max_source_bytes=1024 * 1024,
+                    max_csv_line_bytes=16,
+                    max_rows=100,
+                    max_partitions=10,
+                    batch_rows=8,
                 )
 
     def test_row_budget_fails_before_over_budget_record_is_published(self):
@@ -313,6 +373,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                     expected_year=2024,
                     lookup=lookup,
                     root=store,
+                    max_source_bytes=1024 * 1024,
+                    max_csv_line_bytes=4096,
                     max_rows=1,
                     max_partitions=10,
                     batch_rows=8,
@@ -337,6 +399,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                     expected_year=2024,
                     lookup=lookup,
                     root=store,
+                    max_source_bytes=1024 * 1024,
+                    max_csv_line_bytes=4096,
                     max_rows=100,
                     max_partitions=1,
                     batch_rows=8,
@@ -356,6 +420,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_source_bytes=1024 * 1024,
+                max_csv_line_bytes=4096,
                 max_rows=100,
                 max_partitions=10,
                 batch_rows=8,
@@ -376,6 +442,8 @@ class GHCNParquetPublicationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 root=store,
+                max_source_bytes=1024 * 1024,
+                max_csv_line_bytes=4096,
                 max_rows=100,
                 max_partitions=10,
                 batch_rows=8,

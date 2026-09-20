@@ -459,18 +459,19 @@ class GHCNMetadataSpool:
     ) -> StationCatalogShard:
         if not station_ids:
             raise ValueError("cannot materialize an empty metadata shard")
-        placeholders = ",".join("?" for _ in station_ids)
-        rows = self._db.execute(
-            f"""
-            SELECT station_id, latitude_deg, longitude_deg, elevation_m
-            FROM stations
-            WHERE station_id IN ({placeholders})
-            ORDER BY station_id
-            """,
-            tuple(station_ids),
-        ).fetchall()
-        if len(rows) != len(station_ids):
-            raise ValueError("metadata spool lost station rows while sharding")
+        rows = []
+        for station_id in sorted(station_ids):
+            row = self._db.execute(
+                """
+                SELECT station_id, latitude_deg, longitude_deg, elevation_m
+                FROM stations
+                WHERE station_id = ?
+                """,
+                (station_id,),
+            ).fetchone()
+            if row is None:
+                raise ValueError("metadata spool lost station rows while sharding")
+            rows.append(row)
         catalog_digest = self._metadata("catalog_digest")
         inventory_digest = self._metadata("inventory_digest")
         metadata_effective_date = self._metadata("metadata_effective_date")

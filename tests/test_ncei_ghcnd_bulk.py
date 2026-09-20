@@ -12,6 +12,7 @@ from data.ncei_ghcnd_bulk import (
     adaptive_catalog_shards,
     build_federated_stations,
     build_metadata_spool,
+    GHCNMetadataSpool,
     by_year_url,
     by_year_urls,
     catalog_shard_refs,
@@ -278,6 +279,87 @@ class GHCNBulkFederationTests(unittest.TestCase):
                     max_metadata_line_bytes=4096,
                 )
             self.assertFalse(spool_path.exists())
+
+    def test_leaf_materialization_avoids_multi_bind_sqlite_dependency(self):
+        class SingleBindExecuteConnection:
+            def __init__(self, connection):
+                self.connection = connection
+
+            def execute(self, sql, params=()):
+                if len(params) > 1:
+                    raise AssertionError(
+                        "single execute() must not depend on multi-bind SQL"
+                    )
+                return self.connection.execute(sql, params)
+
+            def executemany(self, sql, params):
+                return self.connection.executemany(sql, params)
+
+            def commit(self):
+                return self.connection.commit()
+
+            def close(self):
+                return self.connection.close()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            spool = GHCNMetadataSpool(
+                root / "metadata.sqlite",
+                max_database_bytes=1024 * 1024,
+                create=True,
+            )
+            spool._db.executemany(
+                "INSERT INTO metadata(key, value) VALUES (?, ?)",
+                (
+                    ("catalog_digest", "sha256:" + "1" * 64),
+                    ("catalog_byte_count", "1"),
+                    ("inventory_digest", "sha256:" + "2" * 64),
+                    ("inventory_byte_count", "1"),
+                    ("metadata_effective_date", "2026-09-18"),
+                ),
+            )
+            spool._db.executemany(
+                """
+                INSERT INTO stations(
+                    station_id, latitude_deg, longitude_deg, elevation_m,
+                    state, name, gsn_flag, hcn_crn_flag, wmo_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    (
+                        "USW00000001",
+                        40.0,
+                        -75.0,
+                        10.0,
+                        "",
+                        "ALPHA",
+                        "",
+                        "",
+                        "",
+                    ),
+                    (
+                        "USW00000002",
+                        41.0,
+                        -74.0,
+                        11.0,
+                        "",
+                        "BETA",
+                        "",
+                        "",
+                        "",
+                    ),
+                ),
+            )
+            spool._db.commit()
+            spool._db = SingleBindExecuteConnection(spool._db)
+            try:
+                shard = spool._leaf(
+                    ("USW00000001", "USW00000002"),
+                    shard_id="q",
+                )
+                self.assertEqual(len(shard.stations), 2)
+            finally:
+                spool.close()
 
     def test_disk_lookup_is_unavailable_until_sharding_is_fully_consumed(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -11,7 +11,7 @@
   },
   "storage_policy": {
     "catalog": "content-addressed bounded catalog shards referenced by manifest; GHCN-Daily and GHCNh worldwide metadata staging use caller-owned SQLite scratch spools with explicit main-database byte ceilings, bounded SQLite page caches, bounded transaction/input-line sizes, bounded incoming/materialized station-shard sizes, explicit quadtree depth ceilings, and routing disabled until full shard/enrichment scans complete; spools are rebuildable execution state, not scientific evidence",
-    "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones; both NCEI routers require explicit max_rows and max_partition_keys ceilings, Daily Parquet publication caps rows/partition states/batch rows, and Hourly archive publication caps rows/partition states/tar members/PSV line bytes",
+    "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones; both NCEI routers require explicit max_rows and max_partition_keys ceilings; captured Daily gzip and Hourly tar.gz inputs require explicit max_source_bytes ceilings before publication state is created; Daily decoding additionally caps CSV line bytes, while Hourly caps scanned tar members and PSV line bytes; Daily Parquet publication also caps batch_rows",
     "ingestion": "idempotent by artifact digest; observation revisions append explicit supersession/tombstone lineage, while catalog refreshes preserve exact shard-id continuity, supersede changed content for the same shard, replay unchanged content idempotently, and fail closed if an active shard disappears because catalog-retirement semantics are not yet defined",
     "coverage": "derived from active manifest references; coverage v2 carries geographic bounds for adaptive catalog shards, propagates those bounds to observation partitions by spatial-partition identity, and reports unresolved geographic partitions explicitly rather than requiring consumers to reopen station records"
   },
@@ -24,7 +24,7 @@
       "geographic_scope": "global",
       "station_identity_namespace": "GHCN-Daily STATION",
       "discovery_mode": "provider_catalog",
-      "scale_path": "captured complete ghcnd-stations.txt and ghcnd-inventory.txt artifacts stream once into a caller-owned byte-capped SQLite metadata spool; indexed quadtree/count queries assign bounded catalog shards without a worldwide Python station tuple or alias dictionary, and the same on-disk index resolves by-year observations after sharding; execution environments still own exact native HTTPS transfer and pass only completed immutable provider bytes into Climate",
+      "scale_path": "captured complete ghcnd-stations.txt and ghcnd-inventory.txt artifacts stream once into a caller-owned byte-capped SQLite metadata spool; indexed quadtree/count queries assign bounded catalog shards without a worldwide Python station tuple or alias dictionary, leaf materialization avoids dependence on SQLite multi-bind variable ceilings, and the same on-disk index resolves by-year observations after sharding; publication requires explicit compressed-source, decoded-line, row, partition-state, and row-batch budgets; execution environments still own exact native HTTPS transfer and pass only completed immutable provider bytes into Climate",
       "current_boundaries": [
         "data/ncei_ghcnd_bulk.py::parse_station_catalog",
         "data/ncei_ghcnd_bulk.py::parse_inventory",
@@ -56,7 +56,7 @@
       "geographic_scope": "global",
       "station_identity_namespace": "GHCNh managed GHCN identifier",
       "discovery_mode": "provider_catalog",
-      "scale_path": "the captured GHCNh station list streams once into a caller-budgeted SQLite scratch spool; existing bounded federation shards are enriched one at a time, exact shared GHCN IDs retain their existing spatial partition, unmatched hourly-only roots are emitted in bounded addition shards, and GHCNh observation routing resolves canonical/spatial identity from the disk index after both scans complete; annual archives stream member/row data under explicit row/partition/member/line ceilings",
+      "scale_path": "the captured GHCNh station list streams once into a caller-budgeted SQLite scratch spool; existing bounded federation shards are enriched one at a time, exact shared GHCN IDs retain their existing spatial partition, unmatched hourly-only roots are emitted in bounded addition shards, and GHCNh observation routing resolves canonical/spatial identity from the disk index after both scans complete; annual archives require explicit compressed-source, total-row, partition-state, scanned-member, and PSV-line ceilings",
       "current_boundaries": [
         "data/ncei_ghcnh_bulk.py::parse_station_catalog",
         "data/ncei_ghcnh_bulk.py::federate_station_catalog",
