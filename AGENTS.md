@@ -67,4 +67,4 @@ python architecture/render_state.py --check
 python architecture/render_roadmap.py --check
 ```
 
-Use the language-, method-, resource-, and experiment-specific workflows required by the focused contract. A green check proves only what that check actually exercises.
+Run `scripts/verify/repository.sh` for the repository baseline, then run any language-, method-, resource-, or experiment-specific local/external checks required by the focused contract. A passing check proves only what that check actually exercises.
