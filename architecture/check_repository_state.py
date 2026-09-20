@@ -33,6 +33,15 @@ REQUIRED_REFERENCES = {
         "docs/ROADMAP.md",
     ),
 }
+
+LEGACY_REFERENCES = (
+    "docs/REPOSITORY-STATE.md",
+    "docs/generated/STATUS.md",
+    "docs/EXECUTION-TOPOLOGY.md",
+    "architecture/render_repository_state.py",
+    "architecture/render_status.py",
+)
+
 FORBIDDEN_LEGACY_PATHS = (
     "docs/REPOSITORY-STATE.md",
     "docs/generated/STATUS.md",
@@ -198,6 +207,34 @@ def check(root: Path = ROOT) -> list[Finding]:
                     "obsolete parallel state/execution surface must be removed",
                 )
             )
+
+    reference_paths = [root / "README.md", root / "AGENTS.md", root / "architecture" / "planning_graph.json"]
+    docs_root = root / "docs"
+    if docs_root.is_dir():
+        reference_paths.extend(
+            path
+            for path in docs_root.rglob("*.md")
+            if "archive" not in path.relative_to(docs_root).parts
+        )
+    workflows = root / ".github" / "workflows"
+    if workflows.is_dir():
+        reference_paths.extend(workflows.glob("*.yml"))
+        reference_paths.extend(workflows.glob("*.yaml"))
+
+    for path in sorted(set(reference_paths)):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(root).as_posix()
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for legacy in LEGACY_REFERENCES:
+            if legacy in text:
+                findings.append(
+                    Finding(
+                        "repository_state.legacy_reference",
+                        relative,
+                        f"references obsolete path {legacy}",
+                    )
+                )
 
     return findings
 
