@@ -29,20 +29,7 @@ Climate distinguishes several roles that are easy to conflate:
 
 A canonical implementation is not an endorsement of the scientific method it implements. A passing test does not establish empirical climate validity. A successful synthetic or idealized-model experiment does not automatically transfer to a GCM, reanalysis, observation, or another model class.
 
-The binding maturity and evidence semantics are defined in [AGENTS.md](AGENTS.md) and [docs/VALIDATION-AND-EVIDENCE.md](docs/VALIDATION-AND-EVIDENCE.md).
-
-## Repository state is commit-scoped
-
-Do not use this README as a repository-status snapshot.
-
-Repository state is resolved at an exact `main` commit. The machine authority for state surfaces and freshness semantics is [architecture/state_authorities.json](architecture/state_authorities.json); its generated human-readable contract is [docs/REPOSITORY-STATE.md](docs/REPOSITORY-STATE.md).
-
-Two generated documents have deliberately limited scope:
-
-- [docs/ROADMAP.md](docs/ROADMAP.md) projects only [architecture/planning_graph.json](architecture/planning_graph.json): planned work, priority, dependencies, blockers, resource class, and completion criteria.
-- [docs/generated/STATUS.md](docs/generated/STATUS.md) projects only the structural-realization authorities declared for that surface: registered modules, claim/evidence structure, ExperimentSpecs, and sheaf realization state.
-
-Neither document proves the complete repository state. Evaluation records, claim promotion, exact-head GitHub Actions, and commit history have separate authorities. If `main` moves, cached conclusions about what is done, ready, blocked, passing, or scientifically supported are stale until the reorientation sequence in [docs/REPOSITORY-STATE.md](docs/REPOSITORY-STATE.md) is repeated.
+The binding maturity and evidence semantics are defined in [docs/VALIDATION-AND-EVIDENCE.md](docs/VALIDATION-AND-EVIDENCE.md); worker instructions are in [AGENTS.md](AGENTS.md). Current repository-local research state is generated in [docs/generated/STATE.md](docs/generated/STATE.md).
 
 ## Scientific programs
 
@@ -98,24 +85,22 @@ python architecture/codespaces_campaign.py
 
 The runner derives supported experiment identities from existing ExperimentSpecs and the canonical runtime registry. It does not create a second experiment list. Codespaces is an execution venue for work that fits the declared portable CPU/toolchain resource classes; it does not stand in for CUDA hardware, native external runtimes, or large-data confirmation.
 
-Execution-resource semantics are defined in [docs/EXECUTION-TOPOLOGY.md](docs/EXECUTION-TOPOLOGY.md).
+Execution-resource semantics are defined in [docs/EXECUTION-RESOURCES.md](docs/EXECUTION-RESOURCES.md).
 
 ## Where to look
 
-- [AGENTS.md](AGENTS.md) — binding repository and evidence contract.
-- [architecture/state_authorities.json](architecture/state_authorities.json) — machine authority for repository-state surfaces and freshness.
-- [docs/REPOSITORY-STATE.md](docs/REPOSITORY-STATE.md) — generated exact-head reorientation protocol.
+- [AGENTS.md](AGENTS.md) — worker orientation and repository-editing rules.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — intended architecture and authority boundaries.
 - [architecture/planning_graph.json](architecture/planning_graph.json) — sole planning authority.
 - [docs/ROADMAP.md](docs/ROADMAP.md) — generated planning-only projection.
-- [docs/generated/STATUS.md](docs/generated/STATUS.md) — generated structural-realization projection.
+- [docs/generated/STATE.md](docs/generated/STATE.md) — generated repository-local research state.
 - [experiments/](experiments/) — registered ExperimentSpecs.
 - [evaluations/](evaluations/) — committed evaluation and exploratory result records.
 - [claims/registry.json](claims/registry.json) and [evidence/registry.json](evidence/registry.json) — scientific claim/evidence authority.
 - [methods/registry.json](methods/registry.json) — executable method identities and assumptions.
 - [docs/VALIDATION-AND-EVIDENCE.md](docs/VALIDATION-AND-EVIDENCE.md) — verification, validation, and promotion semantics.
 - [docs/META-EXPERIMENTATION.md](docs/META-EXPERIMENTATION.md) — comparison and experiment-design rules.
-- [docs/EXECUTION-TOPOLOGY.md](docs/EXECUTION-TOPOLOGY.md) — resource and execution-environment semantics.
+- [docs/EXECUTION-RESOURCES.md](docs/EXECUTION-RESOURCES.md) — resource and execution-environment semantics.
 
 ## Nonclaims
 
