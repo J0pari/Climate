@@ -11,6 +11,7 @@ from src.station_federation import (
     ObservationPartitionRef,
     ProviderAlias,
     ProviderLocationSnapshot,
+    ProviderVariableAvailability,
     StationCatalogShard,
     StationFederationManifest,
     StationLocationEpoch,
@@ -137,6 +138,39 @@ class StationFederationTests(unittest.TestCase):
         item = station()
         self.assertEqual(item.location_at("1999-12-31").latitude_deg, 40.0)
         self.assertEqual(item.location_at("2000-01-01").latitude_deg, 40.1)
+
+    def test_provider_variable_availability_is_provenance_bound(self):
+        root = ProviderAlias("ncei.ghcnd.v3", "AAA")
+        item = station()
+        enriched = FederatedStation(
+            canonical_station_id=item.canonical_station_id,
+            aliases=item.aliases,
+            location_history=item.location_history,
+            variable_ids=item.variable_ids,
+            provider_location_snapshots=item.provider_location_snapshots,
+            provider_variable_availability=(
+                ProviderVariableAvailability(
+                    "TMAX", 1901, 2026, root, D3
+                ),
+            ),
+        )
+        self.assertEqual(
+            enriched.provider_variable_availability[0].first_year,
+            1901,
+        )
+        with self.assertRaisesRegex(ValueError, "absent from variable_ids"):
+            FederatedStation(
+                canonical_station_id=item.canonical_station_id,
+                aliases=item.aliases,
+                location_history=item.location_history,
+                variable_ids=item.variable_ids,
+                provider_location_snapshots=item.provider_location_snapshots,
+                provider_variable_availability=(
+                    ProviderVariableAvailability(
+                        "PRCP", 1901, 2026, root, D3
+                    ),
+                ),
+            )
 
     def test_provider_location_snapshot_does_not_override_resolved_topology(self):
         alias = ProviderAlias("other.provider", "XYZ")

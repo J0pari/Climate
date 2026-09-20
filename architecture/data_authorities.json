@@ -463,7 +463,7 @@
       "source_ids": [
         "ncei.ghcnd.v3"
       ],
-      "rationale": "worldwide GHCN-Daily provider discovery consumes the complete provider station/inventory artifacts and identifies bulk by-year observation artifacts; the scale path neither embeds a selected station list nor enumerates per-station REST requests",
+      "rationale": "worldwide GHCN-Daily provider discovery consumes the complete provider station/inventory artifacts and identifies bulk by-year observation artifacts; station capability metadata preserves each inventory element's first/last year and the exact inventory artifact digest rather than collapsing provenance to a variable-name set; the scale path neither embeds a selected station list nor enumerates per-station REST requests",
       "witness_path": "tests/test_ncei_ghcnd_bulk.py",
       "witness_anchor": "test_provider_fixed_width_catalog_and_inventory_parse"
     },

@@ -22,6 +22,7 @@ from src.station_federation import (
     FederatedStation,
     ProviderAlias,
     ProviderLocationSnapshot,
+    ProviderVariableAvailability,
     StationCatalogShard,
     StationLocationEpoch,
     adaptive_catalog_shards,
@@ -196,10 +197,25 @@ def build_federated_stations(
     out: list[FederatedStation] = []
     for item in catalog.records:
         alias = ProviderAlias(SOURCE_ID, item.station_id)
+        inventory_records = tuple(
+            inventory_by_station.get(item.station_id, ())
+        )
         variables = tuple(sorted({
-            record.element
-            for record in inventory_by_station.get(item.station_id, ())
+            record.element for record in inventory_records
         }))
+        availability = tuple(
+            ProviderVariableAvailability(
+                variable_id=record.element,
+                first_year=record.first_year,
+                last_year=record.last_year,
+                source_alias=alias,
+                evidence_digest=inventory.sha256,
+            )
+            for record in sorted(
+                inventory_records,
+                key=lambda value: value.element,
+            )
+        )
         out.append(FederatedStation(
             canonical_station_id=canonical_station_id(alias),
             aliases=(AliasBinding(alias, "root", catalog.sha256),),
@@ -225,6 +241,7 @@ def build_federated_stations(
                     evidence_digest=catalog.sha256,
                 ),
             ),
+            provider_variable_availability=availability,
         ))
     return tuple(out)
 

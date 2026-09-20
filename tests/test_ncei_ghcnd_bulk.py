@@ -85,6 +85,17 @@ class GHCNBulkFederationTests(unittest.TestCase):
         self.assertEqual(snapshot.source_alias, stations[0].aliases[0].alias)
         self.assertEqual(snapshot.metadata_effective_date, "2026-09-18")
         self.assertEqual(snapshot.evidence_digest, catalog.sha256)
+        availability = {
+            item.variable_id: item
+            for item in stations[0].provider_variable_availability
+        }
+        self.assertEqual(set(availability), {"PRCP", "TMAX"})
+        self.assertEqual(availability["TMAX"].first_year, 1900)
+        self.assertEqual(availability["TMAX"].last_year, 2026)
+        self.assertEqual(
+            availability["TMAX"].evidence_digest,
+            inventory.sha256,
+        )
 
     def test_provider_module_reexports_provider_neutral_sharding(self):
         self.assertIs(adaptive_catalog_shards, generic_adaptive_catalog_shards)

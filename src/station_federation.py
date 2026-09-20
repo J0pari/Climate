@@ -162,12 +162,37 @@ class ProviderLocationSnapshot:
 
 
 @dataclass(frozen=True)
+class ProviderVariableAvailability:
+    variable_id: str
+    first_year: int
+    last_year: int
+    source_alias: ProviderAlias
+    evidence_digest: str
+
+    def __post_init__(self) -> None:
+        _nonempty(self.variable_id, "variable_id")
+        if (
+            isinstance(self.first_year, bool)
+            or isinstance(self.last_year, bool)
+            or not isinstance(self.first_year, int)
+            or not isinstance(self.last_year, int)
+        ):
+            raise ValueError("variable availability years must be integers")
+        if not 0 <= self.first_year <= self.last_year <= 9999:
+            raise ValueError(
+                "variable availability requires 0 <= first_year <= last_year <= 9999"
+            )
+        _digest(self.evidence_digest, "evidence_digest")
+
+
+@dataclass(frozen=True)
 class FederatedStation:
     canonical_station_id: str
     aliases: tuple[AliasBinding, ...]
     location_history: tuple[StationLocationEpoch, ...]
     variable_ids: tuple[str, ...]
     provider_location_snapshots: tuple[ProviderLocationSnapshot, ...] = ()
+    provider_variable_availability: tuple[ProviderVariableAvailability, ...] = ()
 
     def __post_init__(self) -> None:
         _nonempty(self.canonical_station_id, "canonical_station_id")
@@ -191,6 +216,25 @@ class FederatedStation:
             raise ValueError("variable_ids must contain non-empty strings")
         if len(set(variables)) != len(variables):
             raise ValueError("variable_ids must be unique")
+
+        alias_set = set(alias_values)
+        availability = tuple(self.provider_variable_availability)
+        availability_keys = [
+            (item.source_alias, item.variable_id) for item in availability
+        ]
+        if len(set(availability_keys)) != len(availability_keys):
+            raise ValueError(
+                "provider variable availability must be unique by alias and variable"
+            )
+        for item in availability:
+            if item.source_alias not in alias_set:
+                raise ValueError(
+                    "provider variable availability source_alias is not bound to this station"
+                )
+            if item.variable_id not in variables:
+                raise ValueError(
+                    "provider variable availability variable_id is absent from variable_ids"
+                )
 
         alias_set = set(alias_values)
         snapshots = tuple(self.provider_location_snapshots)
@@ -335,10 +379,14 @@ def remove_cross_provider_alias_evidence(
         ) or any(
             snapshot.source_alias in removable
             for snapshot in station.provider_location_snapshots
+        ) or any(
+            item.source_alias in removable
+            for item in station.provider_variable_availability
         ):
             raise ValueError(
-                "cannot remove crosswalk evidence while resolved location history "
-                "or a current provider location snapshot depends on its alias"
+                "cannot remove crosswalk evidence while resolved location history, "
+                "current provider location metadata, or variable availability "
+                "depends on its alias"
             )
         aliases = tuple(
             binding
