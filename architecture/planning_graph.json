@@ -917,7 +917,7 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Bind externally owned capabilities through exact native identity, configuration, transformation, receipt, and failure semantics while pruning Climate-owned shadows only after the exact replacement has executed successfully on production-scale resources. Realized so far: native-output import for external model evaluation, direct native curl acquisition in workflows with Climate HTTP transport orchestration removed, and successful Climate-REF ingestion of a checksum-pinned CMIP6 ESGF object.",
+      "summary": "Bind externally owned capabilities through exact native identity, configuration, transformation, receipt, and failure semantics while pruning Climate-owned shadows only after the exact replacement has executed successfully on production-scale resources. Realized so far: native-output import for external model evaluation, direct native curl acquisition in workflows with Climate HTTP transport orchestration removed, Climate-REF production CMIP ingestion, ESMValCore native preprocessing, AQUA native production-data access, and AIMIP full-archive access through an immutable upstream snapshot.",
       "depends_on": [],
       "completion": [
         "Each realized external integration names the exact native capability being consumed, the Climate-owned semantic gap it fills, and the upstream identity/configuration/receipt required for reproducibility.",
@@ -998,18 +998,15 @@
     {
       "id": "integration.aimip_production_archive",
       "title": "Use the public AIMIP production archive",
-      "status": "active",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R5_large_data",
-      "summary": "Exercise the anonymous DKRZ AIMIP archive through the exact published model path, then bind AIMIP model/experiment/realization/grid/version identity into Climate evidence semantics without mirroring the intercomparison archive or evaluation protocol.",
+      "summary": "The public AIMIP Phase 1 submission archive was resolved through its published full Hugging Face dataset snapshot at immutable revision 88f580b391652908c841ef362c689145528dcebb. The workflow selected exactly one ACE2.1-ERA5 Amon/tas/gn/v20251130 object, downloaded and hashed that production object, opened all 555 monthly timesteps, and computed a finite bounded global-mean temperature diagnostic in GitHub Actions run 35454755985 without mirroring AIMIP's intercomparison archive or evaluation protocol.",
       "depends_on": [],
-      "blockers": [
-        "The first workflow used a nonexistent ACE2.1-ERA5 tas/native-grid path and received HTTP/S3 403. AIMIP SUBMISSIONS.md publishes the exact ACE2.1-ERA5 example as s3://ai-mip/Ai2/ACE2-1-ERA5/aimip/r1i1p1f1/Amon/ta/gr/v20251130/ta_Amon_ACE2-ERA5_aimip_r1i1p1f1_gr_197810-202412.nc. Update to that exact path and rerun; do not add an alternate dataset or fallback."
-      ],
       "completion": [
-        "Anonymous access succeeds against the published DKRZ S3 endpoint using an exact path present in AIMIP's submission registry.",
-        "A real full-period model field is opened and at least one bounded Climate diagnostic is computed from it.",
-        "The receipt binds AIMIP organization, model, experiment, realization, frequency, variable, grid and version.",
+        "A public full AIMIP archive snapshot resolves to an immutable upstream revision, and the selected object path is discovered from that exact snapshot rather than guessed or silently substituted.",
+        "A real full-period model field is downloaded with a recorded SHA-256 digest, opened, and used for at least one bounded Climate diagnostic.",
+        "The receipt binds AIMIP organization, model, experiment, realization, frequency, variable, grid, version, immutable archive revision, and exact object path.",
         "Missing variables or realizations fail the declared assay or define a separately preregistered partial experiment; they are never filled or substituted silently.",
         "Only after this native archive path passes may overlapping local AI-intercomparison/archive behavior be pruned."
       ],

@@ -8,12 +8,11 @@ The generated orientation view preserves each included surface as a distinct sem
 
 ## Planning frontier
 
-Active **5** · Ready **14** · Blocked **10** · Done **21** · Dropped **0**
+Active **4** · Ready **14** · Blocked **10** · Done **22** · Dropped **0**
 
 | Obligation | Status | Priority | Resource |
 | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` |
-| `integration.aimip_production_archive` — Use the public AIMIP production archive | `active` | `P0` | `R5_large_data` |
 | `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_toolchain_ci` |
 | `orchestration.codespaces_cpu_experiment_campaign` — Turn included Codespaces CPU into receipted experiments | `active` | `P0` | `R2_toolchain_ci` |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` |

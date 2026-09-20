@@ -8,10 +8,10 @@ External-integration obligations bind native external capabilities while keeping
 
 ## Planning summary
 
-- Active: 5
+- Active: 4
 - Ready: 14
 - Blocked: 10
-- Done: 21
+- Done: 22
 - Dropped: 0
 
 ## Graph projection
@@ -19,7 +19,6 @@ External-integration obligations bind native external capabilities while keeping
 | Obligation | Status | Priority | Resource | Dependencies |
 | --- | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
-| `integration.aimip_production_archive` — Use the public AIMIP production archive | `active` | `P0` | `R5_large_data` | — |
 | `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_toolchain_ci` | — |
 | `orchestration.codespaces_cpu_experiment_campaign` — Turn included Codespaces CPU into receipted experiments | `active` | `P0` | `R2_toolchain_ci` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_toolchain_ci` | — |
@@ -57,6 +56,7 @@ External-integration obligations bind native external capabilities while keeping
 | `experimentation.common_cpu_runtime` — Run one contract-valid CPU experiment end to end | `done` | `P0` | `R1_portable_cpu` | — |
 | `experimentation.failure_provenance` — Persist structured provenance for failed experiment execution | `done` | `P0` | `R2_toolchain_ci` | `experimentation.common_cpu_runtime` |
 | `geometry.nonlinear_coordinate_witness` — Verify nonlinear coordinate covariance | `done` | `P0` | `R2_toolchain_ci` | — |
+| `integration.aimip_production_archive` — Use the public AIMIP production archive | `done` | `P0` | `R5_large_data` | — |
 | `integration.aqua_production_reader` — Use AQUA production data access | `done` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
 | `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `done` | `P0` | `R4_integrated_system` | — |
 | `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `done` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
