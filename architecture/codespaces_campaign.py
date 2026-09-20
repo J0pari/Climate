@@ -22,6 +22,11 @@ import subprocess
 import sys
 from typing import Any
 
+try:
+    from architecture import finite_resources
+except ModuleNotFoundError:
+    import finite_resources
+
 ROOT = Path(__file__).resolve().parents[1]
 EXPERIMENTS_DIR = ROOT / "experiments"
 DEFAULT_ARTIFACT_ROOT = ROOT / "run-artifacts" / "codespaces"
@@ -47,6 +52,7 @@ def _run(
     *,
     cwd: Path = ROOT,
     check: bool = False,
+    timeout: float | None = None,
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         command,
@@ -55,6 +61,7 @@ def _run(
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        timeout=timeout,
     )
 
 
@@ -133,19 +140,57 @@ def _cue_path() -> str:
     )
 
 
+def _codespaces_session(
+    campaign_id: str,
+    authorization_id: str | None,
+) -> dict[str, Any] | None:
+    if os.environ.get("CODESPACES", "").lower() != "true":
+        return None
+    if not authorization_id:
+        raise RuntimeError(
+            "Codespaces execution requires CLIMATE_CODESPACES_AUTHORIZATION "
+            "backed by a committed finite-resource reservation"
+        )
+    try:
+        return finite_resources.require_codespaces_session(
+            authorization_id,
+            campaign_id,
+            codespace_name=os.environ.get("CODESPACE_NAME", ""),
+        )
+    except finite_resources.FiniteResourceError as exc:
+        raise RuntimeError(
+            f"Codespaces finite-resource guard refused execution: {exc}"
+        ) from exc
+
+
+def _remaining_timeout(session: dict[str, Any] | None) -> float | None:
+    if session is None:
+        return None
+    return finite_resources.remaining_seconds(session)
+
+
 def _environment_receipt(
     campaign_dir: Path,
     repository: dict[str, Any],
     cue: str,
+    session: dict[str, Any] | None,
 ) -> dict[str, Any]:
     environment_dir = campaign_dir / "environment"
     environment_dir.mkdir(parents=True, exist_ok=True)
 
-    freeze = _run([sys.executable, "-m", "pip", "freeze"], check=True)
+    freeze = _run(
+        [sys.executable, "-m", "pip", "freeze"],
+        check=True,
+        timeout=_remaining_timeout(session),
+    )
     freeze_path = environment_dir / "pip-freeze.txt"
     freeze_path.write_text(freeze.stdout, encoding="utf-8")
 
-    cue_version = _run([cue, "version"], check=True)
+    cue_version = _run(
+        [cue, "version"],
+        check=True,
+        timeout=_remaining_timeout(session),
+    )
     (environment_dir / "cue-version.txt").write_text(
         cue_version.stdout + cue_version.stderr,
         encoding="utf-8",
@@ -172,7 +217,11 @@ def _environment_receipt(
     }
 
 
-def _vet_experiment_outputs(cue: str, output_dir: Path) -> tuple[bool, str]:
+def _vet_experiment_outputs(
+    cue: str,
+    output_dir: Path,
+    session: dict[str, Any] | None,
+) -> tuple[bool, str]:
     targets: list[tuple[str, Path]] = [("#ExperimentOutcome", output_dir / "outcome.json")]
     targets.extend(("#RunManifest", path) for path in sorted(output_dir.glob("run-*.json")))
 
@@ -184,7 +233,7 @@ def _vet_experiment_outputs(cue: str, output_dir: Path) -> tuple[bool, str]:
             ok = False
             continue
         command = [cue, "vet", "-d", definition, "contracts/climate.cue", str(path)]
-        result = _run(command)
+        result = _run(command, timeout=_remaining_timeout(session))
         transcript.append("$ " + " ".join(command) + "\n")
         transcript.append(result.stdout)
         transcript.append(result.stderr)
@@ -199,10 +248,12 @@ def run_campaign(
     campaign_id: str,
     artifact_root: Path,
     allow_dirty: bool,
+    authorization_id: str | None = None,
 ) -> tuple[dict[str, Any], int]:
     if not CAMPAIGN_ID_RE.fullmatch(campaign_id):
         raise ValueError("campaign id must contain only letters, digits, '.', '_' or '-'")
 
+    session = _codespaces_session(campaign_id, authorization_id)
     available = discover_supported_experiments()
     unknown = sorted(set(experiment_ids) - set(available))
     if unknown:
@@ -222,7 +273,9 @@ def run_campaign(
     campaign_dir.mkdir(parents=True)
 
     started = datetime.now(timezone.utc).isoformat()
-    environment = _environment_receipt(campaign_dir, repository, cue)
+    environment = _environment_receipt(
+        campaign_dir, repository, cue, session
+    )
     records: list[dict[str, Any]] = []
     overall_ok = True
 
@@ -243,14 +296,27 @@ def run_campaign(
             "--run-scope",
             run_scope,
         ]
-        result = _run(command)
+        try:
+            result = _run(
+                command, timeout=_remaining_timeout(session)
+            )
+        except subprocess.TimeoutExpired as exc:
+            result = subprocess.CompletedProcess(
+                command,
+                124,
+                stdout=exc.stdout or "",
+                stderr=(exc.stderr or "")
+                + "\nCodespaces finite-resource wall-time reservation exhausted.\n",
+            )
         (output_dir / "stdout.txt").write_text(result.stdout, encoding="utf-8")
         (output_dir / "stderr.txt").write_text(result.stderr, encoding="utf-8")
 
         contract_ok = False
         vet_log = ""
         if result.returncode == 0:
-            contract_ok, vet_log = _vet_experiment_outputs(cue, output_dir)
+            contract_ok, vet_log = _vet_experiment_outputs(
+                cue, output_dir, session
+            )
         (output_dir / "contract-vet.txt").write_text(vet_log, encoding="utf-8")
 
         outcome = output_dir / "outcome.json"
@@ -272,6 +338,19 @@ def run_campaign(
         )
 
     finished = datetime.now(timezone.utc).isoformat()
+    resource_accounting = None
+    if session is not None:
+        try:
+            resource_accounting = finite_resources.finish_codespaces_receipt(
+                session,
+                receipt_path=campaign_dir / "resource-accounting.json",
+                campaign_status="passed" if overall_ok else "failed",
+            )
+        except finite_resources.FiniteResourceError as exc:
+            raise RuntimeError(
+                f"Codespaces resource accounting failed: {exc}"
+            ) from exc
+
     campaign = {
         "schema_version": 1,
         "campaign_id": campaign_id,
@@ -279,6 +358,7 @@ def run_campaign(
         "started_at": started,
         "finished_at": finished,
         "environment": environment,
+        "resource_accounting": resource_accounting,
         "experiments": records,
         "status": "passed" if overall_ok else "failed",
     }
@@ -323,6 +403,11 @@ def main() -> int:
     )
     parser.add_argument("--list", action="store_true", help="list supported experiment ids")
     parser.add_argument("--campaign-id")
+    parser.add_argument(
+        "--resource-authorization",
+        default=os.environ.get("CLIMATE_CODESPACES_AUTHORIZATION"),
+        help="committed Codespaces self-budget authorization id; required in Codespaces",
+    )
     parser.add_argument("--artifact-root", type=Path, default=DEFAULT_ARTIFACT_ROOT)
     parser.add_argument(
         "--allow-dirty",
@@ -340,12 +425,22 @@ def main() -> int:
     selected = args.experiments or list(available)
     now = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     revision = _git("rev-parse", "HEAD")
-    campaign_id = args.campaign_id or f"{now}-{revision[:12]}"
+    campaign_id = args.campaign_id
+    if (
+        campaign_id is None
+        and os.environ.get("CODESPACES", "").lower() == "true"
+        and args.resource_authorization
+    ):
+        campaign_id = finite_resources.codespaces_authorization(
+            args.resource_authorization
+        )["campaign_id"]
+    campaign_id = campaign_id or f"{now}-{revision[:12]}"
     campaign, exit_code = run_campaign(
         selected,
         campaign_id=campaign_id,
         artifact_root=args.artifact_root.resolve(),
         allow_dirty=args.allow_dirty,
+        authorization_id=args.resource_authorization,
     )
     print((args.artifact_root.resolve() / campaign["campaign_id"] / "SUMMARY.md"))
     return exit_code
