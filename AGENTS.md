@@ -25,6 +25,7 @@ Repository-local research state is generated into `docs/generated/STATE.md`. Pla
 - **Durable prose states contracts and facts, not prestige or edit history.** Use commit history for change narration. `architecture/check_documentation_quality.py` and `architecture/check_durable_text.py` enforce this boundary.
 - **Unavailable resources remain unavailable.** Compilation, mocks, source inspection, or local imitation do not substitute for CUDA hardware, native external runtimes, or declared large-data evidence.
 - **Do not use hosted CI.** Repository pushes must not trigger hosted compute. `.github/workflows/` must remain absent. Verification runs locally in an explicitly identified checkout/environment; R3/R4/R5 evidence requires the declared external resource plus a durable receipt or artifact.
+- **Ledger-gate finite resources.** Before initiating, provisioning, or requesting any metered or finite execution resource, read `architecture/finite_resource_ledger.json`. The resource must be enabled, the self-budget must have enough unreserved capacity, and a reservation must already be committed. Climate-initiated usage is tracked from the repository side even when provider billing totals are unavailable. Missing accounting makes the resource unavailable, not implicitly free.
 
 ## Change-quality gates
 
@@ -60,6 +61,7 @@ python architecture/check_methods.py
 python architecture/check_modules.py
 python architecture/check_planning.py
 python architecture/check_experiments.py
+python architecture/finite_resources.py check
 python architecture/check_semantic_defaults.py
 python architecture/check_documentation_quality.py
 python architecture/check_durable_text.py

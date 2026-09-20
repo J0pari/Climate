@@ -1054,24 +1054,31 @@
     {
       "id": "orchestration.codespaces_cpu_experiment_campaign",
       "title": "Turn included Codespaces CPU into receipted experiments",
-      "status": "active",
+      "status": "blocked",
       "priority": "P0",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Use available included personal-account GitHub Codespaces CPU for the registered portable experiment frontier through the canonical runtime, capturing exact revision/environment receipts and contract-valid outcomes so ready experiments produce evidence before discretionary framework refinement consumes effort.",
+      "summary": "Codespaces execution is deliberately disabled until a finite self-budget is explicitly configured. Climate tracks its own initiated usage independently of provider billing: every campaign requires a committed reservation for cores, wall time, core-minutes and storage; the full reservation is charged before execution; bootstrap and runtime fail closed without it; and one unreconciled reservation blocks another campaign.",
       "depends_on": [],
       "completion": [
-        "A fresh GitHub Codespace bootstraps the declared Climate experiment environment from .devcontainer without hand-installed scientific dependencies.",
-        "The campaign runner discovers runnable experiment identities from the existing experiment specifications plus the canonical runtime adapter registry rather than maintaining a second experiment list.",
-        "At least one clean-main Codespaces campaign executes the supported registered local CPU experiment frontier, preserves per-experiment stdout/stderr, run/outcome artifacts, CUE validation logs, and an environment receipt, and terminates with a campaign summary.",
-        "Codespaces is treated only as an R1/R2 execution venue: experiments requiring CUDA, an integrated native external runtime, or large-data authority remain resource-gated rather than being locally imitated.",
-        "Included account compute is spent on declared experiments, replications, or blocker-resolving integration work; redundant repetition solely to exhaust quota does not satisfy completion."
+        "The repository-side finite-resource ledger enables Codespaces only with an explicit budget period and positive hard self-limits for core-minutes and storage GiB-hours.",
+        "Every Climate-initiated Codespaces use is reserved in the durable ledger before provisioning/bootstrap; the full reservation counts against remaining self-budget and overcommit fails closed.",
+        "Bootstrap claims exactly one authorization before dependency installation, binds it to the Codespace, and the campaign enforces its wall-time deadline while discovering experiments from the canonical runtime/spec registry.",
+        "A clean-main campaign records stdout/stderr, run/outcome artifacts, CUE logs, environment identity, Codespace identity, detected cores, actual wall seconds, rounded actual core-minutes, reserved/charged core-minutes and storage, and filesystem usage.",
+        "Only one unreconciled authorization may exist; another campaign is forbidden until the prior durable ledger entry is completed from its resource receipt. Actual early finish does not silently refund reserved capacity.",
+        "Codespaces remains only an R1/R2 venue; CUDA, native integrated runtimes and large-data obligations remain resource-gated, and redundant quota-burning repetition is prohibited."
       ],
       "evidence": [
         ".devcontainer/devcontainer.json",
         ".devcontainer/bootstrap.sh",
         "architecture/codespaces_campaign.py",
         "tests/architecture/test_codespaces_campaign.py",
-        "docs/EXECUTION-RESOURCES.md"
+        "docs/EXECUTION-RESOURCES.md",
+        "architecture/finite_resource_ledger.json",
+        "architecture/finite_resources.py",
+        "tests/architecture/test_finite_resources.py"
+      ],
+      "blockers": [
+        "architecture/finite_resource_ledger.json currently keeps github_codespaces disabled with zero self-budget. No Codespaces campaign may be initiated until an explicit finite self-budget and one committed authorization are supplied."
       ]
     }
   ]

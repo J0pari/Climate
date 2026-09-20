@@ -75,14 +75,14 @@ Language-specific references, canonical Rust/Fortran surfaces, mathematical orac
 
 ### Codespaces
 
-The repository includes a dev-container and a campaign runner for portable CPU experiments:
+Codespaces is **disabled by default** behind the repository-side finite-resource authority `architecture/finite_resource_ledger.json`. Climate tracks its own initiated usage independently of provider billing: a campaign must have a committed reservation before a Codespace may bootstrap, the full reservation is deducted from the self-budget before execution, only one unreconciled reservation may exist, and the campaign records actual wall/core/disk measurements without automatically refunding unused reservation.
 
 ```text
+python architecture/finite_resources.py check
 python architecture/codespaces_campaign.py --list
-python architecture/codespaces_campaign.py
 ```
 
-The runner derives supported experiment identities from existing ExperimentSpecs and the canonical runtime registry. It does not create a second experiment list. Codespaces is an execution venue for work that fits the declared portable CPU/toolchain resource classes; it does not stand in for CUDA hardware, native external runtimes, or large-data confirmation.
+The dev-container refuses dependency installation in Codespaces when `CLIMATE_CODESPACES_AUTHORIZATION` is missing or invalid. The runner derives experiment identities from existing ExperimentSpecs and the canonical runtime registry and enforces the authorization wall-time while recording `resource-accounting.json`. Provider account totals are optional reconciliation evidence, not the primary limiter.
 
 Execution-resource semantics are defined in [docs/EXECUTION-RESOURCES.md](docs/EXECUTION-RESOURCES.md).
 

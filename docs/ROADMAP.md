@@ -8,9 +8,9 @@ External-integration obligations bind native external capabilities while keeping
 
 ## Planning summary
 
-- Active: 4
+- Active: 3
 - Ready: 16
-- Blocked: 12
+- Blocked: 13
 - Done: 18
 - Dropped: 0
 
@@ -20,7 +20,6 @@ External-integration obligations bind native external capabilities while keeping
 | --- | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
 | `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_portable_toolchain` | — |
-| `orchestration.codespaces_cpu_experiment_campaign` — Turn included Codespaces CPU into receipted experiments | `active` | `P0` | `R2_portable_toolchain` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_portable_toolchain` | — |
 | `integration.aimip_production_archive` — Use the public AIMIP production archive | `ready` | `P0` | `R5_large_data` | — |
 | `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `ready` | `P0` | `R4_integrated_system` | — |
@@ -40,6 +39,7 @@ External-integration obligations bind native external capabilities while keeping
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_portable_toolchain` | — |
 | `integration.aqua_production_reader` — Use AQUA production data access | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
 | `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
+| `orchestration.codespaces_cpu_experiment_campaign` — Turn included Codespaces CPU into receipted experiments | `blocked` | `P0` | `R2_portable_toolchain` | — |
 | `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` | `sheaf.climate_data_semantics`, `data.global_free_station_federation` |
 | `experimentation.multifidelity_response_interrogation` — Use cheap model exploration to choose discriminating high-fidelity experiments | `blocked` | `P1` | `R5_large_data` | `integration.native_capability_boundaries`, `orchestration.external_artifact_evaluation`, `validation.cross_model_evidence_transport` |
 | `integration.commons_storage_distribution` — Resolve Commons storage distribution for public Climate consumption | `blocked` | `P1` | `R4_integrated_system` | — |

@@ -11,6 +11,7 @@ python architecture/check_methods.py
 python architecture/check_modules.py
 python architecture/check_planning.py
 python architecture/check_experiments.py
+python architecture/finite_resources.py check
 python architecture/check_semantic_defaults.py
 python architecture/check_documentation_quality.py
 python architecture/check_durable_text.py
