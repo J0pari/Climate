@@ -330,7 +330,7 @@ def run_evaluation(
                 "implementation_build": method_builds[candidate_method],
                 "backend_id": "rust-cargo-test",
                 "precision": "FP64",
-                "resource_class": "R2_toolchain_ci",
+                "resource_class": "R2_portable_toolchain",
             },
             "status": "eligible",
             "resolved": {
@@ -339,7 +339,7 @@ def run_evaluation(
                 "implementation_build": method_builds[candidate_method],
                 "backend_id": "rust-cargo-test",
                 "precision": "FP64",
-                "resource_class": "R2_toolchain_ci",
+                "resource_class": "R2_portable_toolchain",
             },
         },
         "scientific_output_eligible": True,
