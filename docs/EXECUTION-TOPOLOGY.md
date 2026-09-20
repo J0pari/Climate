@@ -4,7 +4,7 @@ Status: **binding execution semantics specification**.
 
 This document defines what Climate resource classes mean, which environments can legitimately answer which kinds of questions, and what evidence those environments can produce. It does not choose, prioritize, or schedule repository work.
 
-`architecture/planning_graph.json` is the sole authority for planned work, priority, dependencies, blockers, completion criteria, and each obligation's `resource_class`. `docs/ROADMAP.md` is only its generated projection. Objective realized repository state is rendered separately in `docs/generated/STATUS.md`.
+`architecture/planning_graph.json` is the sole authority for planned work, priority, dependencies, blockers, completion criteria, and each obligation's `resource_class`. `docs/ROADMAP.md` is only its generated planning projection. `docs/generated/STATUS.md` is only the scoped structural-realization projection declared by `architecture/state_authorities.json`; it does not project committed evaluations, exact-head CI, or commit history. Present-state and execution decisions must reconcile the relevant surfaces at one exact commit using `docs/REPOSITORY-STATE.md`.
 
 ## 1. Resource classes
 
