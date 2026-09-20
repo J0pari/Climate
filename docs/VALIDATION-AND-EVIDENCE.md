@@ -151,7 +151,7 @@ Important parameters carry provenance whenever their origin affects scientific i
 
 Required data, parameters, and execution capabilities fail closed when unavailable. An alternate dataset, calibration, parameter set, solver, backend, or precision is a separately declared input or execution identity, not a runtime fallback. `#ExecutionResolution` in `contracts/climate.cue` makes an execution eligible only when the resolved method/implementation/build/backend/precision/resource-class identity is exactly the requested identity.
 
-CI and evidence tooling should be able to answer:
+Verification and evidence tooling should be able to answer:
 
 - Does a decision-eligible path contain a placeholder?
 - Did an execution become ineligible because a requested capability could not be satisfied?
@@ -366,18 +366,11 @@ Execution-resource classes use the `R0_static` … `R5_large_data` namespace in 
 
 Do not use "reproducible" without indicating which sense when the distinction matters.
 
-## 13. CI versus scientific evaluation
+## 13. Local verification versus scientific evaluation
 
-CI is for bounded, fast evidence:
+Repository verification is explicit and non-hosted. Bounded local checks cover structural guards, tiny fixtures, unit/property tests, selected manufactured/convergence checks, schema/provenance checks, and deterministic linting of claim/maturity labels.
 
-- structural checks;
-- tiny fixtures;
-- unit/property tests;
-- selected manufactured/convergence smoke tests;
-- schema/provenance checks;
-- deterministic linting of claim/maturity labels.
-
-Large observational/model evaluations belong in scheduled benchmark jobs with immutable receipts. They can gate promotion without running on every commit.
+Large observational/model evaluations run only in the explicitly declared resource environment and produce immutable receipts. They may gate promotion without being coupled to every repository commit.
 
 ## 14. Failure reporting
 
