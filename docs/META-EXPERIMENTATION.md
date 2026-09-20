@@ -142,7 +142,7 @@ sheaf method
 ...
 ```
 
-A candidate may be useful because it dominates on one scientifically meaningful axis without being globally superior.
+A candidate may be retained for a declared endpoint even when it does not dominate the full metric set; the endpoint and decision rule must be preregistered.
 
 ## 6. Ablation design
 
@@ -371,4 +371,4 @@ The following are useful experiment designs when their prerequisites are ready. 
 - **Response-structure transfer** — apply matched perturbations to a cheap emulator and a higher-fidelity parent model; compare response subspaces/operators and use frozen selection rules to choose discriminating high-fidelity runs.
 - **Offline/online structural failure** — test whether invariant residuals, Jacobian/spectral diagnostics, state-dependent error, or representation mismatch predict online coupled failure beyond ordinary offline loss.
 
-Local tests isolate mathematical and numerical failure modes before broad integration. They are not a reason to keep scientifically related representations permanently isolated: once constituent maps are trustworthy enough, integrated experiments should test whether their joint geometry captures climate dynamics, information, and physical structure that separate views or simpler fusion baselines miss.
+Local tests isolate mathematical and numerical failure modes before broad integration. They are not a reason to keep related representations permanently isolated: once each constituent map satisfies its declared verification contract, integrated experiments should test whether the joint construction improves preregistered dynamical, informational, or physical endpoints over separate-view and simpler-fusion baselines.
