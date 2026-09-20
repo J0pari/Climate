@@ -43,12 +43,12 @@ class RenderStateTests(unittest.TestCase):
             state,
         )
 
-    def test_state_does_not_claim_exact_head_execution(self) -> None:
+    def test_state_does_not_infer_uncommitted_execution(self) -> None:
         state = (ROOT / "docs" / "generated" / "STATE.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Exact-head build, test, and workflow outcomes live in GitHub Actions", state)
-        self.assertIn("does not promote evidence or infer CI outcomes", state)
+        self.assertIn("Build and test outcomes are not inferred here", state)
+        self.assertIn("does not promote evidence or infer uncommitted execution outcomes", state)
 
 
 if __name__ == "__main__":
