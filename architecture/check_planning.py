@@ -24,7 +24,7 @@ PRIORITIES = {"P0", "P1", "P2", "P3"}
 RESOURCE_CLASSES = {
     "R0_static",
     "R1_portable_cpu",
-    "R2_toolchain_ci",
+    "R2_portable_toolchain",
     "R3_cuda_device",
     "R4_integrated_system",
     "R5_large_data",
