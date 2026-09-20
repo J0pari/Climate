@@ -356,7 +356,7 @@ No arrow is automatic promotion. The bridge must state what is assumed invariant
 Native external receipts are part of provenance. If Climate-REF, AQUA, ESMValTool, AIMIP tooling, ClimSim-Online, Anemoi, ACE-family code, or a physical model runtime materially transforms or produces the evaluated artifact, the evidence chain must bind the exact upstream artifact/model/configuration/runtime identity and preserve failures. Reimplementing that native capability locally is not a reproducibility strategy.
 ## 12. Reproducibility levels
 
-Execution-resource classes use the `R0_static` … `R5_large_data` namespace in `docs/EXECUTION-TOPOLOGY.md`. Reproducibility therefore uses a separate `REP*` namespace:
+Execution-resource classes use the `R0_static` … `R5_large_data` namespace in `docs/EXECUTION-RESOURCES.md`. Reproducibility therefore uses a separate `REP*` namespace:
 
 - **REP0 described** — prose sufficient to understand intent.
 - **REP1 replayable** — exact command/config/seed/revision/data refs recorded.
