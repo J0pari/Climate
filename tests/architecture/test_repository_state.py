@@ -18,21 +18,42 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
         )
         self.assertEqual(
             {surface["id"] for surface in manifest["surfaces"]},
-            {"planning", "repository_state", "execution", "history"},
+            {
+                "planning",
+                "structural_realization",
+                "experiment_definitions",
+                "evaluation_records",
+                "claim_evidence",
+                "execution",
+                "history",
+            },
         )
-        state = state_authorities.surface_by_id(manifest, "repository_state")
-        self.assertEqual(state["projection"], "docs/generated/STATE.md")
-        self.assertEqual(state["renderer"], "architecture/render_state.py")
+        self.assertEqual(
+            set(manifest["orientation_view"]["includes"]),
+            {
+                "planning",
+                "structural_realization",
+                "experiment_definitions",
+                "evaluation_records",
+                "claim_evidence",
+            },
+        )
+        self.assertEqual(
+            set(manifest["orientation_view"]["excludes"]),
+            {"execution", "history"},
+        )
+        self.assertEqual(manifest["orientation_view"]["projection"], "docs/generated/STATE.md")
+        self.assertEqual(manifest["orientation_view"]["renderer"], "architecture/render_state.py")
 
     def test_repository_state_includes_planning_evaluations_and_method_authorities(self) -> None:
         manifest = state_authorities.load_manifest(
             ROOT / "architecture" / "state_authorities.json"
         )
+        typed = state_authorities.orientation_authority_paths(ROOT, manifest)
         paths = {
             path.relative_to(ROOT).as_posix()
-            for path in state_authorities.projection_authority_paths(
-                ROOT, manifest, "repository_state"
-            )
+            for surface_paths in typed.values()
+            for path in surface_paths
         }
         self.assertIn("architecture/planning_graph.json", paths)
         self.assertIn("methods/registry.json", paths)
@@ -42,6 +63,14 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
             "evaluations/information-geometry/two-layer-ebm-recovery-confirmation-v1/result.json",
             paths,
         )
+
+    def test_orientation_composition_does_not_promote_evaluations(self) -> None:
+        manifest = state_authorities.load_manifest(
+            ROOT / "architecture" / "state_authorities.json"
+        )
+        rule = manifest["orientation_view"]["composition_rule"].lower()
+        self.assertIn("evaluation record", rule)
+        self.assertIn("does not become scientific evidence", rule)
 
     def test_worker_orientation_requires_current_main_and_exact_head_actions(self) -> None:
         manifest = state_authorities.load_manifest(

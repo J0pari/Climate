@@ -18,7 +18,23 @@ from architecture.state_authorities import (
     surface_by_id,
 )
 
-REQUIRED_SURFACES = {"planning", "repository_state", "execution", "history"}
+REQUIRED_SURFACES = {
+    "planning",
+    "structural_realization",
+    "experiment_definitions",
+    "evaluation_records",
+    "claim_evidence",
+    "execution",
+    "history",
+}
+REQUIRED_ORIENTATION_INCLUDES = {
+    "planning",
+    "structural_realization",
+    "experiment_definitions",
+    "evaluation_records",
+    "claim_evidence",
+}
+REQUIRED_ORIENTATION_EXCLUDES = {"execution", "history"}
 REQUIRED_REFERENCES = {
     "AGENTS.md": (
         "docs/generated/STATE.md",
@@ -107,56 +123,35 @@ def check(root: Path = ROOT) -> list[Finding]:
                 )
             )
 
-    for surface_id in ("planning", "repository_state"):
-        if surface_id not in surface_ids:
-            continue
-        surface = surface_by_id(manifest, surface_id)
-        projection = surface.get("projection")
-        renderer = surface.get("renderer")
-        if not isinstance(projection, str) or not projection:
-            findings.append(
-                Finding(
-                    "repository_state.projection_missing",
-                    "architecture/state_authorities.json",
-                    f"{surface_id} requires a projection",
-                )
-            )
-        elif not (root / projection).is_file():
-            findings.append(
-                Finding(
-                    "repository_state.projection_file_missing",
-                    projection,
-                    f"{surface_id} projection is missing",
-                )
-            )
-        if not isinstance(renderer, str) or not renderer:
-            findings.append(
-                Finding(
-                    "repository_state.renderer_missing",
-                    "architecture/state_authorities.json",
-                    f"{surface_id} requires a renderer",
-                )
-            )
-        elif not (root / renderer).is_file():
-            findings.append(
-                Finding(
-                    "repository_state.renderer_file_missing",
-                    renderer,
-                    f"{surface_id} renderer is missing",
-                )
-            )
-        try:
-            projection_authority_paths(root, manifest, surface_id)
-        except ValueError as exc:
-            findings.append(
-                Finding(
-                    "repository_state.authority_inputs_invalid",
-                    "architecture/state_authorities.json",
-                    f"{surface_id}: {exc}",
-                )
-            )
+    planning = surface_by_id(manifest, "planning")
+    projection = planning.get("projection")
+    renderer = planning.get("renderer")
+    if projection != "docs/ROADMAP.md":
+        findings.append(Finding("repository_state.planning_projection_invalid", "architecture/state_authorities.json", "planning projection must remain docs/ROADMAP.md"))
+    elif not (root / projection).is_file():
+        findings.append(Finding("repository_state.projection_file_missing", projection, "planning projection is missing"))
+    if renderer != "architecture/render_roadmap.py":
+        findings.append(Finding("repository_state.planning_renderer_invalid", "architecture/state_authorities.json", "planning renderer must remain architecture/render_roadmap.py"))
+    elif not (root / renderer).is_file():
+        findings.append(Finding("repository_state.renderer_file_missing", renderer, "planning renderer is missing"))
+    try:
+        projection_authority_paths(root, manifest, "planning")
+    except ValueError as exc:
+        findings.append(Finding("repository_state.authority_inputs_invalid", "architecture/state_authorities.json", f"planning: {exc}"))
 
-    state_path = root / "docs" / "generated" / "STATE.md"
+    orientation = manifest["orientation_view"]
+    if set(orientation["includes"]) != REQUIRED_ORIENTATION_INCLUDES:
+        findings.append(Finding("repository_state.orientation_includes_invalid", "architecture/state_authorities.json", "orientation view must compose the five typed repository-local research surfaces"))
+    if set(orientation["excludes"]) != REQUIRED_ORIENTATION_EXCLUDES:
+        findings.append(Finding("repository_state.orientation_excludes_invalid", "architecture/state_authorities.json", "orientation view must exclude exact-head execution and git history"))
+    if orientation["projection"] != "docs/generated/STATE.md":
+        findings.append(Finding("repository_state.orientation_projection_invalid", "architecture/state_authorities.json", "orientation projection must remain docs/generated/STATE.md"))
+    if orientation["renderer"] != "architecture/render_state.py":
+        findings.append(Finding("repository_state.orientation_renderer_invalid", "architecture/state_authorities.json", "orientation renderer must remain architecture/render_state.py"))
+    elif not (root / orientation["renderer"]).is_file():
+        findings.append(Finding("repository_state.renderer_file_missing", orientation["renderer"], "orientation renderer is missing"))
+
+    state_path = root / manifest["orientation_view"]["projection"]
     if not state_path.is_file():
         findings.append(
             Finding(
