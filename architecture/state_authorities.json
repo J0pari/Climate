@@ -1,22 +1,7 @@
 {
   "schema_version": 1,
-  "authority": "repository authority for state surfaces, projection scope, and reorientation freshness",
-  "freshness_semantics": {
-    "commit_scoped": true,
-    "head_movement_invalidates_cached_state": true,
-    "rule": "Any present-state conclusion is valid only for the exact resolved main commit. If main moves, cached conclusions about planning, realization, evaluations, evidence, or CI are stale until the reorientation sequence is repeated."
-  },
+  "authority": "repository authority for generated research-state and planning projections",
   "surfaces": [
-    {
-      "id": "contract",
-      "kind": "durable_contract",
-      "authority_paths": [
-        "AGENTS.md",
-        "docs/ARCHITECTURE.md"
-      ],
-      "projection": null,
-      "scope": "Binding contributor semantics and intended architectural contracts. These documents may describe intended structure that is not yet realized."
-    },
     {
       "id": "planning",
       "kind": "machine_authority",
@@ -24,73 +9,48 @@
         "architecture/planning_graph.json"
       ],
       "projection": "docs/ROADMAP.md",
-      "renderer": "architecture/render_roadmap.py",
-      "scope": "Planned work, priority, dependencies, blockers, resource class, completion criteria, and planning evidence paths only.",
-      "excludes": [
-        "structural realization",
-        "scientific evaluation outcomes",
-        "claim-evidence promotion",
-        "exact-head CI state",
-        "commit history"
-      ]
+      "renderer": "architecture/render_roadmap.py"
     },
     {
-      "id": "structural_realization",
+      "id": "repository_state",
       "kind": "machine_authority_set",
       "authority_paths": [
+        "architecture/planning_graph.json",
         "architecture/modules/*.json",
+        "architecture/data_authorities.json",
+        "architecture/station_providers.json",
+        "architecture/semantic_hazards.json",
+        "architecture/commons_interface.json",
+        "methods/registry.json",
+        "methods/sheaf-realization.v1.json",
         "claims/registry.json",
         "evidence/registry.json",
         "experiments/*.json",
-        "methods/sheaf-realization.v1.json"
-      ],
-      "projection": "docs/generated/STATUS.md",
-      "renderer": "architecture/render_status.py",
-      "scope": "Registered module structure, declared claim maturity/evidence links, ExperimentSpec registration, and sheaf realization authority represented by these exact inputs.",
-      "excludes": [
-        "planning graph state",
-        "repository evaluation records not promoted through evidence/claim authorities",
-        "exact-head CI state",
-        "commit history",
-        "unregistered implementation facts"
-      ]
-    },
-    {
-      "id": "scientific_evaluations",
-      "kind": "repository_records",
-      "authority_paths": [
+        "configurations/**/*.json",
         "evaluations/**/*"
       ],
-      "projection": null,
-      "scope": "Committed evaluation and exploratory result records. Evaluation records do not become claim evidence merely by existing."
+      "projection": "docs/generated/STATE.md",
+      "renderer": "architecture/render_state.py"
     },
     {
       "id": "execution",
       "kind": "external_exact_head",
       "authority_paths": [
         "GitHub Actions workflow runs keyed by exact commit SHA"
-      ],
-      "projection": null,
-      "scope": "Execution/CI outcomes for the exact repository revision. A run for another SHA does not establish the current head's execution state."
+      ]
     },
     {
       "id": "history",
       "kind": "git_history",
       "authority_paths": [
         "Git commit history"
-      ],
-      "projection": null,
-      "scope": "Change narration and the delta between a previously known revision and current main."
+      ]
     }
   ],
-  "reorientation_sequence": [
-    "Resolve the exact current main commit SHA.",
-    "Read AGENTS.md and docs/REPOSITORY-STATE.md from that exact SHA.",
-    "If the resolved SHA differs from the previously known SHA, inspect the intervening commits before reusing any prior repository-state conclusion.",
-    "Read architecture/planning_graph.json and its docs/ROADMAP.md projection from the same SHA when selecting or describing planned work.",
-    "Read docs/generated/STATUS.md and the relevant structural machine authorities from the same SHA when describing realized repository structure.",
-    "Read relevant committed evaluations and evidence/claim records before describing scientific outcomes or promotion state.",
-    "Resolve GitHub Actions for the exact SHA whenever build, test, experiment, or execution state matters.",
-    "Only after these steps make a present-state assertion, declare work done/blocked/ready, or select the next repository action."
+  "worker_orientation": [
+    "Resolve the current main commit before substantial work.",
+    "Read AGENTS.md and docs/generated/STATE.md from that commit.",
+    "If main moved since the last orientation, inspect the intervening commits before reusing prior state conclusions.",
+    "Consult exact-head GitHub Actions whenever execution status matters."
   ]
 }
