@@ -8,7 +8,13 @@ import json
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+from architecture.state_authorities import (
+    ROOT,
+    fingerprint_paths,
+    load_manifest,
+    projection_authority_paths,
+)
+
 DEFAULT_GRAPH = ROOT / "architecture" / "planning_graph.json"
 DEFAULT_OUTPUT = ROOT / "docs" / "ROADMAP.md"
 
@@ -24,7 +30,12 @@ def load_graph(path: Path = DEFAULT_GRAPH) -> dict[str, Any]:
     return data
 
 
-def render(graph: dict[str, Any]) -> str:
+def render(
+    graph: dict[str, Any],
+    *,
+    authority_fingerprint: str = "unbound-in-memory",
+    authority_paths: list[str] | None = None,
+) -> str:
     nodes = list(graph.get("nodes", []))
     nodes.sort(key=lambda node: (
         STATUS_ORDER.get(node.get("status"), 99),
@@ -37,13 +48,19 @@ def render(graph: dict[str, Any]) -> str:
         status = str(node.get("status"))
         counts[status] = counts.get(status, 0) + 1
 
+    source_text = ", ".join(f"`{path}`" for path in (authority_paths or ["in-memory graph"]))
     lines = [
         "# Climate obligation roadmap",
         "",
-        "> Generated from `architecture/planning_graph.json`. Do not hand-edit this file.",
-        "> The graph is the sole authority for planned work, priority, dependencies, blockers, and completion criteria.",
+        "> Generated planning projection. Do not hand-edit this file.",
+        f"> Declared planning authority: {source_text}.",
+        f"> Planning-authority fingerprint: `{authority_fingerprint}`.",
         "",
-        "Objective realized state is owned by the module, claim, experiment, hazard, and realization authorities and is rendered separately in `docs/generated/STATUS.md`.",
+        "Freshness of this file means only that it matches the declared planning authority inputs above. It does **not** establish implementation/realization state, scientific evaluation outcomes, claim-evidence promotion, exact-head CI success, or commit-history state.",
+        "",
+        "The planning graph is the sole authority for planned work, priority, dependencies, blockers, resource class, completion criteria, and planning evidence paths.",
+        "",
+        "Structural realization is projected separately in `docs/generated/STATUS.md`; repository-wide present-state conclusions require the commit-scoped reconciliation protocol in `docs/REPOSITORY-STATE.md`.",
         "",
         "External implementation ownership does not remove integration correctness from scope: planning nodes should bind native external capabilities and add Climate-specific scientific semantics rather than create shadow cataloging, preprocessing, execution, training/inference, intercomparison, or provenance stacks.",
         "",
@@ -86,7 +103,25 @@ def main() -> int:
     mode.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    expected = render(load_graph(args.graph))
+    manifest = load_manifest()
+    declared_paths = projection_authority_paths(ROOT, manifest, "planning")
+    canonical_graph = declared_paths[0]
+    if len(declared_paths) != 1:
+        raise ValueError("planning projection must have exactly one declared authority file")
+
+    graph_path = args.graph.resolve()
+    if graph_path == canonical_graph.resolve():
+        fingerprint = fingerprint_paths(ROOT, declared_paths)
+        rendered_paths = [path.relative_to(ROOT).as_posix() for path in declared_paths]
+    else:
+        fingerprint = fingerprint_paths(ROOT, [graph_path])
+        rendered_paths = [graph_path.relative_to(ROOT).as_posix()]
+
+    expected = render(
+        load_graph(args.graph),
+        authority_fingerprint=fingerprint,
+        authority_paths=rendered_paths,
+    )
     if args.write:
         args.output.write_text(expected, encoding="utf-8")
         print(f"wrote {args.output}")
@@ -99,11 +134,11 @@ def main() -> int:
             print(f"roadmap.read_error: {error}")
             return 1
         if observed == expected:
-            print("roadmap: generated projection is current")
+            print("roadmap: projection matches declared planning authority inputs")
             return 0
         diff = difflib.unified_diff(
             observed.splitlines(), expected.splitlines(),
-            fromfile=str(args.output), tofile="generated planning graph",
+            fromfile=str(args.output), tofile="generated planning projection",
             lineterm="",
         )
         print("\n".join(diff))
