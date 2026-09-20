@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -80,6 +81,10 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
         self.assertIn("current main commit", orientation)
         self.assertIn("intervening commits", orientation)
         self.assertIn("exact-head github actions", orientation)
+
+
+    def test_hosted_ci_directory_is_absent(self) -> None:
+        self.assertFalse((ROOT / ".github" / "workflows").exists())
 
 
 if __name__ == "__main__":

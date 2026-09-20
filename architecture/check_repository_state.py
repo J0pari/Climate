@@ -79,6 +79,14 @@ class Finding:
 
 def check(root: Path = ROOT) -> list[Finding]:
     findings: list[Finding] = []
+    forbidden_hosted_automation = root / ".github" / "workflows"
+    if forbidden_hosted_automation.exists():
+        findings.append(Finding(
+            "repository_state.hosted_ci_forbidden",
+            ".github/workflows",
+            "hosted CI configuration is prohibited; run verification locally or in an explicitly declared external environment",
+        ))
+
     manifest_path = root / "architecture" / "state_authorities.json"
     try:
         manifest = load_manifest(manifest_path)
@@ -211,11 +219,6 @@ def check(root: Path = ROOT) -> list[Finding]:
             for path in docs_root.rglob("*.md")
             if "archive" not in path.relative_to(docs_root).parts
         )
-    workflows = root / ".github" / "workflows"
-    if workflows.is_dir():
-        reference_paths.extend(workflows.glob("*.yml"))
-        reference_paths.extend(workflows.glob("*.yaml"))
-
     for path in sorted(set(reference_paths)):
         if not path.is_file():
             continue
