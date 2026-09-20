@@ -1,11 +1,8 @@
 # Climate obligation roadmap
 
-> Generated from `architecture/planning_graph.json`. Do not hand-edit this file.
-> The graph is the sole authority for planned work, priority, dependencies, blockers, and completion criteria.
+> Generated from `architecture/planning_graph.json`. Do not hand-edit.
 
-Objective realized state is owned by the module, claim, experiment, hazard, and realization authorities and is rendered separately in `docs/generated/STATUS.md`.
-
-External implementation ownership does not remove integration correctness from scope: planning nodes should bind native external capabilities and add Climate-specific scientific semantics rather than create shadow cataloging, preprocessing, execution, training/inference, intercomparison, or provenance stacks.
+Repository-local research state is summarized in `docs/generated/STATE.md`.
 
 ## Planning summary
 
@@ -70,5 +67,4 @@ External implementation ownership does not remove integration correctness from s
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
 | `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `done` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
 
-Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.
-External-integration obligations name both the native capability that remains externally owned and the Climate-specific semantic/evidence responsibility that remains in scope; completion must not be satisfied by a local shadow implementation with the same advertised identity.
+Summaries, blockers, completion criteria, and evidence paths remain in `architecture/planning_graph.json`.
