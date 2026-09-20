@@ -4,7 +4,7 @@ Status: **research-process specification**.
 
 Climate contains many choices that cannot be settled correctly by architecture review alone: metric construction, numerical schemes, representations, calibration methods, early-warning indicators, data products, interpolation/regridding choices, and experimental mathematical frameworks. The repository therefore needs infrastructure for experiments **about the methods themselves**, not only experiments using those methods.
 
-The goal is to make methodological choices testable, comparable, revisable, and difficult to overfit by narrative. This document defines experiment design; `architecture/planning_graph.json` owns cross-family planning priority and `docs/ROADMAP.md` is only its projection. Actual work selection must first reconcile exact-head planning, realization, evaluation/evidence, and execution state using `docs/generated/STATE.md`.
+The goal is to make methodological choices testable, comparable, revisable, and difficult to overfit by narrative. This document defines experiment design; `architecture/planning_graph.json` owns cross-family planning priority and `docs/ROADMAP.md` is only its projection. Actual work selection must first reconcile planning, realization, and evaluation/evidence state using `docs/generated/STATE.md`; execution claims require their own explicit receipt rather than being inferred from repository state.
 
 ## 1. Unit of research: a contestable method choice
 
