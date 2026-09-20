@@ -25,7 +25,6 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
                 "experiment_definitions",
                 "evaluation_records",
                 "claim_evidence",
-                "execution",
                 "history",
             },
         )
@@ -41,7 +40,7 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
         )
         self.assertEqual(
             set(manifest["orientation_view"]["excludes"]),
-            {"execution", "history"},
+            {"history"},
         )
         self.assertEqual(manifest["orientation_view"]["projection"], "docs/generated/STATE.md")
         self.assertEqual(manifest["orientation_view"]["renderer"], "architecture/render_state.py")
@@ -73,14 +72,15 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
         self.assertIn("evaluation record", rule)
         self.assertIn("does not become scientific evidence", rule)
 
-    def test_worker_orientation_requires_current_main_and_exact_head_actions(self) -> None:
+    def test_worker_orientation_requires_current_main_and_local_verification(self) -> None:
         manifest = state_authorities.load_manifest(
             ROOT / "architecture" / "state_authorities.json"
         )
         orientation = " ".join(manifest["worker_orientation"]).lower()
         self.assertIn("current main commit", orientation)
         self.assertIn("intervening commits", orientation)
-        self.assertIn("exact-head github actions", orientation)
+        self.assertIn("hosted ci is prohibited", orientation)
+        self.assertIn("exact current checkout", orientation)
 
 
     def test_hosted_ci_directory_is_absent(self) -> None:
