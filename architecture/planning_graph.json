@@ -533,16 +533,26 @@
     {
       "id": "optimization.climate_objective_contracts",
       "title": "Isolate climate-specific optimization objectives",
-      "status": "ready",
+      "status": "done",
       "priority": "P2",
       "resource_class": "R2_toolchain_ci",
-      "summary": "Retain only climate-specific objective, constraint, and provenance semantics locally; generic optimization, AD, eigensolvers, and linear algebra come from maintained libraries.",
+      "summary": "The two-layer EBM recovery likelihood now has an isolated climate-owned objective/constraint module for temperature observation mapping, fixed-variance Gaussian residual/likelihood semantics, positive log-parameter coordinates, and common bounds, while SciPy owns generic TRF/L-BFGS-B optimization. Independent objective tests and the preregistered 16-trial recovery confirmation verify the boundary under equivalent information and frozen stopping rules.",
       "depends_on": [
         "information_geometry.recovery_validation"
       ],
       "completion": [
         "Climate-owned objective/constraint contracts are independently testable without a local generic optimizer stack.",
         "Benchmark and recovery experiments compare maintained optimizers under equivalent information and stopping rules."
+      ],
+      "evidence": [
+        "reference/two_layer_ebm_recovery_objective.py",
+        "tests/reference/test_two_layer_ebm_recovery_objective.py",
+        "reference/information_geometry_ebm_recovery.py",
+        "fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json",
+        "experiments/information-geometry-two-layer-ebm-recovery-confirmation.v1.json",
+        "evaluations/information-geometry/two-layer-ebm-recovery-confirmation-v1/result.json",
+        "methods/registry.json",
+        ".github/workflows/information-geometry-ebm-recovery.yml"
       ]
     },
     {
