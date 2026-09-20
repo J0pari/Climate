@@ -2,7 +2,7 @@
 
 Status: **binding research and engineering plan for physical-law realization**.
 
-This document defines how Climate turns mathematical structure into trustworthy climate-model behavior. The goal is a dynamical core whose governing equations, spatial operators, time integration, solvers, coupling, stabilization, and diagnostics agree about the quantities they transport, exchange, conserve, dissipate, or produce.
+This document defines the contracts used to connect mathematical structure to climate-model behavior. For each claimed law, the governing equations, spatial operators, time integration, solvers, coupling, stabilization, and diagnostics must use compatible definitions of the quantities they transport, exchange, conserve, dissipate, or produce.
 
 The standard is stronger than observing that a diagnostic stays nearly constant. Every claimed law must have a declared model, assumptions, discrete realization, runtime accounting, and adversarial witness.
 
@@ -32,7 +32,7 @@ benchmark / empirical validation
 
 Success at one layer does not imply success at the next.
 
-The repository already contains exact finite-dimensional variational machinery in `reference/noether_sympy.py`. Its appropriate role is as one mathematical reference for deliberately defined finite-dimensional Lagrangian systems. Continuum fluids additionally require field-theoretic, Hamiltonian/Poisson, material-transport, and balance-law authorities matched to the actual governing equations.
+`reference/noether_sympy.py` is the repository's finite-dimensional variational reference for deliberately defined Lagrangian systems. That reference does not supply the field-theoretic, Hamiltonian/Poisson, material-transport, or balance-law authorities required for continuum-fluid claims; those authorities must be matched to the governing equations being tested.
 
 ---
 
