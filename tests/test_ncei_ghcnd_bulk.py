@@ -135,7 +135,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 self.assertLessEqual(spool_path.stat().st_size, 1024 * 1024)
 
                 shards = list(
-                    spool.iter_catalog_shards(max_station_records=1)
+                    spool.iter_catalog_shards(max_station_records=1, max_shard_depth=16)
                 )
                 self.assertEqual(len(shards), 3)
                 self.assertTrue(
@@ -279,6 +279,47 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 )
             self.assertFalse(spool_path.exists())
 
+    def test_disk_lookup_is_unavailable_until_sharding_is_fully_consumed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            catalog_path = root / "ghcnd-stations.txt"
+            inventory_path = root / "ghcnd-inventory.txt"
+            catalog_path.write_text(
+                station_line(
+                    "USW00000001", 40.0, -75.0, 10.0, "ALPHA"
+                )
+                + station_line(
+                    "USW00000002", -33.9, 151.2, 5.0, "BETA"
+                ),
+                encoding="utf-8",
+            )
+            inventory_path.write_text(
+                inventory_line(
+                    "USW00000001", 40.0, -75.0, "TMAX", 1900, 2026
+                )
+                + inventory_line(
+                    "USW00000002", -33.9, 151.2, "TMIN", 1950, 2026
+                ),
+                encoding="utf-8",
+            )
+            with build_metadata_spool(
+                catalog_path,
+                inventory_path,
+                spool_path=root / "metadata.sqlite",
+                metadata_effective_date="2026-09-18",
+                max_database_bytes=1024 * 1024,
+            ) as spool:
+                scan = spool.iter_catalog_shards(
+                    max_station_records=1,
+                    max_shard_depth=16,
+                )
+                next(scan)
+                with self.assertRaisesRegex(
+                    ValueError, "fully consumed"
+                ):
+                    spool.resolve("USW00000001")
+                scan.close()
+
     def test_disk_lookup_routes_observations_without_global_alias_dict(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -316,7 +357,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 metadata_effective_date="2026-09-18",
                 max_database_bytes=1024 * 1024,
             ) as spool:
-                list(spool.iter_catalog_shards(max_station_records=1))
+                list(spool.iter_catalog_shards(max_station_records=1, max_shard_depth=16))
                 summary = stream_by_year_partitions(
                     [
                         "USW00000001,20240101,TMAX,123,,,S,0700\n",
@@ -325,6 +366,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                     expected_year=2024,
                     lookup=spool,
                     sink=Sink(),
+                max_rows=100,
                     max_partition_keys=10,
                 )
             self.assertEqual(summary.row_count, 2)
@@ -396,6 +438,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
             expected_year=2024,
             lookup=lookup,
             sink=Sink(),
+                max_rows=100,
                     max_partition_keys=10,
         )
         self.assertEqual(summary.row_count, 3)
@@ -404,6 +447,38 @@ class GHCNBulkFederationTests(unittest.TestCase):
         self.assertIsNone(writes[1][1].value)
         self.assertEqual(writes[1][1].quality_flag, "Q")
         self.assertEqual(writes[0][0].source_id, "ncei.ghcnd.v3")
+
+    def test_by_year_row_budget_fails_before_sink_side_effect(self):
+        catalog, inventory = self.payloads()
+        stations = build_federated_stations(
+            catalog, inventory, metadata_effective_date="2026-09-18"
+        )
+        lookup = StationShardLookup(
+            adaptive_catalog_shards(
+                stations,
+                metadata_effective_date="2026-09-18",
+                max_station_records=1,
+            )
+        )
+        writes = []
+
+        class Sink:
+            def write(self, key, record):
+                writes.append((key, record))
+
+        with self.assertRaisesRegex(ValueError, "max_rows"):
+            stream_by_year_partitions(
+                [
+                    "USW00000001,20240101,TMAX,100,,,S,0700\n",
+                    "USW00000001,20240102,TMAX,101,,,S,0700\n",
+                ],
+                expected_year=2024,
+                lookup=lookup,
+                sink=Sink(),
+                max_rows=1,
+                max_partition_keys=10,
+            )
+        self.assertEqual(len(writes), 1)
 
     def test_by_year_partition_key_budget_fails_closed(self):
         catalog, inventory = self.payloads()
@@ -431,6 +506,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 sink=Sink(),
+                max_rows=100,
                 max_partition_keys=1,
             )
 
@@ -455,6 +531,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 sink=Sink(),
+                max_rows=100,
                     max_partition_keys=10,
             )
 
@@ -479,6 +556,7 @@ class GHCNBulkFederationTests(unittest.TestCase):
                 expected_year=2024,
                 lookup=lookup,
                 sink=Sink(),
+                max_rows=100,
                     max_partition_keys=10,
             )
 

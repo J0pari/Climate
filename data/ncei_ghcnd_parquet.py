@@ -155,10 +155,13 @@ class GHCNParquetPartitionPublisher:
         root: Path,
         *,
         source_revision: str,
+        max_rows: int,
         max_partitions: int,
         batch_rows: int = 50_000,
         compression: str = "zstd",
     ) -> None:
+        if max_rows <= 0:
+            raise ValueError("max_rows must be positive")
         if max_partitions <= 0:
             raise ValueError("max_partitions must be positive")
         if batch_rows <= 0:
@@ -167,8 +170,10 @@ class GHCNParquetPartitionPublisher:
             raise ValueError("compression must be non-empty")
         self.root = Path(root)
         self.source_revision = _require_digest(source_revision, "source_revision")
+        self.max_rows = int(max_rows)
         self.max_partitions = int(max_partitions)
         self.batch_rows = batch_rows
+        self._accepted_rows = 0
         self.compression = compression.strip()
         self._buffer: list[
             tuple[GHCNObservationPartitionKey, RoutedGHCNObservation]
@@ -183,6 +188,7 @@ class GHCNParquetPartitionPublisher:
                 {
                     "schema": _CHECKPOINT_SCHEMA,
                     "source_revision": self.source_revision,
+                    "max_rows": self.max_rows,
                     "max_partitions": self.max_partitions,
                     "batch_rows": self.batch_rows,
                     "compression": self.compression,
@@ -238,6 +244,7 @@ class GHCNParquetPartitionPublisher:
         return {
             "schema": _CHECKPOINT_SCHEMA,
             "source_revision": self.source_revision,
+            "max_rows": self.max_rows,
             "max_partitions": self.max_partitions,
             "batch_rows": self.batch_rows,
             "compression": self.compression,
@@ -261,6 +268,7 @@ class GHCNParquetPartitionPublisher:
             raise ValueError("GHCN Parquet resume checkpoint schema is invalid")
         expected = {
             "source_revision": self.source_revision,
+            "max_rows": self.max_rows,
             "max_partitions": self.max_partitions,
             "batch_rows": self.batch_rows,
             "compression": self.compression,
@@ -389,6 +397,9 @@ class GHCNParquetPartitionPublisher:
 
         if restored_rows != committed_rows:
             raise ValueError("GHCN Parquet resume committed row count changed")
+        if committed_rows > self.max_rows:
+            raise ValueError("GHCN Parquet resume exceeds max_rows")
+        self._accepted_rows = committed_rows
         self._skip_remaining = committed_rows
         if committed_rows:
             self._resume_reader = self._prefix_path.open("rb")
@@ -447,6 +458,8 @@ class GHCNParquetPartitionPublisher:
             raise ValueError("record year must match partition key year")
         if self._resume_prefix_record(key, record):
             return
+        if self._accepted_rows >= self.max_rows:
+            raise ValueError("GHCN Parquet publication exceeded max_rows")
 
         state = self._state(key)
         state.row_count += 1
@@ -456,6 +469,7 @@ class GHCNParquetPartitionPublisher:
             state.time_end = record.observation_date
         state.logical_hasher.update(_record_bytes(record))
         self._buffer.append((key, record))
+        self._accepted_rows += 1
         if len(self._buffer) >= self.batch_rows:
             self._flush_batch()
 
@@ -692,6 +706,7 @@ def publish_gzip_by_year(
     expected_year: int,
     lookup: StationRoutingLookup,
     root: Path,
+    max_rows: int,
     max_partitions: int,
     batch_rows: int = 50_000,
     compression: str = "zstd",
@@ -704,6 +719,7 @@ def publish_gzip_by_year(
     publisher = GHCNParquetPartitionPublisher(
         root,
         source_revision=source_revision,
+        max_rows=max_rows,
         max_partitions=max_partitions,
         batch_rows=batch_rows,
         compression=compression,
@@ -715,6 +731,7 @@ def publish_gzip_by_year(
                 expected_year=expected_year,
                 lookup=lookup,
                 sink=publisher,
+                max_rows=max_rows,
                 max_partition_keys=max_partitions,
             )
         partitions = publisher.finalize(

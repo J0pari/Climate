@@ -13,8 +13,8 @@ from typing import Mapping, Sequence
 
 from data.ncei_ghcnh_bulk import (
     SOURCE_ID,
-    GHCNhAliasShardLookup,
     GHCNhObservationPartitionKey,
+    GHCNhRoutingLookup,
     GHCNhObservationSink,
     RoutedGHCNhObservation,
     stream_station_year_psv,
@@ -81,12 +81,21 @@ class GHCNhRawPartitionSink(GHCNhObservationSink):
         object_root: Path,
         *,
         source_revision: str,
+        max_rows: int,
+        max_partitions: int,
         supersedes: Mapping[GHCNhObservationPartitionKey, Sequence[str]] | None = None,
     ) -> None:
         if not source_revision.startswith("sha256:") or len(source_revision) != 71:
             raise ValueError("source_revision must be a SHA-256 identity")
+        if max_rows <= 0:
+            raise ValueError("max_rows must be positive")
+        if max_partitions <= 0:
+            raise ValueError("max_partitions must be positive")
         self.object_root = Path(object_root)
         self.source_revision = source_revision
+        self.max_rows = int(max_rows)
+        self.max_partitions = int(max_partitions)
+        self._accepted_rows = 0
         self.supersedes = {
             key: tuple(values)
             for key, values in (supersedes or {}).items()
@@ -105,6 +114,10 @@ class GHCNhRawPartitionSink(GHCNhObservationSink):
         state = self._states.get(key)
         if state is not None:
             return state
+        if len(self._states) >= self.max_partitions:
+            raise ValueError(
+                "GHCNh partition publication exceeded max_partitions"
+            )
         token = hashlib.sha256(
             _canonical_json(
                 {
@@ -131,6 +144,8 @@ class GHCNhRawPartitionSink(GHCNhObservationSink):
     ) -> None:
         if self._closed:
             raise ValueError("GHCNh partition sink is closed")
+        if self._accepted_rows >= self.max_rows:
+            raise ValueError("GHCNh partition publication exceeded max_rows")
         state = self._state(key)
         date = record.observation_datetime[:10]
         encoded = _canonical_json(
@@ -148,6 +163,7 @@ class GHCNhRawPartitionSink(GHCNhObservationSink):
         state.time_start = date if state.time_start is None else min(state.time_start, date)
         state.time_end = date if state.time_end is None else max(state.time_end, date)
         state.provider_fields.update(name for name, _ in record.provider_fields)
+        self._accepted_rows += 1
 
     def finalize(self) -> tuple[ObservationPartitionRef, ...]:
         if self._closed:
@@ -226,27 +242,68 @@ class GHCNhArchivePublication:
     partitions: tuple[ObservationPartitionRef, ...]
 
 
+def _bounded_member_lines(
+    handle,
+    *,
+    max_line_bytes: int,
+):
+    if max_line_bytes <= 0:
+        raise ValueError("max_psv_line_bytes must be positive")
+    while True:
+        raw = handle.readline(max_line_bytes + 1)
+        if not raw:
+            return
+        if len(raw) > max_line_bytes:
+            raise ValueError(
+                f"GHCNh PSV line exceeds {max_line_bytes} bytes"
+            )
+        try:
+            yield raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError("GHCNh PSV member must be valid UTF-8") from exc
+
+
 def publish_year_archive(
     archive_path: Path,
     *,
     expected_year: int,
-    lookup: GHCNhAliasShardLookup,
+    lookup: GHCNhRoutingLookup,
     object_root: Path,
+    max_rows: int,
+    max_partitions: int,
+    max_archive_members: int,
+    max_psv_line_bytes: int,
     supersedes: Mapping[GHCNhObservationPartitionKey, Sequence[str]] | None = None,
 ) -> GHCNhArchivePublication:
     """Stream a captured annual GHCNh tar.gz into immutable raw-row partitions."""
+    if max_rows <= 0:
+        raise ValueError("max_rows must be positive")
+    if max_partitions <= 0:
+        raise ValueError("max_partitions must be positive")
+    if max_archive_members <= 0:
+        raise ValueError("max_archive_members must be positive")
+    if max_psv_line_bytes <= 0:
+        raise ValueError("max_psv_line_bytes must be positive")
     archive_path = Path(archive_path)
     source_revision = _sha256_file(archive_path)
     sink = GHCNhRawPartitionSink(
         object_root,
         source_revision=source_revision,
+        max_rows=max_rows,
+        max_partitions=max_partitions,
         supersedes=supersedes,
     )
     member_count = 0
+    scanned_member_count = 0
     try:
         with archive_path.open("rb") as raw:
             with tarfile.open(fileobj=raw, mode="r|gz") as archive:
                 for member in archive:
+                    if scanned_member_count >= max_archive_members:
+                        raise ValueError(
+                            "GHCNh archive exceeded max_archive_members"
+                        )
+                    scanned_member_count += 1
                     if not member.isfile():
                         continue
                     basename = Path(member.name).name
@@ -268,9 +325,9 @@ def publish_year_archive(
                         raise ValueError(
                             f"GHCNh archive member {basename!r} could not be read"
                         )
-                    lines = (
-                        line.decode("utf-8")
-                        for line in extracted
+                    lines = _bounded_member_lines(
+                        extracted,
+                        max_line_bytes=max_psv_line_bytes,
                     )
                     stream_station_year_psv(
                         lines,
@@ -278,6 +335,8 @@ def publish_year_archive(
                         expected_station_id=station_id,
                         lookup=lookup,
                         sink=sink,
+                        max_rows=max_rows,
+                        max_partition_keys=max_partitions,
                     )
                     member_count += 1
         if member_count == 0:

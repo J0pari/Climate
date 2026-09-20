@@ -16,6 +16,7 @@ from data.ncei_ghcnh_bulk import (
     ARCHIVE_BASE_URL,
     SOURCE_ID,
     GHCNhAliasShardLookup,
+    build_ghcnh_metadata_spool,
     validate_year_archive_url,
     federate_station_catalog,
     parse_station_catalog,
@@ -336,6 +337,176 @@ class GHCNhFederationTests(unittest.TestCase):
         self.assertEqual(result.new_root_station_count, 1)
         self.assertEqual(len(result.stations), 2)
 
+    def test_bounded_hourly_metadata_spool_enriches_and_routes_from_disk(self):
+        daily = daily_station("USW00094846")
+        existing = (
+            StationCatalogShard(
+                "daily-shard-id",
+                "daily-spatial-partition",
+                (daily,),
+            ),
+        )
+        station_list = (
+            station_line(
+                "USW00094846", 41.98, -87.90, 204.0, "CHICAGO OHARE"
+            )
+            + station_line(
+                "CAW00099999", 50.0, -100.0, 300.0, "HOURLY ONLY"
+            )
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "ghcnh-station-list.txt"
+            spool_path = root / "ghcnh.sqlite"
+            source.write_text(station_list, encoding="ascii")
+            with build_ghcnh_metadata_spool(
+                source,
+                spool_path=spool_path,
+                max_database_bytes=1024 * 1024,
+                sqlite_cache_kib=256,
+                max_transaction_rows=1,
+            ) as spool:
+                enriched = list(
+                    spool.enrich_existing_shards(
+                        existing,
+                        metadata_effective_date="2026-09-18",
+                        max_station_records=1,
+                    )
+                )
+                new_roots = list(
+                    spool.iter_new_root_shards(
+                        metadata_effective_date="2026-09-18",
+                        max_station_records=1,
+                        max_shard_depth=16,
+                    )
+                )
+                self.assertEqual(len(enriched), 1)
+                self.assertEqual(len(new_roots), 1)
+                self.assertTrue(
+                    all(
+                        len(shard.stations) <= 1
+                        for shard in (*enriched, *new_roots)
+                    )
+                )
+                shared_id, shared_partition = spool.resolve(
+                    "USW00094846"
+                )
+                self.assertEqual(shared_id, daily.canonical_station_id)
+                self.assertEqual(
+                    shared_partition, "daily-spatial-partition"
+                )
+                new_id, new_partition = spool.resolve("CAW00099999")
+                self.assertEqual(
+                    new_id,
+                    canonical_station_id(
+                        ProviderAlias(SOURCE_ID, "CAW00099999")
+                    ),
+                )
+                self.assertTrue(new_partition.startswith("ghcnh-"))
+                self.assertEqual(spool.summary().matched_station_count, 2)
+                self.assertLessEqual(
+                    spool_path.stat().st_size, 1024 * 1024
+                )
+
+    def test_bounded_hourly_spool_requires_complete_existing_scan(self):
+        daily = daily_station("USW00094846")
+        station_list = (
+            station_line(
+                "USW00094846", 41.98, -87.90, 204.0, "CHICAGO OHARE"
+            )
+            + station_line(
+                "CAW00099999", 50.0, -100.0, 300.0, "HOURLY ONLY"
+            )
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "ghcnh-station-list.txt"
+            source.write_text(station_list, encoding="ascii")
+            with build_ghcnh_metadata_spool(
+                source,
+                spool_path=root / "ghcnh.sqlite",
+                max_database_bytes=1024 * 1024,
+            ) as spool:
+                scan = spool.enrich_existing_shards(
+                    (
+                        StationCatalogShard(
+                            "daily-shard",
+                            "daily-cell",
+                            (daily,),
+                        ),
+                    ),
+                    metadata_effective_date="2026-09-18",
+                    max_station_records=1,
+                )
+                next(scan)
+                with self.assertRaisesRegex(
+                    ValueError, "consume enrich_existing_shards"
+                ):
+                    next(
+                        spool.iter_new_root_shards(
+                            metadata_effective_date="2026-09-18",
+                            max_station_records=1,
+                            max_shard_depth=16,
+                        )
+                    )
+                scan.close()
+
+    def test_bounded_hourly_spool_rejects_storage_and_line_overrun(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "ghcnh-station-list.txt"
+            spool_path = root / "ghcnh.sqlite"
+            source.write_text(
+                station_line(
+                    "USW00094846", 41.98, -87.90, 204.0, "CHICAGO OHARE"
+                ),
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "too small"):
+                build_ghcnh_metadata_spool(
+                    source,
+                    spool_path=spool_path,
+                    max_database_bytes=1024,
+                )
+            self.assertFalse(spool_path.exists())
+
+            source.write_bytes(b"X" * 5000 + b"\n")
+            with self.assertRaisesRegex(ValueError, "exceeds 4096 bytes"):
+                build_ghcnh_metadata_spool(
+                    source,
+                    spool_path=spool_path,
+                    max_database_bytes=1024 * 1024,
+                    max_metadata_line_bytes=4096,
+                )
+            self.assertFalse(spool_path.exists())
+
+    def test_in_memory_hourly_lookup_uses_spatial_partition_not_shard_id(self):
+        station = daily_station("USW00094846")
+        alias = ProviderAlias(SOURCE_ID, "USW00094846")
+        linked = FederatedStation(
+            canonical_station_id=station.canonical_station_id,
+            aliases=(
+                *station.aliases,
+                AliasBinding(alias, "provider_crosswalk", D1),
+            ),
+            location_history=station.location_history,
+            variable_ids=station.variable_ids,
+            provider_location_snapshots=station.provider_location_snapshots,
+        )
+        lookup = GHCNhAliasShardLookup(
+            (
+                StationCatalogShard(
+                    "physical-shard-id",
+                    "semantic-spatial-partition",
+                    (linked,),
+                ),
+            )
+        )
+        self.assertEqual(
+            lookup.resolve("USW00094846")[1],
+            "semantic-spatial-partition",
+        )
+
     def test_second_provider_composes_through_provider_neutral_shards_and_manifest(self):
         catalog = parse_station_catalog(
             (
@@ -389,6 +560,10 @@ class GHCNhFederationTests(unittest.TestCase):
                 expected_year=2026,
                 lookup=lookup,
                 object_root=root / "store",
+                max_rows=100,
+                max_partitions=10,
+                max_archive_members=10,
+                max_psv_line_bytes=4096,
             )
             manifest = StationFederationManifest(
                 "global-free-stations.v1",
@@ -457,6 +632,8 @@ class GHCNhFederationTests(unittest.TestCase):
             expected_year=2026,
             lookup=lookup,
             sink=Sink(),
+            max_rows=100,
+            max_partition_keys=10,
         )
         self.assertEqual(summary.row_count, 2)
         self.assertEqual(summary.partition_count, 1)
@@ -466,6 +643,48 @@ class GHCNhFederationTests(unittest.TestCase):
         self.assertEqual(fields["SOURCE"], "USAF")
         self.assertEqual(fields["Remarks"], "raw remark")
         self.assertEqual(dict(writes[1][1].provider_fields)["temperature"], "")
+
+    def test_psv_budgets_fail_before_over_budget_sink_side_effect(self):
+        result = federate_station_catalog(
+            (daily_station("USW00094846"),),
+            parse_station_catalog(
+                station_line(
+                    "USW00094846",
+                    41.98,
+                    -87.90,
+                    204.0,
+                    "CHICAGO OHARE",
+                ).encode("ascii")
+            ),
+            metadata_effective_date="2026-09-18",
+        )
+        lookup = GHCNhAliasShardLookup(
+            (
+                StationCatalogShard(
+                    "cell-1", "cell-1", result.stations
+                ),
+            )
+        )
+        writes = []
+
+        class Sink:
+            def write(self, key, record):
+                writes.append((key, record))
+
+        with self.assertRaisesRegex(ValueError, "max_rows"):
+            stream_station_year_psv(
+                [
+                    "STATION|DATE|temperature\n",
+                    "USW00094846|2026-09-18T12:00:00Z|19.4\n",
+                    "USW00094846|2026-09-18T13:00:00Z|19.5\n",
+                ],
+                expected_year=2026,
+                lookup=lookup,
+                sink=Sink(),
+                max_rows=1,
+                max_partition_keys=10,
+            )
+        self.assertEqual(len(writes), 1)
 
     def test_psv_stream_rejects_unknown_station_and_wrong_year(self):
         station = daily_station("USW00094846")
@@ -497,6 +716,8 @@ class GHCNhFederationTests(unittest.TestCase):
                 expected_year=2026,
                 lookup=lookup,
                 sink=Sink(),
+            max_rows=100,
+            max_partition_keys=10,
             )
         with self.assertRaisesRegex(ValueError, "does not match"):
             stream_station_year_psv(
@@ -507,6 +728,8 @@ class GHCNhFederationTests(unittest.TestCase):
                 expected_year=2026,
                 lookup=lookup,
                 sink=Sink(),
+            max_rows=100,
+            max_partition_keys=10,
             )
 
     def test_annual_archive_publishes_content_addressed_raw_partitions(self):
@@ -569,6 +792,10 @@ class GHCNhFederationTests(unittest.TestCase):
                 expected_year=2026,
                 lookup=lookup,
                 object_root=root / "store",
+                max_rows=100,
+                max_partitions=10,
+                max_archive_members=10,
+                max_psv_line_bytes=4096,
             )
             self.assertEqual(publication.archive_member_count, 2)
             self.assertEqual(len(publication.partitions), 2)
@@ -610,8 +837,72 @@ class GHCNhFederationTests(unittest.TestCase):
                 expected_year=2026,
                 lookup=lookup,
                 object_root=root / "store",
+                max_rows=100,
+                max_partitions=10,
+                max_archive_members=10,
+                max_psv_line_bytes=4096,
             )
             self.assertEqual(repeated.partitions, publication.partitions)
+
+    def test_annual_archive_member_budget_fails_closed(self):
+        result = federate_station_catalog(
+            (daily_station("USW00094846"),),
+            parse_station_catalog(
+                (
+                    station_line(
+                        "USW00094846",
+                        41.98,
+                        -87.90,
+                        204.0,
+                        "CHICAGO OHARE",
+                    )
+                    + station_line(
+                        "CAW00099999",
+                        50.0,
+                        -100.0,
+                        300.0,
+                        "HOURLY ONLY",
+                    )
+                ).encode("ascii")
+            ),
+            metadata_effective_date="2026-09-18",
+        )
+        shards = adaptive_catalog_shards(
+            result.stations,
+            metadata_effective_date="2026-09-18",
+            max_station_records=1,
+        )
+        lookup = GHCNhAliasShardLookup(shards)
+        header = "STATION|DATE|temperature\n"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            archive = root / "fixture.tar.gz"
+            write_year_archive(
+                archive,
+                {
+                    "GHCNh_USW00094846_2026.psv": (
+                        header
+                        + "USW00094846|2026-09-18T12:00:00Z|19.4\n"
+                    ),
+                    "GHCNh_CAW00099999_2026.psv": (
+                        header
+                        + "CAW00099999|2026-09-18T12:00:00Z|18.0\n"
+                    ),
+                },
+            )
+            with self.assertRaisesRegex(
+                ValueError, "max_archive_members"
+            ):
+                publish_year_archive(
+                    archive,
+                    expected_year=2026,
+                    lookup=lookup,
+                    object_root=root / "store",
+                    max_rows=100,
+                    max_partitions=10,
+                    max_archive_members=1,
+                    max_psv_line_bytes=4096,
+                )
 
     def test_annual_archive_refuses_member_station_mismatch(self):
         catalog = parse_station_catalog(
@@ -645,6 +936,10 @@ class GHCNhFederationTests(unittest.TestCase):
                     expected_year=2026,
                     lookup=lookup,
                     object_root=root / "store",
+                max_rows=100,
+                max_partitions=10,
+                max_archive_members=10,
+                max_psv_line_bytes=4096,
                 )
 
     def test_duplicate_station_identifier_fails_closed(self):

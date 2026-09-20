@@ -572,7 +572,7 @@
       "status": "active",
       "priority": "P0",
       "resource_class": "R5_large_data",
-      "summary": "Build an extensible station-data federation whose target population is every station worldwide lawfully and reproducibly accessible without paid data access. GHCN-Daily and GHCNh share provider-neutral identity, immutable lineage, coverage v2, and sheaf/topology semantics. GHCN-Daily now has a caller-budgeted SQLite scale path that caps scratch DB bytes, SQLite cache/transaction/input-line bounds, Python station objects per shard, and exact observation partition-key/Parquet-state cardinality; observation lookup stays on disk. GHCNh metadata federation remains an explicit in-memory scaling gap rather than being treated as worldwide-ready.",
+      "summary": "Build an extensible station-data federation whose target population is every station worldwide lawfully and reproducibly accessible without paid data access. GHCN-Daily and GHCNh now both have caller-budgeted disk-backed metadata/routing scale paths: main scratch bytes, cache/transaction/line sizes, station shard size/depth, rows and partition states are explicit; GHCNh additionally caps tar-member traversal. Shared identities preserve existing spatial topology, hourly-only roots enter bounded addition shards, and routing is unavailable until complete scans finish. The P0 remains active because additional eligible providers and production-scale R5 execution/coverage evidence remain outstanding.",
       "depends_on": [
         "data.external_authority_audit"
       ],

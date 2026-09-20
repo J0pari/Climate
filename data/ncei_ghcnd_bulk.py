@@ -263,6 +263,7 @@ class GHCNMetadataSpool:
         self.max_database_bytes = int(max_database_bytes)
         self.sqlite_cache_kib = int(sqlite_cache_kib)
         self.max_transaction_rows = int(max_transaction_rows)
+        self._sharding_complete = False
         if create and path.exists():
             raise ValueError(
                 "metadata spool path already exists; refuse implicit overwrite"
@@ -496,10 +497,16 @@ class GHCNMetadataSpool:
         return StationCatalogShard(shard_id, shard_id, stations, bounds)
 
     def iter_catalog_shards(
-        self, *, max_station_records: int
+        self,
+        *,
+        max_station_records: int,
+        max_shard_depth: int,
     ) -> Iterator[StationCatalogShard]:
         if max_station_records <= 0:
             raise ValueError("max_station_records must be positive")
+        if max_shard_depth <= 0:
+            raise ValueError("max_shard_depth must be positive")
+        self._sharding_complete = False
         self._db.execute("UPDATE stations SET shard_id = NULL")
         self._commit_batch()
 
@@ -511,6 +518,7 @@ class GHCNMetadataSpool:
             lon_min: float,
             lon_max: float,
             key: str,
+            depth: int,
         ) -> Iterator[StationCatalogShard]:
             count = self._count_where(where_sql, params)
             if count == 0:
@@ -529,6 +537,11 @@ class GHCNMetadataSpool:
                 ]
                 yield self._leaf(ids, shard_id=key)
                 return
+
+            if depth >= max_shard_depth:
+                raise ValueError(
+                    "GHCN metadata sharding exceeded max_shard_depth"
+                )
 
             lat_mid = (lat_min + lat_max) / 2.0
             lon_mid = (lon_min + lon_max) / 2.0
@@ -593,13 +606,20 @@ class GHCNMetadataSpool:
                     item[4],
                     item[5],
                     f"{key}{index}",
+                    depth + 1,
                 )
 
         yield from recurse(
-            "1 = 1", (), -90.0, 90.0, -180.0, 180.0, "q"
+            "1 = 1", (), -90.0, 90.0, -180.0, 180.0, "q", 0
         )
+        self._sharding_complete = True
 
     def resolve(self, provider_station_id: str) -> tuple[str, str]:
+        if not self._sharding_complete:
+            raise ValueError(
+                "metadata spool routing is unavailable until "
+                "iter_catalog_shards() is fully consumed"
+            )
         row = self._db.execute(
             "SELECT shard_id FROM stations WHERE station_id = ?",
             (provider_station_id,),
@@ -1040,6 +1060,7 @@ def stream_by_year_partitions(
     expected_year: int,
     lookup: StationRoutingLookup,
     sink: ObservationPartitionSink,
+    max_rows: int,
     max_partition_keys: int,
     elements: Sequence[str] | None = None,
 ) -> GHCNRoutingSummary:
@@ -1049,6 +1070,8 @@ def stream_by_year_partitions(
     store writers can implement publication without changing provider parsing,
     station identity, partition keys, or missing/flag semantics.
     """
+    if max_rows <= 0:
+        raise ValueError("max_rows must be positive")
     if max_partition_keys <= 0:
         raise ValueError("max_partition_keys must be positive")
     selected = None if elements is None else frozenset(elements)
@@ -1069,6 +1092,14 @@ def stream_by_year_partitions(
             year=expected_year,
             element=record.element,
         )
+        if row_count >= max_rows:
+            raise ValueError("observation routing exceeded max_rows")
+        if key not in partition_keys:
+            if len(partition_keys) >= max_partition_keys:
+                raise ValueError(
+                    "observation routing exceeded max_partition_keys"
+                )
+            partition_keys.add(key)
         sink.write(
             key,
             RoutedGHCNObservation(
@@ -1082,12 +1113,6 @@ def stream_by_year_partitions(
                 observation_time=record.observation_time,
             ),
         )
-        if key not in partition_keys:
-            if len(partition_keys) >= max_partition_keys:
-                raise ValueError(
-                    "observation routing exceeded max_partition_keys"
-                )
-            partition_keys.add(key)
         row_count += 1
         missing += record.value is None
     return GHCNRoutingSummary(

@@ -10,8 +10,8 @@
     "provider_variable_availability": "provider-declared station-variable capability is preserved as bounded per-alias metadata with exact variable id, first/last provider year, and source-artifact digest; capability chronology is provenance and does not fabricate observations"
   },
   "storage_policy": {
-    "catalog": "content-addressed bounded catalog shards referenced by manifest; GHCN-Daily worldwide metadata staging uses a caller-owned SQLite scratch spool with an explicit main-database byte ceiling, bounded SQLite page cache, bounded transaction rows, bounded input-line size, and at most max_station_records Python station objects materialized per yielded shard; the spool is rebuildable execution state, not scientific evidence",
-    "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones; GHCN-Daily routing and Parquet publication require an explicit max_partitions/max_partition_keys ceiling so exact partition-count accounting cannot grow an unbounded in-memory key/state table",
+    "catalog": "content-addressed bounded catalog shards referenced by manifest; GHCN-Daily and GHCNh worldwide metadata staging use caller-owned SQLite scratch spools with explicit main-database byte ceilings, bounded SQLite page caches, bounded transaction/input-line sizes, bounded incoming/materialized station-shard sizes, explicit quadtree depth ceilings, and routing disabled until full shard/enrichment scans complete; spools are rebuildable execution state, not scientific evidence",
+    "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones; both NCEI routers require explicit max_rows and max_partition_keys ceilings, Daily Parquet publication caps rows/partition states/batch rows, and Hourly archive publication caps rows/partition states/tar members/PSV line bytes",
     "ingestion": "idempotent by artifact digest; observation revisions append explicit supersession/tombstone lineage, while catalog refreshes preserve exact shard-id continuity, supersede changed content for the same shard, replay unchanged content idempotently, and fail closed if an active shard disappears because catalog-retirement semantics are not yet defined",
     "coverage": "derived from active manifest references; coverage v2 carries geographic bounds for adaptive catalog shards, propagates those bounds to observation partitions by spatial-partition identity, and reports unresolved geographic partitions explicitly rather than requiring consumers to reopen station records"
   },
@@ -56,7 +56,7 @@
       "geographic_scope": "global",
       "station_identity_namespace": "GHCNh managed GHCN identifier",
       "discovery_mode": "provider_catalog",
-      "scale_path": "the GHCNh station list and explicitly versioned annual archive URLs define provider identity; execution environments perform HTTPS transfer with their exact native transport and pass completed immutable artifacts into Climate's catalog/PSV parsers and federation routing",
+      "scale_path": "the captured GHCNh station list streams once into a caller-budgeted SQLite scratch spool; existing bounded federation shards are enriched one at a time, exact shared GHCN IDs retain their existing spatial partition, unmatched hourly-only roots are emitted in bounded addition shards, and GHCNh observation routing resolves canonical/spatial identity from the disk index after both scans complete; annual archives stream member/row data under explicit row/partition/member/line ceilings",
       "current_boundaries": [
         "data/ncei_ghcnh_bulk.py::parse_station_catalog",
         "data/ncei_ghcnh_bulk.py::federate_station_catalog",
@@ -65,7 +65,11 @@
         "data/ncei_ghcnh_bulk.py::stream_station_year_psv",
         "src/station_federation.py::adaptive_catalog_shards",
         "src/station_federation.py::catalog_shard_refs",
-        "src/station_federation.py::revise_catalog_shard_refs"
+        "src/station_federation.py::revise_catalog_shard_refs",
+        "data/ncei_ghcnh_bulk.py::build_ghcnh_metadata_spool",
+        "data/ncei_ghcnh_bulk.py::GHCNhMetadataSpool.enrich_existing_shards",
+        "data/ncei_ghcnh_bulk.py::GHCNhMetadataSpool.iter_new_root_shards",
+        "data/ncei_ghcnh_bulk.py::GHCNhMetadataSpool.resolve"
       ]
     }
   ]
