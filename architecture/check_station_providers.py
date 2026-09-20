@@ -75,6 +75,27 @@ def check(root: Path = ROOT) -> list[Finding]:
                 path,
                 "revision_identity must state how immutable provider revisions are bound",
             ))
+        for field, message in (
+            (
+                "geographic_scope",
+                "geographic_scope must state the provider population boundary",
+            ),
+            (
+                "station_identity_namespace",
+                "station_identity_namespace must name the provider-owned station identity",
+            ),
+            (
+                "scale_path",
+                "scale_path must state how complete provider artifacts enter bounded federation shards",
+            ),
+        ):
+            value = provider.get(field)
+            if not isinstance(value, str) or not value.strip():
+                findings.append(Finding(
+                    f"station_providers.{field}",
+                    path,
+                    message,
+                ))
         if provider.get("access_cost") != "no_fee":
             findings.append(Finding("station_providers.cost", path, "station federation providers must require no paid data access"))
         if provider.get("status") not in {"current", "planned"}:

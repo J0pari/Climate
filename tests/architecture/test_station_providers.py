@@ -28,6 +28,9 @@ def provider(**overrides) -> dict:
         "license_or_access_constraints": "public provider data",
         "update_semantics": "mutable provider feed; capture and digest artifacts",
         "revision_identity": "provider revision plus captured artifact digest",
+        "geographic_scope": "global",
+        "station_identity_namespace": "provider station id",
+        "scale_path": "complete provider catalog artifacts feed bounded content-addressed federation shards",
         "discovery_mode": "provider_catalog",
     }
     value.update(overrides)
@@ -97,6 +100,30 @@ class StationProviderRegistryTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(check_station_providers.check(root), [])
+
+    def test_provider_registration_requires_scope_identity_and_scale_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "architecture").mkdir()
+            (root / "architecture/data_authorities.json").write_text(
+                json.dumps({"sources": [authority()]}), encoding="utf-8"
+            )
+            underspecified = provider()
+            underspecified.pop("geographic_scope")
+            underspecified.pop("station_identity_namespace")
+            underspecified.pop("scale_path")
+            (root / "architecture/station_providers.json").write_text(
+                json.dumps({
+                    "schema_version": 1,
+                    "target_population": "every station worldwide without paid data access",
+                    "providers": [underspecified],
+                }),
+                encoding="utf-8",
+            )
+            codes = {item.code for item in check_station_providers.check(root)}
+            self.assertIn("station_providers.geographic_scope", codes)
+            self.assertIn("station_providers.station_identity_namespace", codes)
+            self.assertIn("station_providers.scale_path", codes)
 
     def test_fixed_station_list_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
