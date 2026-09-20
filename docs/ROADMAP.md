@@ -10,9 +10,9 @@ External implementation ownership does not remove integration correctness from s
 ## Planning summary
 
 - Active: 5
-- Ready: 15
+- Ready: 14
 - Blocked: 12
-- Done: 18
+- Done: 19
 - Dropped: 0
 
 ## Graph projection
@@ -37,7 +37,6 @@ External implementation ownership does not remove integration correctness from s
 | `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_toolchain_ci` | `data.immutable_observational_projection` |
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` | — |
-| `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `ready` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` | — |
 | `integration.aqua_production_reader` — Use AQUA production data access | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
 | `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `blocked` | `P0` | `R4_integrated_system` | `integration.climate_ref_production_cmip` |
@@ -69,6 +68,7 @@ External implementation ownership does not remove integration correctness from s
 | `geometry.independent_derivative_route` — Add a second independent metric-derivative route | `done` | `P1` | `R2_toolchain_ci` | — |
 | `information_geometry.recovery_validation` — Validate information-geometry primitives on explicit statistical models | `done` | `P1` | `R2_toolchain_ci` | — |
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_toolchain_ci` | `physics.authoritative_flux_recomposition` |
+| `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `done` | `P2` | `R2_toolchain_ci` | `information_geometry.recovery_validation` |
 
 Node summaries, blockers, completion criteria, and evidence paths live only in `architecture/planning_graph.json` so this projection cannot become a second planning surface.
 External-integration obligations name both the native capability that remains externally owned and the Climate-specific semantic/evidence responsibility that remains in scope; completion must not be satisfied by a local shadow implementation with the same advertised identity.
