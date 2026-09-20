@@ -1,7 +1,9 @@
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from architecture import codespaces_campaign
 
@@ -35,6 +37,15 @@ class CodespacesCampaignTests(unittest.TestCase):
                     artifact_root=Path(tmp),
                     allow_dirty=False,
                 )
+
+    def test_codespaces_requires_committed_resource_authorization(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"CODESPACES": "true", "CODESPACE_NAME": "space-a"},
+            clear=False,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "resource"):
+                codespaces_campaign._codespaces_session("campaign-1", None)
 
     def test_safe_component_preserves_experiment_identity_characters(self) -> None:
         self.assertEqual(
