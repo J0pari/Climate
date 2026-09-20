@@ -88,17 +88,12 @@ def render_state(root: Path = ROOT) -> str:
                 raise ValueError(f"module record must be object: {path}")
             modules.append((lifecycle, record))
 
-    experiments: list[tuple[str, dict[str, Any]]] = []
-    for path in experiment_paths:
-        experiments.append((path.relative_to(root).as_posix(), _load(path)))
-
-    evaluations: list[tuple[str, str]] = []
-    for path in evaluation_paths:
-        relative = path.relative_to(root).as_posix()
-        if path.suffix != ".json":
-            continue
-        payload = _load(path)
-        evaluations.append((relative, _evaluation_label(payload)))
+    experiments = [path.relative_to(root).as_posix() for path in experiment_paths]
+    evaluations = [
+        path.relative_to(root).as_posix()
+        for path in evaluation_paths
+        if path.suffix == ".json"
+    ]
 
     nodes = planning.get("nodes")
     if not isinstance(nodes, list):
@@ -192,10 +187,8 @@ def render_state(root: Path = ROOT) -> str:
         "Registered experiments:",
         "",
     ])
-    for relative, experiment in experiments:
-        lines.append(
-            f"- `{experiment.get('experiment_id', '<missing>')}` — `{relative}`"
-        )
+    for relative in experiments:
+        lines.append(f"- `{relative}`")
 
     lines.extend([
         "",
@@ -228,8 +221,8 @@ def render_state(root: Path = ROOT) -> str:
         f"JSON evaluation records: **{len(evaluations)}**.",
         "",
     ])
-    for relative, label in evaluations:
-        lines.append(f"- `{relative}` — {label}")
+    for relative in evaluations:
+        lines.append(f"- `{relative}`")
 
     lines.extend([
         "",
