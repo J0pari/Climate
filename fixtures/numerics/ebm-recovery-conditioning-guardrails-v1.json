@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "fixture_id": "numerics.ebm-recovery-conditioning-guardrails.v1",
+  "description": "Preregistered climate-facing conditioning witness for the two-layer EBM recovery objective. It measures SVD rank/2-norm conditioning on the existing recovery Jacobian, verifies scale invariance, contrasts transient identifiability with equilibrium structural rank deficiency, and exercises a deliberately near-collinear numerical rejection control without assigning physical meaning to any conditioning threshold.",
+  "inherited_authorities": {
+    "ebm_fixture": "physics.two_layer_ebm.geoffroy_mean.v1",
+    "forcing_fixture": "physics.two-layer-ebm-forcing-protocols.v1",
+    "recovery_fixture": "physics.two-layer-ebm-information-geometry-recovery.v1",
+    "identifiability_fixture": "physics.two-layer-ebm-parameter-identifiability.v1"
+  },
+  "recovery_evaluation_points": "literature_fixed_truth_plus_all_preregistered_recovery_starts",
+  "uniform_noise_std_k": [
+    0.01,
+    0.05,
+    0.2,
+    1
+  ],
+  "matrix_scale_factors": [
+    1e-100,
+    1e-20,
+    1,
+    100000000000000000000,
+    1e+100
+  ],
+  "near_collinear_control": {
+    "source_parameter_id": "deep_heat_capacity_w_yr_m2_k",
+    "replaced_parameter_id": "ocean_heat_exchange_w_m2_k",
+    "retained_original_multiplier": 1e-10,
+    "construction": "Replace the declared recovery Jacobian column for replaced_parameter_id by source_parameter_id column + retained_original_multiplier * original replaced_parameter_id column. This is a synthetic numerical control, not a physical parameter relation."
+  },
+  "verification_policy": {
+    "max_condition_number_2": 100000000,
+    "semantics": "numerical_test_policy_only",
+    "interpretation": "Used only to verify that a finite full-rank matrix above an explicit caller threshold is rejected separately from rank deficiency. It is not an empirical, climate, tipping, calibration, or universal solver threshold."
+  },
+  "confirmation_checks": {
+    "recovery_points_full_rank": true,
+    "recovery_points_policy_accepted": true,
+    "equilibrium_only_rank": 1,
+    "equilibrium_only_nullity": 3,
+    "equilibrium_rank_deficient_condition_number_must_be_unavailable": true,
+    "near_collinear_control_full_rank": true,
+    "near_collinear_control_policy_rejected": true,
+    "uniform_noise_scaling_condition_number_relative_tolerance": 1e-12,
+    "matrix_scaling_condition_number_relative_tolerance": 1e-12,
+    "fisher_condition_equals_jacobian_condition_squared_relative_tolerance": 1e-10
+  },
+  "interpretation_boundary": "Conditioning is a numerical property of the declared coordinates and observation map. This experiment does not infer physical instability, tipping proximity, identifiability beyond the declared local model, or a universal acceptance threshold from a condition number."
+}
