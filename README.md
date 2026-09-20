@@ -25,7 +25,7 @@ Climate distinguishes several roles that are easy to conflate:
 - **ExperimentSpecs** freeze comparisons, data identities, controls, metrics, seeds, and stopping rules;
 - **evaluation records** preserve outcomes of declared experiments or bounded exploratory work;
 - **claim and evidence registries** control whether an outcome changes the maturity of a scientific claim;
-- **execution receipts and CI** establish what ran for a particular revision and environment.
+- **execution receipts and local verification** establish what ran for a particular revision and environment.
 
 A canonical implementation is not an endorsement of the scientific method it implements. A passing test does not establish empirical climate validity. A successful synthetic or idealized-model experiment does not automatically transfer to a GCM, reanalysis, observation, or another model class.
 
@@ -71,7 +71,7 @@ python architecture/render_roadmap.py --check
 python architecture/render_state.py --check
 ```
 
-Additional workflows exercise language-specific references, canonical Rust/Fortran surfaces, mathematical oracles, and registered experiment paths. Exact-head GitHub Actions results are execution evidence for the commit they ran against; they are not inferred from this README or from generated status projections.
+Language-specific references, canonical Rust/Fortran surfaces, mathematical oracles, and registered experiment paths are invoked explicitly from the checkout being evaluated. Hosted CI is intentionally absent: repository pushes must not trigger compute, and `.github/workflows/` is prohibited by the repository-state guard.
 
 ### Codespaces
 
@@ -103,4 +103,4 @@ Execution-resource semantics are defined in [docs/EXECUTION-RESOURCES.md](docs/E
 
 ## Nonclaims
 
-The repository does not claim that unusual mathematics is useful because it is unusual, that conventional methods are sufficient because they are conventional, that a canonical implementation is empirically correct, that a green CI run validates a climate hypothesis, or that one model class can substitute for another without an explicit scientific relation and test.
+The repository does not claim that unusual mathematics is useful because it is unusual, that conventional methods are sufficient because they are conventional, that a canonical implementation is empirically correct, that a passing verification check validates a climate hypothesis, or that one model class can substitute for another without an explicit scientific relation and test.
