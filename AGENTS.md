@@ -177,6 +177,7 @@ python architecture/check_hazards.py
 python architecture/check_experiments.py
 python architecture/check_sheaf_realization.py
 python architecture/check_durable_text.py
+python architecture/check_documentation_quality.py
 python architecture/check_root_layout.py
 python architecture/check_semantic_defaults.py
 python architecture/source_gates.py --summary
