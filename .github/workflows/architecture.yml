@@ -38,12 +38,10 @@ jobs:
         run: python -m unittest discover -s tests/reference -p 'test_data_authority_adapters.py' -v
       - name: External model contract-reasoning scorer
         run: python -m unittest discover -s tests/reference -p 'test_external_contract_reasoning.py' -v
-      - name: Generated repository-state contract matches authority map
-        run: python architecture/render_repository_state.py --check
       - name: Generated planning projection matches planning authority
         run: python architecture/render_roadmap.py --check
-      - name: Generated structural projection matches declared authorities
-        run: python architecture/render_status.py --check
+      - name: Generated research state matches repository-local authorities
+        run: python architecture/render_state.py --check
       - name: Semantic hazard freshness and resolution integrity
         run: python architecture/check_hazards.py
       - name: Experiment graph integrity
