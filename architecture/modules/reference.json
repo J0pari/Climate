@@ -16,6 +16,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/ebm_recovery_conditioning_guardrails.py",
+      "family": "ebm_recovery_conditioning_reference",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "bounded independent NumPy/SciPy reference witness for numerical rank, 2-norm conditioning, scale invariance, Fisher/Jacobian conditioning identity, and explicit accept/rank-deficient/condition-exceeded statuses on the existing two-layer EBM recovery objective; canonical generic conditioning policy remains owned by src/numerics.rs and nalgebra",
+      "known_gaps": [
+        "the verification-only maximum condition number is a test policy for exercising refusal plumbing and is not a physical, empirical, tipping, calibration, or universal solver threshold",
+        "the witness uses local synthetic two-layer EBM sensitivities and does not establish global parameter identifiability or real-climate estimability",
+        "NumPy SVD is an independent reference path; production callers must continue to bind the canonical Rust conditioning surface or another explicitly declared maintained backend rather than silently substituting this script",
+        "the near-collinear matrix is a synthetic numerical control derived from an EBM Jacobian and is not a physical parameter relation"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/external_contract_reasoning.py",
       "family": "reference_external_model_contract_reasoning",
       "language": "python",
