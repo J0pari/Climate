@@ -59,7 +59,7 @@ class DocumentationQualityTests(unittest.TestCase):
             "improves over the declared baseline.\n"
             "The operator is verified against a manufactured solution and a discrete "
             "budget residual tolerance.\n"
-            "The exact-head workflow result belongs to the commit SHA it executed.\n"
+            "The local verification receipt names the commit SHA it executed.\n"
         )
         self.assertEqual(
             check_documentation_quality.findings_for_text("docs/example.md", text),
