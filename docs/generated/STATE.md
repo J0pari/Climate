@@ -8,7 +8,7 @@ The generated orientation view preserves each included surface as a distinct sem
 
 ## Planning frontier
 
-Active **5** · Ready **14** · Blocked **12** · Done **19** · Dropped **0**
+Active **5** · Ready **14** · Blocked **10** · Done **21** · Dropped **0**
 
 | Obligation | Status | Priority | Resource |
 | --- | --- | --- | --- |
@@ -31,8 +31,6 @@ Active **5** · Ready **14** · Blocked **12** · Done **19** · Dropped **0**
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_toolchain_ci` |
 | `experimental.teleconnection_encoding` — Test climate encodings for exact ultrametric primitives | `ready` | `P2` | `R2_toolchain_ci` |
 | `statistics.model_selection_dependence` — Verify model-selection criteria under climate dependence | `ready` | `P2` | `R2_toolchain_ci` |
-| `integration.aqua_production_reader` — Use AQUA production data access | `blocked` | `P0` | `R4_integrated_system` |
-| `integration.esmvalcore_production_preprocessing` — Use ESMValCore production preprocessing | `blocked` | `P0` | `R4_integrated_system` |
 | `sheaf.global_station_scale` — Exercise sheaf substrate at worldwide station scale | `blocked` | `P0` | `R5_large_data` |
 | `experimentation.multifidelity_response_interrogation` — Use cheap model exploration to choose discriminating high-fidelity experiments | `blocked` | `P1` | `R5_large_data` |
 | `integration.commons_storage_distribution` — Resolve Commons storage distribution into public Climate CI | `blocked` | `P1` | `R4_integrated_system` |

@@ -1020,15 +1020,12 @@
     {
       "id": "integration.esmvalcore_production_preprocessing",
       "title": "Use ESMValCore production preprocessing",
-      "status": "blocked",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R4_integrated_system",
-      "summary": "Run the pinned ESMValCore source revision with its documented production dependency stack on the same checksum-pinned CMIP6 ESGF object, then use that native preprocessing boundary before deleting any overlapping Climate preprocessing code.",
+      "summary": "The pinned ESMValCore revision 2f249416243c25038c0c98c0309062746413235c ran in its frozen Pixi environment on the checksum-pinned ACCESS-CM2 CMIP6 areacella object. Native extract_region completed cleanly, reducing the 144x192 source to a 48x96 subset and reporting a finite positive subset area in GitHub Actions run 35454755985; that exact owner-environment witness retires the earlier missing-ESMPy blocker.",
       "depends_on": [
         "integration.climate_ref_production_cmip"
-      ],
-      "blockers": [
-        "The first pip-only installation omitted ESMPy, causing ESMValCore preprocessor import to fail before extract_region executed. ESMValCore documents conda/mamba installation and its own CI uses setup-micromamba; the next attempt must provision the documented conda-forge dependency stack, then install the exact pinned source revision without substituting a different preprocessor."
       ],
       "completion": [
         "The exact pinned ESMValCore source revision imports under its documented dependency environment, including ESMPy.",
@@ -1043,15 +1040,12 @@
     {
       "id": "integration.aqua_production_reader",
       "title": "Use AQUA production data access",
-      "status": "blocked",
+      "status": "done",
       "priority": "P0",
       "resource_class": "R4_integrated_system",
-      "summary": "Use the exact pinned AQUA implementation to read and compute from production climate data through AQUA's native reader without retaining a Climate-owned generic reader/catalog/regrid layer.",
+      "summary": "The pinned AQUA revision 57c77589e1cf4053d988e3c87f67ad33cd593694 ran in an owner-consistent solved environment on the checksum-pinned ACCESS-CM2 CMIP6 areacella object. IntakeNetCDFSource.read() completed on the native NetCDF path, returned the expected ACCESS-CM2 field with a finite positive area sum, and the process exited cleanly in GitHub Actions run 35454755985; that clean execution retires the earlier native teardown-abort blocker.",
       "depends_on": [
         "integration.climate_ref_production_cmip"
-      ],
-      "blockers": [
-        "AQUA successfully opened the checksum-pinned ACCESS-CM2 CMIP6 object, produced dimensions lat=144/lon=192 and a finite positive global cell-area sum, but the Python process then aborted during native-library teardown with free(): invalid pointer (exit 134). The integration is not accepted until the native process exits cleanly; do not mask the abort with forced process termination."
       ],
       "completion": [
         "The exact pinned AQUA revision reads the production object through its native NetCDF/Reader surface.",
