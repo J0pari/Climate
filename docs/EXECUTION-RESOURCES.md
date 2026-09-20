@@ -22,7 +22,7 @@ Requires common CPU tooling and is suitable for ordinary local or explicitly pro
 
 Examples include canonical Rust tests, portable Fortran/C/C++, Python/SymPy references, small numerical fixtures, property/metamorphic tests, deterministic serialization/fingerprint checks, and small baseline statistics.
 
-### `R2_toolchain_ci`
+### `R2_portable_toolchain`
 
 Requires a specific portable toolchain that can be provisioned reproducibly in a local or explicitly provisioned environment.
 
@@ -72,7 +72,7 @@ Repository identity must be explicit before an interactive result is treated as 
 
 ### GitHub Codespaces
 
-GitHub Codespaces is an execution venue for work that already qualifies as `R1_portable_cpu` or `R2_toolchain_ci`; it is not a new resource class and does not weaken a requirement for `R3_cuda_device`, `R4_integrated_system`, or `R5_large_data`. The repository Codespaces environment should therefore reproduce the same experiment identity, method/configuration resolution, failure semantics, and artifact contracts used elsewhere rather than define Codespaces-specific science.
+GitHub Codespaces is an execution venue for work that already qualifies as `R1_portable_cpu` or `R2_portable_toolchain`; it is not a new resource class and does not weaken a requirement for `R3_cuda_device`, `R4_integrated_system`, or `R5_large_data`. The repository Codespaces environment should therefore reproduce the same experiment identity, method/configuration resolution, failure semantics, and artifact contracts used elsewhere rather than define Codespaces-specific science.
 
 The repository supplies a dev-container bootstrap and a Codespaces campaign runner for the local CPU experiment runtime. Their purpose is to turn otherwise idle included personal-account compute into falsifiable registered runs, not to manufacture activity. A campaign records the exact checkout revision and environment receipt, runs only experiment identities supported by the canonical runtime, writes results under `run-artifacts/`, and leaves durable scientific promotion to the normal evidence registry/review path.
 
