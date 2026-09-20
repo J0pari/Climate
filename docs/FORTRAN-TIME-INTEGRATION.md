@@ -25,7 +25,7 @@ Climate should not spend novelty budget reimplementing mature generic numerical 
 
 The hand-written RK4, theta-step, and Thomas-factorization code is small, inspectable, deterministic, and useful as a differential/reference oracle. It is not intended to grow into a bespoke production solver stack.
 
-For production-oriented CPU integration, the preferred trajectory is SUNDIALS ARKODE rather than implementing a project-local adaptive/embedded Runge--Kutta, IMEX, multirate, nonlinear-solver, and error-controller stack. ARKODE supplies explicit, implicit, additive IMEX, and multirate methods plus reusable vector/matrix/nonlinear/linear-solver interfaces and modern Fortran bindings. Climate should contribute the scientifically meaningful split of tendencies, Jacobians/operators, tolerances, conservation monitors, and evidence capture around that library.
+For production-oriented CPU integration, the preferred trajectory is SUNDIALS ARKODE rather than implementing a project-local adaptive/embedded Runge--Kutta, IMEX, multirate, nonlinear-solver, and error-controller stack. ARKODE supplies explicit, implicit, additive IMEX, and multirate methods plus reusable vector/matrix/nonlinear/linear-solver interfaces and modern Fortran bindings. Climate should supply the equation-derived tendency partition, Jacobians/operators, tolerance semantics, conservation monitors, and evidence capture around that library.
 
 For tridiagonal linear solves, LAPACK `DGTTRF`/`DGTTRS` is the production-oriented CPU backend because it provides partial pivoting and reusable factorization. `src/fortran/linear_implicit.f90` is the transparent no-pivot reference path. Differential tests deliberately cover both a system where the two agree and a system that requires LAPACK pivoting and must be rejected by the reference Thomas path.
 
@@ -118,4 +118,4 @@ The production integrator should be selected by physical and numerical requireme
 
 Integrator choice must not define the physics partition after the fact. The partition should follow from the equations and desired discrete structure: conservative or reversible dynamics, stiff dissipative processes, fast wave processes, external forcing, and exchange terms should be separated for scientific reasons first, then mapped onto the capabilities of the chosen solver.
 
-A more sophisticated external method may supersede the theta primitive for production stepping. The theta primitive remains useful as a reference oracle and directly testable building block.
+An external method that provides the required adaptivity, stability, implicit/explicit partitioning, or multirate behavior may supersede the theta primitive for production stepping. The theta primitive remains a reference oracle and directly testable building block.
