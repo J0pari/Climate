@@ -6,7 +6,7 @@ This document defines a program for evaluating whether several mathematically di
 
 The central hypothesis is:
 
-> Climate state may admit a useful **atlas of complementary representations** whose shared and state-dependent geometry can be learned or constructed under physical, statistical, and dynamical constraints. A joint manifold, product/fiber geometry, or related structure should be accepted only if it improves scientifically meaningful tasks while retaining interpretable links to the representations from which it was built.
+> Hypothesis: climate state may admit an **atlas of complementary representations** whose shared and state-dependent geometry can be learned or constructed under declared physical, statistical, and dynamical constraints. A joint manifold, product/fiber geometry, or related structure is retained only when a preregistered comparison shows improvement on declared target tasks over simpler representation/fusion baselines while preserving explicit maps back to the constituent representations.
 
 The point is not to put every mathematical idea in the repository on equal footing. Some representations may form the primary geometry; others may contribute a local metric, a constraint, a kernel, a tangent-space decomposition, or an alternative geometry to compare and reject.
 
