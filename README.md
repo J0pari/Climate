@@ -1,149 +1,122 @@
 # Climate
 
-Climate is an experimental research repository for climate dynamics, mathematical representations of climate state, and the numerical structures needed to study them rigorously.
+Climate is a research codebase for testing climate-physics operators, numerical methods, and alternative representations of climate state under explicit experiment and evidence contracts.
 
+The repository is not an operational forecasting system, a validated unified climate model, or evidence that every registered method is scientifically useful. Registration, execution, numerical verification, empirical validation, and claim promotion are separate states.
 
-**Canonical implementation does not mean scientifically endorsed method.** It means the repository has one authoritative implementation of a declared object; scientific claims advance only through claim-scoped evidence and falsifiable experiments.
-The central scientific goal is not to collect unusual mathematics for its own sake. It is to determine whether physically grounded, statistically grounded, and mathematically distinct representations of the climate system can be integrated into a useful description of climate state and evolution.
+## What the repository is for
 
-Two research programs meet at that point:
+The code and experiments address questions such as:
 
-- **structure-preserving climate dynamics** — build physical operators whose discrete behavior respects the balances, exchanges, symmetries, constraints, and dissipative structure of the equations they represent;
-- **multirepresentation climate geometry** — construct and compare multiple scientifically meaningful views of the same climate state, then determine whether their relationships are best described by shared manifolds, products, fibers, quotients, local atlases, statistical geometry, kernels, sheaf structure, or other appropriate mathematical objects.
+- whether discrete climate-physics operators preserve the balances, signs, constraints, and exchanges they are intended to represent;
+- whether alternative state representations retain information needed for a declared task better than simpler baselines;
+- whether statistical geometry, multiview structure, local-to-global consistency, or other mathematical constructions add measurable value under controlled comparisons;
+- whether numerical pathologies such as rank deficiency, poor conditioning, backend differences, or precision changes alter a scientific result;
+- how results from external climate-data, model, evaluation, and intercomparison systems can enter a Climate experiment without duplicating the systems that own those capabilities.
 
-Neither program is assumed to have a single final formulation. The repository exists to make those questions precise enough to answer.
+These are questions to test. The repository does not assume that any particular mathematical family, representation, or numerical method is useful before evidence supports that conclusion.
 
-## Scientific focus
+## Implementation and evidence are separate
 
-### Structure-preserving dynamics
+Climate distinguishes several roles that are easy to conflate:
 
-Climate dynamics couple mass, momentum, thermodynamics, moisture, radiation, transport, and exchange among atmosphere, ocean, land, ice, and other reservoirs. Numerical implementations should make those relationships explicit rather than treating conservation or balance as an after-the-fact diagnostic.
+- **reference implementations** provide independently checkable definitions or numerical oracles;
+- **canonical implementations** are the repository-owned implementations of narrowly declared objects;
+- **ExperimentSpecs** freeze comparisons, data identities, controls, metrics, seeds, and stopping rules;
+- **evaluation records** preserve outcomes of declared experiments or bounded exploratory work;
+- **claim and evidence registries** control whether an outcome changes the maturity of a scientific claim;
+- **execution receipts and CI** establish what ran for a particular revision and environment.
 
-Important targets include:
+A canonical implementation is not an endorsement of the scientific method it implements. A passing test does not establish empirical climate validity. A successful synthetic or idealized-model experiment does not automatically transfer to a GCM, reanalysis, observation, or another model class.
 
-- continuity-consistent mass and tracer transport;
-- pressure-coordinate hydrostatics and vertical motion;
-- momentum dynamics with correct pressure-work and Coriolis structure;
-- energy-consistent coupling among kinetic, potential, internal, latent, and radiative reservoirs;
-- physically signed dissipation, drag, diffusion, precipitation, and surface exchange;
-- spatial operators that preserve the balances and wave properties relevant to rotating geophysical flow;
-- time integration chosen to respect the declared physical partition rather than defining it.
+The binding maturity and evidence semantics are defined in [AGENTS.md](AGENTS.md) and [docs/VALIDATION-AND-EVIDENCE.md](docs/VALIDATION-AND-EVIDENCE.md).
 
-Small exact or transparent kernels are used where they clarify the mathematics and provide independent reference behavior. Mature generic numerical machinery should normally come from maintained libraries behind thin, testable interfaces.
+## Repository state is commit-scoped
 
-### Multirepresentation climate state
+Do not use this README as a repository-status snapshot.
 
-A climate state can be viewed through many scientifically distinct maps. Examples include:
+Repository state is resolved at an exact `main` commit. The machine authority for state surfaces and freshness semantics is [architecture/state_authorities.json](architecture/state_authorities.json); its generated human-readable contract is [docs/REPOSITORY-STATE.md](docs/REPOSITORY-STATE.md).
 
-- prognostic physical fields and thermodynamic coordinates;
-- subsystem and multiscale summaries;
-- spectral, modal, Koopman, and oscillatory representations;
-- observation-space and retrieval-space representations;
-- parameter, likelihood, and uncertainty distributions;
-- teleconnection and hierarchical relational structure;
-- local data-consistency structures over heterogeneous observing systems;
-- learned latent representations constrained by physical or statistical structure.
+Two generated documents have deliberately limited scope:
 
-These views are not assumed to be interchangeable coordinates in one large feature vector. Their relationships are themselves part of the research question.
+- [docs/ROADMAP.md](docs/ROADMAP.md) projects only [architecture/planning_graph.json](architecture/planning_graph.json): planned work, priority, dependencies, blockers, resource class, and completion criteria.
+- [docs/generated/STATUS.md](docs/generated/STATUS.md) projects only the structural-realization authorities declared for that surface: registered modules, claim/evidence structure, ExperimentSpecs, and sheaf realization state.
 
-A candidate representation may contribute as a coordinate chart, factor, fiber, observation map, constraint, kernel, quotient, local compatibility structure, or comparison geometry. Information geometry is especially relevant when an explicit likelihood provides a Fisher metric or another statistically interpretable local geometry. Null directions and non-identifiability are retained as information rather than hidden by automatic regularization.
+Neither document proves the complete repository state. Evaluation records, claim promotion, exact-head GitHub Actions, and commit history have separate authorities. If `main` moves, cached conclusions about what is done, ready, blocked, passing, or scientifically supported are stale until the reorientation sequence in [docs/REPOSITORY-STATE.md](docs/REPOSITORY-STATE.md) is repeated.
 
-The repository investigates whether a useful integrated geometry can preserve or reveal:
+## Scientific programs
 
-- physically meaningful neighborhoods of climate state;
-- slow/fast and subsystem structure;
-- identifiable and weakly observed directions;
-- balanced and unbalanced dynamical modes;
-- conservation and exchange structure;
-- teleconnection organization;
-- regime and trajectory geometry;
-- predictive structure that is not available from simpler representations.
+### Climate dynamics and numerical structure
 
-Curvature, geodesics, holonomy, topology, intrinsic dimension, and related quantities are properties to study after a representation is defined. They are not universal objectives for choosing the representation.
+The physical/numerical work isolates operators and update rules so their declared equations and budgets can be checked independently. Relevant subjects include transport, hydrostatics, forcing response, reservoir exchange, conservation and budget accounting, dissipation signs, time integration, conditioning, and backend/precision behavior.
 
-## Mathematical research families
+Small local implementations are appropriate when they define Climate-specific semantics or serve as independent references. Generic numerical algorithms should normally remain owned by maintained numerical libraries.
 
-Several mathematical families contribute to this program with different roles and different degrees of centrality:
+### Multiple representations of climate state
 
-- **Riemannian and differential geometry** for explicit state-space metrics, connections, curvature, geodesics, pullbacks, and representation maps;
-- **information geometry** for likelihood- and distribution-induced geometry, identifiability, statistical distinguishability, and natural-gradient questions;
-- **Hamiltonian, variational, Noether, Poisson, Nambu, and compatible-discretization ideas** where conservative subdynamics genuinely possess that structure;
-- **sheaf and cohomological methods** for local-to-global consistency over heterogeneous observations and overlapping domains;
-- **ultrametric and p-adic representations** as hypotheses about hierarchical teleconnection or relational structure;
-- **Clifford/geometric algebra** as a possible representation of oriented, multicomponent, or resonant mode interactions;
-- **modal and logical structures** where they give precise semantics to constrained scenario or accessibility questions.
+Climate also compares representations of the same underlying system under explicit tasks and controls. Candidate views may include physical coordinates, modal or spectral summaries, statistical or likelihood coordinates, multiview latent structure, local compatibility data, learned representations, or relational/hierarchical descriptions.
 
-The repository does not assume that every one of these belongs inside a single smooth manifold. A successful integration may be heterogeneous.
+A representation is not selected because it has attractive geometric language. It has to preserve or expose a declared target better than appropriate baselines under the same data and evaluation policy.
 
-## Executable foundations
+The broader research design is described in [docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md](docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md) and [docs/META-EXPERIMENTATION.md](docs/META-EXPERIMENTATION.md).
 
-The executable surface is intentionally narrower than the research agenda. It contains small portable physical kernels, independently checkable mathematical references, canonical numerical primitives, and explicit verification fixtures. [`docs/generated/STATUS.md`](docs/generated/STATUS.md) is a scoped structural-realization projection of the machine authorities declared for that surface; it is not a complete repository-state snapshot and does not include planning, unpromoted evaluation records, exact-head CI, or commit history. Repository-wide present-state claims follow the commit-scoped reconciliation protocol in [`docs/REPOSITORY-STATE.md`](docs/REPOSITORY-STATE.md).
+## External systems remain external owners
 
-The physical realization boundary is described in [`docs/FORTRAN-PHYSICS-FRONTIER.md`](docs/FORTRAN-PHYSICS-FRONTIER.md); geometry, sheaf, and other method-specific verification obligations live in their corresponding specifications.
+Climate should not copy mature climate-data, preprocessing, evaluation, training, inference, model-execution, or intercomparison stacks merely to place project-local APIs in front of them.
 
-### Codespaces experiment campaigns
+When an experiment depends on an external system, Climate's responsibility is to bind the exact upstream capability and identity, preserve the configuration and transformations that affect the result, capture native receipts or artifacts, add Climate-specific scientific semantics, and fail closed when the required external path is unavailable.
 
-The repository includes a GitHub Codespaces dev-container and a thin campaign runner for the canonical local CPU experiment frontier. Open a Codespace on the exact revision you intend to test; the container bootstraps the pinned EBM experiment dependencies and CUE contract checker. Then inspect or execute the registered runtime frontier:
+This boundary is described in [docs/COMMONS-INTEGRATION.md](docs/COMMONS-INTEGRATION.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the contributor rules in [AGENTS.md](AGENTS.md).
+
+## Experiments and execution
+
+Portable repository checks include:
+
+```text
+python -m unittest discover -s tests/architecture -v
+python architecture/check_repository_state.py
+python architecture/check_claims.py
+python architecture/check_methods.py
+python architecture/check_modules.py
+python architecture/check_planning.py
+python architecture/check_experiments.py
+python architecture/render_repository_state.py --check
+python architecture/render_roadmap.py --check
+python architecture/render_status.py --check
+```
+
+Additional workflows exercise language-specific references, canonical Rust/Fortran surfaces, mathematical oracles, and registered experiment paths. Exact-head GitHub Actions results are execution evidence for the commit they ran against; they are not inferred from this README or from generated status projections.
+
+### Codespaces
+
+The repository includes a dev-container and a campaign runner for portable CPU experiments:
 
 ```text
 python architecture/codespaces_campaign.py --list
 python architecture/codespaces_campaign.py
 ```
 
-Campaigns derive runnable identities from the existing experiment specifications plus the canonical runtime adapter registry rather than maintaining another experiment list. They write environment fingerprints, stdout/stderr, run/outcome artifacts, CUE validation logs, and a campaign summary below `run-artifacts/codespaces/`. A clean checkout is required for evidence-oriented runs by default; `--allow-dirty` is reserved for exploration.
+The runner derives supported experiment identities from existing ExperimentSpecs and the canonical runtime registry. It does not create a second experiment list. Codespaces is an execution venue for work that fits the declared portable CPU/toolchain resource classes; it does not stand in for CUDA hardware, native external runtimes, or large-data confirmation.
 
-Codespaces is only an execution venue for work whose declared semantics fit `R1_portable_cpu` or `R2_toolchain_ci`. It does not make CUDA, integrated external runtimes, or large-data evidence locally available, and it does not change upstream ownership: external climate/model systems remain native owners while Climate supplies only the connectors, adapters, diagnostics, intervention mappings, and evidence semantics needed to interrogate them.
+Execution-resource semantics are defined in [docs/EXECUTION-TOPOLOGY.md](docs/EXECUTION-TOPOLOGY.md).
 
-## Architecture
+## Where to look
 
-Climate separates four kinds of authority:
+- [AGENTS.md](AGENTS.md) — binding repository and evidence contract.
+- [architecture/state_authorities.json](architecture/state_authorities.json) — machine authority for repository-state surfaces and freshness.
+- [docs/REPOSITORY-STATE.md](docs/REPOSITORY-STATE.md) — generated exact-head reorientation protocol.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — intended architecture and authority boundaries.
+- [architecture/planning_graph.json](architecture/planning_graph.json) — sole planning authority.
+- [docs/ROADMAP.md](docs/ROADMAP.md) — generated planning-only projection.
+- [docs/generated/STATUS.md](docs/generated/STATUS.md) — generated structural-realization projection.
+- [experiments/](experiments/) — registered ExperimentSpecs.
+- [evaluations/](evaluations/) — committed evaluation and exploratory result records.
+- [claims/registry.json](claims/registry.json) and [evidence/registry.json](evidence/registry.json) — scientific claim/evidence authority.
+- [methods/registry.json](methods/registry.json) — executable method identities and assumptions.
+- [docs/VALIDATION-AND-EVIDENCE.md](docs/VALIDATION-AND-EVIDENCE.md) — verification, validation, and promotion semantics.
+- [docs/META-EXPERIMENTATION.md](docs/META-EXPERIMENTATION.md) — comparison and experiment-design rules.
+- [docs/EXECUTION-TOPOLOGY.md](docs/EXECUTION-TOPOLOGY.md) — resource and execution-environment semantics.
 
-1. mathematical or independently checkable reference definitions;
-2. canonical portable implementations;
-3. optimized or hardware-specific implementations;
-4. empirical climate interpretation.
+## Nonclaims
 
-A correct implementation of a mathematical object does not by itself establish that the object is useful for climate science. Likewise, a physical kernel that satisfies its local equations does not by itself establish that a coupled model is correct.
-
-The repository therefore keeps physical state, statistical models, research representations, experiments, evidence, and execution infrastructure distinct. Their interfaces should make scientific assumptions visible rather than burying them in shared mutable state or orchestration code.
-
-Generic numerical infrastructure should be reused where mature implementations exist. Climate-owned engineering effort should concentrate on climate-specific variables, coordinates, operators, balance laws, coupling semantics, representation maps, Jacobians, physical constraints, and scientifically meaningful experiments.
-
-The same rule applies above the numerical-library level. Climate should not recreate mature climate-data, evaluation, intercomparison, training, inference, or model-execution stacks merely to place them behind project-local interfaces. External implementation ownership does not remove those concerns from Climate's correctness envelope: an evidence-producing integration must still bind the exact external capability, version, configuration, data transformations, runtime identity, failures, and native receipts or artifacts that affect the result.
-
-Integration examples illustrate the boundary rather than define a dependency mandate: Climate-REF and ESMValTool/ESMValCore already own broad climate-evaluation and preprocessing machinery; AQUA owns high-resolution model-output access and evaluation machinery for the DestinE context; AIMIP owns an AI-climate intercomparison protocol and common output conventions; ClimSim-Online owns its E3SM-MMF online execution workflow; and Anemoi/ACE-family systems own their model training or inference runtimes. Climate's distinctive contribution is the scientific interrogation layer across such systems: intervention semantics, cross-model structural comparisons, invariant/budget assays, multi-fidelity discrepancy, experiment selection, representation mismatch, falsifiers, and scoped evidence transport.
-
-## Research workflow
-
-New scientific ideas should enter as precise mathematical or physical questions, not as implementation-first feature requests. A useful sequence is:
-
-1. define the climate object or process being represented;
-2. state the mathematical structure and its domain of applicability;
-3. identify established methods and libraries that already solve generic parts of the problem;
-4. implement only the climate-specific or independently valuable reference pieces locally;
-5. compare candidate structures on systems where the relevant truth is known;
-6. evaluate them on climate data or climate-model output only after the representation and numerical semantics are trustworthy.
-
-Reproducibility, ablation, controls, and evidence capture support this work, but they are infrastructure for answering the scientific questions rather than the subject of the research itself.
-
-Before describing repository state or selecting the next task, resolve the exact current `main` SHA and follow [`docs/REPOSITORY-STATE.md`](docs/REPOSITORY-STATE.md). A fresh `docs/ROADMAP.md` certifies only the planning projection, and a fresh `docs/generated/STATUS.md` certifies only its declared structural authority set; neither substitutes for relevant evaluations/evidence or exact-head GitHub Actions.
-
-## Key documents
-
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — target architecture and semantic boundaries.
-- [`architecture/state_authorities.json`](architecture/state_authorities.json) — machine authority for repository-state surfaces and freshness semantics.
-- [`docs/REPOSITORY-STATE.md`](docs/REPOSITORY-STATE.md) — generated commit-scoped reorientation and projection-scope contract.
-- [`architecture/planning_graph.json`](architecture/planning_graph.json) — sole authority for planned work, priorities, dependencies, blockers, and completion criteria.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — generated planning-only projection of the planning graph.
-- [`docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`](docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md) — integrated representation and geometry research program.
-- [`docs/FORTRAN-PHYSICS-FRONTIER.md`](docs/FORTRAN-PHYSICS-FRONTIER.md) — realized and open physical/numerical responsibilities.
-- [`docs/FORTRAN-TIME-INTEGRATION.md`](docs/FORTRAN-TIME-INTEGRATION.md) — integration semantics and external numerical-library boundaries.
-- [`docs/GEOMETRY-VERIFICATION.md`](docs/GEOMETRY-VERIFICATION.md) — mathematical and numerical verification requirements for geometry.
-- [`docs/SHEAF-REALIZATION.md`](docs/SHEAF-REALIZATION.md) — sheaf/descent/cohomology realization program.
-- [`docs/META-EXPERIMENTATION.md`](docs/META-EXPERIMENTATION.md) — methodology for comparing competing scientific representations and methods.
-- [`docs/generated/STATUS.md`](docs/generated/STATUS.md) — generated structural-realization projection from its explicitly declared machine-authority inputs.
-- [`AGENTS.md`](AGENTS.md) — binding repository correctness and contribution rules, including the rule that TODO/planning concerns have no parallel authority outside the planning graph.
-
-## Scope
-
-Climate is not an operational forecasting system and does not treat experimental mathematical indicators as validated physical predictions. Its purpose is to build and test a technically serious mathematical and physical research framework in which unconventional ideas can be integrated where they add real explanatory or predictive structure and rejected where they do not.
+The repository does not claim that unusual mathematics is useful because it is unusual, that conventional methods are sufficient because they are conventional, that a canonical implementation is empirically correct, that a green CI run validates a climate hypothesis, or that one model class can substitute for another without an explicit scientific relation and test.
