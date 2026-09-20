@@ -11,7 +11,7 @@
   "storage_policy": {
     "catalog": "content-addressed bounded catalog shards referenced by manifest; each current station object keeps one provider-location snapshot per alias while prior snapshots remain in superseded immutable shard revisions, so no global station table or unbounded per-station metadata log is required in memory",
     "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones",
-    "ingestion": "idempotent by artifact digest; source revisions append lineage rather than overwrite prior artifacts",
+    "ingestion": "idempotent by artifact digest; observation revisions append explicit supersession/tombstone lineage, while catalog refreshes preserve exact shard-id continuity, supersede changed content for the same shard, replay unchanged content idempotently, and fail closed if an active shard disappears because catalog-retirement semantics are not yet defined",
     "coverage": "derived from active manifest references; coverage v2 carries geographic bounds for adaptive catalog shards, propagates those bounds to observation partitions by spatial-partition identity, and reports unresolved geographic partitions explicitly rather than requiring consumers to reopen station records"
   },
   "providers": [
@@ -32,7 +32,8 @@
         "reference/station_temperature_sheaf.py::to_station_catalog",
         "data/ncei_ghcnd_parquet.py::publish_gzip_by_year",
         "src/station_federation.py::adaptive_catalog_shards",
-        "src/station_federation.py::catalog_shard_refs"
+        "src/station_federation.py::catalog_shard_refs",
+        "src/station_federation.py::revise_catalog_shard_refs"
       ],
       "access": "NCEI HTTPS archive and Common Access Data/Search Service REST APIs",
       "license_or_access_constraints": "NOAA public data; source-specific restrictions and flags remain part of provenance",
@@ -59,7 +60,8 @@
         "data/ncei_ghcnh_partition.py::publish_year_archive",
         "data/ncei_ghcnh_bulk.py::stream_station_year_psv",
         "src/station_federation.py::adaptive_catalog_shards",
-        "src/station_federation.py::catalog_shard_refs"
+        "src/station_federation.py::catalog_shard_refs",
+        "src/station_federation.py::revise_catalog_shard_refs"
       ]
     }
   ]

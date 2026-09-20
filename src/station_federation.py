@@ -716,6 +716,60 @@ def _active_revisions(items: Sequence, *, key) -> tuple:
     return tuple(sorted(leaves, key=lambda item: (key(item), item.digest)))
 
 
+def revise_catalog_shard_refs(
+    shards: Sequence[StationCatalogShard],
+    previous_refs: Sequence[CatalogShardRef],
+) -> tuple[CatalogShardRef, ...]:
+    """Derive an idempotent append-only catalog refresh without guessing topology.
+
+    Exact shard_id continuity is the only automatic revision relation. A changed
+    digest for the same active shard explicitly supersedes that predecessor.
+    Replaying identical content returns the existing active ref, including its
+    lineage. If an active shard disappears, this function fails closed because
+    catalog retirement/tombstone semantics do not yet exist; geographic overlap
+    or similar station membership is never used to infer replacement.
+    """
+    current = catalog_shard_refs(shards)
+    previous = tuple(previous_refs)
+    active_previous = _active_revisions(
+        previous, key=lambda item: item.shard_id
+    )
+    previous_by_id = {item.shard_id: item for item in active_previous}
+    history_by_digest = {item.digest: item for item in previous}
+
+    current_ids = {item.shard_id for item in current}
+    missing = sorted(set(previous_by_id) - current_ids)
+    if missing:
+        raise ValueError(
+            "catalog refresh removed active shard ids without explicit retirement "
+            "semantics: " + ", ".join(missing)
+        )
+
+    revised: list[CatalogShardRef] = []
+    for item in current:
+        predecessor = previous_by_id.get(item.shard_id)
+        known = history_by_digest.get(item.digest)
+        if known is not None:
+            if replace(known, supersedes=()) != item:
+                raise ValueError(
+                    f"catalog digest {item.digest} has conflicting reference metadata"
+                )
+            if predecessor is None or predecessor.digest != item.digest:
+                raise ValueError(
+                    f"catalog refresh would reactivate historical digest {item.digest}"
+                )
+            revised.append(predecessor)
+            continue
+
+        if predecessor is None:
+            revised.append(item)
+        else:
+            revised.append(
+                replace(item, supersedes=(predecessor.digest,))
+            )
+    return tuple(revised)
+
+
 @dataclass(frozen=True)
 class StationFederationManifest:
     manifest_id: str
@@ -750,6 +804,29 @@ class StationFederationManifest:
         if include_tombstones:
             return active
         return tuple(item for item in active if item.kind == "data")
+
+    def with_catalog_shards(
+        self, additions: Iterable[CatalogShardRef]
+    ) -> "StationFederationManifest":
+        by_digest = {item.digest: item for item in self.catalog_shards}
+        for item in additions:
+            existing = by_digest.get(item.digest)
+            if existing is not None and existing != item:
+                raise ValueError(f"digest {item.digest} names conflicting metadata")
+            by_digest[item.digest] = item
+        return StationFederationManifest(
+            manifest_id=self.manifest_id,
+            semantic_version=self.semantic_version,
+            provider_registry_digest=self.provider_registry_digest,
+            catalog_shards=tuple(by_digest.values()),
+            observation_partitions=self.observation_partitions,
+        )
+
+    def with_catalog_refresh(
+        self, shards: Sequence[StationCatalogShard]
+    ) -> "StationFederationManifest":
+        revisions = revise_catalog_shard_refs(shards, self.catalog_shards)
+        return self.with_catalog_shards(revisions)
 
     def with_observation_partitions(
         self, additions: Iterable[ObservationPartitionRef]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import unittest
 
 from src.station_federation import (
@@ -14,9 +15,12 @@ from src.station_federation import (
     StationFederationManifest,
     StationLocationEpoch,
     StationSpatialBounds,
+    adaptive_catalog_shards,
     apply_cross_provider_alias_evidence,
     canonical_station_id,
+    catalog_shard_refs,
     remove_cross_provider_alias_evidence,
+    revise_catalog_shard_refs,
 )
 
 
@@ -230,6 +234,108 @@ class StationFederationTests(unittest.TestCase):
             )
             ref = catalog_shard_refs((shard,))[0]
             self.assertEqual(ref.spatial_bounds, shard.spatial_bounds)
+
+    def test_catalog_refresh_is_append_only_idempotent_and_bounded(self):
+        original = station(provider_id="A")
+        first_shard = StationCatalogShard(
+            "cell-1",
+            "cell-1",
+            (original,),
+            StationSpatialBounds(40.1, 40.1, -74.9, -74.9),
+        )
+        first_ref = catalog_shard_refs((first_shard,))[0]
+        manifest = StationFederationManifest(
+            "global-free-stations.v1",
+            "1.0.0",
+            D1,
+            (first_ref,),
+            (),
+        )
+
+        refreshed_station = replace(
+            original,
+            provider_location_snapshots=(
+                replace(
+                    original.provider_location_snapshots[0],
+                    evidence_digest=D3,
+                    metadata_effective_date="2024-01-02",
+                ),
+            ),
+        )
+        refreshed_shard = StationCatalogShard(
+            "cell-1",
+            "cell-1",
+            (refreshed_station,),
+            StationSpatialBounds(40.1, 40.1, -74.9, -74.9),
+        )
+        revision = revise_catalog_shard_refs(
+            (refreshed_shard,), manifest.catalog_shards
+        )[0]
+        self.assertNotEqual(revision.digest, first_ref.digest)
+        self.assertEqual(revision.supersedes, (first_ref.digest,))
+
+        updated = manifest.with_catalog_shards((revision,))
+        self.assertEqual(len(updated.catalog_shards), 2)
+        self.assertEqual(
+            updated.active_catalog_shards(),
+            (revision,),
+        )
+        self.assertEqual(
+            updated.with_catalog_refresh((refreshed_shard,)),
+            updated,
+        )
+
+    def test_catalog_refresh_refuses_implicit_shard_retirement_or_rename(self):
+        first = StationCatalogShard(
+            "cell-a",
+            "cell-a",
+            (station(provider_id="A"),),
+            StationSpatialBounds(40.1, 40.1, -74.9, -74.9),
+        )
+        second = StationCatalogShard(
+            "cell-b",
+            "cell-b",
+            (station(provider_id="B"),),
+            StationSpatialBounds(40.1, 40.1, -74.9, -74.9),
+        )
+        previous = catalog_shard_refs((first, second))
+        with self.assertRaisesRegex(ValueError, "removed active shard ids"):
+            revise_catalog_shard_refs((first,), previous)
+
+        renamed = StationCatalogShard(
+            "cell-renamed",
+            "cell-renamed",
+            first.stations,
+            first.spatial_bounds,
+        )
+        with self.assertRaisesRegex(ValueError, "removed active shard ids"):
+            revise_catalog_shard_refs((renamed, second), previous)
+
+    def test_catalog_manifest_rejects_changed_same_shard_without_supersession(self):
+        old = CatalogShardRef(
+            "cell-1",
+            "cell-1",
+            D2,
+            1,
+            ("ncei.ghcnd.v3",),
+            ("TMAX",),
+        )
+        changed = CatalogShardRef(
+            "cell-1",
+            "cell-1",
+            D3,
+            1,
+            ("ncei.ghcnd.v3",),
+            ("TMAX",),
+        )
+        with self.assertRaisesRegex(ValueError, "multiple active revisions"):
+            StationFederationManifest(
+                "global-free-stations.v1",
+                "1.0.0",
+                D1,
+                (old, changed),
+                (),
+            )
 
     def test_partition_revision_requires_explicit_supersession(self):
         old = ObservationPartitionRef(
