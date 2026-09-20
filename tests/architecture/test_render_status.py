@@ -30,11 +30,11 @@ class RenderStatusTests(unittest.TestCase):
             )
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("generated status stale:", result.stdout)
+        self.assertIn("generated structural projection does not match declared authority inputs:", result.stdout)
         self.assertIn("--- ", result.stdout)
-        self.assertIn("+++ rendered status", result.stdout)
+        self.assertIn("+++ rendered structural projection", result.stdout)
         self.assertIn("-# stale projection", result.stdout)
-        self.assertIn("+# Generated repository status", result.stdout)
+        self.assertIn("+# Generated structural repository projection", result.stdout)
 
     def test_stale_sheaf_experiment_id_is_visible_in_diff(self) -> None:
         canonical_id = "sheaf.structural_ablation.v1"
@@ -69,6 +69,9 @@ class RenderStatusTests(unittest.TestCase):
         projection = (ROOT / "docs" / "generated" / "STATUS.md").read_text(encoding="utf-8")
         self.assertIn("External implementation ownership is not treated as local realization", projection)
         self.assertIn("without shadowing the upstream implementation", projection)
+        self.assertIn("Authority-set fingerprint:", projection)
+        self.assertIn("docs/REPOSITORY-STATE.md", projection)
+        self.assertIn("not a complete repository-status snapshot", projection)
 
 
 if __name__ == "__main__":
