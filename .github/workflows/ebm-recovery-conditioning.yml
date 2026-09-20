@@ -1,0 +1,106 @@
+name: EBM recovery conditioning guardrails
+
+on:
+  push:
+    paths:
+      - 'reference/ebm_recovery_conditioning_guardrails.py'
+      - 'reference/two_layer_ebm_recovery_objective.py'
+      - 'reference/two_layer_energy_balance.py'
+      - 'reference/two_layer_forcing_protocols.py'
+      - 'reference/two_layer_parameter_identifiability.py'
+      - 'reference/information_geometry_ebm_recovery.py'
+      - 'fixtures/numerics/ebm-recovery-conditioning-guardrails-v1.json'
+      - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
+      - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
+      - 'fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json'
+      - 'fixtures/physics/two-layer-ebm-parameter-identifiability-v1.json'
+      - 'requirements/reference-two-layer-ebm.txt'
+      - 'tests/reference/test_ebm_recovery_conditioning_guardrails.py'
+      - 'src/numerics.rs'
+      - '.github/workflows/ebm-recovery-conditioning.yml'
+  pull_request:
+    paths:
+      - 'reference/ebm_recovery_conditioning_guardrails.py'
+      - 'reference/two_layer_ebm_recovery_objective.py'
+      - 'reference/two_layer_energy_balance.py'
+      - 'reference/two_layer_forcing_protocols.py'
+      - 'reference/two_layer_parameter_identifiability.py'
+      - 'reference/information_geometry_ebm_recovery.py'
+      - 'fixtures/numerics/ebm-recovery-conditioning-guardrails-v1.json'
+      - 'fixtures/physics/two-layer-ebm-geoffroy-mean-v1.json'
+      - 'fixtures/physics/two-layer-ebm-forcing-protocols-v1.json'
+      - 'fixtures/physics/two-layer-ebm-information-geometry-recovery-v1.json'
+      - 'fixtures/physics/two-layer-ebm-parameter-identifiability-v1.json'
+      - 'requirements/reference-two-layer-ebm.txt'
+      - 'tests/reference/test_ebm_recovery_conditioning_guardrails.py'
+      - 'src/numerics.rs'
+      - '.github/workflows/ebm-recovery-conditioning.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conditioning:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements/reference-two-layer-ebm.txt
+      - name: Install pinned EBM reference dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements/reference-two-layer-ebm.txt
+      - name: Record numerical backend identities
+        run: |
+          python --version
+          python - <<'PY'
+          import numpy
+          import scipy
+          print(f"numpy {numpy.__version__}")
+          print(f"scipy {scipy.__version__}")
+          PY
+      - name: Run focused conditioning reference tests
+        run: python -m unittest discover -s tests/reference -p 'test_ebm_recovery_conditioning_guardrails.py' -v
+      - name: Execute preregistered conditioning confirmation
+        run: |
+          mkdir -p run-artifacts/ebm-recovery-conditioning
+          python reference/ebm_recovery_conditioning_guardrails.py \
+            --output run-artifacts/ebm-recovery-conditioning/result.json
+      - name: Verify explicit conditioning statuses
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(
+              Path("run-artifacts/ebm-recovery-conditioning/result.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          if not result["all_checks_passed"]:
+              raise SystemExit("preregistered conditioning checks did not all pass")
+          if any(
+              item["verification_policy_status"] != "accepted"
+              for item in result["recovery_points"]
+          ):
+              raise SystemExit("a real EBM recovery point was unexpectedly rejected")
+          if result["equilibrium_only"]["verification_policy_status"] != "rank_deficient":
+              raise SystemExit("equilibrium structural degeneracy was not surfaced")
+          if (
+              result["near_collinear_control"]["verification_policy_status"]
+              != "condition_number_exceeded"
+          ):
+              raise SystemExit("near-collinear numerical control was not rejected")
+          print(json.dumps({
+              "recovery_points": result["recovery_points"],
+              "equilibrium_only": result["equilibrium_only"],
+              "near_collinear_control": result["near_collinear_control"],
+              "actual_checks": result["actual_checks"],
+              "pass_flags": result["pass_flags"],
+          }, indent=2, sort_keys=True))
+          PY
+      - name: Emit exact confirmation result for repository persistence
+        run: cat run-artifacts/ebm-recovery-conditioning/result.json
