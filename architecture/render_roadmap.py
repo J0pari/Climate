@@ -65,7 +65,7 @@ def render(
         "",
         "The planning graph is the sole authority for planned work, priority, dependencies, blockers, resource class, completion criteria, and planning evidence paths.",
         "",
-        "Structural realization is projected separately in `docs/generated/STATUS.md`; repository-wide present-state conclusions require the commit-scoped reconciliation protocol in `docs/REPOSITORY-STATE.md`.",
+        "Repository-local research state, including planning, structural registration, claims/evidence, and committed evaluations, is generated in `docs/generated/STATE.md`.",
         "",
         "External implementation ownership does not remove integration correctness from scope: planning nodes should bind native external capabilities and add Climate-specific scientific semantics rather than create shadow cataloging, preprocessing, execution, training/inference, intercomparison, or provenance stacks.",
         "",
