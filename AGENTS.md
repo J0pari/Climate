@@ -1,218 +1,60 @@
-# Climate repository contract
+# Climate worker instructions
 
-This repository is an **experimental climate-methods research workspace**. It contains conventional climate-science components, incomplete numerical infrastructure, and deliberately unusual mathematical hypotheses. The repository must preserve that distinction rather than presenting all code as one validated climate model.
+Climate is an experimental climate-methods repository. Treat implementation, numerical verification, empirical validation, and scientific claim promotion as distinct.
 
-This file is the binding contributor/agent contract. `README.md` is descriptive. `docs/ARCHITECTURE.md` and method-specific specifications define intended semantic structure. `architecture/state_authorities.json` is the machine authority for repository-state surfaces and freshness semantics, with `docs/REPOSITORY-STATE.md` as its generated human-readable projection. `architecture/planning_graph.json` remains the sole authority for planned work, priorities, dependencies, blockers, and completion criteria; `docs/ROADMAP.md` is only its generated planning projection. `docs/generated/STATUS.md` is only the generated structural-realization projection of the authority inputs explicitly declared for that surface. Non-binding surveys and research notes do not override those authorities. Implementation may be incomplete relative to intended architecture without changing the intended contract.
+## Start here
 
-## 1. Non-negotiable rules
+Before substantial work:
 
-1. **Registration is not validation.** A method may exist in the repository without being scientifically supported.
-2. **Running is not verification.** A smoke test only proves that a path executes under the tested environment.
-3. **Verification is not validation.** Numerical correctness against equations/test problems does not establish that the equations or interpretation represent climate reality.
-4. **Validation is scoped.** Evidence for one variable, region, timescale, dataset, model family, or regime must not be generalized without a declared test.
-5. **Novelty is neither a defect nor evidence.** Unusual methods must receive fair baselines and falsifiable tests; they receive no exemption from them.
-6. **Physical, statistical, and interpretive claims are distinct.** Do not turn a numerical indicator into a physical probability, tipping threshold, causal mechanism, irreversibility claim, or confidence score without an explicitly validated mapping.
-7. **No silent placeholders.** Stubs, heuristic constants, synthetic data, fallback values, incomplete derivatives, approximate solvers, and unimplemented branches must be machine-discoverable or clearly labeled at the point of use.
-8. **No architecture-by-prose.** Claimed paths, commands, interfaces, datasets, and generated artifacts require machine checks. Structural drift is a defect, not precedent.
-9. **Reproducibility is part of correctness.** Results intended as evidence must bind code revision, method/config versions, dataset identities, preprocessing, random seeds, environment, command, artifacts, and metric definitions.
-10. **Commons is a control/evidence boundary, not a scientific authority.** Commons may schedule, fingerprint, trace, and compare Climate experiments. It must not convert experimental Climate output into stronger evidence classes than Climate earned.
-11. **Performance is not scientific evidence by itself.** A faster GPU path does not strengthen a scientific claim unless it preserves the declared numerical semantics and passes the same validation contract.
-12. **No implicit semantic substitution; execution identity is fail-closed.** Required data, observations, calibration/parameter authority, configuration, model/runtime, solver, backend, precision, resource class, preprocessing, and other scientific/execution semantics are exact inputs or identities. If a required semantic is missing or unavailable, the path fails closed or becomes ineligible; it must not select a replacement through a default, exception-recovery branch, availability branch, sentinel value, compatibility shim, or alternate implementation while retaining success semantics. An alternative may execute only when it is explicitly declared or requested under its own identity. `#ExecutionResolution` is the execution-instance contract for this general rule. Mere discoverability or labeling does not make semantic substitution acceptable.
-13. **Unavailable resources remain explicit gates.** Compile success, static inspection, mocks, shims, or prose must not stand in for execution on a resource that the claim actually depends on. CUDA correctness needs a CUDA device; integrated scheduling needs the integrated system; real-data generalization needs the declared data.
-14. **Preserve semantic information, not incidental syntax.** Refactors may substantially change layout, control flow, abstractions, or language boundaries when that increases technical accuracy, composability, falsifiability, or scientific meaning. Do not preserve brittle structure merely because it is old.
-15. **No semantic smoothing.** A migration may simplify syntax, but it must not collapse scientifically meaningful distinctions such as missing vs zero, undefined vs stable, unavailable vs failed, heuristic vs measured, proposal vs evidence, or policy threshold vs physical tipping claim. If compatibility code conflates states, canonical code should split them and document the compatibility difference where that difference remains operationally relevant.
-16. **Noncanonical source is temporary mining material, not a permanent architecture tier.** Mine unique domain semantics into canonical code, contracts, references, tests, or planning obligations. Do not migrate generic machinery that belongs in maintained libraries. Once useful semantics are represented elsewhere and no live dependency remains, delete the depleted source; Git history is the archive. `docs/LEGACY-DELETION.md` defines the binding depletion criteria.
-17. **Abstraction must buy epistemic or engineering leverage.** Do not add wrapper types, indirection, or framework ceremony solely for stylistic purity. Use meaningfully different constructs—typed states, algebraic variants, declarative registries, generated views, staged pipelines, independent references, or property tests—when they make invalid states harder to represent, expose uncertainty, deepen the model, or enable stronger witnesses.
-18. **Incomplete mathematics must expose obligations, not borrow finished names.** It is acceptable for an experimental method to have open realization obligations analogous to proof `sorry`s. The statement and definitions must still be correct. Promotion terms such as cohomology, Betti number, adjunction, exact conservation law, or verified solver require the defining laws to have executable witnesses. Pin the intended claim so progress cannot be faked by weakening the statement; reduce the open obligations over time instead.
-19. **Do not weaken a useful mathematical contract merely because the implementation is weak.** If the stronger mathematical object is scientifically/computationally useful and tractable, implement it correctly. Rename/retype downward only when the narrower object is itself the superior reusable abstraction for a real task.
-20. **Separate realized-state authority from planning authority.** Facts represented in declared module/claim/experiment/evidence/realization authorities may flow into the scoped structural projection defined by `architecture/state_authorities.json`; that projection is not a complete repository-state snapshot. Human planning judgment is explicit data in `architecture/planning_graph.json`, not an inferred status field or a parallel prose backlog. Committed evaluation records, exact-head execution state, and commit history retain their own authority surfaces and must not be inferred from structural registration. Do not commit hand-authored continuation snapshots or one-time agent handoffs as repository documents; transient continuation context belongs in the conversation/system context that needs it.
-21. **Commit only to `main`.** Repository edits are made directly on `main` in small coherent commits. Do not create or stage work on feature branches, and do not rewrite or force-update history. Before each write, re-read the current `main` version of every file being edited so concurrent or newly learned design intent is preserved rather than overwritten.
-22. **Commit history owns change narration.** Durable documentation and source comments describe the current contract, rationale, assumptions, limitations, and invariants. Do not annotate repository text with edit batches, feature-addition notes, replacement history, or temporal status narration that belongs to version history. Put what changed and why in the commit message.
-23. **The planning graph owns TODO concerns.** Durable source and documentation must not maintain TODO/FIXME action queues, priority lists, future-work checklists, or dependency plans. Explain a current limitation at the point where it matters, and represent the work needed to remove that limitation in `architecture/planning_graph.json`. Generated roadmap prose may project graph facts but must not add planning content of its own.
-24. **External ownership does not remove integration responsibility.** When a scientific result depends on an externally owned dataset, preprocessor, evaluator, scheduler, model runtime, training system, inference engine, or intercomparison protocol, Climate remains responsible for binding the exact capability/version/configuration, recording the transformations and native receipts that affect the result, testing the boundary, and failing closed when the required external semantics cannot be established.
-25. **Do not shadow native capabilities; extend at the seam.** If an external system already owns cataloging, preprocessing, standard diagnostics, execution-state management, training, inference, model serving, intercomparison, or provenance machinery, Climate must invoke, import, contribute to, or extend that native capability through a thin explicit connector/adapter/plugin/diagnostic seam rather than copy, fork, rewrite, or rehost it as a Climate-owned production substitute. Local production code is justified only for Climate-specific semantics, boundary verification, or a demonstrated gap that cannot be supplied through the upstream extension surface. An independently valuable bounded reference/oracle is allowed only under a distinct identity and must never masquerade as the externally owned production capability. Any larger local implementation requires an explicit planning obligation naming the missing upstream semantic and the condition under which the local code is narrowed or deleted once the native owner path exists.
-26. **Evidence does not transfer across model classes by proximity.** Evidence obtained from an idealized model, learned emulator, parent GCM, multimodel ensemble, reanalysis, or observation retains that source scope. Updating one claim from several such sources requires an explicit scientific relation among them; agreement with a cheap or learned model cannot silently stand in for high-fidelity or observational confirmation.
-27. **Repository-state freshness is commit-scoped and cache-invalidating.** Present-state conclusions are valid only for the exact resolved `main` commit. Any observed movement of `main` invalidates cached conclusions about planning, realization, evaluations, evidence, blockers, completion, or CI until the mandatory reorientation sequence in `docs/REPOSITORY-STATE.md` is repeated. Before selecting the next work item, resuming substantial work, or asserting that something is current/done/ready/blocked/passing, reconcile the relevant authority surfaces at one exact SHA. `docs/ROADMAP.md` and `docs/generated/STATUS.md` may never be used alone as proof of complete current repository state.
-28. **Documentation must state criteria, not award qualities.** Durable repository prose must not self-certify the repository, a method, or a workflow as rigorous, serious, sophisticated, trustworthy, high-quality, state-of-the-art, production-grade, scientifically meaningful, or similar by adjective alone. Replace prestige language with the actual contract, test, metric, assumption, limitation, authority, or witness that would justify the claim. Hand-authored temporal repository-state narration such as `currently`, `at present`, or `already contains` is likewise prohibited when the fact belongs in a machine authority, generated projection, exact-head execution record, or Git history. `architecture/check_documentation_quality.py` is the binding guard for these documentation semantics.
+1. Resolve the current `main` commit.
+2. Read this file and `docs/generated/STATE.md` at that commit.
+3. If `main` moved since your previous orientation, inspect the intervening commits before reusing prior conclusions.
+4. Read the focused contract for the work you are touching.
+5. Check exact-head GitHub Actions when execution status matters.
 
-## 2. Claim maturity vocabulary
+Repository-local research state is generated into `docs/generated/STATE.md`. Planning authority is `architecture/planning_graph.json`; `docs/ROADMAP.md` is only its projection.
 
-Use these terms consistently in code, docs, reports, and machine-readable records.
+## Worker invariants
 
-- **concept** — mathematical/scientific idea stated precisely enough to discuss.
-- **prototype** — implementation exists but may contain placeholders or lack numerical verification.
-- **runnable** — executes reproducibly on a declared fixture/environment.
-- **verified** — implementation has passed appropriate numerical/software verification for its declared equations/algorithm (analytic cases, manufactured solutions, invariants, convergence, differential tests, etc.).
-- **validated** — output has passed predeclared empirical/process/model validation against independent evidence for a stated domain of applicability.
-- **replicated** — a materially independent implementation/dataset/team or pipeline reproduces the relevant result within declared tolerances.
-- **decision-eligible** — an explicitly defined downstream policy permits this evidence to affect a decision. This is never implied by validation alone.
+- **Write directly to `main` in small coherent commits.** Do not create branches or rewrite history. Before each write, re-read the current `main` version of every file you will modify.
+- **Fail closed on required semantics.** Missing data, configuration, calibration, solver/backend, precision, runtime, preprocessing, or resource identity must not silently select a replacement while preserving success semantics. The binding source guard is `architecture/check_semantic_defaults.py`.
+- **Do not shadow external owners.** Reuse maintained numerical, climate-data, evaluation, training, inference, model-runtime, and intercomparison systems through thin explicit seams. Climate-owned code should add Climate-specific semantics, boundary checks, or independently valuable references.
+- **Do not inflate evidence.** Running is not verification; verification is not empirical validation; evidence from one model/data class does not transfer to another without an explicit scientific relation and test.
+- **Planning lives only in the planning graph.** Do not add prose TODO queues, continuation notes, priority lists, or hand-maintained status snapshots.
+- **Prefer decisive experiments over discretionary framework work.** When a preregistered R1/R2 experiment or native integration is scientifically ready and its resource is available, run the smallest decisive test before unrelated refinement.
+- **Durable prose states contracts and facts, not prestige or edit history.** Use commit history for change narration. `architecture/check_documentation_quality.py` and `architecture/check_durable_text.py` enforce this boundary.
+- **Unavailable resources remain unavailable.** Compilation, mocks, source inspection, or local imitation do not substitute for CUDA hardware, native external runtimes, or declared large-data evidence.
 
-Scientific maturity is claim- and experiment-scoped. Module registries may carry a coarse implementation lifecycle or readiness label for structural/build/status purposes, but that label must not be interpreted as scientific validation of every path in the file or as a substitute for claim-specific maturity.
+## Focused contracts
 
-## 3. Evidence classes
+- Architecture and ownership boundaries: `docs/ARCHITECTURE.md`
+- Verification, validation, evidence, and claim promotion: `docs/VALIDATION-AND-EVIDENCE.md`
+- Experiment and method comparison design: `docs/META-EXPERIMENTATION.md`
+- Execution resources and evidence boundaries: `docs/EXECUTION-RESOURCES.md`
+- GPU work: `docs/GPU-ENGINEERING.md`
+- External/Commons integration: `docs/COMMONS-INTEGRATION.md`
+- Semantic substitution rules: `docs/SEMANTIC-SANITATION.md`
+- Legacy depletion/removal: `docs/LEGACY-DELETION.md`
 
-When Climate integrates with Commons, map evidence without inflation:
+Method-specific specifications remain authoritative for their own mathematical or physical semantics.
 
-- exact proof or independently checkable identity -> `Formal` only when it actually meets that bar;
-- measured real-world/reanalysis observation -> `Observed`;
-- controlled numerical model output -> `Simulated`;
-- historical replay under an alternative intervention/policy -> `Counterfactual`;
-- behavior/performance evaluation -> `Behavioral`;
-- hypothesis, proxy, analogy, learned or hand-built indicator without empirical validation -> `Heuristic`.
+## Required repository checks
 
-Verification status is orthogonal to evidence class. A simulated result can be verified as correctly computed while remaining simulated rather than observed.
-
-## 4. Method boundaries
-
-The target architecture separates:
-
-- data acquisition and normalization;
-- reference physical/numerical kernels;
-- diagnostics and established analysis methods;
-- experimental mathematical methods;
-- validation/benchmarking;
-- orchestration, resource control, provenance, and Commons integration.
-- external climate/model systems through native-capability adapters that preserve upstream identity while adding only Climate-owned scientific semantics.
-
-Experimental modules must not be wired directly into authoritative physical state transitions merely because they share a state struct. Prefer typed artifacts and explicit adapters.
-
-## 5. Required design for new methods
-
-A new research method should declare, before promotion beyond prototype:
-
-- hypothesis/question;
-- mathematical object or algorithm;
-- expected domain of applicability;
-- required inputs and preprocessing;
-- outputs and units/meaning;
-- assumptions;
-- conventional and strong alternative baselines;
-- primary metric(s) and uncertainty treatment;
-- negative controls and falsifiers;
-- leakage/confounding risks;
-- computational resource envelope;
-- reproducibility inputs;
-- criteria for retain/revise/reject.
-
-Do not add a bespoke orchestration path for each mathematical idea. Methods use the common experiment interfaces in `docs/ARCHITECTURE.md` unless a method-specific contract requires a narrower boundary.
-
-## 6. Numerical and scientific correctness
-
-Numerical kernels should grow tests in roughly this order where applicable:
-
-1. shape/unit/domain checks;
-2. exact/analytic identities;
-3. manufactured or synthetic known-solution tests;
-4. convergence-order tests;
-5. conservation/budget closure with explicit tolerances;
-6. cross-language or independent differential tests;
-7. property/metamorphic tests;
-8. benchmark problems;
-9. observational/model validation.
-
-Do not claim "machine precision" or exact conservation unless a test records the quantity, normalization, precision, horizon, tolerance, and platform sensitivity.
-
-## 7. GPU and accelerator contract
-
-All evidence-producing CUDA/accelerator work must follow `docs/GPU-ENGINEERING.md`.
-
-Before a new accelerated method is treated as more than an exploratory prototype, declare:
-
-- device-resident buffers and lifetimes;
-- expected transfer schedule;
-- precision/accumulator/refinement policy;
-- conditioning/failure behavior where linear algebra is involved;
-- determinism class (`D0`, `D1`, or `D2` as defined in the GPU spec);
-- RNG identity and seed derivation if stochastic;
-- resource envelope/VRAM estimate;
-- reference or differential witness;
-- whether setup/transfers are included in performance claims;
-- requested execution identity and fail-closed behavior when the requested capability is unavailable.
-
-Host code owns scientific interpretation and claim/evidence state. Device kernels execute bounded numerical transformations; they do not promote outputs into physical probabilities, causal claims, or validated conclusions.
-
-Do not optimize away the reference implementation before the accelerated path has independent witnesses.
-
-## 8. Data rules
-
-Climate data artifacts should move toward CF-compliant metadata and explicit provenance. Never silently substitute missing observations with climatological/default values in a path used for validation. Missingness, imputation, regridding, temporal aggregation, unit conversion, detrending, anomaly baselines, and quality-control exclusions are part of the experiment definition.
-
-## 9. Resource-aware execution planning
-
-`docs/EXECUTION-TOPOLOGY.md` defines the binding resource classes. `architecture/planning_graph.json` owns the dependency/priority graph and completion criteria; `docs/ROADMAP.md` is generated from it and is not an independent planning surface.
-
-Use the execution classes defined in the topology document:
-
-```text
-R0_static
-R1_portable_cpu
-R2_toolchain_ci
-R3_cuda_device
-R4_integrated_system
-R5_large_data
-```
-
-A planning node is executable when its semantic prerequisites are satisfied, its required resource is available, and the work can produce a falsifiable result, reusable correctness boundary, or explicit failure. Prefer graph-ready work that removes false authority or semantic hazards, creates reusable independent witnesses, establishes canonical semantic seams, supplies fair baselines, depletes monoliths, or prepares a precise resource-gated experiment.
-
-Once a preregistered experiment or native integration is semantically ready and its declared `R1_portable_cpu` or `R2_toolchain_ci` resource is available, prefer executing the smallest decisive run and recording its outcome over non-blocking framework refinement. Architecture, cleanup, generalized abstraction, or tooling work ahead of that run must remove a concrete blocker, correctness hazard, or reproducibility gap that would invalidate the result; discretionary polish must not keep an executable experiment perpetually "almost ready." A null, attacking, or infrastructure-failed run is still useful progress when its identity and failure semantics are preserved because it converts uncertainty into explicit evidence or a precise blocker.
-
-Do not simulate evidence for a missing resource. Instead preregister the experiment, create independent reference outputs, define tolerances/failure semantics, and leave the resource-dependent graph node explicitly blocked.
-
-## 10. Architecture/source audit discipline
-
-The repository contains static/control checks under `architecture/` plus planted negative witnesses in `tests/architecture/`.
-
-Binding architecture checks are executable repository interfaces rather than prose promises. The canonical invocation surface includes:
+Run the checks relevant to the changed surface. The architecture baseline is:
 
 ```text
 python -m unittest discover -s tests/architecture -v
+python architecture/check_repository_state.py
 python architecture/check_claims.py
+python architecture/check_methods.py
 python architecture/check_modules.py
 python architecture/check_planning.py
-python architecture/check_repository_state.py
-python architecture/render_repository_state.py --check
-python architecture/render_roadmap.py --check
-python architecture/render_status.py --check
-python architecture/check_hazards.py
 python architecture/check_experiments.py
-python architecture/check_sheaf_realization.py
-python architecture/check_durable_text.py
-python architecture/check_documentation_quality.py
-python architecture/check_root_layout.py
 python architecture/check_semantic_defaults.py
-python architecture/source_gates.py --summary
-python architecture/inspect_repository.py --json
-python architecture/impact.py <repository-relative-path> --json
+python architecture/check_documentation_quality.py
+python architecture/check_durable_text.py
+python architecture/render_state.py --check
+python architecture/render_roadmap.py --check
 ```
 
-`architecture/impact.py` is a derived reverse-reference view, not a new authority or a completion gate. Use it before semantically broad edits to expose existing machine-authority, workflow, test, generated-projection, and durable-contract references to the paths being changed; absence from the report does not prove independence because semantic and runtime coupling need not contain a literal path string.
-
-The integrity checks are binding. `architecture/check_semantic_defaults.py` is the binding source-level no-implicit-semantic-substitution guard despite its historical filename. A source-gate summary may be used as an audit surface without implying that every compatibility/source-debt class is clean. `python architecture/source_gates.py --strict` becomes binding only for defect classes explicitly adopted into the strict policy; its fallback-marker inventory is supplemental lexical defense and does not establish semantic correctness. Do not make a broad allowlist permanent merely to turn CI green; either repair the source, narrow the gate to the intended semantic boundary, or record a temporary exception with rationale and expiry.
-
-Repository-state surface ownership is declared in `architecture/state_authorities.json` and projected in `docs/REPOSITORY-STATE.md`. The structural realization projection belongs in `docs/generated/STATUS.md`; the planning projection belongs in `docs/ROADMAP.md`. A projection freshness check certifies equality to its declared inputs only, never repository-wide completeness. When those authorities change, update the generated projections with:
-
-```text
-python architecture/render_repository_state.py --write
-python architecture/render_status.py --write
-python architecture/render_roadmap.py --write
-```
-
-Do not hand-edit any generated projection.
-
-## 11. Repository-state authority and freshness
-
-`main` is the canonical development line, but repository state is always resolved at an exact commit SHA rather than treated as an unversioned ambient fact. `architecture/state_authorities.json` declares the distinct state surfaces; `docs/REPOSITORY-STATE.md` is its generated orientation/freshness contract.
-
-Before any present-state assertion, work selection, completion/blocker judgment, or substantial resumption from earlier context, perform the mandatory reorientation sequence from `docs/REPOSITORY-STATE.md`. If `main` differs from the previously known SHA, inspect the intervening commits before reusing earlier conclusions. This is a cache invalidation rule, not optional process advice.
-
-`docs/ROADMAP.md` proves only that its bytes match the declared planning authority. `docs/generated/STATUS.md` proves only that its bytes match the declared structural-realization authority set. Committed `evaluations/` records, claim/evidence authorities, exact-head GitHub Actions, and commit history must be consulted separately when they are material to the assertion being made. A green projection check must never be described as proof that the complete repository state is current.
-
-Fast-changing execution facts remain exact-head execution evidence in GitHub Actions rather than committed status prose. Architecture documents may describe intended contracts that are not yet fully realized. When intended design, structural realization, evaluation results, planning, or execution disagree, repair or report the appropriate authority layer rather than collapsing them into one status narrative.
-
-## 12. Commons-facing behavior
-
-Climate's Commons posture is **experimental / read execution** through the pinned `work-scheduler/v1` boundary. Commons may enqueue explicitly declared Climate work into Climate-owned artifact output paths, but it does not gain source-write or scientific-promotion authority.
-
-Repository write authority is not granted by the scheduler or evaluation-exchange contracts. If Commons is granted source-write authority, that authority must obey this contract's direct-`main`, small-coherent-commit, current-file-reread, and no-history-rewrite rules; Commons must not introduce a branch/PR workflow that conflicts with them.
-
-For GPU work, Commons owns cross-repository resource leases and run identity at the shared execution boundary; Climate owns device-local numerical execution, streams, layouts, kernels, numerical checkpoint semantics, and hardware-specific correctness tests.
+Use the language-, method-, resource-, and experiment-specific workflows required by the focused contract. A green check proves only what that check actually exercises.
