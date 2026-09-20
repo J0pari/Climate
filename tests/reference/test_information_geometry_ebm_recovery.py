@@ -6,9 +6,11 @@ import numpy as np
 
 from reference.information_geometry_ebm_recovery import (
     _gauss_newton_equivalence,
-    _parameter_vector,
-    _temperature_outputs,
     load_recovery_fixture,
+)
+from reference.two_layer_ebm_recovery_objective import (
+    parameter_vector,
+    protocol_temperature_outputs,
 )
 from reference.two_layer_energy_balance import (
     load_fixture as load_ebm_fixture,
@@ -45,12 +47,12 @@ class InformationGeometryEbmRecoveryTests(unittest.TestCase):
 
     def test_local_fisher_step_matches_gauss_newton_at_frozen_starts(self) -> None:
         truth = parameters_from_fixture(self.ebm)
-        truth_log = np.log(_parameter_vector(truth))
+        truth_log = np.log(parameter_vector(truth))
         starts = [
             truth_log + np.asarray(offset, dtype=float)
             for offset in self.recovery["start_log_parameter_offsets"]
         ]
-        observed = _temperature_outputs(
+        observed = protocol_temperature_outputs(
             truth,
             self.protocols,
             list(self.recovery["discovery_protocol_ids"]),
