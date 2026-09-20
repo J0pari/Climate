@@ -2,8 +2,9 @@
 
 Global station scale is represented as immutable catalog-shard and observation-
 partition references. The manifest never requires station-by-time materialization.
-Provider aliases, resolved location history, revisions, and tombstones remain
-explicit; cross-provider identity is never inferred from geographic proximity.
+Provider aliases, current provider location snapshots, resolved location history,
+revisions, and tombstones remain explicit; cross-provider identity is never
+inferred from geographic proximity.
 """
 from __future__ import annotations
 
@@ -132,11 +133,41 @@ class StationLocationEpoch:
 
 
 @dataclass(frozen=True)
+class ProviderLocationSnapshot:
+    """One provider's current location metadata in this immutable station revision.
+
+    A snapshot is provenance, not a resolved topology location. Different provider
+    snapshots may disagree. The station keeps at most one current snapshot per
+    bound provider alias; earlier snapshots live in prior immutable catalog-shard
+    revisions rather than accumulating without bound inside one station object.
+    """
+
+    latitude_deg: float
+    longitude_deg: float
+    elevation_m: float | None
+    metadata_effective_date: str
+    source_alias: ProviderAlias
+    evidence_digest: str
+
+    def __post_init__(self) -> None:
+        if not math.isfinite(self.latitude_deg) or not -90.0 <= self.latitude_deg <= 90.0:
+            raise ValueError("latitude_deg must be finite and within [-90, 90]")
+        if not math.isfinite(self.longitude_deg) or not -180.0 <= self.longitude_deg <= 180.0:
+            raise ValueError("longitude_deg must be finite and within [-180, 180]")
+        if self.elevation_m is not None and not math.isfinite(self.elevation_m):
+            raise ValueError("elevation_m must be finite when present")
+        if _day(self.metadata_effective_date, "metadata_effective_date") is None:
+            raise ValueError("metadata_effective_date must be an ISO date")
+        _digest(self.evidence_digest, "evidence_digest")
+
+
+@dataclass(frozen=True)
 class FederatedStation:
     canonical_station_id: str
     aliases: tuple[AliasBinding, ...]
     location_history: tuple[StationLocationEpoch, ...]
     variable_ids: tuple[str, ...]
+    provider_location_snapshots: tuple[ProviderLocationSnapshot, ...] = ()
 
     def __post_init__(self) -> None:
         _nonempty(self.canonical_station_id, "canonical_station_id")
@@ -161,10 +192,23 @@ class FederatedStation:
         if len(set(variables)) != len(variables):
             raise ValueError("variable_ids must be unique")
 
+        alias_set = set(alias_values)
+        snapshots = tuple(self.provider_location_snapshots)
+        snapshot_aliases = [snapshot.source_alias for snapshot in snapshots]
+        if len(set(snapshot_aliases)) != len(snapshot_aliases):
+            raise ValueError(
+                "station permits at most one current provider location snapshot "
+                "per bound provider alias"
+            )
+        for snapshot in snapshots:
+            if snapshot.source_alias not in alias_set:
+                raise ValueError(
+                    "provider location snapshot source_alias is not bound to this station"
+                )
+
         locations = tuple(self.location_history)
         if not locations:
             raise ValueError("station requires resolved location history")
-        alias_set = set(alias_values)
         for epoch in locations:
             if epoch.source_alias not in alias_set:
                 raise ValueError("location source_alias is not bound to this station")
@@ -288,10 +332,13 @@ def remove_cross_provider_alias_evidence(
         if any(
             epoch.source_alias in removable
             for epoch in station.location_history
+        ) or any(
+            snapshot.source_alias in removable
+            for snapshot in station.provider_location_snapshots
         ):
             raise ValueError(
-                "cannot remove crosswalk evidence while location history depends "
-                "on one of its provider aliases"
+                "cannot remove crosswalk evidence while resolved location history "
+                "or a current provider location snapshot depends on its alias"
             )
         aliases = tuple(
             binding

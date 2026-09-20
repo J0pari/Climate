@@ -80,6 +80,11 @@ class GHCNBulkFederationTests(unittest.TestCase):
         self.assertEqual(stations[0].variable_ids, ("PRCP", "TMAX"))
         self.assertIsNone(stations[0].location_at("2000-01-01"))
         self.assertIsNotNone(stations[0].location_at("2026-09-18"))
+        self.assertEqual(len(stations[0].provider_location_snapshots), 1)
+        snapshot = stations[0].provider_location_snapshots[0]
+        self.assertEqual(snapshot.source_alias, stations[0].aliases[0].alias)
+        self.assertEqual(snapshot.metadata_effective_date, "2026-09-18")
+        self.assertEqual(snapshot.evidence_digest, catalog.sha256)
 
     def test_provider_module_reexports_provider_neutral_sharding(self):
         self.assertIs(adaptive_catalog_shards, generic_adaptive_catalog_shards)

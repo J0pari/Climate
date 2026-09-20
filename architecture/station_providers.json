@@ -4,11 +4,12 @@
   "identity_policy": {
     "canonical_station_id": "stable opaque identity derived from one immutable root provider alias; later provider aliases are explicit crosswalk bindings and do not mutate the canonical id",
     "cross_provider_deduplication": "explicit provider crosswalk/evidence only; geographic proximity is never sufficient identity evidence",
-    "location_history": "resolved non-overlapping epochs with source alias and source-artifact digest; conflicting provider locations remain unresolved upstream",
-    "crosswalk_application": "cross-provider aliases are applied only from explicit digest-bound crosswalk evidence referencing an already resolved immutable root alias; application is idempotent for identical evidence, conflicting ownership fails closed, and removing an evidence digest reverses exactly its crosswalk aliases when no location history depends on them"
+    "location_history": "resolved non-overlapping epochs used by canonical topology, with source alias and source-artifact digest; a provider snapshot never becomes a resolved location merely because it is newer",
+    "crosswalk_application": "cross-provider aliases are applied only from explicit station-specific digest-bound relation evidence referencing an already resolved immutable root alias; provider catalog revision digests live on provider metadata snapshots, so routine provider refreshes update provenance without rebinding identity; conflicting ownership still fails closed and removing a relation is forbidden while resolved history or current provider metadata depends on that alias",
+    "provider_location_snapshots": "each immutable station revision carries at most one current metadata snapshot per bound provider alias; overlapping or conflicting provider coordinates remain explicit snapshots, while prior snapshots remain in prior content-addressed catalog revisions rather than accumulating without bound in the current object"
   },
   "storage_policy": {
-    "catalog": "content-addressed bounded catalog shards referenced by manifest; no global station table is required in memory",
+    "catalog": "content-addressed bounded catalog shards referenced by manifest; each current station object keeps one provider-location snapshot per alias while prior snapshots remain in superseded immutable shard revisions, so no global station table or unbounded per-station metadata log is required in memory",
     "observations": "content-addressed provider/time/variable/spatial partitions with explicit supersession or tombstones",
     "ingestion": "idempotent by artifact digest; source revisions append lineage rather than overwrite prior artifacts",
     "coverage": "derived from active manifest references so station/provider/variable/time/spatial gaps remain observable"

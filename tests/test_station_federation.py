@@ -9,6 +9,7 @@ from src.station_federation import (
     FederatedStation,
     ObservationPartitionRef,
     ProviderAlias,
+    ProviderLocationSnapshot,
     StationCatalogShard,
     StationFederationManifest,
     StationLocationEpoch,
@@ -43,6 +44,16 @@ def station(provider="ncei.ghcnd.v3", provider_id="AAA", *, alias=None):
             ),
         ),
         variable_ids=("TMAX", "TMIN"),
+        provider_location_snapshots=(
+            ProviderLocationSnapshot(
+                40.1,
+                -74.9,
+                11.0,
+                "2024-01-01",
+                root,
+                D1,
+            ),
+        ),
     )
 
 
@@ -121,6 +132,75 @@ class StationFederationTests(unittest.TestCase):
         item = station()
         self.assertEqual(item.location_at("1999-12-31").latitude_deg, 40.0)
         self.assertEqual(item.location_at("2000-01-01").latitude_deg, 40.1)
+
+    def test_provider_location_snapshot_does_not_override_resolved_topology(self):
+        alias = ProviderAlias("other.provider", "XYZ")
+        base = station(alias=alias)
+        item = FederatedStation(
+            canonical_station_id=base.canonical_station_id,
+            aliases=base.aliases,
+            location_history=base.location_history,
+            variable_ids=base.variable_ids,
+            provider_location_snapshots=(
+                base.provider_location_snapshots[0],
+                ProviderLocationSnapshot(
+                    41.5,
+                    -76.5,
+                    50.0,
+                    "2024-01-01",
+                    alias,
+                    D3,
+                ),
+            ),
+        )
+        self.assertEqual(item.location_at("2024-01-01").latitude_deg, 40.1)
+        self.assertEqual(
+            next(
+                snapshot.latitude_deg
+                for snapshot in item.provider_location_snapshots
+                if snapshot.source_alias == alias
+            ),
+            41.5,
+        )
+        with self.assertRaisesRegex(ValueError, "at most one"):
+            FederatedStation(
+                canonical_station_id=base.canonical_station_id,
+                aliases=base.aliases,
+                location_history=base.location_history,
+                variable_ids=base.variable_ids,
+                provider_location_snapshots=(
+                    ProviderLocationSnapshot(
+                        41.5, -76.5, 50.0, "2024-01-01", alias, D3
+                    ),
+                    ProviderLocationSnapshot(
+                        41.6, -76.4, 51.0, "2024-01-02", alias, D4
+                    ),
+                ),
+            )
+
+    def test_crosswalk_removal_refuses_bound_provider_snapshot(self):
+        alias = ProviderAlias("other.provider", "XYZ")
+        evidence = CrossProviderAliasEvidence(
+            ProviderAlias("ncei.ghcnd.v3", "AAA"),
+            alias,
+            D3,
+        )
+        linked = apply_cross_provider_alias_evidence((station(),), (evidence,))
+        item = linked[0]
+        with_snapshot = FederatedStation(
+            canonical_station_id=item.canonical_station_id,
+            aliases=item.aliases,
+            location_history=item.location_history,
+            variable_ids=item.variable_ids,
+            provider_location_snapshots=(
+                *item.provider_location_snapshots,
+                ProviderLocationSnapshot(
+                    41.0, -76.0, 20.0, "2024-01-01", alias, D4
+                ),
+            ),
+        )
+        with self.assertRaisesRegex(ValueError, "provider location snapshot"):
+            remove_cross_provider_alias_evidence((with_snapshot,), D3)
 
     def test_catalog_shard_projects_to_same_canonical_station_substrate(self):
         shard = StationCatalogShard(

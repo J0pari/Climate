@@ -36,7 +36,7 @@
       "family": "ncei_ghcnh_station_federation_adapter",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical GHCNh provider identity, catalog federation, and raw PSV routing adapter over already captured station-list/annual archive artifacts; it validates version/data-year/creation-date archive identity and exact shared GHCN identifiers, then composes through the provider-neutral sharding/manifest substrate without owning network transport",
+      "intended_role": "canonical GHCNh provider identity, catalog federation, metadata-snapshot refresh, and raw PSV routing adapter over already captured station-list/annual archive artifacts; exact shared managed GHCN identifiers bind revision-stable cross-provider identity while each station-list revision updates one bounded GHCNh metadata snapshot without overriding the resolved topology location, then the adapter composes through the provider-neutral sharding/manifest substrate without owning network transport",
       "known_gaps": [
         "the current station-list snapshot supplies one effective location and does not replace HOMR as the authority for detailed historical relocation epochs",
         "provider values remain raw GHCNh field strings at this boundary; unit conversion, measurement-code interpretation, and quality-control policy are explicit downstream transformations rather than ingestion defaults",
@@ -544,7 +544,7 @@
       "family": "global_station_data_federation",
       "language": "python",
       "maturity": "runnable",
-      "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, explicit evidence-bound and reversible cross-provider alias application, resolved location epochs, provider-neutral bounded spatial sharding and catalog-reference derivation, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
+      "intended_role": "canonical provider-neutral worldwide station identity and storage-manifest substrate with stable root-derived station ids, station-specific evidence-bound reversible cross-provider aliases, bounded current provider-location snapshots distinct from resolved location epochs, provider-neutral bounded spatial sharding and catalog-reference derivation, content-addressed catalog shards, append-only observation partition revisions/tombstones, and coverage summaries that do not require station-by-time materialization",
       "known_gaps": [
         "the provider registry now realizes GHCN-Daily plus GHCNh catalog and raw-hourly observation federation; additional lawfully accessible no-fee authorities and normalized GHCNh projections remain integration obligations rather than numerical-kernel branches",
         "durable remote object-store publication remains an adapter responsibility; canonical local publication is content-addressed and the NCEI scale adapter now provides resumable bulk acquisition",

@@ -25,6 +25,7 @@ from src.station_federation import (
     AliasBinding,
     FederatedStation,
     ProviderAlias,
+    ProviderLocationSnapshot,
     StationCatalogShard,
     StationFederationManifest,
     StationLocationEpoch,
@@ -72,6 +73,16 @@ def daily_station(station_id: str) -> FederatedStation:
             ),
         ),
         variable_ids=("TMAX",),
+        provider_location_snapshots=(
+            ProviderLocationSnapshot(
+                40.0,
+                -75.0,
+                10.0,
+                "2026-01-01",
+                alias,
+                D1,
+            ),
+        ),
     )
 
 
@@ -145,8 +156,23 @@ class GHCNhFederationTests(unittest.TestCase):
         )
         hourly_alias = ProviderAlias(SOURCE_ID, "USW00094846")
         binding = next(item for item in linked.aliases if item.alias == hourly_alias)
+        crosswalk = next(
+            item for item in result.crosswalk_evidence if item.alias == hourly_alias
+        )
         self.assertEqual(binding.binding_method, "provider_crosswalk")
-        self.assertEqual(binding.evidence_digest, result.crosswalk_evidence_digest)
+        self.assertEqual(binding.evidence_digest, crosswalk.evidence_digest)
+        hourly_snapshot = next(
+            item
+            for item in linked.provider_location_snapshots
+            if item.source_alias == hourly_alias
+        )
+        self.assertEqual(hourly_snapshot.latitude_deg, 41.98)
+        self.assertEqual(hourly_snapshot.longitude_deg, -87.90)
+        self.assertEqual(hourly_snapshot.evidence_digest, catalog.sha256)
+        self.assertEqual(
+            linked.location_at("2026-09-18").latitude_deg,
+            40.0,
+        )
 
         hourly_only = next(
             item
@@ -160,6 +186,75 @@ class GHCNhFederationTests(unittest.TestCase):
         self.assertEqual(
             hourly_only.canonical_station_id,
             canonical_station_id(ProviderAlias(SOURCE_ID, "CAW00099999")),
+        )
+
+    def test_catalog_revision_updates_snapshot_without_rebinding_identity(self):
+        daily = daily_station("USW00094846")
+        first_catalog = parse_station_catalog(
+            station_line(
+                "USW00094846",
+                41.98,
+                -87.90,
+                204.0,
+                "CHICAGO OHARE",
+            ).encode("ascii")
+        )
+        first = federate_station_catalog(
+            (daily,),
+            first_catalog,
+            metadata_effective_date="2026-09-18",
+        )
+        second_catalog = parse_station_catalog(
+            station_line(
+                "USW00094846",
+                41.99,
+                -87.89,
+                205.0,
+                "CHICAGO OHARE",
+            ).encode("ascii")
+        )
+        second = federate_station_catalog(
+            first.stations,
+            second_catalog,
+            metadata_effective_date="2026-09-19",
+        )
+
+        first_station = first.stations[0]
+        second_station = second.stations[0]
+        hourly_alias = ProviderAlias(SOURCE_ID, "USW00094846")
+        self.assertEqual(
+            first_station.canonical_station_id,
+            second_station.canonical_station_id,
+        )
+        self.assertEqual(first.crosswalk_evidence, second.crosswalk_evidence)
+        first_binding = next(
+            item for item in first_station.aliases if item.alias == hourly_alias
+        )
+        second_binding = next(
+            item for item in second_station.aliases if item.alias == hourly_alias
+        )
+        self.assertEqual(first_binding, second_binding)
+
+        hourly_snapshots = [
+            item
+            for item in second_station.provider_location_snapshots
+            if item.source_alias == hourly_alias
+        ]
+        self.assertEqual(len(hourly_snapshots), 1)
+        self.assertEqual(hourly_snapshots[0].latitude_deg, 41.99)
+        self.assertEqual(hourly_snapshots[0].longitude_deg, -87.89)
+        self.assertEqual(hourly_snapshots[0].elevation_m, 205.0)
+        self.assertEqual(
+            hourly_snapshots[0].metadata_effective_date,
+            "2026-09-19",
+        )
+        self.assertEqual(
+            hourly_snapshots[0].evidence_digest,
+            second_catalog.sha256,
+        )
+        self.assertEqual(
+            second_station.location_at("2026-09-19").latitude_deg,
+            40.0,
         )
 
     def test_catalog_federation_does_not_use_proximity_or_station_name(self):

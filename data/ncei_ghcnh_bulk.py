@@ -5,13 +5,14 @@ that a station shares the same managed GHCN identifier with GHCN-Daily.
 Identity linkage is emitted as explicit digest-bound crosswalk evidence; no
 name, coordinate, or proximity matching is performed here.
 
-This module currently realizes provider catalog federation only. Hourly
-observation routing/publication remains a separate adapter obligation.
+Catalog federation and raw hourly routing remain separate semantic layers:
+provider metadata snapshots are retained without becoming resolved topology
+locations, while annual PSV fields remain provider-native observation payloads.
 """
 from __future__ import annotations
 
 import csv
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 import json
 import math
@@ -24,6 +25,7 @@ from src.station_federation import (
     CrossProviderAliasEvidence,
     FederatedStation,
     ProviderAlias,
+    ProviderLocationSnapshot,
     StationCatalogShard,
     StationLocationEpoch,
     apply_cross_provider_alias_evidence,
@@ -169,7 +171,7 @@ class GHCNhAliasShardLookup:
 @dataclass(frozen=True)
 class GHCNhFederationResult:
     stations: tuple[FederatedStation, ...]
-    crosswalk_evidence_digest: str
+    crosswalk_evidence: tuple[CrossProviderAliasEvidence, ...]
     shared_station_count: int
     new_root_station_count: int
 
@@ -266,21 +268,26 @@ def _daily_root_aliases(
     return out
 
 
-def _crosswalk_digest(
-    *,
-    ghcnh_catalog_digest: str,
-    daily_station_ids: Sequence[str],
-    shared_station_ids: Sequence[str],
-) -> str:
+def _crosswalk_digest(station_id: str) -> str:
+    """Stable identity evidence for one exact shared managed GHCN identifier.
+
+    Provider catalog revisions are deliberately excluded: their current metadata
+    identity is carried by ProviderLocationSnapshot.evidence_digest. Otherwise a
+    daily provider refresh would look like a new station-identity relation.
+    """
     return _sha256(
         _canonical_json(
             {
-                "schema": "ncei-ghcnd-ghcnh-shared-ghcn-id-crosswalk/v1",
-                "ghcnh_catalog_digest": ghcnh_catalog_digest,
-                "ghcnd_station_ids_digest": _sha256(
-                    _canonical_json(sorted(daily_station_ids))
-                ),
-                "shared_station_ids": sorted(shared_station_ids),
+                "schema": "ncei-ghcnd-ghcnh-shared-ghcn-id-crosswalk/v2",
+                "root_alias": {
+                    "source_id": "ncei.ghcnd.v3",
+                    "provider_station_id": station_id,
+                },
+                "alias": {
+                    "source_id": SOURCE_ID,
+                    "provider_station_id": station_id,
+                },
+                "authority": "NCEI managed GHCN identifier namespace",
                 "rule": (
                     "exact shared 11-character GHCN identifier only; "
                     "no name/location/proximity matching"
@@ -301,23 +308,48 @@ def federate_station_catalog(
     daily_roots = _daily_root_aliases(existing_records)
     hourly_by_id = {item.station_id: item for item in catalog.records}
     shared = sorted(set(daily_roots) & set(hourly_by_id))
-    crosswalk_digest = _crosswalk_digest(
-        ghcnh_catalog_digest=catalog.sha256,
-        daily_station_ids=tuple(daily_roots),
-        shared_station_ids=shared,
-    )
-
     evidence = tuple(
         CrossProviderAliasEvidence(
             root_alias=daily_roots[station_id],
             alias=ProviderAlias(SOURCE_ID, station_id),
-            evidence_digest=crosswalk_digest,
+            evidence_digest=_crosswalk_digest(station_id),
         )
         for station_id in shared
     )
     federated = list(
         apply_cross_provider_alias_evidence(existing_records, evidence)
     )
+
+    snapshot_by_alias = {
+        ProviderAlias(SOURCE_ID, record.station_id): ProviderLocationSnapshot(
+            latitude_deg=record.latitude_deg,
+            longitude_deg=record.longitude_deg,
+            elevation_m=record.elevation_m,
+            metadata_effective_date=metadata_effective_date,
+            source_alias=ProviderAlias(SOURCE_ID, record.station_id),
+            evidence_digest=catalog.sha256,
+        )
+        for record in catalog.records
+    }
+    updated_existing: list[FederatedStation] = []
+    for station in federated:
+        snapshots = {
+            snapshot.source_alias: snapshot
+            for snapshot in station.provider_location_snapshots
+        }
+        for binding in station.aliases:
+            current = snapshot_by_alias.get(binding.alias)
+            if current is not None:
+                snapshots[binding.alias] = current
+        updated_existing.append(
+            replace(
+                station,
+                provider_location_snapshots=tuple(
+                    snapshots[alias] for alias in sorted(snapshots)
+                ),
+            )
+        )
+    federated = updated_existing
 
     for record in catalog.records:
         if record.station_id in daily_roots:
@@ -341,13 +373,23 @@ def federate_station_catalog(
                     ),
                 ),
                 variable_ids=(),
+                provider_location_snapshots=(
+                    ProviderLocationSnapshot(
+                        record.latitude_deg,
+                        record.longitude_deg,
+                        record.elevation_m,
+                        metadata_effective_date,
+                        alias,
+                        catalog.sha256,
+                    ),
+                ),
             )
         )
 
     ordered = tuple(sorted(federated, key=lambda item: item.canonical_station_id))
     return GHCNhFederationResult(
         stations=ordered,
-        crosswalk_evidence_digest=crosswalk_digest,
+        crosswalk_evidence=evidence,
         shared_station_count=len(shared),
         new_root_station_count=len(catalog.records) - len(shared),
     )

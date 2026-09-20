@@ -21,6 +21,7 @@ from src.station_federation import (
     AliasBinding,
     FederatedStation,
     ProviderAlias,
+    ProviderLocationSnapshot,
     StationCatalogShard,
     StationLocationEpoch,
     adaptive_catalog_shards,
@@ -214,6 +215,16 @@ def build_federated_stations(
                 ),
             ),
             variable_ids=variables,
+            provider_location_snapshots=(
+                ProviderLocationSnapshot(
+                    latitude_deg=item.latitude_deg,
+                    longitude_deg=item.longitude_deg,
+                    elevation_m=item.elevation_m,
+                    metadata_effective_date=metadata_effective_date,
+                    source_alias=alias,
+                    evidence_digest=catalog.sha256,
+                ),
+            ),
         ))
     return tuple(out)
 
