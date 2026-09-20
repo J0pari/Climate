@@ -111,7 +111,7 @@ Generic numerical infrastructure should be reused where mature implementations e
 
 The same rule applies above the numerical-library level. Climate should not recreate mature climate-data, evaluation, intercomparison, training, inference, or model-execution stacks merely to place them behind project-local interfaces. External implementation ownership does not remove those concerns from Climate's correctness envelope: an evidence-producing integration must still bind the exact external capability, version, configuration, data transformations, runtime identity, failures, and native receipts or artifacts that affect the result.
 
-Current integration targets illustrate the boundary rather than define a dependency mandate: Climate-REF and ESMValTool/ESMValCore already own broad climate-evaluation and preprocessing machinery; AQUA owns high-resolution model-output access and evaluation machinery for the DestinE context; AIMIP owns an AI-climate intercomparison protocol and common output conventions; ClimSim-Online owns its E3SM-MMF online execution workflow; and Anemoi/ACE-family systems own their model training or inference runtimes. Climate's distinctive contribution is the scientific interrogation layer across such systems: intervention semantics, cross-model structural comparisons, invariant/budget assays, multi-fidelity discrepancy, experiment selection, representation mismatch, falsifiers, and scoped evidence transport.
+Integration examples illustrate the boundary rather than define a dependency mandate: Climate-REF and ESMValTool/ESMValCore already own broad climate-evaluation and preprocessing machinery; AQUA owns high-resolution model-output access and evaluation machinery for the DestinE context; AIMIP owns an AI-climate intercomparison protocol and common output conventions; ClimSim-Online owns its E3SM-MMF online execution workflow; and Anemoi/ACE-family systems own their model training or inference runtimes. Climate's distinctive contribution is the scientific interrogation layer across such systems: intervention semantics, cross-model structural comparisons, invariant/budget assays, multi-fidelity discrepancy, experiment selection, representation mismatch, falsifiers, and scoped evidence transport.
 
 ## Research workflow
 
@@ -126,18 +126,22 @@ New scientific ideas should enter as precise mathematical or physical questions,
 
 Reproducibility, ablation, controls, and evidence capture support this work, but they are infrastructure for answering the scientific questions rather than the subject of the research itself.
 
+Before describing repository state or selecting the next task, resolve the exact current `main` SHA and follow [`docs/REPOSITORY-STATE.md`](docs/REPOSITORY-STATE.md). A fresh `docs/ROADMAP.md` certifies only the planning projection, and a fresh `docs/generated/STATUS.md` certifies only its declared structural authority set; neither substitutes for relevant evaluations/evidence or exact-head GitHub Actions.
+
 ## Key documents
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — target architecture and semantic boundaries.
+- [`architecture/state_authorities.json`](architecture/state_authorities.json) — machine authority for repository-state surfaces and freshness semantics.
+- [`docs/REPOSITORY-STATE.md`](docs/REPOSITORY-STATE.md) — generated commit-scoped reorientation and projection-scope contract.
 - [`architecture/planning_graph.json`](architecture/planning_graph.json) — sole authority for planned work, priorities, dependencies, blockers, and completion criteria.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — generated human-readable projection of the planning graph.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — generated planning-only projection of the planning graph.
 - [`docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md`](docs/MULTIREPRESENTATION-CLIMATE-MANIFOLD.md) — integrated representation and geometry research program.
 - [`docs/FORTRAN-PHYSICS-FRONTIER.md`](docs/FORTRAN-PHYSICS-FRONTIER.md) — realized and open physical/numerical responsibilities.
 - [`docs/FORTRAN-TIME-INTEGRATION.md`](docs/FORTRAN-TIME-INTEGRATION.md) — integration semantics and external numerical-library boundaries.
 - [`docs/GEOMETRY-VERIFICATION.md`](docs/GEOMETRY-VERIFICATION.md) — mathematical and numerical verification requirements for geometry.
 - [`docs/SHEAF-REALIZATION.md`](docs/SHEAF-REALIZATION.md) — sheaf/descent/cohomology realization program.
 - [`docs/META-EXPERIMENTATION.md`](docs/META-EXPERIMENTATION.md) — methodology for comparing competing scientific representations and methods.
-- [`docs/generated/STATUS.md`](docs/generated/STATUS.md) — generated repository status from machine authorities.
+- [`docs/generated/STATUS.md`](docs/generated/STATUS.md) — generated structural-realization projection from its explicitly declared machine-authority inputs.
 - [`AGENTS.md`](AGENTS.md) — binding repository correctness and contribution rules, including the rule that TODO/planning concerns have no parallel authority outside the planning graph.
 
 ## Scope
