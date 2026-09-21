@@ -13,8 +13,21 @@ ROOT = Path(__file__).resolve().parents[1]
 SEMVER = re.compile(r"^v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
 DIGEST_IMAGE = re.compile(r"@sha256:[0-9a-f]{64}$")
 PINNED_REQUIREMENT = re.compile(
-    r"^[A-Za-z0-9_.-]+(?:\[[A-Za-z0-9_,.-]+\])?==[^=<>!~\s]+(?:\s*;.*)?$"
+    r"^[A-Za-z0-9_.-]+(?:\[[A-Za-z0-9_,.-]+\])?==([^=<>!~\s;]+)(?:\s*;.*)?$"
 )
+
+
+def _exact_python_requirement(line: str) -> bool:
+    match = PINNED_REQUIREMENT.fullmatch(line)
+    return bool(match) and "*" not in match.group(1)
+
+
+def _exact_apt_version(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and bool(value)
+        and not any(token in value for token in ("*", "?", "[", "]", "$", "`"))
+    )
 
 
 @dataclass(frozen=True)
@@ -121,7 +134,7 @@ def _requirements_checks(root: Path) -> list[Check]:
             line = raw.strip()
             if not line or line.startswith("#"):
                 continue
-            if not PINNED_REQUIREMENT.fullmatch(line):
+            if not _exact_python_requirement(line):
                 bad.append(line)
         if bad:
             unpinned[path.relative_to(root).as_posix()] = bad
@@ -174,19 +187,19 @@ def _bootstrap_checks(root: Path) -> list[Check]:
         ),
         Check(
             "fortran.compiler_package_exact",
-            bool(apt_packages.get("gfortran")),
+            _exact_apt_version(apt_packages.get("gfortran")),
             apt_packages.get("gfortran"),
             "gfortran package identity is version-pinned for the verification environment",
         ),
         Check(
             "blas.package_exact",
-            bool(apt_packages.get("libblas-dev")),
+            _exact_apt_version(apt_packages.get("libblas-dev")),
             apt_packages.get("libblas-dev"),
             "BLAS provider package identity is version-pinned for the verification environment",
         ),
         Check(
             "lapack.package_exact",
-            bool(apt_packages.get("liblapack-dev")),
+            _exact_apt_version(apt_packages.get("liblapack-dev")),
             apt_packages.get("liblapack-dev"),
             "LAPACK provider package identity is version-pinned for the verification environment",
         ),

@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
+python architecture/verification_environment.py
 python -m unittest discover -s tests/architecture -v
 python architecture/check_repository_state.py
 python architecture/check_markdown_links.py

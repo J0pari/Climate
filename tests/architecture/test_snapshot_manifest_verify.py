@@ -36,6 +36,66 @@ class SnapshotManifestVerifyTests(unittest.TestCase):
             codes = {finding.code for finding in verify_snapshot(root, manifest)}
             self.assertIn("snapshot.blob", codes)
 
+    def test_manifest_rejects_noncanonical_identity_fields(self):
+        valid_row = {
+            "path": "x.txt",
+            "git_blob_sha1": "a" * 40,
+            "mode": "100644",
+            "size": 0,
+        }
+        with self.assertRaisesRegex(ValueError, "Git blob SHA-1"):
+            parse_manifest({
+                "schema_version": 1,
+                "files": [{**valid_row, "git_blob_sha1": "z" * 40}],
+            })
+        with self.assertRaisesRegex(ValueError, "root tree SHA-1"):
+            parse_manifest({
+                "schema_version": 1,
+                "tree_sha1": "A" * 40,
+                "files": [valid_row],
+            })
+        with self.assertRaisesRegex(ValueError, "source commit SHA-1"):
+            parse_manifest({
+                "schema_version": 1,
+                "source_commit": "not-a-commit",
+                "files": [valid_row],
+            })
+
+    def test_complete_manifest_requires_exact_commit_and_tree_identity(self):
+        payload = {
+            "schema_version": 1,
+            "complete_tree": True,
+            "tree_sha1": "a" * 40,
+            "files": [],
+        }
+        with self.assertRaisesRegex(ValueError, "requires source_commit"):
+            parse_manifest(payload)
+        payload["source_commit"] = "b" * 40
+        observed = parse_manifest(payload)
+        self.assertTrue(observed.complete_tree)
+        self.assertEqual(observed.tree_sha1, "a" * 40)
+        self.assertEqual(observed.source_commit, "b" * 40)
+
+    def test_manifest_boolean_and_integer_fields_do_not_accept_json_type_aliases(self):
+        with self.assertRaisesRegex(ValueError, "schema_version"):
+            parse_manifest({"schema_version": True, "files": []})
+        with self.assertRaisesRegex(ValueError, "complete_tree"):
+            parse_manifest({
+                "schema_version": 1,
+                "complete_tree": "false",
+                "files": [],
+            })
+        with self.assertRaisesRegex(ValueError, "byte size"):
+            parse_manifest({
+                "schema_version": 1,
+                "files": [{
+                    "path": "x.txt",
+                    "git_blob_sha1": "a" * 40,
+                    "mode": "100644",
+                    "size": True,
+                }],
+            })
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -108,6 +108,28 @@ go install cuelang.org/go/cmd/cue@v0.17.1
         report = verification_environment.inspect(root)
         self.assertIn("python.focused_requirements_exact", report["unresolved"])
 
+    def test_wildcard_versions_are_not_treated_as_exact_pins(self) -> None:
+        temporary, root = self._root()
+        self.addCleanup(temporary.cleanup)
+        (root / "requirements" / "focused.txt").write_text(
+            "numpy==2.*\n", encoding="utf-8"
+        )
+        (root / ".devcontainer" / "bootstrap.sh").write_text(
+            """#!/bin/sh
+apt-get install -y gfortran=14.* \
+  libblas-dev=3.12.0 \
+  liblapack-dev=3.12.0
+go install cuelang.org/go/cmd/cue@v0.17.1
+""",
+            encoding="utf-8",
+        )
+        report = verification_environment.inspect(root)
+        unresolved = set(report["unresolved"])
+        self.assertIn("python.focused_requirements_exact", unresolved)
+        self.assertIn("fortran.compiler_package_exact", unresolved)
+        self.assertNotIn("blas.package_exact", unresolved)
+        self.assertNotIn("lapack.package_exact", unresolved)
+
 
 if __name__ == "__main__":
     unittest.main()

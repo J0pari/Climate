@@ -68,22 +68,16 @@ Method-specific specifications remain authoritative for their own mathematical o
 
 ## Required repository checks
 
-Run the checks relevant to the changed surface. The architecture baseline is:
+Run the checks relevant to the changed surface. The single executable architecture baseline is `scripts/verify/repository.sh`; do not maintain a second command list in prose. The script begins by reporting verification-environment identity, then runs the repository architecture and generated-projection checks.
 
 ```text
-python -m unittest discover -s tests/architecture -v
-python architecture/check_repository_state.py
-python architecture/check_claims.py
-python architecture/check_methods.py
-python architecture/check_modules.py
-python architecture/check_planning.py
-python architecture/check_experiments.py
-python architecture/finite_resources.py check
-python architecture/check_semantic_defaults.py
-python architecture/check_documentation_quality.py
-python architecture/check_durable_text.py
-python architecture/render_state.py --check
-python architecture/render_roadmap.py --check
+bash scripts/verify/repository.sh
 ```
 
-Run `scripts/verify/repository.sh` for the repository baseline, then run any language-, method-, resource-, or experiment-specific local/external checks required by the focused contract. A passing check proves only what that check actually exercises.
+The default environment-readiness report is non-gating: an `unresolved` result must remain visible and must not be described as a reproducible environment. When a task requires reproducible-environment status, require the strict readiness check as well:
+
+```text
+python architecture/verification_environment.py --require-resolved
+```
+
+Run any language-, method-, resource-, or experiment-specific local/external checks required by the focused contract in addition to the repository baseline. A passing check proves only what that check actually exercises.
