@@ -469,7 +469,7 @@ For each important accelerated method, maintain at least one independent witness
 - high-precision implementation;
 - alternate library algorithm.
 
-CI may exercise small fixtures. Larger hardware validation can run separately, but its evidence must bind the same contract/build identity.
+Explicit repository verification may exercise small fixtures. Larger hardware validation can run separately, but its evidence must bind the same contract/build identity.
 
 ## 21. Acceptance tests for accelerated kernels
 

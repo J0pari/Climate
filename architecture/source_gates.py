@@ -3,9 +3,9 @@
 
 The repository contains known implementation debt, so the default command is an
 audit: findings are printed but do not fail the process. `--strict` turns
-findings into a failing gate. A rule belongs in required CI only after the
-relevant source surface satisfies it or a reviewed temporary exception carries
-an explicit rationale and expiry.
+findings into a failing gate. A rule belongs in the required repository
+verification baseline only after the relevant source surface satisfies it or a
+reviewed temporary exception carries an explicit rationale and expiry.
 
 Every rule in this module must have a planted negative test. A source gate that
 has never demonstrated it can catch its target failure is not evidence.

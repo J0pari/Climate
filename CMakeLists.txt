@@ -198,8 +198,8 @@ endif()
 if(ENABLE_TESTING)
     enable_testing()
 
-    # CTest owns the canonical witness group. CI consumes the label instead of
-    # maintaining a second list of test names.
+    # CTest owns the canonical witness group. Explicit repository verification
+    # consumes the label instead of maintaining a second list of test names.
     function(climate_add_canonical_test test_name target_name)
         add_test(NAME ${test_name} COMMAND ${target_name})
         set_tests_properties(${test_name} PROPERTIES LABELS "canonical")

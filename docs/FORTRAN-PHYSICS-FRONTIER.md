@@ -2,7 +2,7 @@
 
 This document defines atmospheric physical and numerical responsibility boundaries, composition rules, and external-library seams. It is a semantic specification, not a hand-maintained inventory of which modules happen to exist.
 
-Objective realization state belongs to the machine-readable module registry and its generated projection in [`docs/generated/STATE.md`](generated/STATUS.md). Build and witness availability belong to executable CMake/CTest and CI surfaces. Those authorities should be changed directly rather than copied into a prose table here.
+Objective realization state belongs to the machine-readable module registry and its generated projection in [`docs/generated/STATE.md`](generated/STATE.md). Build and witness availability belong to executable CMake/CTest and explicitly invoked verification surfaces. Those authorities should be changed directly rather than copied into a prose table here.
 
 Canonical APIs, algorithms, state layouts, numerical methods, and scientific interpretations must be justified by their physical and numerical contracts rather than inherited from any particular source layout.
 
