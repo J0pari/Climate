@@ -46,8 +46,11 @@ go install cuelang.org/go/cmd/cue@v0.17.1
         (root / "architecture" / "snapshot" / "generate.py").write_text(
             "def build_manifest(): pass\n", encoding="utf-8"
         )
+        (root / "architecture" / "snapshot" / "archive.py").write_text(
+            "def create_archive(): pass\n", encoding="utf-8"
+        )
         (root / "architecture" / "check_snapshot.py").write_text(
-            'command = "identity"\n', encoding="utf-8"
+            'commands = ("archive", "identity")\n', encoding="utf-8"
         )
         return temporary, root
 
@@ -129,6 +132,13 @@ go install cuelang.org/go/cmd/cue@v0.17.1
         self.assertIn("fortran.compiler_package_exact", unresolved)
         self.assertNotIn("blas.package_exact", unresolved)
         self.assertNotIn("lapack.package_exact", unresolved)
+
+    def test_missing_archive_handoff_tooling_is_visible(self) -> None:
+        temporary, root = self._root()
+        self.addCleanup(temporary.cleanup)
+        (root / "architecture" / "snapshot" / "archive.py").unlink()
+        report = verification_environment.inspect(root)
+        self.assertIn("source_snapshot.identity_tooling", report["unresolved"])
 
 
 if __name__ == "__main__":

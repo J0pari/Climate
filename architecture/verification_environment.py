@@ -208,19 +208,26 @@ def _bootstrap_checks(root: Path) -> list[Check]:
 
 def _source_identity_checks(root: Path) -> list[Check]:
     generator = root / "architecture" / "snapshot" / "generate.py"
+    archive = root / "architecture" / "snapshot" / "archive.py"
     cli = root / "architecture" / "check_snapshot.py"
+    generator_text = generator.read_text(encoding="utf-8") if generator.is_file() else ""
+    archive_text = archive.read_text(encoding="utf-8") if archive.is_file() else ""
     cli_text = cli.read_text(encoding="utf-8") if cli.is_file() else ""
     return [
         Check(
             "source_snapshot.identity_tooling",
             generator.is_file()
-            and "build_manifest" in generator.read_text(encoding="utf-8")
+            and "build_manifest" in generator_text
+            and archive.is_file()
+            and "create_archive" in archive_text
+            and '"archive"' in cli_text
             and '"identity"' in cli_text,
             {
                 "generator": generator.relative_to(root).as_posix() if generator.is_file() else None,
+                "archive": archive.relative_to(root).as_posix() if archive.is_file() else None,
                 "cli": cli.relative_to(root).as_posix() if cli.is_file() else None,
             },
-            "archive/no-VCS handoffs can bind exact commit/tree identity before execution",
+            "self-contained archive/no-VCS handoffs can bind exact commit/tree identity before execution",
         )
     ]
 
