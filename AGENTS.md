@@ -17,19 +17,19 @@ Repository-local research state is generated into `docs/generated/STATE.md`. Pla
 
 ## Archive/no-VCS handoff
 
-When a worker must receive the repository as an archive rather than a Git checkout, bind the archive to Git identity before handoff. From an exact clean checkout, generate the complete-tree manifest outside the source tree:
+When a worker must receive the repository as an archive rather than a Git checkout, prefer the self-contained snapshot ZIP. From an exact clean checkout:
 
 ```text
-python architecture/check_snapshot.py manifest ../climate.snapshot.json --root .
+python architecture/check_snapshot.py archive ../climate.snapshot.zip --root .
 ```
 
-Archive the source tree without adding the manifest to it. After extraction, the receiving worker verifies the bytes, file modes, complete file set, root Git tree, and source commit before treating the archive as repository state:
+The ZIP contains `climate-snapshot.json` plus the bound source tree under `repository/`. After ordinary extraction, verify the exact paths, bytes, root Git tree, and source commit before treating the archive as repository state:
 
 ```text
-python architecture/check_snapshot.py identity ../climate.snapshot.json --root .
+python repository/architecture/check_snapshot.py identity climate-snapshot.json --root repository --restore-modes
 ```
 
-A failed identity check means the archive is not the bound source tree. Do not waive missing files, unexpected files, changed bytes, or executable-mode differences to make an archive pass; regenerate or re-extract it correctly. Snapshot identity establishes source-tree identity only, not build, test, environment, or scientific-evidence status.
+`--restore-modes` may repair only `100644` versus `100755` differences, which ordinary ZIP extraction can lose. It refuses to change modes if any file is missing, unexpected, non-ordinary, byte-different, size-different, or otherwise fails the complete-tree contract. A failed identity check means the archive is not the bound source tree; regenerate or re-extract it correctly rather than waiving the mismatch. Snapshot identity establishes source-tree identity only, not build, test, environment, or scientific-evidence status.
 
 ## Worker invariants
 

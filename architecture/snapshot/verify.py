@@ -65,3 +65,31 @@ def verify_snapshot(root: Path, manifest: SnapshotManifest) -> list[Finding]:
                 findings.append(Finding("snapshot.tree", ".", f"expected root Git tree {manifest.tree_sha1}, found {actual_tree}"))
 
     return findings
+
+
+def restore_modes(root: Path, manifest: SnapshotManifest) -> list[Finding]:
+    """Restore only executable-mode metadata after all non-mode invariants match."""
+    if (
+        not manifest.complete_tree
+        or manifest.tree_sha1 is None
+        or manifest.source_commit is None
+    ):
+        raise ValueError(
+            "mode restoration requires a complete-tree snapshot manifest with commit/tree identity"
+        )
+    findings = verify_snapshot(root, manifest)
+    blockers = [finding for finding in findings if finding.code != "snapshot.mode"]
+    if blockers:
+        detail = "; ".join(
+            f"{finding.code}:{finding.path}" for finding in blockers[:5]
+        )
+        raise ValueError(
+            "refusing mode restoration because snapshot content is not otherwise exact: "
+            + detail
+        )
+
+    root = root.resolve()
+    for row in manifest.files:
+        path = root / Path(*PurePosixPath(row.path).parts)
+        path.chmod(0o755 if row.mode == "100755" else 0o644)
+    return verify_snapshot(root, manifest)

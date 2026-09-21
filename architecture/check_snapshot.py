@@ -10,10 +10,14 @@ from pathlib import Path
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from architecture.snapshot.archive import MANIFEST_MEMBER, REPOSITORY_PREFIX
 from architecture.snapshot import (
+    SnapshotArchiveError,
     SnapshotGenerationError,
     build_manifest,
+    create_archive,
     load_manifest,
+    restore_modes,
     verify_snapshot,
     write_manifest,
 )
@@ -36,6 +40,14 @@ def main() -> int:
     manifest.add_argument("--root", type=Path, default=Path.cwd())
     manifest.add_argument("--source-ref", default="HEAD")
 
+    archive = sub.add_parser(
+        "archive",
+        help="write one self-contained ZIP bound to an exact clean Git checkout",
+    )
+    archive.add_argument("output", type=Path)
+    archive.add_argument("--root", type=Path, default=Path.cwd())
+    archive.add_argument("--source-ref", default="HEAD")
+
     verify = sub.add_parser("verify")
     verify.add_argument("manifest", type=Path)
     verify.add_argument("--root", type=Path, default=Path.cwd())
@@ -46,6 +58,11 @@ def main() -> int:
     )
     identity.add_argument("manifest", type=Path)
     identity.add_argument("--root", type=Path, default=Path.cwd())
+    identity.add_argument(
+        "--restore-modes",
+        action="store_true",
+        help="repair only 100644/100755 mode differences after all other snapshot invariants match",
+    )
 
     nxt = sub.add_parser("next")
     nxt.add_argument("state", type=Path)
@@ -55,6 +72,31 @@ def main() -> int:
     reconcile.add_argument("--root", type=Path, required=True)
 
     args = parser.parse_args()
+
+    if args.command == "archive":
+        try:
+            generated = create_archive(
+                args.root,
+                args.output,
+                source_ref=args.source_ref,
+            )
+        except (OSError, ValueError, SnapshotArchiveError, SnapshotGenerationError) as exc:
+            print(f"snapshot.archive: {exc}", file=sys.stderr)
+            return 1
+        print(
+            json.dumps(
+                {
+                    "archive": str(args.output.resolve()),
+                    "manifest_member": MANIFEST_MEMBER,
+                    "repository_prefix": REPOSITORY_PREFIX,
+                    "source_commit": generated.source_commit,
+                    "tree_sha1": generated.tree_sha1,
+                    "file_count": len(generated.files),
+                },
+                indent=2,
+            )
+        )
+        return 0
 
     if args.command == "manifest":
         try:
@@ -79,7 +121,10 @@ def main() -> int:
     if args.command in {"verify", "identity"}:
         try:
             loaded = load_manifest(args.manifest)
-            findings = verify_snapshot(args.root, loaded)
+            if args.command == "identity" and args.restore_modes:
+                findings = restore_modes(args.root, loaded)
+            else:
+                findings = verify_snapshot(args.root, loaded)
         except (OSError, ValueError) as exc:
             print(f"snapshot.verify: {exc}", file=sys.stderr)
             return 1
