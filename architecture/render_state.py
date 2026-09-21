@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
 from architecture.state_authorities import (
     load_manifest,
     orientation_authority_paths,
+    orientation_fingerprint,
 )
 
 DEFAULT_OUTPUT = ROOT / "docs" / "generated" / "STATE.md"
@@ -29,58 +30,47 @@ def _load(path: Path) -> dict[str, Any]:
     return payload
 
 
-def _find(paths: list[Path], relative: str) -> Path:
-    matches = [p for p in paths if p.relative_to(ROOT).as_posix() == relative]
+def _find(paths: list[Path], relative: str, root: Path) -> Path:
+    matches = [p for p in paths if p.relative_to(root).as_posix() == relative]
     if len(matches) != 1:
         raise ValueError(f"expected exactly one state authority {relative}")
     return matches[0]
 
 
-def _matching(paths: list[Path], prefix: str, suffix: str = "") -> list[Path]:
+def _matching(
+    paths: list[Path], root: Path, prefix: str, suffix: str = ""
+) -> list[Path]:
     return sorted(
-        p for p in paths
-        if p.relative_to(ROOT).as_posix().startswith(prefix)
-        and p.relative_to(ROOT).as_posix().endswith(suffix)
+        p
+        for p in paths
+        if p.relative_to(root).as_posix().startswith(prefix)
+        and p.relative_to(root).as_posix().endswith(suffix)
     )
 
 
-def _evaluation_label(payload: dict[str, Any]) -> str:
-    for key in (
-        "evaluation_id",
-        "experiment_id",
-        "fixture_id",
-        "campaign_id",
-        "planning_node",
-        "classification",
-    ):
-        value = payload.get(key)
-        if isinstance(value, str) and value:
-            return value
-    return "JSON record"
-
-
 def render_state(root: Path = ROOT) -> str:
-    manifest = load_manifest()
+    manifest_path = root / "architecture" / "state_authorities.json"
+    manifest = load_manifest(manifest_path)
     typed_authorities = orientation_authority_paths(root, manifest)
-    authorities = sorted({
-        path
-        for paths in typed_authorities.values()
-        for path in paths
-    })
-    planning = _load(_find(authorities, "architecture/planning_graph.json"))
-    claims = _load(_find(authorities, "claims/registry.json"))
-    evidence = _load(_find(authorities, "evidence/registry.json"))
-    methods = _load(_find(authorities, "methods/registry.json"))
-    sheaf = _load(_find(authorities, "methods/sheaf-realization.v1.json"))
-    data_authorities = _load(_find(authorities, "architecture/data_authorities.json"))
-    stations = _load(_find(authorities, "architecture/station_providers.json"))
-    hazards = _load(_find(authorities, "architecture/semantic_hazards.json"))
-    commons = _load(_find(authorities, "architecture/commons_interface.json"))
+    authorities = sorted({path for paths in typed_authorities.values() for path in paths})
+    fingerprint = orientation_fingerprint(
+        root, manifest, manifest_path=manifest_path
+    )
 
-    module_paths = _matching(authorities, "architecture/modules/", ".json")
-    experiment_paths = _matching(authorities, "experiments/", ".json")
-    evaluation_paths = _matching(authorities, "evaluations/")
-    configuration_paths = _matching(authorities, "configurations/", ".json")
+    planning = _load(_find(authorities, "architecture/planning_graph.json", root))
+    claims = _load(_find(authorities, "claims/registry.json", root))
+    evidence = _load(_find(authorities, "evidence/registry.json", root))
+    methods = _load(_find(authorities, "methods/registry.json", root))
+    sheaf = _load(_find(authorities, "methods/sheaf-realization.v1.json", root))
+    data_authorities = _load(_find(authorities, "architecture/data_authorities.json", root))
+    stations = _load(_find(authorities, "architecture/station_providers.json", root))
+    hazards = _load(_find(authorities, "architecture/semantic_hazards.json", root))
+    commons = _load(_find(authorities, "architecture/commons_interface.json", root))
+
+    module_paths = _matching(authorities, root, "architecture/modules/", ".json")
+    experiment_paths = _matching(authorities, root, "experiments/", ".json")
+    evaluation_paths = _matching(authorities, root, "evaluations/")
+    configuration_paths = _matching(authorities, root, "configurations/", ".json")
 
     modules: list[tuple[str, dict[str, Any]]] = []
     for path in module_paths:
@@ -93,7 +83,12 @@ def render_state(root: Path = ROOT) -> str:
                 raise ValueError(f"module record must be object: {path}")
             modules.append((lifecycle, record))
 
-    experiments = [path.relative_to(root).as_posix() for path in experiment_paths]
+    experiments: list[tuple[str, str]] = []
+    for path in experiment_paths:
+        payload = _load(path)
+        experiment_id = payload.get("experiment_id", "<missing>")
+        experiments.append((str(experiment_id), path.relative_to(root).as_posix()))
+
     evaluations = [
         path.relative_to(root).as_posix()
         for path in evaluation_paths
@@ -105,10 +100,7 @@ def render_state(root: Path = ROOT) -> str:
         raise ValueError("planning graph missing nodes array")
     planning_counts = Counter(str(node["status"]) for node in nodes)
     frontier = sorted(
-        (
-            node for node in nodes
-            if node["status"] in {"active", "ready", "blocked"}
-        ),
+        (node for node in nodes if node["status"] in {"active", "ready", "blocked"}),
         key=lambda node: (
             {"active": 0, "ready": 1, "blocked": 2}[node["status"]],
             {"P0": 0, "P1": 1, "P2": 2, "P3": 3}.get(node["priority"], 99),
@@ -133,6 +125,12 @@ def render_state(root: Path = ROOT) -> str:
     module_counts = Counter(lifecycle for lifecycle, _ in modules)
     method_counts = Counter(str(item["maturity"]) for item in method_records)
     realization_counts = Counter(str(item["status"]) for item in obligations)
+    realization_by_layer: dict[str, Counter[str]] = defaultdict(Counter)
+    for obligation in obligations:
+        realization_by_layer[str(obligation.get("layer", "unknown"))][
+            str(obligation.get("status", "unknown"))
+        ] += 1
+
     hazard_records = hazards.get("hazards")
     source_records = data_authorities.get("sources")
     usage_records = data_authorities.get("usages")
@@ -148,8 +146,13 @@ def render_state(root: Path = ROOT) -> str:
         "# Generated research state",
         "",
         "<!-- Generated by architecture/render_state.py. Do not hand-edit. -->",
+        f"<!-- Orientation-authority fingerprint: {fingerprint} -->",
+        "",
+        f"Orientation-authority fingerprint: `{fingerprint}`.",
         "",
         "This is the repository-local orientation view composed from the typed authority surfaces declared in `architecture/state_authorities.json`. Build and test outcomes are not inferred here; verification is run explicitly against the checkout being evaluated, and durable execution evidence must be recorded by its owning contract.",
+        "",
+        manifest["freshness_semantics"]["rule"],
         "",
         manifest["orientation_view"]["composition_rule"],
         "",
@@ -168,94 +171,147 @@ def render_state(root: Path = ROOT) -> str:
             f"`{node['priority']}` | `{node['resource_class']}` |"
         )
 
-    lines.extend([
-        "",
-        "## Registered implementation and experiment surface",
-        "",
-        f"Modules **{len(modules)}** · Methods **{len(method_records)}** · "
-        f"ExperimentSpecs **{len(experiments)}** · Configurations **{len(configuration_paths)}**",
-        "",
-        "| Module lifecycle | Count |",
-        "| --- | ---: |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Registered implementation and experiment surface",
+            "",
+            f"Modules **{len(modules)}** · Methods **{len(method_records)}** · "
+            f"ExperimentSpecs **{len(experiments)}** · Configurations **{len(configuration_paths)}**",
+            "",
+            "| Module lifecycle | Count |",
+            "| --- | ---: |",
+        ]
+    )
     for key, value in sorted(module_counts.items()):
         lines.append(f"| `{key}` | {value} |")
 
-    lines.extend([
-        "",
-        "| Method maturity | Count |",
-        "| --- | ---: |",
-    ])
+    lines.extend(
+        [
+            "",
+            "| Registry | Authority | Path | Family | Maturity | Scientific evidence eligible |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    for lifecycle, record in sorted(
+        modules, key=lambda item: (item[0], str(item[1].get("path", "")))
+    ):
+        eligible = "yes" if record.get("scientific_evidence_eligible") else "no"
+        lines.append(
+            f"| `{lifecycle}` | `{record.get('authority_kind', 'unknown')}` | "
+            f"`{record.get('path', '<missing>')}` | `{record.get('family', '')}` | "
+            f"`{record.get('maturity', 'unknown')}` | {eligible} |"
+        )
+
+    lines.extend(["", "| Method maturity | Count |", "| --- | ---: |"])
     for key, value in sorted(method_counts.items()):
         lines.append(f"| `{key}` | {value} |")
 
-    lines.extend([
-        "",
-        "Registered experiments:",
-        "",
-    ])
-    for relative in experiments:
-        lines.append(f"- `{relative}`")
+    lines.extend(
+        [
+            "",
+            "Registered experiments:",
+            "",
+            "| Experiment | File |",
+            "| --- | --- |",
+        ]
+    )
+    for experiment_id, relative in sorted(experiments):
+        lines.append(f"| `{experiment_id}` | `{relative}` |")
 
-    lines.extend([
-        "",
-        "## Claims and evidence",
-        "",
-        f"Claims **{len(claim_records)}** · Evidence records **{len(evidence_records)}**",
-        "",
-        "| Claim maturity | Count |",
-        "| --- | ---: |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Claims and evidence",
+            "",
+            f"Claims **{len(claim_records)}** · Evidence records **{len(evidence_records)}**",
+            "",
+            "| Claim maturity | Count |",
+            "| --- | ---: |",
+        ]
+    )
     for key, value in sorted(claim_counts.items()):
         lines.append(f"| `{key}` | {value} |")
 
-    lines.extend([
-        "",
-        "| Claim | Maturity | Supporting evidence records |",
-        "| --- | --- | ---: |",
-    ])
+    lines.extend(
+        [
+            "",
+            "| Claim | Type | Maturity | Supporting evidence records |",
+            "| --- | --- | --- | ---: |",
+        ]
+    )
     for claim in sorted(claim_records, key=lambda item: item["claim_id"]):
         supporting = claim.get("supporting_evidence")
         supporting_count = len(supporting) if isinstance(supporting, list) else 0
         lines.append(
-            f"| `{claim['claim_id']}` | `{claim['maturity']}` | {supporting_count} |"
+            f"| `{claim['claim_id']}` | `{claim.get('claim_type', '')}` | "
+            f"`{claim['maturity']}` | {supporting_count} |"
         )
 
-    lines.extend([
-        "",
-        "## Committed evaluations",
-        "",
-        f"JSON evaluation records: **{len(evaluations)}**.",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Committed evaluations",
+            "",
+            f"JSON evaluation records: **{len(evaluations)}**.",
+            "",
+        ]
+    )
     for relative in evaluations:
         lines.append(f"- `{relative}`")
 
-    lines.extend([
-        "",
-        "## Supporting authority health",
-        "",
-        f"Semantic hazards **{len(hazard_records)}** · Data sources **{len(source_records)}** · "
-        f"Data usages **{len(usage_records)}** · Station providers **{len(provider_records)}**",
-        "",
-        f"Commons interface: `{commons['interface_id']}` with control level "
-        f"`{commons['supported_control_level']}`.",
-        "",
-        "| Sheaf realization status | Count |",
-        "| --- | ---: |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Supporting authority health",
+            "",
+            f"Semantic hazards **{len(hazard_records)}** · Data sources **{len(source_records)}** · "
+            f"Data usages **{len(usage_records)}** · Station providers **{len(provider_records)}**",
+            "",
+            f"Commons interface: `{commons['interface_id']}` with control level "
+            f"`{commons['supported_control_level']}`.",
+            "",
+            "| Sheaf realization status | Count |",
+            "| --- | ---: |",
+        ]
+    )
     for key, value in sorted(realization_counts.items()):
         lines.append(f"| `{key}` | {value} |")
 
-    lines.extend([
-        "",
-        "## Authority",
-        "",
-        "Planning details and completion criteria remain in `architecture/planning_graph.json`. "
-        "Claim promotion remains in `claims/registry.json` and `evidence/registry.json`. "
-        "This generated view does not promote evidence or infer uncommitted execution outcomes.",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "| Layer | Reference | Canonical | Validated | Open |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for layer in sorted(realization_by_layer):
+        counts = realization_by_layer[layer]
+        lines.append(
+            f"| `{layer}` | {counts.get('reference_realized', 0)} | "
+            f"{counts.get('canonical_realized', 0)} | "
+            f"{counts.get('validated', 0)} | {counts.get('open', 0)} |"
+        )
+    open_items = [item for item in obligations if item.get("status") == "open"]
+    if open_items:
+        lines.extend(["", "Open obligations:", ""])
+        for item in open_items:
+            lines.append(
+                f"- `{item['obligation_id']}` (`{item.get('layer', 'unknown')}`): "
+                f"{item['statement']}"
+            )
+
+    lines.extend(
+        [
+            "",
+            "## Authority",
+            "",
+            "Planning details and completion criteria remain in `architecture/planning_graph.json`. "
+            "Claim promotion remains in `claims/registry.json` and `evidence/registry.json`. "
+            "This generated view does not promote evidence or infer uncommitted execution outcomes.",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 

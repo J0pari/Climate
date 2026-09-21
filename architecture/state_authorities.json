@@ -150,5 +150,10 @@
     "Read the focused contract and underlying authority records relevant to the task rather than treating the generated view as a replacement for them.",
     "Run the relevant repository checks locally against the exact current checkout when execution status matters; hosted CI is prohibited.",
     "Treat execution as durable authority only when the owning contract records a committed receipt, evaluation artifact, or explicitly declared immutable external record."
-  ]
+  ],
+  "freshness_semantics": {
+    "commit_scoped": true,
+    "head_movement_invalidates_cached_state": true,
+    "rule": "Generated repository-state projections are commit-scoped. Movement of `main` invalidates cached present-state conclusions; re-orient to the current main commit and run explicit verification against the exact current checkout before treating the projections or prior verification results as current."
+  }
 }

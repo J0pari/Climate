@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -38,12 +37,18 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
                 "claim_evidence",
             },
         )
-        self.assertEqual(
-            set(manifest["orientation_view"]["excludes"]),
-            {"history"},
-        )
+        self.assertEqual(set(manifest["orientation_view"]["excludes"]), {"history"})
         self.assertEqual(manifest["orientation_view"]["projection"], "docs/generated/STATE.md")
         self.assertEqual(manifest["orientation_view"]["renderer"], "architecture/render_state.py")
+
+    def test_freshness_semantics_are_commit_scoped(self) -> None:
+        manifest = state_authorities.load_manifest(
+            ROOT / "architecture" / "state_authorities.json"
+        )
+        freshness = manifest["freshness_semantics"]
+        self.assertIs(freshness["commit_scoped"], True)
+        self.assertIs(freshness["head_movement_invalidates_cached_state"], True)
+        self.assertIn("explicit verification", freshness["rule"].lower())
 
     def test_repository_state_includes_planning_evaluations_and_method_authorities(self) -> None:
         manifest = state_authorities.load_manifest(
@@ -72,6 +77,22 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
         self.assertIn("evaluation record", rule)
         self.assertIn("does not become scientific evidence", rule)
 
+    def test_generated_projections_expose_current_fingerprints(self) -> None:
+        manifest = state_authorities.load_manifest(
+            ROOT / "architecture" / "state_authorities.json"
+        )
+        roadmap = (ROOT / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
+        state = (ROOT / "docs" / "generated" / "STATE.md").read_text(encoding="utf-8")
+        self.assertIn(state_authorities.projection_fingerprint(ROOT, manifest, "planning"), roadmap)
+        self.assertIn(
+            state_authorities.orientation_fingerprint(
+                ROOT,
+                manifest,
+                manifest_path=ROOT / "architecture" / "state_authorities.json",
+            ),
+            state,
+        )
+
     def test_worker_orientation_requires_current_main_and_local_verification(self) -> None:
         manifest = state_authorities.load_manifest(
             ROOT / "architecture" / "state_authorities.json"
@@ -81,7 +102,6 @@ class RepositoryStateAuthorityTests(unittest.TestCase):
         self.assertIn("intervening commits", orientation)
         self.assertIn("hosted ci is prohibited", orientation)
         self.assertIn("exact current checkout", orientation)
-
 
     def test_hosted_ci_directory_is_absent(self) -> None:
         self.assertFalse((ROOT / ".github" / "workflows").exists())

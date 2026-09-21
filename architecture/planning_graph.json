@@ -276,7 +276,7 @@
       "completion": [
         "One real dataset projection is reproducible from immutable source identity through preprocessing to experiment input.",
         "Missing observations are never silently replaced by climatology or defaults in validation paths.",
-        "A compact network-free fixture exercises the same schema and transformation semantics in CI."
+        "A compact network-free fixture exercises the same schema and transformation semantics during explicit repository verification."
       ],
       "evidence": [
         "fixtures/data_authorities/ncei-ghcnd-USW00094728-2024-01-01-to-2024-01-03.json",

@@ -43,6 +43,23 @@ class RenderStateTests(unittest.TestCase):
             state,
         )
 
+    def test_state_exposes_authority_fingerprint_and_detailed_surfaces(self) -> None:
+        state = (ROOT / "docs" / "generated" / "STATE.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("Orientation-authority fingerprint: `git-tree-sha1:", state)
+        self.assertIn(
+            "| Registry | Authority | Path | Family | Maturity | Scientific evidence eligible |",
+            state,
+        )
+        self.assertIn(
+            "| Claim | Type | Maturity | Supporting evidence records |",
+            state,
+        )
+        self.assertIn("| Experiment | File |", state)
+        self.assertIn("| Layer | Reference | Canonical | Validated | Open |", state)
+        self.assertIn("Open obligations:", state)
+
     def test_state_does_not_infer_uncommitted_execution(self) -> None:
         state = (ROOT / "docs" / "generated" / "STATE.md").read_text(
             encoding="utf-8"

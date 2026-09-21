@@ -6,6 +6,7 @@ cd "$ROOT"
 
 python -m unittest discover -s tests/architecture -v
 python architecture/check_repository_state.py
+python architecture/check_markdown_links.py
 python architecture/check_claims.py
 python architecture/check_methods.py
 python architecture/check_modules.py

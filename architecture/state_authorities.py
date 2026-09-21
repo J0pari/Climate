@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from architecture.snapshot.git_objects import git_blob_id, local_file_mode, tree_id_from_files
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "architecture" / "state_authorities.json"
 
@@ -36,6 +38,19 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
                 isinstance(item, str) and item for item in values
             ):
                 raise ValueError(f"surface {surface_id} requires {field}")
+        projection = surface.get("projection")
+        renderer = surface.get("renderer")
+        if (projection is None) != (renderer is None):
+            raise ValueError(
+                f"surface {surface_id} must declare projection and renderer together"
+            )
+        if projection is not None and (
+            not isinstance(projection, str)
+            or not projection
+            or not isinstance(renderer, str)
+            or not renderer
+        ):
+            raise ValueError(f"surface {surface_id} has invalid projection metadata")
         ids.append(surface_id)
     if len(ids) != len(set(ids)):
         raise ValueError("repository-state surface ids must be unique")
@@ -65,6 +80,12 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
         )
     if set(includes) & set(excludes):
         raise ValueError("orientation_view cannot both include and exclude a surface")
+
+    freshness = payload.get("freshness_semantics")
+    if not isinstance(freshness, dict):
+        raise ValueError("repository-state authority manifest requires freshness_semantics")
+    if not isinstance(freshness.get("rule"), str) or not freshness["rule"]:
+        raise ValueError("freshness_semantics requires rule")
 
     worker_orientation = payload.get("worker_orientation")
     if not isinstance(worker_orientation, list) or not worker_orientation or not all(
@@ -111,6 +132,25 @@ def expand_local_authority_paths(root: Path, surface: dict[str, Any]) -> list[Pa
     return sorted({path.resolve() for path in paths})
 
 
+def fingerprint_paths(root: Path, paths: list[Path]) -> str:
+    """Return a deterministic Git-tree fingerprint for an authority subset.
+
+    The fingerprint is the Git tree ID of only the declared authority files,
+    preserving repository-relative paths, executable modes, and exact blob
+    identities. It is therefore auditable against Git without defining a
+    second content-identity scheme.
+    """
+    resolved_root = root.resolve()
+    rows: list[tuple[str, str, str]] = []
+    for path in sorted({item.resolve() for item in paths}):
+        try:
+            relative = path.relative_to(resolved_root).as_posix()
+        except ValueError as exc:
+            raise ValueError(f"authority path escapes repository: {path}") from exc
+        rows.append((relative, local_file_mode(path), git_blob_id(path.read_bytes())))
+    return "git-tree-sha1:" + tree_id_from_files(rows)
+
+
 def projection_authority_paths(
     root: Path,
     manifest: dict[str, Any],
@@ -123,6 +163,14 @@ def projection_authority_paths(
     if not paths:
         raise ValueError(f"projected surface {surface_id} has no local authority inputs")
     return paths
+
+
+def projection_fingerprint(
+    root: Path,
+    manifest: dict[str, Any],
+    surface_id: str,
+) -> str:
+    return fingerprint_paths(root, projection_authority_paths(root, manifest, surface_id))
 
 
 def orientation_authority_paths(
@@ -139,3 +187,19 @@ def orientation_authority_paths(
             )
         result[surface_id] = paths
     return result
+
+
+def orientation_fingerprint(
+    root: Path,
+    manifest: dict[str, Any],
+    *,
+    manifest_path: Path | None = None,
+) -> str:
+    """Fingerprint the orientation manifest plus every included local authority."""
+    typed = orientation_authority_paths(root, manifest)
+    paths = [path for group in typed.values() for path in group]
+    manifest_path = manifest_path or (root / "architecture" / "state_authorities.json")
+    if not manifest_path.is_file():
+        raise ValueError(f"orientation manifest is missing: {manifest_path}")
+    paths.append(manifest_path.resolve())
+    return fingerprint_paths(root, paths)

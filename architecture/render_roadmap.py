@@ -5,10 +5,21 @@ from __future__ import annotations
 import argparse
 import difflib
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from architecture.state_authorities import (
+    fingerprint_paths,
+    load_manifest,
+    projection_authority_paths,
+    projection_fingerprint,
+)
+
 DEFAULT_GRAPH = ROOT / "architecture" / "planning_graph.json"
 DEFAULT_OUTPUT = ROOT / "docs" / "ROADMAP.md"
 
@@ -23,7 +34,12 @@ def load_graph(path: Path = DEFAULT_GRAPH) -> dict[str, Any]:
     return data
 
 
-def render(graph: dict[str, Any]) -> str:
+def render(
+    graph: dict[str, Any],
+    *,
+    authority_fingerprint: str = "unbound-in-memory",
+    authority_paths: list[str] | None = None,
+) -> str:
     nodes = list(graph["nodes"])
     nodes.sort(
         key=lambda node: (
@@ -36,10 +52,17 @@ def render(graph: dict[str, Any]) -> str:
     for node in nodes:
         counts[node["status"]] += 1
 
+    source_text = ", ".join(
+        f"`{path}`" for path in (authority_paths or ["in-memory graph"])
+    )
     lines = [
         "# Climate obligation roadmap",
         "",
-        "> Generated from `architecture/planning_graph.json`. Do not hand-edit.",
+        "> Generated planning projection. Do not hand-edit.",
+        f"> Declared planning authority: {source_text}.",
+        f"> Planning-authority fingerprint: `{authority_fingerprint}`.",
+        "",
+        "Freshness means this projection matches its declared planning authority inputs in the checkout being inspected. Repository state is commit-scoped: movement of `main` invalidates cached conclusions until the current commit is re-oriented and the relevant verification is explicitly rerun.",
         "",
         "Repository-local research state is summarized in `docs/generated/STATE.md`.",
         "",
@@ -68,8 +91,7 @@ def render(graph: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "Summaries, blockers, completion criteria, and evidence paths remain in "
-            "`architecture/planning_graph.json`.",
+            "Summaries, blockers, completion criteria, and evidence paths remain in `architecture/planning_graph.json`.",
         ]
     )
     return "\n".join(lines).rstrip() + "\n"
@@ -84,8 +106,28 @@ def main() -> int:
     mode.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    expected = render(load_graph(args.graph))
+    manifest_path = ROOT / "architecture" / "state_authorities.json"
+    manifest = load_manifest(manifest_path)
+    declared_paths = projection_authority_paths(ROOT, manifest, "planning")
+    canonical_graph = declared_paths[0]
+    if len(declared_paths) != 1:
+        raise ValueError("planning projection must have exactly one declared authority file")
+
+    graph_path = args.graph.resolve()
+    if graph_path == canonical_graph.resolve():
+        fingerprint = projection_fingerprint(ROOT, manifest, "planning")
+        rendered_paths = [path.relative_to(ROOT).as_posix() for path in declared_paths]
+    else:
+        fingerprint = fingerprint_paths(ROOT, [graph_path])
+        rendered_paths = [graph_path.relative_to(ROOT).as_posix()]
+
+    expected = render(
+        load_graph(args.graph),
+        authority_fingerprint=fingerprint,
+        authority_paths=rendered_paths,
+    )
     if args.write:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(expected, encoding="utf-8")
         print(f"wrote {args.output}")
         return 0

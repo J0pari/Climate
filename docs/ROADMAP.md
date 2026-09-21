@@ -1,6 +1,10 @@
 # Climate obligation roadmap
 
-> Generated from `architecture/planning_graph.json`. Do not hand-edit.
+> Generated planning projection. Do not hand-edit.
+> Declared planning authority: `architecture/planning_graph.json`.
+> Planning-authority fingerprint: `git-tree-sha1:2e049f26533a64bcc8c5f5590d04618cb4bd18a3`.
+
+Freshness means this projection matches its declared planning authority inputs in the checkout being inspected. Repository state is commit-scoped: movement of `main` invalidates cached conclusions until the current commit is re-oriented and the relevant verification is explicitly rerun.
 
 Repository-local research state is summarized in `docs/generated/STATE.md`.
 

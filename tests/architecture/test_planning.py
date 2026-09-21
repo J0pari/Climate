@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 from architecture import check_planning, render_roadmap
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class PlanningGraphTests(unittest.TestCase):
@@ -43,12 +47,34 @@ class PlanningGraphTests(unittest.TestCase):
             (root / "witness.txt").write_text("evidence\n", encoding="utf-8")
             graph = self._graph()
             self.assertEqual(check_planning.check(root, graph), [])
-            rendered = render_roadmap.render(graph)
+            rendered = render_roadmap.render(graph, authority_fingerprint="sha256:test")
             self.assertIn("`a.done`", rendered)
             self.assertIn("`b.ready`", rendered)
             self.assertLess(rendered.index("`b.ready`"), rendered.index("`a.done`"))
             self.assertIn("bind native external capabilities", rendered)
             self.assertIn("local shadow implementation", rendered)
+            self.assertIn("Planning-authority fingerprint: `sha256:test`", rendered)
+
+    def test_stale_projection_reports_unified_diff(self):
+        with tempfile.TemporaryDirectory(prefix=".render-roadmap-test-", dir=ROOT) as tmpdir:
+            output = Path(tmpdir) / "ROADMAP.md"
+            output.write_text("# stale roadmap\n", encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "architecture" / "render_roadmap.py"),
+                    "--check",
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("-# stale roadmap", result.stdout)
+        self.assertIn("+# Climate obligation roadmap", result.stdout)
 
     def test_missing_dependency_and_cycle_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
