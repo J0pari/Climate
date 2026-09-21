@@ -14,6 +14,23 @@ Before substantial work:
 
 Repository-local research state is generated into `docs/generated/STATE.md`. Planning authority is `architecture/planning_graph.json`; `docs/ROADMAP.md` is only its projection.
 
+
+## Archive/no-VCS handoff
+
+When a worker must receive the repository as an archive rather than a Git checkout, bind the archive to Git identity before handoff. From an exact clean checkout, generate the complete-tree manifest outside the source tree:
+
+```text
+python architecture/check_snapshot.py manifest ../climate.snapshot.json --root .
+```
+
+Archive the source tree without adding the manifest to it. After extraction, the receiving worker verifies the bytes, file modes, complete file set, root Git tree, and source commit before treating the archive as repository state:
+
+```text
+python architecture/check_snapshot.py identity ../climate.snapshot.json --root .
+```
+
+A failed identity check means the archive is not the bound source tree. Do not waive missing files, unexpected files, changed bytes, or executable-mode differences to make an archive pass; regenerate or re-extract it correctly. Snapshot identity establishes source-tree identity only, not build, test, environment, or scientific-evidence status.
+
 ## Worker invariants
 
 - **Write directly to `main` in small coherent commits.** Do not create branches or rewrite history. Before each write, re-read the current `main` version of every file you will modify.
