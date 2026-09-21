@@ -1,0 +1,77 @@
+"""Schema and parsing for authoritative repository snapshot manifests."""
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from pathlib import Path
+
+from .git_objects import ALLOWED_FILE_MODES, validate_relative_path
+
+
+@dataclass(frozen=True)
+class SnapshotFile:
+    path: str
+    git_blob_sha1: str
+    mode: str
+    size: int
+
+
+@dataclass(frozen=True)
+class SnapshotManifest:
+    files: tuple[SnapshotFile, ...]
+    complete_tree: bool = False
+    tree_sha1: str | None = None
+    source_commit: str | None = None
+
+
+def parse_manifest(payload: object) -> SnapshotManifest:
+    if not isinstance(payload, dict) or payload.get("schema_version") != 1:
+        raise ValueError("snapshot manifest schema_version must be 1")
+    raw_files = payload.get("files")
+    if not isinstance(raw_files, list):
+        raise ValueError("snapshot manifest files must be a list")
+
+    seen: set[str] = set()
+    files: list[SnapshotFile] = []
+    for row in raw_files:
+        if not isinstance(row, dict):
+            raise ValueError("snapshot manifest file rows must be objects")
+        missing = {"path", "git_blob_sha1", "mode", "size"} - row.keys()
+        if missing:
+            raise ValueError(f"snapshot manifest row missing {sorted(missing)}")
+        path = str(row["path"])
+        validate_relative_path(path)
+        if path in seen:
+            raise ValueError(f"duplicate snapshot manifest path: {path}")
+        seen.add(path)
+        mode = str(row["mode"])
+        if mode not in ALLOWED_FILE_MODES:
+            raise ValueError(f"unsupported file mode for {path}: {mode!r}")
+        blob = str(row["git_blob_sha1"])
+        if len(blob) != 40:
+            raise ValueError(f"invalid Git blob SHA-1 for {path}")
+        size = row["size"]
+        if not isinstance(size, int) or size < 0:
+            raise ValueError(f"invalid byte size for {path}")
+        files.append(SnapshotFile(path=path, git_blob_sha1=blob, mode=mode, size=size))
+
+    complete = bool(payload.get("complete_tree", False))
+    tree_sha1 = payload.get("tree_sha1")
+    if tree_sha1 is not None:
+        tree_sha1 = str(tree_sha1)
+        if len(tree_sha1) != 40:
+            raise ValueError("invalid root tree SHA-1")
+    if complete and tree_sha1 is None:
+        raise ValueError("complete snapshot manifest requires tree_sha1")
+
+    source_commit = payload.get("source_commit")
+    return SnapshotManifest(
+        files=tuple(files),
+        complete_tree=complete,
+        tree_sha1=tree_sha1,
+        source_commit=None if source_commit is None else str(source_commit),
+    )
+
+
+def load_manifest(path: Path) -> SnapshotManifest:
+    return parse_manifest(json.loads(path.read_text(encoding="utf-8")))
