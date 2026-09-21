@@ -2,11 +2,17 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import stat
 from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 ALLOWED_FILE_MODES = {"100644", "100755"}
+GIT_SHA1 = re.compile(r"^[0-9a-f]{40}$")
+
+
+def is_git_sha1(value: object) -> bool:
+    return isinstance(value, str) and bool(GIT_SHA1.fullmatch(value))
 
 
 def git_object_id(kind: str, payload: bytes) -> str:
@@ -39,6 +45,8 @@ def _tree_id(entries: Iterable[tuple[str, str, str]]) -> str:
     for name, mode, object_id in entries:
         if not name or "/" in name or "\0" in name:
             raise ValueError(f"invalid Git tree entry name: {name!r}")
+        if not is_git_sha1(object_id):
+            raise ValueError(f"invalid Git object SHA-1 for {name!r}")
         is_tree = mode == "40000"
         sort_key = name.encode("utf-8") + (b"/" if is_tree else b"")
         body = mode.encode("ascii") + b" " + name.encode("utf-8") + b"\0" + bytes.fromhex(object_id)
@@ -54,7 +62,7 @@ def tree_id_from_files(files: Iterable[tuple[str, str, str]]) -> str:
         path = validate_relative_path(raw_path)
         if mode not in ALLOWED_FILE_MODES:
             raise ValueError(f"unsupported file mode {mode!r} for {raw_path}")
-        if len(blob_id) != 40:
+        if not is_git_sha1(blob_id):
             raise ValueError(f"invalid Git blob SHA-1 for {raw_path}")
 
         node = root

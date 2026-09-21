@@ -28,6 +28,10 @@ def accept_chunk(
     complete Git blob before either the partial file or the state is advanced.
     """
     row = row_for(state, relative)
+    if row["method"] != "base64":
+        raise ValueError(f"{relative}: state method is {row['method']!r}, not base64")
+    if row["status"] == "verified":
+        raise ValueError(f"{relative}: file is already verified")
     expected = int(row["base64_received_chars"])
     if offset != expected:
         raise ValueError(f"{relative}: expected base64 offset {expected}, got {offset}")
@@ -47,6 +51,8 @@ def accept_chunk(
     total = int(row["base64_expected_chars"])
     if received > total:
         raise ValueError(f"{relative}: received too much base64 data")
+    if not chunk and received < total:
+        raise ValueError(f"{relative}: empty base64 chunk makes no progress")
 
     if received == total:
         # Validate the complete candidate before mutating either the persisted partial

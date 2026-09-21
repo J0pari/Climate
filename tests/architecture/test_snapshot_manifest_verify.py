@@ -95,6 +95,26 @@ class SnapshotManifestVerifyTests(unittest.TestCase):
                     "size": True,
                 }],
             })
+        with self.assertRaisesRegex(ValueError, "path must be a string"):
+            parse_manifest({
+                "schema_version": 1,
+                "files": [{
+                    "path": 7,
+                    "git_blob_sha1": "a" * 40,
+                    "mode": "100644",
+                    "size": 0,
+                }],
+            })
+        with self.assertRaisesRegex(ValueError, "unsupported file mode"):
+            parse_manifest({
+                "schema_version": 1,
+                "files": [{
+                    "path": "x.txt",
+                    "git_blob_sha1": "a" * 40,
+                    "mode": 100644,
+                    "size": 0,
+                }],
+            })
 
 
 if __name__ == "__main__":

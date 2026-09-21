@@ -68,6 +68,22 @@ class SnapshotTransferTests(unittest.TestCase):
             self.assertEqual(transfer.reconcile_existing(state, root=root), [])
             self.assertEqual(state["files"][0]["status"], "verified")
 
+    def test_reconcile_reopens_verified_file_that_disappeared(self):
+        payload = b"exact\n"
+        state = transfer.init_state(self._manifest("x.txt", payload))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "x.txt"
+            path.write_bytes(payload)
+            path.chmod(0o644)
+            self.assertEqual(transfer.reconcile_existing(state, root=root), [])
+            self.assertEqual(state["files"][0]["status"], "verified")
+            path.unlink()
+            issues = transfer.reconcile_existing(state, root=root)
+            self.assertEqual(issues[0]["problem"], "verified file is absent")
+            self.assertEqual(state["files"][0]["status"], "pending")
+            self.assertIsNotNone(transfer.next_request(state))
+
 
 if __name__ == "__main__":
     unittest.main()

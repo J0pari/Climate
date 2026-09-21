@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import base64
+import copy
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -68,6 +70,117 @@ class SnapshotTransferInvariantTests(unittest.TestCase):
                 )
             self.assertEqual(state["files"][0]["base64_received_chars"], 0)
             self.assertFalse((work / "parts" / "x.b64part").exists())
+
+    def test_persisted_state_rejects_corrupt_cross_field_invariants(self):
+        payload = b"payload\n"
+        baseline = transfer.init_state(self._manifest(payload))
+        mutations = [
+            lambda state: state["files"][0].update(status="bogus"),
+            lambda state: state["files"][0].update(base64_expected_chars=999),
+            lambda state: state["files"][0].update(base64_received_chars=1),
+            lambda state: state["limits"].update(line_overlap=state["limits"]["line_window"]),
+            lambda state: state["files"].append(copy.deepcopy(state["files"][0])),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "state.json"
+            for mutate in mutations:
+                state = copy.deepcopy(baseline)
+                mutate(state)
+                path.write_text(json.dumps(state), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    transfer.load_state(path)
+
+    def test_bad_final_text_window_does_not_advance_state_or_partial(self):
+        payload = b"one\ntwo\nthree\n"
+        state = transfer.init_state(
+            self._manifest(payload),
+            method="text-lines",
+            line_window=3,
+            line_overlap=1,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root, work = Path(tmp) / "root", Path(tmp) / "work"
+            root.mkdir()
+            transfer.accept_text_window(
+                state,
+                relative="x",
+                start_line=1,
+                text="one\ntwo\n",
+                eof=False,
+                root=root,
+                work_dir=work,
+            )
+            row_before = copy.deepcopy(state["files"][0])
+            part = work / "parts" / "x.textpart"
+            partial_before = part.read_text(encoding="utf-8")
+            with self.assertRaises(ValueError):
+                transfer.accept_text_window(
+                    state,
+                    relative="x",
+                    start_line=2,
+                    text="two\nWRONG\n",
+                    eof=True,
+                    root=root,
+                    work_dir=work,
+                )
+            self.assertEqual(state["files"][0], row_before)
+            self.assertEqual(part.read_text(encoding="utf-8"), partial_before)
+            self.assertFalse((root / "x").exists())
+
+    def test_text_transport_enforces_caps_methods_and_available_overlap(self):
+        payload = b"one\ntwo\nthree\n"
+        state = transfer.init_state(
+            self._manifest(payload),
+            method="text-lines",
+            max_response_chars=20,
+            base64_chunk_chars=10,
+            line_window=3,
+            line_overlap=2,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root, work = Path(tmp) / "root", Path(tmp) / "work"
+            root.mkdir()
+            with self.assertRaisesRegex(ValueError, "not base64"):
+                transfer.accept_base64_chunk(
+                    state,
+                    relative="x",
+                    offset=0,
+                    chunk="AAAA",
+                    root=root,
+                    work_dir=work,
+                )
+            with self.assertRaisesRegex(ValueError, "response cap"):
+                transfer.accept_text_window(
+                    state,
+                    relative="x",
+                    start_line=1,
+                    text="x" * 21,
+                    eof=True,
+                    root=root,
+                    work_dir=work,
+                )
+            transfer.accept_text_window(
+                state,
+                relative="x",
+                start_line=1,
+                text="one\n",
+                eof=False,
+                root=root,
+                work_dir=work,
+            )
+            request = transfer.next_request(state)
+            self.assertEqual(request["overlap_lines"], 1)
+            self.assertEqual(request["start_line"], 1)
+            transfer.accept_text_window(
+                state,
+                relative="x",
+                start_line=1,
+                text="one\ntwo\nthree\n",
+                eof=True,
+                root=root,
+                work_dir=work,
+            )
+            self.assertEqual((root / "x").read_bytes(), payload)
 
 
 if __name__ == "__main__":

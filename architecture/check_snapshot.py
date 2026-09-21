@@ -149,15 +149,27 @@ def main() -> int:
 
     from architecture.snapshot import transfer
 
-    state = transfer.load_state(args.state)
-    if args.command == "next":
-        print(json.dumps(transfer.next_request(state), indent=2))
-        return 0
+    try:
+        state = transfer.load_state(args.state)
+        if args.command == "next":
+            print(json.dumps(transfer.next_request(state), indent=2))
+            return 0
 
-    issues = transfer.reconcile_existing(state, root=args.root)
-    transfer.save_state(args.state, state)
-    print(json.dumps({"issues": issues, "next_request": transfer.next_request(state)}, indent=2))
-    return 1 if issues else 0
+        issues = transfer.reconcile_existing(state, root=args.root)
+        transfer.save_state(args.state, state)
+        print(
+            json.dumps(
+                {
+                    "issues": issues,
+                    "next_request": transfer.next_request(state),
+                },
+                indent=2,
+            )
+        )
+        return 1 if issues else 0
+    except (OSError, ValueError) as exc:
+        print(f"snapshot.transport: {exc}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

@@ -2,13 +2,10 @@
 from __future__ import annotations
 
 import json
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from .git_objects import ALLOWED_FILE_MODES, validate_relative_path
-
-GIT_SHA1 = re.compile(r"^[0-9a-f]{40}$")
+from .git_objects import ALLOWED_FILE_MODES, is_git_sha1, validate_relative_path
 
 
 @dataclass(frozen=True)
@@ -45,16 +42,18 @@ def parse_manifest(payload: object) -> SnapshotManifest:
         missing = {"path", "git_blob_sha1", "mode", "size"} - row.keys()
         if missing:
             raise ValueError(f"snapshot manifest row missing {sorted(missing)}")
-        path = str(row["path"])
+        path = row["path"]
+        if not isinstance(path, str):
+            raise ValueError("snapshot manifest path must be a string")
         validate_relative_path(path)
         if path in seen:
             raise ValueError(f"duplicate snapshot manifest path: {path}")
         seen.add(path)
-        mode = str(row["mode"])
-        if mode not in ALLOWED_FILE_MODES:
+        mode = row["mode"]
+        if not isinstance(mode, str) or mode not in ALLOWED_FILE_MODES:
             raise ValueError(f"unsupported file mode for {path}: {mode!r}")
         blob = row["git_blob_sha1"]
-        if not isinstance(blob, str) or not GIT_SHA1.fullmatch(blob):
+        if not isinstance(blob, str) or not is_git_sha1(blob):
             raise ValueError(f"invalid Git blob SHA-1 for {path}")
         size = row["size"]
         if type(size) is not int or size < 0:
@@ -67,7 +66,7 @@ def parse_manifest(payload: object) -> SnapshotManifest:
 
     tree_sha1 = payload.get("tree_sha1")
     if tree_sha1 is not None and (
-        not isinstance(tree_sha1, str) or not GIT_SHA1.fullmatch(tree_sha1)
+        not is_git_sha1(tree_sha1)
     ):
         raise ValueError("invalid root tree SHA-1")
     if complete and tree_sha1 is None:
@@ -75,7 +74,7 @@ def parse_manifest(payload: object) -> SnapshotManifest:
 
     source_commit = payload.get("source_commit")
     if source_commit is not None and (
-        not isinstance(source_commit, str) or not GIT_SHA1.fullmatch(source_commit)
+        not is_git_sha1(source_commit)
     ):
         raise ValueError("invalid source commit SHA-1")
     if complete and source_commit is None:
