@@ -21,6 +21,14 @@
     "shared_dimension_rule": "view_a_plus_view_b_minus_joint",
     "interpretation_boundary": "The TWO-NN likelihood selects intrinsic dimensions for each observed view and their concatenated joint sample without ground-truth access. Shared/private dimensions are then derived only by the declared additive dimension identity for this structural-world benchmark; the result is not a universal topology claim for climate data."
   },
+  "observational_structure_selector": {
+    "family": "dependence_plus_intrinsic_dimension",
+    "no_cross_view_evidence_decision": "abstain_no_cross_view_evidence",
+    "shared_only_decision": "shared_only_dimension_structure_supported",
+    "shared_plus_private_decision": "shared_plus_private_dimension_structure_supported",
+    "conflict_decision": "abstain_dependence_dimension_conflict",
+    "interpretation_boundary": "This selector reports only coarse observational structure supported jointly by the preregistered cross-view dependence test and intrinsic-dimension decomposition. It does not identify product versus independent-null semantics, and it does not distinguish fiber, quotient, stratified, nuisance-dominated, topology, or causal structure."
+  },
   "coordinate_baselines": {
     "spectral": {
       "n_neighbors": 30,

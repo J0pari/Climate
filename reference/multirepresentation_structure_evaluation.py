@@ -106,6 +106,24 @@ def load_evaluation_fixture(
     if dimension_selector.get("shared_dimension_rule") != "view_a_plus_view_b_minus_joint":
         raise ValueError("dimension selector shared-dimension rule is unsupported")
 
+    structure_selector = payload.get("observational_structure_selector")
+    if not isinstance(structure_selector, dict):
+        raise ValueError("observational_structure_selector policy is required")
+    if structure_selector.get("family") != "dependence_plus_intrinsic_dimension":
+        raise ValueError("observational structure selector family is unsupported")
+    expected_structure_decisions = {
+        "no_cross_view_evidence_decision": "abstain_no_cross_view_evidence",
+        "shared_only_decision": "shared_only_dimension_structure_supported",
+        "shared_plus_private_decision":
+            "shared_plus_private_dimension_structure_supported",
+        "conflict_decision": "abstain_dependence_dimension_conflict",
+    }
+    for field, expected in expected_structure_decisions.items():
+        if structure_selector.get(field) != expected:
+            raise ValueError(
+                f"observational structure selector {field} policy is unsupported"
+            )
+
     probe = payload.get("matched_information_probe")
     if not isinstance(probe, dict):
         raise ValueError("matched_information_probe policy is required")
@@ -260,6 +278,64 @@ def select_world_dimensions(
             int(view_b["selected_dimension"]) - selected_shared,
         ],
     }
+
+
+def coarse_observational_structure(
+    dependence: dict[str, Any],
+    dimensions: dict[str, Any],
+    policy: dict[str, Any],
+) -> dict[str, Any]:
+    """Compose only observationally supported structure without generative labels."""
+    if policy.get("family") != "dependence_plus_intrinsic_dimension":
+        raise ValueError("observational structure selector family is unsupported")
+    dependence_decision = dependence.get("decision")
+    if dependence_decision == "abstain_no_cross_view_evidence":
+        return {
+            "status": "abstained",
+            "decision": policy["no_cross_view_evidence_decision"],
+        }
+    if dependence_decision != "shared_coordinate_supported":
+        raise ValueError("dependence selector emitted an unsupported decision")
+    if dimensions.get("status") != "selected":
+        return {
+            "status": "abstained",
+            "decision": policy["conflict_decision"],
+        }
+
+    shared = int(dimensions["selected_shared_dimension"])
+    private = [int(value) for value in dimensions["selected_private_dimensions"]]
+    if len(private) != 2 or any(value < 0 for value in private):
+        raise ValueError("dimension selector emitted invalid private dimensions")
+    if shared <= 0:
+        return {
+            "status": "abstained",
+            "decision": policy["conflict_decision"],
+        }
+    if private == [0, 0]:
+        decision = policy["shared_only_decision"]
+    else:
+        decision = policy["shared_plus_private_decision"]
+    return {
+        "status": "supported",
+        "decision": decision,
+        "selected_shared_dimension": shared,
+        "selected_private_dimensions": private,
+    }
+
+
+def _expected_coarse_observational_structure(world: StructuralWorld) -> str:
+    target_name = world.ground_truth.get("shared_evaluation_target_name")
+    if target_name is None:
+        return "abstain_no_cross_view_evidence"
+    shared = int(world.ground_truth["shared_dimension"])
+    private = [int(value) for value in world.ground_truth["private_dimensions"]]
+    if shared <= 0:
+        raise ValueError(
+            f"{world.world_id} has a shared target but no authoritative shared dimension"
+        )
+    if private == [0, 0]:
+        return "shared_only_dimension_structure_supported"
+    return "shared_plus_private_dimension_structure_supported"
 
 
 def dependence_selector(
@@ -456,6 +532,7 @@ def evaluate_structural_worlds(
 
     selector_policy = evaluation_fixture["dependence_selector"]
     dimension_policy = evaluation_fixture["dimension_selector"]
+    structure_policy = evaluation_fixture["observational_structure_selector"]
     baseline_config = evaluation_fixture["coordinate_baselines"]
     probe_config = evaluation_fixture["matched_information_probe"]
     world_results: dict[str, Any] = {}
@@ -463,6 +540,8 @@ def evaluate_structural_worlds(
     confirmation_calibrated: list[bool] = []
     discovery_dimensions_recovered: list[bool] = []
     confirmation_dimensions_recovered: list[bool] = []
+    discovery_structure_calibrated: list[bool] = []
+    confirmation_structure_calibrated: list[bool] = []
 
     for world_id in sorted(discovery):
         discovery_world = discovery[world_id]
@@ -515,12 +594,33 @@ def evaluate_structural_worlds(
             and confirmation_dimensions.get("selected_private_dimensions")
             == expected_dimensions["private_dimensions"]
         )
+        expected_structure = _expected_coarse_observational_structure(
+            discovery_world
+        )
+        discovery_structure = coarse_observational_structure(
+            discovery_selector,
+            discovery_dimensions,
+            structure_policy,
+        )
+        confirmation_structure = coarse_observational_structure(
+            confirmation_selector,
+            confirmation_dimensions,
+            structure_policy,
+        )
+        discovery_structure_ok = (
+            discovery_structure["decision"] == expected_structure
+        )
+        confirmation_structure_ok = (
+            confirmation_structure["decision"] == expected_structure
+        )
         discovery_ok = discovery_selector["decision"] == expected
         confirmation_ok = confirmation_selector["decision"] == expected
         discovery_calibrated.append(discovery_ok)
         confirmation_calibrated.append(confirmation_ok)
         discovery_dimensions_recovered.append(discovery_dimension_ok)
         confirmation_dimensions_recovered.append(confirmation_dimension_ok)
+        discovery_structure_calibrated.append(discovery_structure_ok)
+        confirmation_structure_calibrated.append(confirmation_structure_ok)
 
         world_results[world_id] = {
             "relationship": discovery_world.relationship,
@@ -538,6 +638,11 @@ def evaluate_structural_worlds(
             "confirmation_dimension_selection": confirmation_dimensions,
             "discovery_dimensions_recovered": discovery_dimension_ok,
             "confirmation_dimensions_recovered": confirmation_dimension_ok,
+            "expected_coarse_observational_structure": expected_structure,
+            "discovery_coarse_observational_structure": discovery_structure,
+            "confirmation_coarse_observational_structure": confirmation_structure,
+            "discovery_coarse_structure_calibrated": discovery_structure_ok,
+            "confirmation_coarse_structure_calibrated": confirmation_structure_ok,
             "confirmation_coordinate_baselines": _evaluate_coordinate_baselines(
                 confirmation_world,
                 baseline_config,
@@ -571,6 +676,14 @@ def evaluate_structural_worlds(
             ),
             "all_confirmation_dimensions_recovered": all(
                 confirmation_dimensions_recovered
+            ),
+        },
+        "coarse_structure_summary": {
+            "all_discovery_decisions_calibrated": all(
+                discovery_structure_calibrated
+            ),
+            "all_confirmation_decisions_calibrated": all(
+                confirmation_structure_calibrated
             ),
         },
         "worlds": world_results,
