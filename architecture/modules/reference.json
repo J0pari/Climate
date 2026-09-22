@@ -31,6 +31,20 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/evidence_transport.py",
+      "family": "cross_model_evidence_transport_reference",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "pure-stdlib executable reference for comparing a declared transferable intervention-response object across explicit model classes while preserving source class/domain and rejecting promotion to absent parent-GCM or observational evidence classes",
+      "known_gaps": [
+        "the current executable witness is synthetic and does not itself provide parent-GCM, reanalysis, or observational evidence",
+        "only normalized-RMSE comparison of a shared intervention-response vector is implemented",
+        "bridge compatibility is not scientific evidence promotion and does not alter claim maturity"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/external_contract_reasoning.py",
       "family": "reference_external_model_contract_reasoning",
       "language": "python",

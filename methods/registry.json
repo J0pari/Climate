@@ -1326,6 +1326,45 @@
           "reference/spectral_diagnostics.py"
         ]
       }
+    },
+    {
+      "method_id": "validation.intervention_response_bridge.reference_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "runnable",
+      "hypothesis_family": "cross_model_evidence_transport",
+      "input_contracts": [
+        "evidence_source_descriptor/v1",
+        "intervention_response_bridge/v1"
+      ],
+      "output_contracts": [
+        "bridge_compatibility_result/v1",
+        "preserved_source_scope/v1"
+      ],
+      "assumptions": [
+        "bridge endpoints declare distinct source identities, explicit model classes, and non-empty domains of validity",
+        "the transferable object is an intervention-response vector on an identical coordinate with identical physical units",
+        "normalized RMSE tolerance belongs to the bridge object and does not promote either source to another model class",
+        "direct evidence for a requested model class requires at least one actual source of that class"
+      ],
+      "known_limitations": [
+        "the current reference supports only intervention-response vectors and normalized RMSE",
+        "synthetic bridge compatibility does not validate parent GCMs, observations, causal transfer, or claim truth",
+        "the method does not synthesize EvidenceRecord objects or modify claim maturity"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 134217728,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 30
+      },
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/evidence_transport.py"
+        ]
+      }
     }
   ]
 }

@@ -969,10 +969,10 @@
     {
       "id": "validation.cross_model_evidence_transport",
       "title": "Make cross-model evidence transport explicit and testable",
-      "status": "ready",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Represent how evidence from idealized models, learned emulators, parent GCMs, model ensembles, reanalysis, and observations may inform one claim without treating those sources as interchangeable or allowing agreement at one fidelity to silently promote another.",
+      "summary": "A pure-stdlib versioned intervention-response bridge now records explicit source model classes, source-specific domains of validity, a named transferable object, bridge assumption, comparison metric, and tolerance. The executable synthetic witness preserves each source class/scope and rejects silent emulator-to-parent-GCM and multimodel-to-observation promotion. Production parent-GCM/reanalysis/observational bridge evidence and broader transferable-object families remain open.",
       "depends_on": [
         "experimentation.claim_evidence_vertical_slice"
       ],
@@ -981,6 +981,12 @@
         "Negative witnesses reject automatic promotion from emulator agreement to parent-GCM validation and from multimodel agreement to observational support.",
         "At least one bridge test compares a declared transferable object such as an intervention response, invariant, response subspace, or representation relation across two model classes.",
         "Evidence records preserve each source's original class and scope even when several sources are synthesized for one claim."
+      ],
+      "evidence": [
+        "fixtures/evaluation/cross-model-evidence-transport-v1.json",
+        "reference/evidence_transport.py",
+        "tests/reference/test_evidence_transport.py",
+        "methods/registry.json"
       ]
     },
     {
