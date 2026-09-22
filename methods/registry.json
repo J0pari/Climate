@@ -1250,6 +1250,46 @@
       }
     },
     {
+      "method_id": "spectral.coherence.scipy_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "prototype",
+      "hypothesis_family": "sampled_signal_frequency_domain_dependence",
+      "input_contracts": [
+        "paired_uniformly_sampled_scalar_series/v1"
+      ],
+      "output_contracts": [
+        "magnitude_squared_coherence/v1"
+      ],
+      "assumptions": [
+        "both signals share the same explicit finite positive sample interval in seconds",
+        "all samples are finite; missing observations are rejected rather than filled or interpolated",
+        "SciPy owns Welch cross/auto spectral estimation through scipy.signal.coherence using an explicit Hann window, segment length, and overlap",
+        "detrending is explicitly either 'none' or constant-mean removal",
+        "input physical units are retained as metadata while magnitude-squared coherence is dimensionless"
+      ],
+      "known_limitations": [
+        "coherence measures frequency-domain linear association and does not establish causality, teleconnection identity, or a physical mode",
+        "no significance threshold or multiple-testing policy is supplied",
+        "the repository-wide Python environment identity is unresolved and no focused spectral SciPy lock exists"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "spectral.periodogram.scipy_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/spectral_diagnostics.py"
+        ]
+      }
+    },
+    {
       "method_id": "spectral.periodogram.scipy_v1",
       "semantic_version": "0.1.0",
       "maturity": "prototype",

@@ -279,11 +279,11 @@
       "family": "library_backed_periodogram_reference",
       "language": "python",
       "maturity": "prototype",
-      "intended_role": "narrow one-sided power-spectral-density diagnostic delegated to scipy.signal.periodogram with explicit sample interval, physical signal unit, detrend/normalization policy, and fail-closed nonfinite-sample semantics",
+      "intended_role": "narrow SciPy-backed periodogram and Welch magnitude-squared coherence diagnostics with explicit sampling, physical units, detrend/window/segment policy, and fail-closed nonfinite-sample semantics",
       "known_gaps": [
         "the repository-wide Python environment identity is unresolved and no focused spectral SciPy lock exists, so this module remains prototype maturity",
-        "only a boxcar one-sided periodogram is represented; coherence, multitaper, wavelet, and named climate-index semantics remain separate obligations",
-        "the diagnostic reports spectral power only and does not attach a statistical-significance, forecast-skill, or physical-mode interpretation"
+        "periodogram and Welch coherence are basic baselines; multitaper, wavelet, and named climate-index semantics remain separate obligations",
+        "the diagnostics report spectral quantities only and do not attach statistical-significance, forecast-skill, or physical-mode interpretations"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false

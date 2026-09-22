@@ -207,7 +207,7 @@
       "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "A narrow prototype one-sided periodogram now delegates FFT/spectral-density machinery to scipy.signal.periodogram with explicit uniform sample interval in seconds, physical signal units, boxcar/density normalization, explicit mean-detrend policy, and fail-closed nonfinite/missing samples. Bin-aligned sinusoid and Parseval-style power witnesses provide independent checks. Coherence, multitaper/wavelet diagnostics, named climate indices, and any significance or forecast-skill interpretation remain open.",
+      "summary": "Prototype library-backed spectral diagnostics now include a one-sided periodogram and Welch magnitude-squared coherence through SciPy, with explicit uniform sampling in seconds, input physical units, normalization/window/detrend policy, explicit coherence segment/overlap policy, and fail-closed nonfinite/missing samples. Bin-aligned sinusoid, Parseval-style power, broadband linear-transform coherence, and phase-locked frequency witnesses provide narrow checks. Multitaper/wavelet diagnostics, named climate indices, and any significance, causal, or forecast-skill interpretation remain open.",
       "depends_on": [],
       "completion": [
         "Each diagnostic names its input sampling, normalization, units, missing-data semantics, and independent benchmark.",

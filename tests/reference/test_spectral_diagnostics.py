@@ -6,8 +6,10 @@ import numpy as np
 from scipy import signal as scipy_signal
 
 from reference.spectral_diagnostics import (
+    COHERENCE_BACKEND,
     MISSINGNESS_POLICY,
     PERIODOGRAM_BACKEND,
+    magnitude_squared_coherence,
     one_sided_periodogram,
 )
 
@@ -78,6 +80,89 @@ class SpectralDiagnosticsTests(unittest.TestCase):
                 np.asarray([1.0, np.nan, 2.0]),
                 sample_interval_seconds=1.0,
                 signal_unit="K",
+            )
+
+    def test_broadband_linear_transform_has_unit_coherence(self) -> None:
+        rng = np.random.default_rng(20260923)
+        x = rng.normal(size=1024)
+        y = 3.5 * x
+        report = magnitude_squared_coherence(
+            x,
+            y,
+            sample_interval_seconds=3600.0,
+            x_unit="K",
+            y_unit="W m-2",
+            segment_length=256,
+            overlap_samples=128,
+            detrend="constant",
+        )
+        self.assertEqual(report.backend, COHERENCE_BACKEND)
+        self.assertEqual(report.coherence_unit, "1")
+        self.assertEqual(report.x_unit, "K")
+        self.assertEqual(report.y_unit, "W m-2")
+        np.testing.assert_allclose(
+            report.magnitude_squared_coherence,
+            1.0,
+            rtol=0.0,
+            atol=128.0 * np.finfo(np.float64).eps,
+        )
+
+    def test_phase_locked_sine_peaks_at_declared_frequency(self) -> None:
+        sample_count = 1024
+        segment_length = 256
+        sample_interval = 1.0
+        bin_index = 16
+        frequency_hz = bin_index / (segment_length * sample_interval)
+        time = np.arange(sample_count, dtype=np.float64) * sample_interval
+        x = np.sin(2.0 * np.pi * frequency_hz * time)
+        y = 2.0 * np.sin(2.0 * np.pi * frequency_hz * time + 0.7)
+        report = magnitude_squared_coherence(
+            x,
+            y,
+            sample_interval_seconds=sample_interval,
+            x_unit="K",
+            y_unit="K",
+            segment_length=segment_length,
+            overlap_samples=128,
+            detrend="none",
+        )
+        target = int(np.argmin(np.abs(report.frequency_hz - frequency_hz)))
+        self.assertEqual(report.frequency_hz[target], frequency_hz)
+        self.assertGreater(report.magnitude_squared_coherence[target], 1.0 - 1.0e-12)
+
+    def test_coherence_missingness_and_welch_policy_fail_closed(self) -> None:
+        x = np.arange(16, dtype=np.float64)
+        y = x.copy()
+        y[3] = np.nan
+        with self.assertRaisesRegex(ValueError, "rejects non-finite"):
+            magnitude_squared_coherence(
+                x,
+                y,
+                sample_interval_seconds=1.0,
+                x_unit="K",
+                y_unit="K",
+                segment_length=8,
+                overlap_samples=4,
+            )
+        with self.assertRaisesRegex(ValueError, "segment length"):
+            magnitude_squared_coherence(
+                x,
+                x,
+                sample_interval_seconds=1.0,
+                x_unit="K",
+                y_unit="K",
+                segment_length=32,
+                overlap_samples=4,
+            )
+        with self.assertRaisesRegex(ValueError, "overlap samples"):
+            magnitude_squared_coherence(
+                x,
+                x,
+                sample_interval_seconds=1.0,
+                x_unit="K",
+                y_unit="K",
+                segment_length=8,
+                overlap_samples=8,
             )
 
     def test_sampling_units_and_detrend_policy_are_explicit(self) -> None:
