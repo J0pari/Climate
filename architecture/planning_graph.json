@@ -221,7 +221,7 @@
       "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Prototype library-backed spectral diagnostics now include a one-sided periodogram and Welch magnitude-squared coherence through SciPy, with explicit uniform sampling in seconds, input physical units, normalization/window/detrend policy, explicit coherence segment/overlap policy, and fail-closed nonfinite/missing samples. Bin-aligned sinusoid, Parseval-style power, broadband linear-transform coherence, and phase-locked frequency witnesses provide narrow checks. Multitaper/wavelet diagnostics, named climate indices, and any significance, causal, or forecast-skill interpretation remain open.",
+      "summary": "Prototype library-backed spectral diagnostics now include a one-sided boxcar periodogram, Hann-window Welch PSD, and Welch magnitude-squared coherence through SciPy. Uniform sampling in seconds, physical units, density normalization, detrending, segment length, overlap, averaging, and fail-closed nonfinite/missing samples are explicit. Bin-aligned sinusoid, Parseval-style power, exact SciPy differential, broadband linear-transform coherence, and phase-locked frequency witnesses are executable. Multitaper/wavelet diagnostics, named climate indices, and significance, causal, or forecast-skill interpretation remain open.",
       "depends_on": [],
       "completion": [
         "Each diagnostic names its input sampling, normalization, units, missing-data semantics, and independent benchmark.",

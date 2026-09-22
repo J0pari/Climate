@@ -17,6 +17,9 @@ PERIODOGRAM_WINDOW = "boxcar"
 PERIODOGRAM_SCALING = "density"
 COHERENCE_BACKEND = "scipy.signal.coherence"
 COHERENCE_WINDOW = "hann"
+WELCH_BACKEND = "scipy.signal.welch"
+WELCH_WINDOW = "hann"
+WELCH_AVERAGING = "mean"
 MISSINGNESS_POLICY = "reject_nonfinite"
 
 
@@ -207,3 +210,112 @@ def magnitude_squared_coherence(
         detrend=detrend,
     )
 
+
+
+@dataclass(frozen=True)
+class WelchPowerSpectralDensityReport:
+    frequency_hz: np.ndarray
+    power_spectral_density: np.ndarray
+    sample_interval_seconds: float
+    signal_unit: str
+    segment_length: int
+    overlap_samples: int
+    detrend: str
+    backend: str = WELCH_BACKEND
+    window: str = WELCH_WINDOW
+    scaling: str = PERIODOGRAM_SCALING
+    averaging: str = WELCH_AVERAGING
+    missingness_policy: str = MISSINGNESS_POLICY
+    frequency_unit: str = "Hz"
+
+    def __post_init__(self) -> None:
+        frequency = np.asarray(self.frequency_hz, dtype=np.float64)
+        density = np.asarray(self.power_spectral_density, dtype=np.float64)
+        if frequency.ndim != 1 or density.ndim != 1 or frequency.shape != density.shape:
+            raise ValueError("Welch frequency and power spectral density must be matching vectors")
+        if frequency.size < 2:
+            raise ValueError("Welch report requires at least two frequency bins")
+        if not np.all(np.isfinite(frequency)) or not np.all(np.isfinite(density)):
+            raise ValueError("Welch report must be finite")
+        if np.any(frequency < 0.0) or np.any(np.diff(frequency) <= 0.0):
+            raise ValueError("Welch frequencies must be strictly increasing and non-negative")
+        if np.any(density < 0.0):
+            raise ValueError("Welch power spectral density must be non-negative")
+        if not np.isfinite(self.sample_interval_seconds) or self.sample_interval_seconds <= 0.0:
+            raise ValueError("sample interval must be finite and positive")
+        if not self.signal_unit.strip():
+            raise ValueError("signal unit must be explicit")
+        if self.segment_length < 4 or self.overlap_samples < 0 or self.overlap_samples >= self.segment_length:
+            raise ValueError("invalid Welch segment or overlap policy")
+        if self.detrend not in {"none", "constant"}:
+            raise ValueError("unsupported detrend policy")
+        frequency = np.array(frequency, copy=True)
+        density = np.array(density, copy=True)
+        frequency.setflags(write=False)
+        density.setflags(write=False)
+        object.__setattr__(self, "frequency_hz", frequency)
+        object.__setattr__(self, "power_spectral_density", density)
+
+    @property
+    def power_spectral_density_unit(self) -> str:
+        return f"({self.signal_unit})^2/Hz"
+
+    def integrated_power(self) -> float:
+        spacing = np.diff(self.frequency_hz)
+        representative = float(np.mean(spacing))
+        tolerance = (
+            16.0
+            * np.finfo(np.float64).eps
+            * max(abs(representative), float(np.max(np.abs(self.frequency_hz))))
+        )
+        if np.max(np.abs(spacing - representative)) > tolerance:
+            raise ValueError("Welch frequency grid is not uniformly spaced")
+        return float(np.sum(self.power_spectral_density) * representative)
+
+
+def welch_power_spectral_density(
+    samples: np.ndarray,
+    *,
+    sample_interval_seconds: float,
+    signal_unit: str,
+    segment_length: int,
+    overlap_samples: int,
+    detrend: str = "constant",
+) -> WelchPowerSpectralDensityReport:
+    """Compute one-sided Welch PSD through SciPy with explicit segment policy."""
+    values = np.asarray(samples, dtype=np.float64)
+    if values.ndim != 1 or values.size < 4:
+        raise ValueError("Welch PSD requires at least four one-dimensional samples")
+    if not np.all(np.isfinite(values)):
+        raise ValueError("Welch PSD rejects non-finite or missing samples")
+    if not np.isfinite(sample_interval_seconds) or sample_interval_seconds <= 0.0:
+        raise ValueError("sample interval must be finite and positive")
+    if not isinstance(signal_unit, str) or not signal_unit.strip():
+        raise ValueError("signal unit must be explicit")
+    if not isinstance(segment_length, int) or segment_length < 4 or segment_length > values.size:
+        raise ValueError("segment length must be an integer in [4, sample_count]")
+    if not isinstance(overlap_samples, int) or overlap_samples < 0 or overlap_samples >= segment_length:
+        raise ValueError("overlap samples must be an integer in [0, segment_length)")
+    if detrend not in {"none", "constant"}:
+        raise ValueError("detrend must be 'none' or 'constant'")
+
+    frequency_hz, density = scipy_signal.welch(
+        values,
+        fs=1.0 / float(sample_interval_seconds),
+        window=WELCH_WINDOW,
+        nperseg=segment_length,
+        noverlap=overlap_samples,
+        detrend=False if detrend == "none" else "constant",
+        return_onesided=True,
+        scaling=PERIODOGRAM_SCALING,
+        average=WELCH_AVERAGING,
+    )
+    return WelchPowerSpectralDensityReport(
+        frequency_hz=frequency_hz,
+        power_spectral_density=density,
+        sample_interval_seconds=float(sample_interval_seconds),
+        signal_unit=signal_unit.strip(),
+        segment_length=segment_length,
+        overlap_samples=overlap_samples,
+        detrend=detrend,
+    )

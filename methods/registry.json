@@ -1373,6 +1373,46 @@
       }
     },
     {
+      "method_id": "spectral.welch.scipy_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "prototype",
+      "hypothesis_family": "sampled_signal_averaged_power_spectrum",
+      "input_contracts": [
+        "uniformly_sampled_scalar_series/v1"
+      ],
+      "output_contracts": [
+        "one_sided_welch_power_spectral_density/v1"
+      ],
+      "assumptions": [
+        "samples are uniformly spaced by an explicit finite positive interval in seconds",
+        "all samples are finite; missing observations are rejected rather than filled or interpolated",
+        "SciPy owns the Welch implementation using an explicit Hann window, segment length, overlap, mean averaging, and density scaling",
+        "detrending is explicitly either 'none' or constant-mean removal",
+        "frequency is reported in Hz and PSD units are the squared declared signal unit per Hz"
+      ],
+      "known_limitations": [
+        "Welch averaging trades frequency resolution for variance reduction and is not a multitaper estimator",
+        "no significance threshold, climate-index label, oscillation attribution, or forecast-skill interpretation is produced",
+        "the repository-wide Python environment identity is unresolved and no focused spectral SciPy lock exists"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "spectral.periodogram.scipy_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/spectral_diagnostics.py"
+        ]
+      }
+    },
+    {
       "method_id": "validation.intervention_response_bridge.reference_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",

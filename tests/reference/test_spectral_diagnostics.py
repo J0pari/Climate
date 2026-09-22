@@ -9,8 +9,10 @@ from reference.spectral_diagnostics import (
     COHERENCE_BACKEND,
     MISSINGNESS_POLICY,
     PERIODOGRAM_BACKEND,
+    WELCH_BACKEND,
     magnitude_squared_coherence,
     one_sided_periodogram,
+    welch_power_spectral_density,
 )
 
 
@@ -161,6 +163,87 @@ class SpectralDiagnosticsTests(unittest.TestCase):
                 sample_interval_seconds=1.0,
                 x_unit="K",
                 y_unit="K",
+                segment_length=8,
+                overlap_samples=8,
+            )
+
+
+    def test_welch_bin_aligned_sine_recovers_frequency_and_power(self) -> None:
+        sample_count = 1024
+        segment_length = 256
+        overlap = 128
+        sample_interval = 1.0
+        bin_index = 16
+        frequency_hz = bin_index / (segment_length * sample_interval)
+        time = np.arange(sample_count, dtype=np.float64) * sample_interval
+        amplitude = 3.0
+        values = amplitude * np.sin(2.0 * np.pi * frequency_hz * time)
+        report = welch_power_spectral_density(
+            values,
+            sample_interval_seconds=sample_interval,
+            signal_unit="K",
+            segment_length=segment_length,
+            overlap_samples=overlap,
+            detrend="none",
+        )
+        peak = int(np.argmax(report.power_spectral_density[1:]) + 1)
+        self.assertEqual(report.frequency_hz[peak], frequency_hz)
+        self.assertAlmostEqual(report.integrated_power(), amplitude**2 / 2.0, places=12)
+        self.assertEqual(report.backend, WELCH_BACKEND)
+        self.assertEqual(report.window, "hann")
+        self.assertEqual(report.averaging, "mean")
+        self.assertEqual(report.power_spectral_density_unit, "(K)^2/Hz")
+
+    def test_welch_matches_scipy_with_explicit_segment_policy(self) -> None:
+        rng = np.random.default_rng(20260925)
+        values = rng.normal(size=512)
+        report = welch_power_spectral_density(
+            values,
+            sample_interval_seconds=2.0,
+            signal_unit="m s-1",
+            segment_length=128,
+            overlap_samples=64,
+            detrend="constant",
+        )
+        expected_frequency, expected_density = scipy_signal.welch(
+            values,
+            fs=0.5,
+            window="hann",
+            nperseg=128,
+            noverlap=64,
+            detrend="constant",
+            return_onesided=True,
+            scaling="density",
+            average="mean",
+        )
+        np.testing.assert_array_equal(report.frequency_hz, expected_frequency)
+        np.testing.assert_array_equal(report.power_spectral_density, expected_density)
+
+    def test_welch_missingness_and_segment_policy_fail_closed(self) -> None:
+        values = np.arange(16, dtype=np.float64)
+        missing = values.copy()
+        missing[2] = np.nan
+        with self.assertRaisesRegex(ValueError, "rejects non-finite"):
+            welch_power_spectral_density(
+                missing,
+                sample_interval_seconds=1.0,
+                signal_unit="K",
+                segment_length=8,
+                overlap_samples=4,
+            )
+        with self.assertRaisesRegex(ValueError, "segment length"):
+            welch_power_spectral_density(
+                values,
+                sample_interval_seconds=1.0,
+                signal_unit="K",
+                segment_length=32,
+                overlap_samples=4,
+            )
+        with self.assertRaisesRegex(ValueError, "overlap samples"):
+            welch_power_spectral_density(
+                values,
+                sample_interval_seconds=1.0,
+                signal_unit="K",
                 segment_length=8,
                 overlap_samples=8,
             )
