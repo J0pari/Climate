@@ -289,6 +289,20 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/fortran/hybrid_pressure_coordinate.f90",
+      "family": "hybrid_pressure_coordinate_mapping",
+      "language": "fortran",
+      "maturity": "runnable",
+      "intended_role": "canonical hybrid pressure-interface mapping p=A+B*ps from caller-supplied A coefficients in Pa and dimensionless B coefficients bound to a required named source identity; the B coefficient is the fixed-coefficient surface-pressure metric, while layer mass and hydrostatics remain owned by pressure-coordinate kernels",
+      "known_gaps": [
+        "this module validates a nonblank coefficient-source identity but does not embed or retrieve any externally owned model coefficient table",
+        "A coefficients are restricted to nonnegative Pa offsets and B coefficients to [0,1], with an exact A=0,B=1 surface anchor",
+        "mapping validity and the dp/dps=B metric do not define hybrid-coordinate pressure-gradient dynamics, remapping, or conservation"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/fortran/pressure_coordinate_hydrostatics.f90",
       "family": "pressure_coordinate_hydrostatics",
       "language": "fortran",

@@ -94,6 +94,18 @@ target_link_libraries(climate_sigma_coordinate PUBLIC
     climate_pressure_coordinate_grid
 )
 
+# Hybrid pressure-coordinate mapping p(k)=A(k)+B(k)*ps from caller-owned,
+# explicitly identified coefficient sets. No coefficient table lives here.
+add_library(climate_hybrid_pressure_coordinate STATIC
+    src/fortran/hybrid_pressure_coordinate.f90
+)
+target_include_directories(climate_hybrid_pressure_coordinate PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_hybrid_pressure_coordinate PUBLIC
+    climate_pressure_coordinate_grid
+)
+
 # Hydrostatic mass/geopotential relationships on a declared pressure-coordinate
 # column. Pressure velocity and geometric vertical velocity remain separate.
 add_library(climate_pressure_coordinate_hydrostatics STATIC
@@ -263,6 +275,19 @@ if(ENABLE_TESTING)
         climate_pressure_coordinate_hydrostatics
     )
     climate_add_canonical_test(sigma_coordinate test_sigma_coordinate)
+
+    add_executable(test_hybrid_pressure_coordinate
+        tests/fortran/test_hybrid_pressure_coordinate.f90
+    )
+    target_link_libraries(test_hybrid_pressure_coordinate PRIVATE
+        climate_hybrid_pressure_coordinate
+        climate_sigma_coordinate
+        climate_pressure_coordinate_hydrostatics
+    )
+    climate_add_canonical_test(
+        hybrid_pressure_coordinate
+        test_hybrid_pressure_coordinate
+    )
 
     add_executable(test_pressure_coordinate_hydrostatics
         tests/fortran/test_pressure_coordinate_hydrostatics.f90
