@@ -275,6 +275,20 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/fortran/sigma_coordinate.f90",
+      "family": "sigma_pressure_coordinate_mapping",
+      "language": "fortran",
+      "maturity": "runnable",
+      "intended_role": "canonical dimensionless sigma-interface mapping into the existing finite positive strictly decreasing pressure-interface contract using explicit surface pressure; layer mass, hydrostatics, dynamics, and horizontal geometry remain owned by their existing pressure-coordinate kernels",
+      "known_gaps": [
+        "the current sigma contract requires 0 < sigma <= 1 and exact surface anchoring at sigma=1, so a zero-pressure model top is intentionally outside the finite-positive pressure domain",
+        "hybrid pressure coefficients and their dataset/model authority are not defined by this module",
+        "mapping validity does not establish vertical-coordinate dynamics, pressure-gradient discretization, or conservation"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/fortran/pressure_coordinate_hydrostatics.f90",
       "family": "pressure_coordinate_hydrostatics",
       "language": "fortran",

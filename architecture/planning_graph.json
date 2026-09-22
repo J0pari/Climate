@@ -95,10 +95,10 @@
     {
       "id": "physics.vertical_coordinate_contract",
       "title": "Define pressure, sigma, and hybrid vertical-coordinate semantics",
-      "status": "ready",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Extend the pressure-coordinate foundation with explicit sigma or hybrid-coordinate mapping only through declared coefficients, surface-pressure dependence, layer mass, orientation, and metric terms; old coefficient tables are not authority by themselves.",
+      "summary": "The pressure-coordinate foundation now has an explicit sigma-interface mapping: dimensionless 0<sigma<=1 interfaces are surface-anchored at sigma=1, strictly decrease upward, and map through p=sigma*ps into the existing finite-positive pressure-grid contract. Sigma layer mass is deliberately not reimplemented; composition tests delegate to the canonical pressure-coordinate hydrostatic mass semantics. Hybrid coefficients and their named dataset/model authority remain open.",
       "depends_on": [
         "architecture.reference_values"
       ],
@@ -106,6 +106,13 @@
         "Each supported vertical coordinate has explicit interface, unit, orientation, and layer-mass semantics.",
         "Hybrid coefficients are supplied by a named dataset/model contract rather than copied from an unlabeled legacy table.",
         "Mappings reduce to independently checkable pressure-coordinate cases where appropriate."
+      ],
+      "evidence": [
+        "src/fortran/pressure_coordinate_grid.f90",
+        "src/fortran/sigma_coordinate.f90",
+        "src/fortran/pressure_coordinate_hydrostatics.f90",
+        "tests/fortran/test_sigma_coordinate.f90",
+        "CMakeLists.txt"
       ]
     },
     {

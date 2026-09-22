@@ -82,6 +82,18 @@ target_include_directories(climate_pressure_coordinate_grid PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Dimensionless sigma-coordinate mapping into the canonical pressure-interface
+# domain. Layer mass and hydrostatics remain owned by pressure-coordinate kernels.
+add_library(climate_sigma_coordinate STATIC
+    src/fortran/sigma_coordinate.f90
+)
+target_include_directories(climate_sigma_coordinate PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_sigma_coordinate PUBLIC
+    climate_pressure_coordinate_grid
+)
+
 # Hydrostatic mass/geopotential relationships on a declared pressure-coordinate
 # column. Pressure velocity and geometric vertical velocity remain separate.
 add_library(climate_pressure_coordinate_hydrostatics STATIC
@@ -242,6 +254,15 @@ if(ENABLE_TESTING)
         climate_pressure_coordinate_grid
     )
     climate_add_canonical_test(pressure_coordinate_grid test_pressure_coordinate_grid)
+
+    add_executable(test_sigma_coordinate
+        tests/fortran/test_sigma_coordinate.f90
+    )
+    target_link_libraries(test_sigma_coordinate PRIVATE
+        climate_sigma_coordinate
+        climate_pressure_coordinate_hydrostatics
+    )
+    climate_add_canonical_test(sigma_coordinate test_sigma_coordinate)
 
     add_executable(test_pressure_coordinate_hydrostatics
         tests/fortran/test_pressure_coordinate_hydrostatics.f90
