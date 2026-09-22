@@ -84,6 +84,39 @@ class SnapshotTransferTests(unittest.TestCase):
             self.assertEqual(state["files"][0]["status"], "pending")
             self.assertIsNotNone(transfer.next_request(state))
 
+    def test_reconcile_cleans_stale_partials_when_adopting_or_reopening(self):
+        payload = b"exact\n"
+        state = transfer.init_state(self._manifest("x.txt", payload))
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root, work = base / "root", base / "work"
+            root.mkdir()
+            path = root / "x.txt"
+            path.write_bytes(payload)
+            path.chmod(0o644)
+
+            part = work / "parts" / "x.txt.b64part"
+            part.parent.mkdir(parents=True)
+            part.write_text("stale", encoding="ascii")
+            self.assertEqual(
+                transfer.reconcile_existing(state, root=root, work_dir=work),
+                [],
+            )
+            self.assertEqual(state["files"][0]["status"], "verified")
+            self.assertFalse(part.exists())
+
+            path.unlink()
+            part.write_text("stale-again", encoding="ascii")
+            issues = transfer.reconcile_existing(state, root=root, work_dir=work)
+            self.assertEqual(
+                issues,
+                [{"path": "x.txt", "problem": "verified file is absent"}],
+            )
+            self.assertEqual(state["files"][0]["status"], "pending")
+            self.assertEqual(state["files"][0]["base64_received_chars"], 0)
+            self.assertFalse(part.exists())
+            self.assertEqual(transfer.next_request(state)["slice_start"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

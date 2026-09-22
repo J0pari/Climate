@@ -14,6 +14,7 @@ from .git_objects import (
     validate_relative_path,
 )
 from .manifest import SnapshotManifest
+from .transfer_paths import discard_partials
 
 PROTOCOL = "bounded-github-snapshot-transport/v1"
 DEFAULT_MAX_RESPONSE_CHARS = 12_000
@@ -247,7 +248,13 @@ def reconcile_existing(
     state: dict[str, Any],
     *,
     root: Path,
+    work_dir: Path | None = None,
 ) -> list[dict[str, str]]:
+    """Adopt exact destinations while keeping persisted partials consistent.
+
+    When a work directory is supplied, transitions to ``verified`` or resets
+    to ``pending`` remove stale partial files for the affected path.
+    """
     validate_state(state)
     issues: list[dict[str, str]] = []
     for row in state["files"]:
@@ -259,6 +266,8 @@ def reconcile_existing(
                     "problem": "verified file is absent",
                 })
                 _reset_progress(row)
+                if work_dir is not None:
+                    discard_partials(work_dir, row["path"])
             continue
 
         problems: list[str] = []
@@ -276,12 +285,16 @@ def reconcile_existing(
             issues.append({"path": row["path"], "problem": "; ".join(problems)})
             if row["status"] == "verified":
                 _reset_progress(row)
+                if work_dir is not None:
+                    discard_partials(work_dir, row["path"])
         else:
             row["status"] = "verified"
             row["base64_received_chars"] = (
                 row["base64_expected_chars"] if row["method"] == "base64" else 0
             )
             row["text_next_start_line"] = 1
+            if work_dir is not None:
+                discard_partials(work_dir, row["path"])
 
     validate_state(state)
     return issues

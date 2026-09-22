@@ -116,6 +116,34 @@ class SnapshotManifestVerifyTests(unittest.TestCase):
                 }],
             })
 
+    def test_manifest_rejects_noncanonical_and_cross_platform_escape_paths(self):
+        valid = {
+            "schema_version": 1,
+            "files": [{
+                "path": "x.txt",
+                "git_blob_sha1": "a" * 40,
+                "mode": "100644",
+                "size": 0,
+            }],
+        }
+        for path in (
+            "a//b",
+            "a/./b",
+            "a/../b",
+            "..\\escape",
+            "nested\\escape",
+            "C:/escape",
+            "C:escape",
+            "/absolute",
+        ):
+            with self.subTest(path=path):
+                payload = {
+                    **valid,
+                    "files": [{**valid["files"][0], "path": path}],
+                }
+                with self.assertRaisesRegex(ValueError, "repository-relative path"):
+                    parse_manifest(payload)
+
 
 if __name__ == "__main__":
     unittest.main()

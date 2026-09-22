@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import re
 import stat
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Iterable
 
 ALLOWED_FILE_MODES = {"100644", "100755"}
@@ -29,8 +29,24 @@ def sha256_digest(payload: bytes) -> str:
 
 
 def validate_relative_path(raw: str) -> PurePosixPath:
+    """Validate one canonical, cross-platform repository-relative path.
+
+    Snapshot manifests use POSIX separators regardless of host OS. Validate the
+    raw spelling before pathlib normalization so aliases such as ``a//b`` and
+    ``a/./b`` cannot collapse onto another manifest row. Backslashes and
+    Windows drive-qualified spellings are rejected because later materialization
+    converts validated POSIX parts into a host-native ``Path``.
+    """
+    if not isinstance(raw, str) or not raw or "\0" in raw or "\\" in raw:
+        raise ValueError(f"invalid repository-relative path: {raw!r}")
+    parts = raw.split("/")
+    if raw.startswith("/") or any(part in {"", ".", ".."} for part in parts):
+        raise ValueError(f"invalid repository-relative path: {raw!r}")
+    windows = PureWindowsPath(raw)
+    if windows.drive or windows.root:
+        raise ValueError(f"invalid repository-relative path: {raw!r}")
     path = PurePosixPath(raw)
-    if not raw or path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+    if path.as_posix() != raw:
         raise ValueError(f"invalid repository-relative path: {raw!r}")
     return path
 

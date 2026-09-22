@@ -70,6 +70,11 @@ def main() -> int:
     reconcile = sub.add_parser("reconcile")
     reconcile.add_argument("state", type=Path)
     reconcile.add_argument("--root", type=Path, required=True)
+    reconcile.add_argument(
+        "--work-dir",
+        type=Path,
+        help="partial-file directory; defaults to the transport state file parent",
+    )
 
     args = parser.parse_args()
 
@@ -155,7 +160,11 @@ def main() -> int:
             print(json.dumps(transfer.next_request(state), indent=2))
             return 0
 
-        issues = transfer.reconcile_existing(state, root=args.root)
+        issues = transfer.reconcile_existing(
+            state,
+            root=args.root,
+            work_dir=args.work_dir or args.state.parent,
+        )
         transfer.save_state(args.state, state)
         print(
             json.dumps(
