@@ -123,7 +123,7 @@
       "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Explicit parameterization seams now include equal-and-opposite component exchange, a surface/boundary-layer flux-to-tendency adapter, and a closure-free convective column redistribution interface that maps caller-supplied upward energy/water/momentum interface fluxes to per-layer tendencies with exact lower-minus-upper column budgets. None chooses a physical closure. Existing integration and linear-algebra surfaces identify SUNDIALS ARKODE and LAPACK directions. Radiation/remapping production-library bindings and microphysics phase-change/precipitation interfaces remain open.",
+      "summary": "Explicit parameterization seams now cover equal-and-opposite component exchange, surface/boundary-layer flux-to-tendency conversion, closure-free convective column redistribution, and microphysics phase-change/precipitation water-energy accounting with caller-supplied latent heat and precipitation energy export. These interfaces carry explicit units and budget ownership without selecting physical closures. Existing integration and linear-algebra surfaces identify SUNDIALS ARKODE and LAPACK directions. Radiation and remapping production-library bindings with independent executable witnesses remain open.",
       "depends_on": [
         "physics.authoritative_flux_recomposition"
       ],
@@ -139,6 +139,8 @@
         "tests/fortran/test_boundary_layer_surface_exchange.f90",
         "src/fortran/convective_column_redistribution.f90",
         "tests/fortran/test_convective_column_redistribution.f90",
+        "src/fortran/microphysics_phase_change_budget.f90",
+        "tests/fortran/test_microphysics_phase_change_budget.f90",
         "src/fortran/time_integration.f90",
         "src/fortran/lapack_tridiagonal.f90",
         "src/fortran/vertical_diffusion.f90",

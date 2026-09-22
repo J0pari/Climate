@@ -273,6 +273,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/fortran/microphysics_phase_change_budget.f90",
+      "family": "microphysics_phase_change_precipitation_budget",
+      "language": "fortran",
+      "maturity": "runnable",
+      "intended_role": "canonical closure-free microphysics budget seam that maps caller-supplied signed vapor-to-condensate phase-change rates, nonnegative precipitation mass export, explicit precipitation energy export, and explicit positive latent heat into vapor/condensate/energy tendencies with column water and energy closure diagnostics",
+      "known_gaps": [
+        "the module chooses no saturation adjustment, supersaturation, nucleation, autoconversion, accretion, sedimentation, evaporation, or mixed-phase partition closure",
+        "latent heat is caller-supplied so liquid, ice, or other phase semantics remain explicit rather than inferred from temperature",
+        "precipitation energy export is caller-supplied because condensate enthalpy and fall-speed energetics are not defined by this seam",
+        "the interface reports per-area tendency rates and does not update prognostic vapor, condensate, precipitation, temperature, or total-energy state"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/fortran/moist_vapor_algebra.f90",
       "family": "moist_vapor_algebra",
       "language": "fortran",

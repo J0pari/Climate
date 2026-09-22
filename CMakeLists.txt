@@ -236,6 +236,15 @@ target_include_directories(climate_convective_column_redistribution PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Microphysics mass/energy budget seam from caller-supplied phase-change and
+# precipitation export rates. No cloud, saturation, or phase-partition closure.
+add_library(climate_microphysics_phase_change_budget STATIC
+    src/fortran/microphysics_phase_change_budget.f90
+)
+target_include_directories(climate_microphysics_phase_change_budget PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Climate-specific geometric-height finite-volume diffusion operator. Solver
 # choice is deliberately separate from operator construction.
 add_library(climate_vertical_diffusion STATIC
@@ -445,6 +454,17 @@ if(ENABLE_TESTING)
     climate_add_canonical_test(
         convective_column_redistribution
         test_convective_column_redistribution
+    )
+
+    add_executable(test_microphysics_phase_change_budget
+        tests/fortran/test_microphysics_phase_change_budget.f90
+    )
+    target_link_libraries(test_microphysics_phase_change_budget PRIVATE
+        climate_microphysics_phase_change_budget
+    )
+    climate_add_canonical_test(
+        microphysics_phase_change_budget
+        test_microphysics_phase_change_budget
     )
 
     add_executable(test_pressure_flux_coupling
