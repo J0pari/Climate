@@ -234,6 +234,11 @@ def _render_world(
         "static_identifiability": spec["static_identifiability"],
         "shared_dimension": int(spec["shared_dimension"]),
         "private_dimensions": [int(value) for value in spec["private_dimensions"]],
+        "view_support_connected_components": [1, 1],
+        "view_support_first_betti_numbers": [0, 0],
+        "topology_oracle_semantics": (
+            "exact noiseless generator-support invariants before finite-sample estimation"
+        ),
     }
 
     if world_id == "shared_manifold":
@@ -294,6 +299,7 @@ def _render_world(
         }
         ground_truth["stratum_count"] = 2
         ground_truth["boundary"] = boundary
+        ground_truth["view_support_connected_components"] = [1, 2]
         shared_evaluation_target_name = "shared"
 
     elif world_id == "nuisance_dominated":

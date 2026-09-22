@@ -57,6 +57,32 @@ class MultirepresentationStructuralWorldTests(unittest.TestCase):
         self.assertEqual(set(np.unique(regime).tolist()), {0, 1})
         self.assertEqual(world.ground_truth["stratum_count"], 2)
 
+    def test_exact_support_topology_oracle_marks_only_stratified_view_b_disconnected(self) -> None:
+        for world_id, world in self.worlds.items():
+            expected_components = [1, 2] if world_id == "stratified_regime" else [1, 1]
+            self.assertEqual(
+                world.ground_truth["view_support_connected_components"],
+                expected_components,
+                msg=world_id,
+            )
+            self.assertEqual(
+                world.ground_truth["view_support_first_betti_numbers"],
+                [0, 0],
+                msg=world_id,
+            )
+            self.assertEqual(
+                world.ground_truth["topology_oracle_semantics"],
+                "exact noiseless generator-support invariants before finite-sample estimation",
+            )
+
+    def test_stratified_view_b_has_an_exact_support_gap(self) -> None:
+        world = self.worlds["stratified_regime"]
+        regime = world.targets["regime"].astype(bool)
+        lower = world.view_b[~regime, 0]
+        upper = world.view_b[regime, 0]
+        self.assertLess(float(np.max(lower)), 0.0)
+        self.assertGreaterEqual(float(np.min(upper)), 1.0)
+
     def test_nuisance_dominated_world_makes_variance_an_adversary(self) -> None:
         world = self.worlds["nuisance_dominated"]
         shared_variance = float(np.var(world.targets["shared"]))

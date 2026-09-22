@@ -2,7 +2,7 @@
 
 > Generated planning projection. Do not hand-edit.
 > Declared planning authority: `architecture/planning_graph.json`.
-> Planning-authority fingerprint: `git-tree-sha1:0d85d6bc193fbb0b669617b8792a68ba83fabb47`.
+> Planning-authority fingerprint: `git-tree-sha1:ea2ac72561daf6a63ccff4fa33a47992732507de`.
 
 Freshness means this projection matches its declared planning authority inputs in the checkout being inspected. Repository state is commit-scoped: movement of `main` invalidates cached conclusions until the current commit is re-oriented and the relevant verification is explicitly rerun.
 
