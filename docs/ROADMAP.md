@@ -2,7 +2,7 @@
 
 > Generated planning projection. Do not hand-edit.
 > Declared planning authority: `architecture/planning_graph.json`.
-> Planning-authority fingerprint: `git-tree-sha1:1f415ecd575785c3f018666f9fa9d16caabc1203`.
+> Planning-authority fingerprint: `git-tree-sha1:9d35331dc133bc9b732640738d6830e5c5826561`.
 
 Freshness means this projection matches its declared planning authority inputs in the checkout being inspected. Repository state is commit-scoped: movement of `main` invalidates cached conclusions until the current commit is re-oriented and the relevant verification is explicitly rerun.
 
@@ -12,8 +12,8 @@ External-integration obligations bind native external capabilities while keeping
 
 ## Planning summary
 
-- Active: 7
-- Ready: 12
+- Active: 8
+- Ready: 11
 - Blocked: 13
 - Done: 18
 - Dropped: 0
@@ -24,6 +24,7 @@ External-integration obligations bind native external capabilities while keeping
 | --- | --- | --- | --- | --- |
 | `data.global_free_station_federation` — Federate freely accessible worldwide station observations | `active` | `P0` | `R5_large_data` | `data.external_authority_audit` |
 | `integration.native_capability_boundaries` — Bind external native capabilities without shadow implementations | `active` | `P0` | `R2_portable_toolchain` | — |
+| `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `active` | `P1` | `R2_portable_toolchain` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_portable_toolchain` | — |
 | `numerics.conditioning_guardrails` — Define library-backed numerical conditioning guardrails | `active` | `P1` | `R2_portable_toolchain` | — |
 | `physics.vertical_coordinate_contract` — Define pressure, sigma, and hybrid vertical-coordinate semantics | `active` | `P1` | `R2_portable_toolchain` | `architecture.reference_values` |
@@ -33,7 +34,6 @@ External-integration obligations bind native external capabilities while keeping
 | `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `ready` | `P0` | `R4_integrated_system` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_portable_toolchain` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
-| `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_portable_toolchain` | — |
 | `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `ready` | `P1` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition` |
 | `validation.cross_model_evidence_transport` — Make cross-model evidence transport explicit and testable | `ready` | `P1` | `R2_portable_toolchain` | `experimentation.claim_evidence_vertical_slice` |
 | `adapters.versioned_array_ffi` — Define narrow versioned array FFI contracts | `ready` | `P2` | `R2_portable_toolchain` | `state.typed_physical_state` |

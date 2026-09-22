@@ -355,6 +355,52 @@
       }
     },
     {
+      "method_id": "multirepresentation.coarse_structure.composed_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "prototype",
+      "hypothesis_family": "coarse_observational_multirepresentation_structure",
+      "input_contracts": [
+        "shared_structure_decision/v1",
+        "multirepresentation_dimension_selection/v1"
+      ],
+      "output_contracts": [
+        "coarse_observational_structure_decision/v1"
+      ],
+      "assumptions": [
+        "the preregistered cross-view dependence decision and intrinsic-dimension decomposition are computed on the same paired realization",
+        "lack of cross-view dependence evidence dominates any apparent dimension overlap and remains abstention",
+        "a supported shared coordinate with zero selected private dimensions is labeled only as shared-only observational dimension structure",
+        "a supported shared coordinate with positive selected private dimension in either view is labeled only as shared-plus-private observational dimension structure",
+        "world relationship names and topology are withheld from the selector and used only for benchmark scoring"
+      ],
+      "known_limitations": [
+        "the method does not distinguish product from independent-null semantics when cross-view dependence is not supported",
+        "the method does not distinguish fibered, quotient, stratified, or nuisance-dominated generative structures when they share the same coarse observable dimension pattern",
+        "the method makes no topology or causal claim",
+        "the composed method inherits the finite-sample limitations and environment identity requirements of its dependence and TWO-NN components"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 600
+      },
+      "reference_methods": [
+        "multirepresentation.mi_permutation_abstention.sklearn_v1",
+        "multirepresentation.twonn_dimension.sklearn_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_baselines.py",
+          "reference/multirepresentation_common.py",
+          "reference/multirepresentation_structure_evaluation.py",
+          "reference/multirepresentation_worlds.py"
+        ]
+      }
+    },
+    {
       "method_id": "multirepresentation.concat_pca.sklearn_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",
@@ -764,52 +810,6 @@
         "max_seconds": 120
       },
       "reference_methods": [],
-      "build_identity": {
-        "policy": "source_digest_at_run",
-        "sources": [
-          "reference/multirepresentation_baselines.py",
-          "reference/multirepresentation_common.py",
-          "reference/multirepresentation_structure_evaluation.py",
-          "reference/multirepresentation_worlds.py"
-        ]
-      }
-    },
-    {
-      "method_id": "multirepresentation.coarse_structure.composed_v1",
-      "semantic_version": "0.1.0",
-      "maturity": "prototype",
-      "hypothesis_family": "coarse_observational_multirepresentation_structure",
-      "input_contracts": [
-        "shared_structure_decision/v1",
-        "multirepresentation_dimension_selection/v1"
-      ],
-      "output_contracts": [
-        "coarse_observational_structure_decision/v1"
-      ],
-      "assumptions": [
-        "the preregistered cross-view dependence decision and intrinsic-dimension decomposition are computed on the same paired realization",
-        "lack of cross-view dependence evidence dominates any apparent dimension overlap and remains abstention",
-        "a supported shared coordinate with zero selected private dimensions is labeled only as shared-only observational dimension structure",
-        "a supported shared coordinate with positive selected private dimension in either view is labeled only as shared-plus-private observational dimension structure",
-        "world relationship names and topology are withheld from the selector and used only for benchmark scoring"
-      ],
-      "known_limitations": [
-        "the method does not distinguish product from independent-null semantics when cross-view dependence is not supported",
-        "the method does not distinguish fibered, quotient, stratified, or nuisance-dominated generative structures when they share the same coarse observable dimension pattern",
-        "the method makes no topology or causal claim",
-        "the composed method inherits the finite-sample limitations and environment identity requirements of its dependence and TWO-NN components"
-      ],
-      "resource": {
-        "cpu_cores": 1,
-        "memory_bytes": 1073741824,
-        "gpu_count": 0,
-        "network": "none",
-        "max_seconds": 600
-      },
-      "reference_methods": [
-        "multirepresentation.mi_permutation_abstention.sklearn_v1",
-        "multirepresentation.twonn_dimension.sklearn_v1"
-      ],
       "build_identity": {
         "policy": "source_digest_at_run",
         "sources": [
@@ -1246,6 +1246,44 @@
         "policy": "source_digest_at_run",
         "sources": [
           "src/sheaf.rs"
+        ]
+      }
+    },
+    {
+      "method_id": "spectral.periodogram.scipy_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "prototype",
+      "hypothesis_family": "sampled_signal_power_spectrum",
+      "input_contracts": [
+        "uniformly_sampled_scalar_series/v1"
+      ],
+      "output_contracts": [
+        "one_sided_power_spectral_density/v1"
+      ],
+      "assumptions": [
+        "samples are uniformly spaced by an explicit finite positive interval in seconds",
+        "all samples are finite; missing observations are rejected rather than filled or interpolated",
+        "SciPy owns the FFT/periodogram implementation using a boxcar window and density scaling",
+        "detrending is explicitly either 'none' or constant-mean removal",
+        "frequency is reported in Hz and PSD units are the squared declared signal unit per Hz"
+      ],
+      "known_limitations": [
+        "the boxcar periodogram is a basic spectral baseline rather than a low-variance multitaper estimator",
+        "no significance threshold, climate-index label, oscillation attribution, or forecast-skill interpretation is produced",
+        "the repository-wide Python environment identity is unresolved and no focused spectral SciPy lock exists"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/spectral_diagnostics.py"
         ]
       }
     }

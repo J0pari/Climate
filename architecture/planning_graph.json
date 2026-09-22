@@ -204,15 +204,22 @@
     {
       "id": "diagnostics.spectral_oscillation_contracts",
       "title": "Rebuild spectral and oscillation diagnostics from narrow contracts",
-      "status": "ready",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Define scientifically narrow spectra, coherence, wavelet, climate-index, and oscillation diagnostics around maintained transform/statistics libraries rather than omnibus placeholder algorithms.",
+      "summary": "A narrow prototype one-sided periodogram now delegates FFT/spectral-density machinery to scipy.signal.periodogram with explicit uniform sample interval in seconds, physical signal units, boxcar/density normalization, explicit mean-detrend policy, and fail-closed nonfinite/missing samples. Bin-aligned sinusoid and Parseval-style power witnesses provide independent checks. Coherence, multitaper/wavelet diagnostics, named climate indices, and any significance or forecast-skill interpretation remain open.",
       "depends_on": [],
       "completion": [
         "Each diagnostic names its input sampling, normalization, units, missing-data semantics, and independent benchmark.",
         "FFT and standard transform machinery use maintained libraries in production paths.",
         "Forecast-skill or named climate-index outputs cannot be synthesized by arbitrary fallback formulas."
+      ],
+      "evidence": [
+        "reference/spectral_diagnostics.py",
+        "tests/reference/test_spectral_diagnostics.py",
+        "src/fortran/spectral_reference.f90",
+        "tests/fortran/test_spectral_reference.f90",
+        "methods/registry.json"
       ]
     },
     {

@@ -184,6 +184,20 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/ncei_ghcnd.py",
+      "family": "reference_ncei_ghcnd_payload_parser",
+      "language": "python",
+      "maturity": "runnable",
+      "intended_role": "provider-specific independent reference for NOAA/NCEI GHCN-Daily request identity and captured-payload validation, preserving station/date fields, provider attributes, exact request URL, and content digest while delegating HTTP transport to the execution-selected native transport",
+      "known_gaps": [
+        "HTTP transport is not implemented here; live execution must bind and fail on the explicitly selected transport identity",
+        "GHCN-Daily is not homogenized for historical observing-practice changes and provider quality/source flags remain scientifically relevant",
+        "the parser does not choose stations, geographic coverage, temporal aggregation, regridding, or a sheaf cover rule"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/ncei_ghcnd_projection.py",
       "family": "reference_ncei_ghcnd_cf_projection",
       "language": "python",
@@ -194,20 +208,6 @@
         "the projection preserves provider QC/source attributes but does not independently validate or homogenize observations",
         "CF-1.11 is the declared conformance target because the independent IOOS Compliance Checker release used by the executable witness supports that version",
         "spatial gridding, interpolation, station aggregation, precipitation projection, and multisource alignment remain separate scientific transformations"
-      ],
-      "authority_kind": "independent_reference",
-      "scientific_evidence_eligible": false
-    },
-    {
-      "path": "reference/ncei_ghcnd.py",
-      "family": "reference_ncei_ghcnd_payload_parser",
-      "language": "python",
-      "maturity": "runnable",
-      "intended_role": "provider-specific independent reference for NOAA/NCEI GHCN-Daily request identity and captured-payload validation, preserving station/date fields, provider attributes, exact request URL, and content digest while delegating HTTP transport to the execution-selected native transport",
-      "known_gaps": [
-        "HTTP transport is not implemented here; live execution must bind and fail on the explicitly selected transport identity",
-        "GHCN-Daily is not homogenized for historical observing-practice changes and provider quality/source flags remain scientifically relevant",
-        "the parser does not choose stations, geographic coverage, temporal aggregation, regridding, or a sheaf cover rule"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
@@ -270,6 +270,20 @@
         "GF(2) finite-complex arithmetic is an independent exact mathematical witness rather than the climate-data execution foundation",
         "its finite-cover nerve enumerates bounded fixtures and must not be used as the worldwide station topology builder",
         "mathematical correctness does not establish empirical fault-detection or reconstruction value"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
+      "path": "reference/spectral_diagnostics.py",
+      "family": "library_backed_periodogram_reference",
+      "language": "python",
+      "maturity": "prototype",
+      "intended_role": "narrow one-sided power-spectral-density diagnostic delegated to scipy.signal.periodogram with explicit sample interval, physical signal unit, detrend/normalization policy, and fail-closed nonfinite-sample semantics",
+      "known_gaps": [
+        "the repository-wide Python environment identity is unresolved and no focused spectral SciPy lock exists, so this module remains prototype maturity",
+        "only a boxcar one-sided periodogram is represented; coherence, multitaper, wavelet, and named climate-index semantics remain separate obligations",
+        "the diagnostic reports spectral power only and does not attach a statistical-significance, forecast-skill, or physical-mode interpretation"
       ],
       "authority_kind": "independent_reference",
       "scientific_evidence_eligible": false
