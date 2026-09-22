@@ -220,6 +220,17 @@ def _sha256_file(path: Path) -> str:
     return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _artifact_ref(path: Path, *, artifact_id: str, schema: str) -> dict[str, Any]:
+    return {
+        "artifact_id": artifact_id,
+        "digest": _sha256_file(path),
+        "media_type": "application/json",
+        "schema": schema,
+        "bytes": path.stat().st_size,
+        "uri": str(path),
+    }
+
+
 def _load_json_object(path: Path, *, label: str) -> dict[str, Any]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -327,12 +338,23 @@ def validate_external_output_import(
         if runtime.get(field) != expected:
             raise CommonsControlError(f"prediction runtime {field} mismatch")
 
+    prediction_artifact = _artifact_ref(
+        predictions_path,
+        artifact_id=f"{evaluation_id}.predictions",
+        schema=spec["prediction_contract"],
+    )
+    receipt_artifact = _artifact_ref(
+        receipt_path,
+        artifact_id=f"{evaluation_id}.runtime_receipt",
+        schema=receipt_contract,
+    )
     return {
         "evaluation_id": evaluation_id,
         "subject": validated,
         "runtime": expected_runtime,
         "prediction_digest": actual_prediction_digest,
-        "receipt_digest": _sha256_file(receipt_path),
+        "receipt_digest": receipt_artifact["digest"],
+        "artifacts": [prediction_artifact, receipt_artifact],
         "transformations": list(receipt["transformations"]),
     }
 

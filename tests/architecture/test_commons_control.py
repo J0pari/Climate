@@ -192,6 +192,18 @@ class CommonsControlTests(unittest.TestCase):
         self.assertEqual(result["runtime"]["implementation_version"], "1.2.3")
         self.assertTrue(result["prediction_digest"].startswith("sha256:"))
         self.assertTrue(result["receipt_digest"].startswith("sha256:"))
+        self.assertEqual(len(result["artifacts"]), 2)
+        prediction_artifact, receipt_artifact = result["artifacts"]
+        self.assertEqual(prediction_artifact["artifact_id"], evaluation_id + ".predictions")
+        self.assertEqual(prediction_artifact["digest"], result["prediction_digest"])
+        self.assertEqual(prediction_artifact["schema"], "climate-contract-reasoning-predictions/v1")
+        self.assertEqual(prediction_artifact["media_type"], "application/json")
+        self.assertGreater(prediction_artifact["bytes"], 0)
+        self.assertEqual(receipt_artifact["artifact_id"], evaluation_id + ".runtime_receipt")
+        self.assertEqual(receipt_artifact["digest"], result["receipt_digest"])
+        self.assertEqual(receipt_artifact["schema"], "climate.external-model-runtime-receipt/v1")
+        self.assertEqual(receipt_artifact["media_type"], "application/json")
+        self.assertGreater(receipt_artifact["bytes"], 0)
 
     def test_native_output_import_rejects_subject_substitution(self):
         with tempfile.TemporaryDirectory() as td:
