@@ -66,7 +66,8 @@ def _safe_id(value: str, name: str) -> str:
     return value
 
 
-def load_ledger(path: Path = LEDGER_PATH) -> dict[str, Any]:
+def load_ledger(path: Path | None = None) -> dict[str, Any]:
+    path = LEDGER_PATH if path is None else path
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -289,7 +290,7 @@ def codespaces_authorization(
     authorization_id: str,
     *,
     campaign_id: str | None = None,
-    path: Path = LEDGER_PATH,
+    path: Path | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
     payload = load_ledger(path)

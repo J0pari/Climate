@@ -125,6 +125,55 @@ class StationProviderRegistryTests(unittest.TestCase):
             self.assertIn("station_providers.station_identity_namespace", codes)
             self.assertIn("station_providers.scale_path", codes)
 
+    def test_class_qualified_python_boundary_resolves(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "architecture").mkdir()
+            (root / "architecture/data_authorities.json").write_text(
+                json.dumps({"sources": [authority()]}), encoding="utf-8"
+            )
+            (root / "adapter.py").write_text(
+                "class Adapter:\n    def resolve(self):\n        return None\n",
+                encoding="utf-8",
+            )
+            (root / "architecture/station_providers.json").write_text(
+                json.dumps({
+                    "schema_version": 1,
+                    "target_population": "every station worldwide without paid data access",
+                    "providers": [provider(
+                        status="current",
+                        current_boundaries=["adapter.py::Adapter.resolve"],
+                    )],
+                }),
+                encoding="utf-8",
+            )
+            self.assertEqual(check_station_providers.check(root), [])
+
+    def test_class_qualified_python_boundary_preserves_class_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "architecture").mkdir()
+            (root / "architecture/data_authorities.json").write_text(
+                json.dumps({"sources": [authority()]}), encoding="utf-8"
+            )
+            (root / "adapter.py").write_text(
+                "class OtherAdapter:\n    def resolve(self):\n        return None\n",
+                encoding="utf-8",
+            )
+            (root / "architecture/station_providers.json").write_text(
+                json.dumps({
+                    "schema_version": 1,
+                    "target_population": "every station worldwide without paid data access",
+                    "providers": [provider(
+                        status="current",
+                        current_boundaries=["adapter.py::Adapter.resolve"],
+                    )],
+                }),
+                encoding="utf-8",
+            )
+            codes = {item.code for item in check_station_providers.check(root)}
+            self.assertIn("station_providers.boundary_missing", codes)
+
     def test_fixed_station_list_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

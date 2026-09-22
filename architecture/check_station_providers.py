@@ -2,6 +2,7 @@
 """Validate the worldwide no-fee station provider registry."""
 from __future__ import annotations
 
+import ast
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -16,6 +17,39 @@ class Finding:
     code: str
     path: str
     message: str
+
+
+def _qualified_python_anchor_resolves(source: str, anchor: str) -> bool:
+    parts = anchor.split(".")
+    if len(parts) < 2:
+        return False
+    try:
+        nodes = ast.parse(source).body
+    except SyntaxError:
+        return False
+    for part in parts:
+        match = next(
+            (
+                node
+                for node in nodes
+                if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.name == part
+            ),
+            None,
+        )
+        if match is None:
+            return False
+        nodes = match.body
+    return True
+
+
+def _boundary_resolves(candidate: Path, anchor: str) -> bool:
+    if not candidate.is_file():
+        return False
+    source = candidate.read_text(encoding="utf-8")
+    if candidate.suffix == ".py" and "." in anchor:
+        return _qualified_python_anchor_resolves(source, anchor)
+    return anchor in source
 
 
 def check(root: Path = ROOT) -> list[Finding]:
@@ -115,7 +149,7 @@ def check(root: Path = ROOT) -> list[Finding]:
                     continue
                 rel, anchor = boundary.split("::", 1)
                 candidate = root / rel
-                if not candidate.is_file() or anchor not in candidate.read_text(encoding="utf-8"):
+                if not _boundary_resolves(candidate, anchor):
                     findings.append(Finding("station_providers.boundary_missing", path, f"boundary does not resolve: {boundary}"))
     return findings
 
