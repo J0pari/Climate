@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import os
 import subprocess
@@ -13,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 from architecture.snapshot import (
     SnapshotGenerationError,
     build_manifest,
+    git_object_id,
     load_manifest,
     verify_snapshot,
     write_manifest,
@@ -50,6 +52,16 @@ class SnapshotGenerateTests(unittest.TestCase):
         self.assertTrue(manifest.complete_tree)
         self.assertEqual(manifest.source_commit, expected_commit)
         self.assertEqual(manifest.tree_sha1, expected_tree)
+        self.assertIsNotNone(manifest.source_commit_object)
+        self.assertEqual(
+            git_object_id("commit", manifest.source_commit_object or b""),
+            expected_commit,
+        )
+        self.assertTrue(
+            (manifest.source_commit_object or b"").startswith(
+                f"tree {expected_tree}\n".encode("ascii")
+            )
+        )
         self.assertEqual([row.path for row in manifest.files], ["alpha.txt", "nested/run.sh"])
         self.assertEqual([row.mode for row in manifest.files], ["100644", "100755"])
         self.assertEqual(verify_snapshot(root, manifest), [])
@@ -91,8 +103,13 @@ class SnapshotGenerateTests(unittest.TestCase):
             observed = load_manifest(path)
             self.assertEqual(observed, manifest)
             payload = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(payload["schema_version"], 2)
             self.assertEqual(payload["source_commit"], manifest.source_commit)
             self.assertEqual(payload["tree_sha1"], manifest.tree_sha1)
+            self.assertEqual(
+                base64.b64decode(payload["source_commit_object_base64"], validate=True),
+                manifest.source_commit_object,
+            )
 
     def test_manifest_output_inside_source_tree_is_rejected(self) -> None:
         temporary, root = self._repo()
@@ -155,6 +172,8 @@ class SnapshotCliTests(unittest.TestCase):
                     str(manifest_path),
                     "--root",
                     str(checkout),
+                    "--expected-commit",
+                    payload["source_commit"],
                 ],
                 cwd=ROOT,
                 capture_output=True,
@@ -165,6 +184,8 @@ class SnapshotCliTests(unittest.TestCase):
             observed = json.loads(identity.stdout)
             self.assertEqual(observed["source_commit"], payload["source_commit"])
             self.assertEqual(observed["tree_sha1"], payload["tree_sha1"])
+            self.assertTrue(observed["source_commit_object_verified"])
+            self.assertTrue(observed["expected_commit_matched"])
             self.assertTrue(observed["complete_tree"])
 
 

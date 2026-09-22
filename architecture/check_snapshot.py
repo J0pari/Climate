@@ -54,10 +54,14 @@ def main() -> int:
 
     identity = sub.add_parser(
         "identity",
-        help="verify an extracted snapshot and print its bound commit/tree identity",
+        help="verify an extracted snapshot and print its tree/commit-object identity",
     )
     identity.add_argument("manifest", type=Path)
     identity.add_argument("--root", type=Path, default=Path.cwd())
+    identity.add_argument(
+        "--expected-commit",
+        help="require the embedded commit object to hash to this externally resolved commit SHA",
+    )
     identity.add_argument(
         "--restore-modes",
         action="store_true",
@@ -126,6 +130,15 @@ def main() -> int:
     if args.command in {"verify", "identity"}:
         try:
             loaded = load_manifest(args.manifest)
+            if args.command == "identity" and args.expected_commit is not None:
+                if loaded.source_commit_object is None:
+                    raise ValueError(
+                        "expected-commit verification requires a schema v2 manifest with an embedded source commit object"
+                    )
+                if loaded.source_commit != args.expected_commit:
+                    raise ValueError(
+                        f"snapshot source commit {loaded.source_commit} != expected {args.expected_commit}"
+                    )
             if args.command == "identity" and args.restore_modes:
                 findings = restore_modes(args.root, loaded)
             else:
@@ -143,6 +156,8 @@ def main() -> int:
                 json.dumps(
                     {
                         "source_commit": loaded.source_commit,
+                        "source_commit_object_verified": loaded.source_commit_object is not None,
+                        "expected_commit_matched": args.expected_commit is not None,
                         "tree_sha1": loaded.tree_sha1,
                         "file_count": len(loaded.files),
                         "complete_tree": loaded.complete_tree,

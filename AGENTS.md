@@ -23,13 +23,15 @@ When a worker must receive the repository as an archive rather than a Git checko
 python architecture/check_snapshot.py archive ../climate.snapshot.zip --root .
 ```
 
-The ZIP contains `climate-snapshot.json` plus the bound source tree under `repository/`. After ordinary extraction, verify the exact paths, bytes, root Git tree, and source commit before treating the archive as repository state:
+The ZIP contains `climate-snapshot.json` plus the bound source tree under `repository/`. Resolve the intended `main` SHA through the authoritative Git remote/connector, then after ordinary extraction require the archive to bind to that exact commit:
 
 ```text
-python repository/architecture/check_snapshot.py identity climate-snapshot.json --root repository --restore-modes
+python repository/architecture/check_snapshot.py identity climate-snapshot.json --root repository --expected-commit <resolved-main-sha> --restore-modes
 ```
 
-`--restore-modes` may repair only `100644` versus `100755` differences, which ordinary ZIP extraction can lose. It refuses to change modes if any file is missing, unexpected, non-ordinary, byte-different, size-different, or otherwise fails the complete-tree contract. A failed identity check means the archive is not the bound source tree; regenerate or re-extract it correctly rather than waiving the mismatch. Snapshot identity establishes source-tree identity only, not build, test, environment, or scientific-evidence status.
+Schema-v2 snapshots embed the raw Git commit object. Identity verification checks its Git object ID, requires that commit object to name the manifest root tree, reconstructs that tree from the extracted paths/bytes/modes, and compares `--expected-commit` to the externally resolved commit SHA. Legacy schema-v1 manifests remain readable for tree recovery but cannot satisfy `--expected-commit` because they do not contain a commit object.
+
+`--restore-modes` may repair only `100644` versus `100755` differences, which ordinary ZIP extraction can lose. It refuses to change modes if any file is missing, unexpected, non-ordinary, byte-different, size-different, or otherwise fails the complete-tree contract. A failed identity check means the archive is not the required source tree; regenerate or re-extract it correctly rather than waiving the mismatch. Snapshot identity establishes source-tree identity only, not build, test, environment, or scientific-evidence status.
 
 ## Worker invariants
 

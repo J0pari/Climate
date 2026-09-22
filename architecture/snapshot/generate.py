@@ -1,11 +1,12 @@
 """Generate authoritative manifests from an exact clean Git checkout."""
 from __future__ import annotations
 
+import base64
 import json
 import subprocess
 from pathlib import Path
 
-from .git_objects import ALLOWED_FILE_MODES, git_blob_id, tree_id_from_files
+from .git_objects import ALLOWED_FILE_MODES, git_blob_id, git_object_id, tree_id_from_files
 from .manifest import SnapshotFile, SnapshotManifest
 
 
@@ -40,7 +41,7 @@ def _repo_root(root: Path) -> Path:
     return actual
 
 
-def _source_identity(root: Path, source_ref: str) -> tuple[str, str]:
+def _source_identity(root: Path, source_ref: str) -> tuple[str, str, bytes]:
     source_commit = str(_git(root, "rev-parse", f"{source_ref}^{{commit}}")).strip()
     head_commit = str(_git(root, "rev-parse", "HEAD^{commit}")).strip()
     if source_commit != head_commit:
@@ -48,7 +49,18 @@ def _source_identity(root: Path, source_ref: str) -> tuple[str, str]:
             f"source ref {source_ref!r} resolves to {source_commit}, but checkout HEAD is {head_commit}"
         )
     tree_sha1 = str(_git(root, "rev-parse", f"{source_commit}^{{tree}}")).strip()
-    return source_commit, tree_sha1
+    commit_object = _git(root, "cat-file", "commit", source_commit, text=False)
+    assert isinstance(commit_object, bytes)
+    observed_commit = git_object_id("commit", commit_object)
+    if observed_commit != source_commit:
+        raise SnapshotGenerationError(
+            f"source commit object hashes to {observed_commit}, expected {source_commit}"
+        )
+    if not commit_object.startswith(f"tree {tree_sha1}\n".encode("ascii")):
+        raise SnapshotGenerationError(
+            f"source commit object does not point to root tree {tree_sha1}"
+        )
+    return source_commit, tree_sha1, commit_object
 
 
 def _require_clean(root: Path) -> None:
@@ -112,7 +124,7 @@ def _tree_rows(root: Path, source_commit: str) -> list[SnapshotFile]:
 
 def build_manifest(root: Path, *, source_ref: str = "HEAD") -> SnapshotManifest:
     root = _repo_root(root)
-    source_commit, tree_sha1 = _source_identity(root, source_ref)
+    source_commit, tree_sha1, commit_object = _source_identity(root, source_ref)
     _require_clean(root)
     files = _tree_rows(root, source_commit)
     rebuilt = tree_id_from_files(
@@ -127,25 +139,31 @@ def build_manifest(root: Path, *, source_ref: str = "HEAD") -> SnapshotManifest:
         complete_tree=True,
         tree_sha1=tree_sha1,
         source_commit=source_commit,
+        source_commit_object=commit_object,
     )
 
 
 def manifest_payload(manifest: SnapshotManifest) -> dict[str, object]:
-    return {
-        "schema_version": 1,
+    payload: dict[str, object] = {
+        "schema_version": 2 if manifest.source_commit_object is not None else 1,
         "complete_tree": manifest.complete_tree,
         "tree_sha1": manifest.tree_sha1,
         "source_commit": manifest.source_commit,
-        "files": [
-            {
-                "path": row.path,
-                "git_blob_sha1": row.git_blob_sha1,
-                "mode": row.mode,
-                "size": row.size,
-            }
-            for row in manifest.files
-        ],
     }
+    if manifest.source_commit_object is not None:
+        payload["source_commit_object_base64"] = base64.b64encode(
+            manifest.source_commit_object
+        ).decode("ascii")
+    payload["files"] = [
+        {
+            "path": row.path,
+            "git_blob_sha1": row.git_blob_sha1,
+            "mode": row.mode,
+            "size": row.size,
+        }
+        for row in manifest.files
+    ]
+    return payload
 
 
 def write_manifest(

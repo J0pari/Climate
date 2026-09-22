@@ -1,11 +1,13 @@
 """Schema and parsing for authoritative repository snapshot manifests."""
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .git_objects import ALLOWED_FILE_MODES, is_git_sha1, validate_relative_path
+from .git_objects import ALLOWED_FILE_MODES, git_object_id, is_git_sha1, validate_relative_path
 
 
 @dataclass(frozen=True)
@@ -22,14 +24,29 @@ class SnapshotManifest:
     complete_tree: bool = False
     tree_sha1: str | None = None
     source_commit: str | None = None
+    source_commit_object: bytes | None = None
+
+
+def _commit_tree_sha1(payload: bytes) -> str:
+    first_line = payload.split(b"\n", 1)[0]
+    if not first_line.startswith(b"tree "):
+        raise ValueError("embedded source commit object is missing its tree header")
+    raw_tree = first_line[5:]
+    try:
+        tree = raw_tree.decode("ascii")
+    except UnicodeDecodeError as exc:
+        raise ValueError("embedded source commit tree is not ASCII") from exc
+    if not is_git_sha1(tree):
+        raise ValueError("embedded source commit has invalid tree SHA-1")
+    return tree
 
 
 def parse_manifest(payload: object) -> SnapshotManifest:
     if not isinstance(payload, dict):
         raise ValueError("snapshot manifest must be a JSON object")
     schema_version = payload.get("schema_version")
-    if type(schema_version) is not int or schema_version != 1:
-        raise ValueError("snapshot manifest schema_version must be integer 1")
+    if type(schema_version) is not int or schema_version not in {1, 2}:
+        raise ValueError("snapshot manifest schema_version must be integer 1 or 2")
     raw_files = payload.get("files")
     if not isinstance(raw_files, list):
         raise ValueError("snapshot manifest files must be a list")
@@ -80,11 +97,36 @@ def parse_manifest(payload: object) -> SnapshotManifest:
     if complete and source_commit is None:
         raise ValueError("complete snapshot manifest requires source_commit")
 
+    source_commit_object: bytes | None = None
+    encoded_commit = payload.get("source_commit_object_base64")
+    if encoded_commit is not None:
+        if not isinstance(encoded_commit, str):
+            raise ValueError("source_commit_object_base64 must be a string")
+        try:
+            source_commit_object = base64.b64decode(encoded_commit, validate=True)
+        except (binascii.Error, ValueError) as exc:
+            raise ValueError("source_commit_object_base64 is not valid base64") from exc
+        if source_commit is None:
+            raise ValueError("embedded source commit object requires source_commit")
+        observed_commit = git_object_id("commit", source_commit_object)
+        if observed_commit != source_commit:
+            raise ValueError(
+                f"embedded source commit object hashes to {observed_commit}, expected {source_commit}"
+            )
+        observed_tree = _commit_tree_sha1(source_commit_object)
+        if tree_sha1 is None or observed_tree != tree_sha1:
+            raise ValueError(
+                f"embedded source commit points to tree {observed_tree}, expected {tree_sha1}"
+            )
+    elif schema_version >= 2 and complete:
+        raise ValueError("schema v2 complete snapshot requires source_commit_object_base64")
+
     return SnapshotManifest(
         files=tuple(files),
         complete_tree=complete,
         tree_sha1=tree_sha1,
         source_commit=source_commit,
+        source_commit_object=source_commit_object,
     )
 
 

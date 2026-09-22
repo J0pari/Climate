@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import base64
 import tempfile
 import unittest
 from pathlib import Path
 
-from architecture.snapshot import git_blob_id, verify_snapshot
+from architecture.snapshot import git_blob_id, git_object_id, verify_snapshot
 from architecture.snapshot.manifest import parse_manifest
 
 
@@ -143,6 +144,43 @@ class SnapshotManifestVerifyTests(unittest.TestCase):
                 }
                 with self.assertRaisesRegex(ValueError, "repository-relative path"):
                     parse_manifest(payload)
+
+    def test_schema_v2_binds_source_commit_object_to_declared_tree(self):
+        tree = "a" * 40
+        commit_object = (
+            f"tree {tree}\n"
+            "author Snapshot <snapshot@example.invalid> 0 +0000\n"
+            "committer Snapshot <snapshot@example.invalid> 0 +0000\n"
+            "\nfixture\n"
+        ).encode("ascii")
+        source_commit = git_object_id("commit", commit_object)
+        payload = {
+            "schema_version": 2,
+            "complete_tree": True,
+            "tree_sha1": tree,
+            "source_commit": source_commit,
+            "source_commit_object_base64": base64.b64encode(commit_object).decode("ascii"),
+            "files": [],
+        }
+        observed = parse_manifest(payload)
+        self.assertEqual(observed.source_commit_object, commit_object)
+
+        tampered = dict(payload)
+        tampered["source_commit_object_base64"] = base64.b64encode(
+            commit_object + b"x"
+        ).decode("ascii")
+        with self.assertRaisesRegex(ValueError, "hashes to"):
+            parse_manifest(tampered)
+
+        wrong_tree = dict(payload)
+        wrong_tree["tree_sha1"] = "b" * 40
+        with self.assertRaisesRegex(ValueError, "points to tree"):
+            parse_manifest(wrong_tree)
+
+        missing_object = dict(payload)
+        del missing_object["source_commit_object_base64"]
+        with self.assertRaisesRegex(ValueError, "requires source_commit_object_base64"):
+            parse_manifest(missing_object)
 
 
 if __name__ == "__main__":

@@ -138,6 +138,8 @@ class SnapshotArchiveTests(unittest.TestCase):
                 str(extracted / MANIFEST_MEMBER),
                 "--root",
                 str(repository),
+                "--expected-commit",
+                metadata["source_commit"],
                 "--restore-modes",
             ],
             cwd=ROOT,
@@ -149,6 +151,8 @@ class SnapshotArchiveTests(unittest.TestCase):
         observed = json.loads(identity.stdout)
         self.assertEqual(observed["source_commit"], metadata["source_commit"])
         self.assertEqual(observed["tree_sha1"], metadata["tree_sha1"])
+        self.assertTrue(observed["source_commit_object_verified"])
+        self.assertTrue(observed["expected_commit_matched"])
         self.assertTrue(observed["complete_tree"])
 
 
