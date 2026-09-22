@@ -166,6 +166,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/fortran/convective_column_redistribution.f90",
+      "family": "convective_column_flux_redistribution",
+      "language": "fortran",
+      "maturity": "runnable",
+      "intended_role": "canonical closure-free convection boundary that converts caller-supplied upward interface fluxes of transported energy, water mass, and horizontal momentum into per-layer tendencies using explicit layer air mass per area and reports exact column lower-minus-upper boundary budgets",
+      "known_gaps": [
+        "the module chooses no convective trigger, plume, entrainment/detrainment, CAPE closure, mass-flux closure, or precipitation formulation",
+        "transported energy is an explicitly supplied aggregate flux; latent, sensible, kinetic, and condensate-energy partitions remain caller-owned",
+        "layer air mass per unit area is held fixed during tendency evaluation and prognostic mass coupling remains outside this interface",
+        "the interface represents vertical redistribution and boundary exchange only; microphysical phase conversion and precipitation export remain separate"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/fortran/conservative_transport.f90",
       "family": "conservative_mass_tracer_transport",
       "language": "fortran",
