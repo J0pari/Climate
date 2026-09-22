@@ -147,23 +147,24 @@ go install cuelang.org/go/cmd/cue@v0.17.1
         report = verification_environment.inspect(root)
         self.assertIn("source_snapshot.identity_tooling", report["unresolved"])
 
-    def test_conflicting_focused_python_pins_are_visible(self) -> None:
+    def test_conflicting_focused_python_pins_are_visible_but_not_conflated(self) -> None:
         temporary, root = self._root()
         self.addCleanup(temporary.cleanup)
         (root / "requirements" / "second.txt").write_text(
             "numpy==2.3.5\n", encoding="utf-8"
         )
         report = verification_environment.inspect(root)
-        self.assertIn("python.focused_requirements_compatible", report["unresolved"])
         check = next(
             item
             for item in report["checks"]
-            if item["check_id"] == "python.focused_requirements_compatible"
+            if item["check_id"] == "python.focused_requirements_exact"
         )
+        self.assertTrue(check["satisfied"])
         self.assertEqual(
-            set(check["observed"]["conflicts"]["numpy"]),
+            set(check["observed"]["cross_slice_conflicts"]["numpy"]),
             {"2.3.5", "2.5.3"},
         )
+        self.assertNotIn("python.focused_requirements_compatible", report["unresolved"])
 
     def test_snapshot_identity_check_requires_commit_object_binding(self) -> None:
         temporary, root = self._root()

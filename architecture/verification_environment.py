@@ -171,14 +171,9 @@ def _requirements_checks(root: Path) -> list[Check]:
             {
                 "files": [path.relative_to(root).as_posix() for path in files],
                 "unpinned": unpinned,
+                "cross_slice_conflicts": conflicts,
             },
-            "every declared focused Python requirement uses an exact == pin",
-        ),
-        Check(
-            "python.focused_requirements_compatible",
-            not conflicts,
-            {"conflicts": conflicts},
-            "unconditional focused Python pins do not require conflicting versions in one complete verification environment",
+            "every declared focused Python requirement uses an exact == pin; cross-slice differences remain diagnostic because focused experiment environments are independent",
         ),
         Check(
             "python.repository_lock",
