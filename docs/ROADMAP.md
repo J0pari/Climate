@@ -2,7 +2,7 @@
 
 > Generated planning projection. Do not hand-edit.
 > Declared planning authority: `architecture/planning_graph.json`.
-> Planning-authority fingerprint: `git-tree-sha1:0adc3f003ccd855bf2393d6f819526a35dbcec9d`.
+> Planning-authority fingerprint: `git-tree-sha1:62ed366e910b43319a04056b7b8f65aa2b3c3289`.
 
 Freshness means this projection matches its declared planning authority inputs in the checkout being inspected. Repository state is commit-scoped: movement of `main` invalidates cached conclusions until the current commit is re-oriented and the relevant verification is explicitly rerun.
 
@@ -12,8 +12,8 @@ External-integration obligations bind native external capabilities while keeping
 
 ## Planning summary
 
-- Active: 9
-- Ready: 10
+- Active: 10
+- Ready: 9
 - Blocked: 13
 - Done: 18
 - Dropped: 0
@@ -27,6 +27,7 @@ External-integration obligations bind native external capabilities while keeping
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `active` | `P1` | `R2_portable_toolchain` | — |
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_portable_toolchain` | — |
 | `numerics.conditioning_guardrails` — Define library-backed numerical conditioning guardrails | `active` | `P1` | `R2_portable_toolchain` | — |
+| `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `active` | `P1` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition` |
 | `physics.vertical_coordinate_contract` — Define pressure, sigma, and hybrid vertical-coordinate semantics | `active` | `P1` | `R2_portable_toolchain` | `architecture.reference_values` |
 | `sheaf.observation_uncertainty_compatibility` — Define uncertainty-aware sheaf observation compatibility | `active` | `P1` | `R2_portable_toolchain` | `sheaf.climate_data_semantics`, `data.immutable_observational_projection` |
 | `simulation.reproducible_restart` — Define reproducible integration and restart state | `active` | `P1` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition`, `state.typed_physical_state` |
@@ -35,7 +36,6 @@ External-integration obligations bind native external capabilities while keeping
 | `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `ready` | `P0` | `R4_integrated_system` | — |
 | `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_portable_toolchain` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
-| `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `ready` | `P1` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition` |
 | `adapters.versioned_array_ffi` — Define narrow versioned array FFI contracts | `ready` | `P2` | `R2_portable_toolchain` | `state.typed_physical_state` |
 | `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_portable_toolchain` | `data.immutable_observational_projection` |
 | `experimental.symmetry_diagnostics` — Separate approximate climate symmetry diagnostics from exact Noether structure | `ready` | `P2` | `R2_portable_toolchain` | — |

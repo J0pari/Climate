@@ -205,6 +205,15 @@ target_include_directories(climate_conservative_transport PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Equal-and-opposite extensive component exchange from caller-supplied fluxes.
+# Closure formulas, component state updates, and coupling schedules remain external.
+add_library(climate_component_exchange STATIC
+    src/fortran/component_exchange.f90
+)
+target_include_directories(climate_component_exchange PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 # Climate-specific geometric-height finite-volume diffusion operator. Solver
 # choice is deliberately separate from operator construction.
 add_library(climate_vertical_diffusion STATIC
@@ -387,6 +396,12 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_conservative_transport PRIVATE climate_conservative_transport)
     climate_add_canonical_test(conservative_transport test_conservative_transport)
+
+    add_executable(test_component_exchange
+        tests/fortran/test_component_exchange.f90
+    )
+    target_link_libraries(test_component_exchange PRIVATE climate_component_exchange)
+    climate_add_canonical_test(component_exchange test_component_exchange)
 
     add_executable(test_pressure_flux_coupling
         tests/fortran/test_pressure_flux_coupling.f90

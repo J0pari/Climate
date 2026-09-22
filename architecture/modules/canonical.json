@@ -137,6 +137,20 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/fortran/component_exchange.f90",
+      "family": "component_exchange_budget_contract",
+      "language": "fortran",
+      "maturity": "runnable",
+      "intended_role": "canonical source-to-target component-exchange accounting contract that converts explicit energy, water-mass, and horizontal-momentum fluxes into exactly equal-and-opposite extensive transfers over declared area and timestep without choosing any boundary-layer, surface, convection, microphysics, or coupling closure",
+      "known_gaps": [
+        "caller-designated source/target component identity and state-update application remain outside this numerical accounting kernel",
+        "the module does not choose turbulent, radiative, latent/sensible partition, drag, precipitation, or other physical closure formulas",
+        "equal-and-opposite exchange accounting does not establish a coupled-model timestep, conservation proof across storage changes, or empirical parameterization validity"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/fortran/conservative_transport.f90",
       "family": "conservative_mass_tracer_transport",
       "language": "fortran",

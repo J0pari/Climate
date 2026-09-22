@@ -120,10 +120,10 @@
     {
       "id": "physics.parameterization_boundaries",
       "title": "Establish physical parameterization seams and library boundaries",
-      "status": "ready",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Keep climate-owned equations, coupling semantics, and diagnostics local while delegating commodity radiation, remapping, integration, transforms, optimization, and linear algebra to mature libraries.",
+      "summary": "An explicit component-exchange budget seam now converts caller-supplied energy (W/m^2), water-mass (kg/m^2/s), and horizontal-momentum (N/m^2) fluxes into exactly equal-and-opposite source/target extensive transfers over declared area and timestep, without choosing any closure formula. Existing time-integration and linear-algebra surfaces already identify SUNDIALS ARKODE as the production integrator direction and LAPACK as the maintained tridiagonal backend. Radiation/remapping production-library bindings plus boundary-layer, convection, and microphysics tendency interfaces remain open.",
       "depends_on": [
         "physics.authoritative_flux_recomposition"
       ],
@@ -131,6 +131,14 @@
         "Radiation, remapping, time integration, and generic linear-algebra boundaries name maintained production libraries and independent reference witnesses.",
         "Boundary-layer, convection, microphysics, and component-exchange interfaces carry explicit units and owned budget terms before implementation expansion.",
         "No generic solver or transform stack is promoted from deleted legacy prototypes."
+      ],
+      "evidence": [
+        "src/fortran/component_exchange.f90",
+        "tests/fortran/test_component_exchange.f90",
+        "src/fortran/time_integration.f90",
+        "src/fortran/lapack_tridiagonal.f90",
+        "src/fortran/vertical_diffusion.f90",
+        "CMakeLists.txt"
       ]
     },
     {
