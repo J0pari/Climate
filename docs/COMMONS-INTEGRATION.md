@@ -366,7 +366,7 @@ python architecture/commons_control.py validate-external-import \
   --receipt <native-runtime-receipt.json>
 ```
 
-The registered evaluator therefore has a real `native_output_import` path while model execution remains externally owned. A validated or scored prediction artifact is not by itself a Commons attestation or a Training promotion decision.
+The registered evaluator therefore has a real `native_output_import` path while model execution remains externally owned. Its adapter specification names both the producer-owned native capability and the narrower Climate-owned semantic gap; exact implementation/version/configuration identity still comes from the native runtime receipt rather than being invented by the evaluator. A validated or scored prediction artifact is not by itself a Commons attestation or a Training promotion decision.
 
 Any eventual evaluation attestation is evidence about the immutable model
 artifact. It does not mutate that artifact and cannot accept, reject, deploy,

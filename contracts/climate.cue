@@ -583,6 +583,8 @@ package climate
 	adapter: {
 		interface: "climate.external-model-runtime/v1"
 		status: #ExternalModelRuntimeStatus
+		native_capability: string & !=""
+		climate_semantic_gap: string & !=""
 		required_capabilities: [...string & !=""] & [_, ...]
 		implementation?: string & !=""
 		receipt_contract?: "climate.external-model-runtime-receipt/v1"

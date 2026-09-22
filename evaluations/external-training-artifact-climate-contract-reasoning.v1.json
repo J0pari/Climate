@@ -1,12 +1,14 @@
 {
   "schema_version": 1,
   "evaluation_id": "external.training_artifact.climate_contract_reasoning.v1",
-  "semantic_version": "1.1.0",
+  "semantic_version": "1.2.0",
   "evaluator_repository": "J0pari/Climate",
   "subject_contract": "training.model-artifact/v1",
   "adapter": {
     "interface": "climate.external-model-runtime/v1",
     "status": "native_output_import",
+    "native_capability": "producer-owned loading and inference for the exact training.model-artifact/v1 subject, emitting climate-contract-reasoning-predictions/v1",
+    "climate_semantic_gap": "Climate owns the immutable contract-reasoning tasks, scoring, negative controls, evidence scope, and subject/runtime binding; the producer runtime owns artifact loading and generation.",
     "required_capabilities": [
       "load_training_artifact",
       "generate_structured_choice",

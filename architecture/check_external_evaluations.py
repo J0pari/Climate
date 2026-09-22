@@ -60,12 +60,31 @@ def check(root: Path = ROOT) -> list[Finding]:
         if not is_external_artifact_evaluation:
             continue
         adapter = spec.get("adapter")
-        if isinstance(adapter, dict):
+        if not isinstance(adapter, dict):
+            findings.append(Finding(
+                "external_evaluations.adapter_missing", rel,
+                "external-artifact evaluation must declare its native adapter boundary"))
+        else:
             status = adapter.get("status")
             if status not in {"unavailable", "native_output_import", "available"}:
                 findings.append(Finding(
                     "external_evaluations.adapter_status_invalid", rel,
                     f"unknown external adapter status: {status!r}"))
+            for field, code, message in (
+                (
+                    "native_capability",
+                    "external_evaluations.native_capability_missing",
+                    "external adapter must name the externally owned native capability",
+                ),
+                (
+                    "climate_semantic_gap",
+                    "external_evaluations.climate_semantic_gap_missing",
+                    "external adapter must state the Climate-owned semantic gap",
+                ),
+            ):
+                value = adapter.get(field)
+                if not isinstance(value, str) or not value.strip():
+                    findings.append(Finding(code, rel, message))
             if status in {"native_output_import", "available"} and adapter.get("receipt_contract") != "climate.external-model-runtime-receipt/v1":
                 findings.append(Finding(
                     "external_evaluations.receipt_contract_missing", rel,

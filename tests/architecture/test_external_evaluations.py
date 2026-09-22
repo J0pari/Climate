@@ -17,6 +17,13 @@ def _write_spec(root: Path, *, evaluation_id: str = "eval.one.v1", digest: str |
     actual = "sha256:" + hashlib.sha256(fixture.read_bytes()).hexdigest()
     spec = {
         "evaluation_id": evaluation_id,
+        "adapter": {
+            "interface": "climate.external-model-runtime/v1",
+            "status": "unavailable",
+            "native_capability": "fixture producer-owned inference",
+            "climate_semantic_gap": "fixture Climate-owned evaluation semantics",
+            "required_capabilities": ["bind_subject_digest"],
+        },
         "task_set": {
             "uri": "fixtures/evaluation/tasks.json",
             "digest": actual if digest is None else digest,
@@ -74,6 +81,31 @@ class ExternalEvaluationIntegrityTests(unittest.TestCase):
                 "external_evaluations.task_set_digest_mismatch", codes)
 
 
+
+    def test_external_adapter_requires_native_capability_and_climate_gap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_spec(root)
+            path = root / "evaluations" / "eval.one.v1.json"
+            spec = json.loads(path.read_text(encoding="utf-8"))
+            spec["adapter"].pop("native_capability")
+            spec["adapter"]["climate_semantic_gap"] = ""
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            codes = {f.code for f in check_external_evaluations.check(root)}
+            self.assertIn("external_evaluations.native_capability_missing", codes)
+            self.assertIn("external_evaluations.climate_semantic_gap_missing", codes)
+
+    def test_external_artifact_evaluation_requires_adapter_boundary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_spec(root)
+            path = root / "evaluations" / "eval.one.v1.json"
+            spec = json.loads(path.read_text(encoding="utf-8"))
+            spec.pop("adapter")
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            codes = {f.code for f in check_external_evaluations.check(root)}
+            self.assertIn("external_evaluations.adapter_missing", codes)
+
     def test_native_output_import_requires_receipt_contract(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -83,6 +115,8 @@ class ExternalEvaluationIntegrityTests(unittest.TestCase):
             spec["adapter"] = {
                 "interface": "climate.external-model-runtime/v1",
                 "status": "native_output_import",
+                "native_capability": "fixture producer-owned inference",
+                "climate_semantic_gap": "fixture Climate-owned evaluation semantics",
                 "required_capabilities": ["bind_subject_digest"],
             }
             path.write_text(json.dumps(spec), encoding="utf-8")
