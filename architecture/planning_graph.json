@@ -166,15 +166,23 @@
     {
       "id": "numerics.conditioning_guardrails",
       "title": "Define library-backed numerical conditioning guardrails",
-      "status": "ready",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Separate numerical conditioning, refusal, and recovery diagnostics from scientific tipping interpretation, using maintained linear-algebra routines rather than project-local power iteration or fabricated fallback eigenvalues.",
+      "summary": "Use nalgebra SVD on the canonical Rust surface and an independent bounded NumPy/SciPy two-layer EBM oracle to separate measured rank/2-norm conditioning from caller-owned numerical acceptance policy. The reference witness verifies scale invariance, Jacobian/Fisher conditioning identity, rank-deficient unavailability, explicit near-collinear rejection, numerical-only threshold semantics, and fail-open prohibition when the maintained SVD backend fails. Exact Rust-toolchain execution and review of canonical rank-deficient condition-number representation remain open in the current environment.",
       "depends_on": [],
       "completion": [
         "Condition estimates and factorization failures come from declared maintained numerical backends or independent small reference oracles.",
         "Unavailable or failed conditioning diagnostics remain unavailable or failed rather than receiving plausible fallback values.",
         "Numerical guardrail thresholds are typed separately from empirical or policy thresholds."
+      ],
+      "evidence": [
+        "src/numerics.rs",
+        "reference/ebm_recovery_conditioning_guardrails.py",
+        "fixtures/numerics/ebm-recovery-conditioning-guardrails-v1.json",
+        "tests/reference/test_ebm_recovery_conditioning_guardrails.py",
+        "src/geometry.rs",
+        "src/inference.rs"
       ]
     },
     {

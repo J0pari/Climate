@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
+
+import numpy as np
 
 from reference.ebm_recovery_conditioning_guardrails import (
     analyze_conditioning_guardrails,
+    conditioning_report,
     load_conditioning_fixture,
 )
 from reference.information_geometry_ebm_recovery import load_recovery_fixture
@@ -65,6 +72,27 @@ class EbmRecoveryConditioningGuardrailTests(unittest.TestCase):
             checks["matrix_scaling_condition_number_relative_spread"],
             limits["matrix_scaling_condition_number_relative_tolerance"],
         )
+
+    def test_backend_svd_failure_is_not_substituted(self) -> None:
+        with patch(
+            "reference.ebm_recovery_conditioning_guardrails.np.linalg.svd",
+            side_effect=np.linalg.LinAlgError("synthetic backend failure"),
+        ):
+            with self.assertRaisesRegex(np.linalg.LinAlgError, "backend failure"):
+                conditioning_report(np.eye(2, dtype=float))
+
+    def test_condition_threshold_cannot_be_retyped_as_empirical_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "conditioning.json"
+            payload = json.loads(
+                Path(
+                    "fixtures/numerics/ebm-recovery-conditioning-guardrails-v1.json"
+                ).read_text(encoding="utf-8")
+            )
+            payload["verification_policy"]["semantics"] = "empirical_threshold"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "numerical-test-only"):
+                load_conditioning_fixture(path)
 
     def test_fisher_condition_matches_squared_jacobian_condition(self) -> None:
         self.assertLessEqual(
