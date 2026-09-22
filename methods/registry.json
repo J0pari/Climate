@@ -1126,6 +1126,50 @@
       }
     },
     {
+      "method_id": "sheaf.observation_uncertainty.diagonal_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "prototype",
+      "hypothesis_family": "station_sheaf_observation_uncertainty",
+      "input_contracts": [
+        "station_identity_sheaf/v1",
+        "station_section/v1",
+        "diagonal_observation_uncertainty/v1"
+      ],
+      "output_contracts": [
+        "standardized_edge_residuals/v1",
+        "chi_square_compatibility_statistic/v1"
+      ],
+      "assumptions": [
+        "observation standard deviations use the same declared variable units as the station section",
+        "station observation errors are independent across endpoints and variables so edge variance is sigma_tail^2 + sigma_head^2",
+        "missing section values or missing uncertainty values mask the corresponding residual row rather than being imputed",
+        "the reported chi-square-style statistic is descriptive and carries no built-in significance threshold"
+      ],
+      "known_limitations": [
+        "diagonal uncertainty does not represent spatially or cross-variable correlated observation errors",
+        "the method does not define an approximate global section or alter exact sheaf/cohomology statements",
+        "uncertainty provenance is caller-owned and not supplied by the current three-station NCEI fixture",
+        "the current local execution environment differs from the exact station-sheaf dependency pins"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 536870912,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "sheaf.real.local_residual_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/station_uncertainty_residual.py",
+          "src/station_sheaf.py"
+        ]
+      }
+    },
+    {
       "method_id": "sheaf.real.local_residual_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",

@@ -293,6 +293,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "reference/station_uncertainty_residual.py",
+      "family": "station_observation_uncertainty_residual",
+      "language": "python",
+      "maturity": "prototype",
+      "intended_role": "independent observation-uncertainty method for station identity sheaves that standardizes active same-variable edge residuals by propagated caller-supplied endpoint standard deviations under an explicit diagonal independent-error assumption without changing exact global-section semantics",
+      "known_gaps": [
+        "only diagonal independent observation uncertainty is represented; cross-station and cross-variable covariance are not modeled",
+        "the chi-square-style statistic has no built-in scientific significance threshold or p-value interpretation",
+        "the current local environment does not match the exact station-sheaf focused dependency pins, so this module remains prototype maturity",
+        "uncertainty standard deviations are caller-supplied and require provenance from an observational error model before empirical use"
+      ],
+      "authority_kind": "independent_reference",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "reference/two_layer_dynamic_observability.py",
       "family": "reference_two_layer_dynamic_observability",
       "language": "python",

@@ -2,7 +2,7 @@
 
 > Generated planning projection. Do not hand-edit.
 > Declared planning authority: `architecture/planning_graph.json`.
-> Planning-authority fingerprint: `git-tree-sha1:2d63eb0d614d4c7e6ae542980f1db88e9fdda4d1`.
+> Planning-authority fingerprint: `git-tree-sha1:1f415ecd575785c3f018666f9fa9d16caabc1203`.
 
 Freshness means this projection matches its declared planning authority inputs in the checkout being inspected. Repository state is commit-scoped: movement of `main` invalidates cached conclusions until the current commit is re-oriented and the relevant verification is explicitly rerun.
 
@@ -12,8 +12,8 @@ External-integration obligations bind native external capabilities while keeping
 
 ## Planning summary
 
-- Active: 6
-- Ready: 13
+- Active: 7
+- Ready: 12
 - Blocked: 13
 - Done: 18
 - Dropped: 0
@@ -27,6 +27,7 @@ External-integration obligations bind native external capabilities while keeping
 | `multirepresentation.structure_baselines` — Test multirepresentation structure against simpler baselines | `active` | `P1` | `R2_portable_toolchain` | — |
 | `numerics.conditioning_guardrails` — Define library-backed numerical conditioning guardrails | `active` | `P1` | `R2_portable_toolchain` | — |
 | `physics.vertical_coordinate_contract` — Define pressure, sigma, and hybrid vertical-coordinate semantics | `active` | `P1` | `R2_portable_toolchain` | `architecture.reference_values` |
+| `sheaf.observation_uncertainty_compatibility` — Define uncertainty-aware sheaf observation compatibility | `active` | `P1` | `R2_portable_toolchain` | `sheaf.climate_data_semantics`, `data.immutable_observational_projection` |
 | `simulation.reproducible_restart` — Define reproducible integration and restart state | `active` | `P1` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition`, `state.typed_physical_state` |
 | `integration.aimip_production_archive` — Use the public AIMIP production archive | `ready` | `P0` | `R5_large_data` | — |
 | `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `ready` | `P0` | `R4_integrated_system` | — |
@@ -34,7 +35,6 @@ External-integration obligations bind native external capabilities while keeping
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `diagnostics.spectral_oscillation_contracts` — Rebuild spectral and oscillation diagnostics from narrow contracts | `ready` | `P1` | `R2_portable_toolchain` | — |
 | `physics.parameterization_boundaries` — Establish physical parameterization seams and library boundaries | `ready` | `P1` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition` |
-| `sheaf.observation_uncertainty_compatibility` — Define uncertainty-aware sheaf observation compatibility | `ready` | `P1` | `R2_portable_toolchain` | `sheaf.climate_data_semantics`, `data.immutable_observational_projection` |
 | `validation.cross_model_evidence_transport` — Make cross-model evidence transport explicit and testable | `ready` | `P1` | `R2_portable_toolchain` | `experimentation.claim_evidence_vertical_slice` |
 | `adapters.versioned_array_ffi` — Define narrow versioned array FFI contracts | `ready` | `P2` | `R2_portable_toolchain` | `state.typed_physical_state` |
 | `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_portable_toolchain` | `data.immutable_observational_projection` |

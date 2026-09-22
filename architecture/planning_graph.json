@@ -872,10 +872,10 @@
     {
       "id": "sheaf.observation_uncertainty_compatibility",
       "title": "Define uncertainty-aware sheaf observation compatibility",
-      "status": "ready",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Keep exact global-section/restriction equality as the algebraic reference control while introducing a distinct observation-uncertainty method for noisy station data with explicit units, covariance/weights, residual semantics, and falsifiable interpretation rather than silent floating tolerances.",
+      "summary": "Exact StationIdentitySheaf residual/global-section semantics remain unchanged. A separate prototype diagonal observation-uncertainty method now propagates caller-supplied same-unit endpoint standard deviations into standardized edge residuals and a descriptive chi-square-style statistic, masks missing values without imputation, and carries no significance threshold. Synthetic known-noise and injected-fault controls compare the standardized statistic against the ordinary raw residual-energy baseline. Correlated covariance and provenance-bearing empirical uncertainty remain open.",
       "depends_on": [
         "sheaf.climate_data_semantics",
         "data.immutable_observational_projection"
@@ -885,6 +885,14 @@
         "A separate uncertainty-aware method declares observation units, covariance or precision assumptions, missingness, and residual statistic.",
         "Synthetic injected-noise/fault controls verify calibration and compare against ordinary residual/QC baselines.",
         "No tolerance-based approximate section is interpreted as an exact global section or cohomology statement."
+      ],
+      "evidence": [
+        "src/station_sheaf.py",
+        "reference/station_uncertainty_residual.py",
+        "tests/reference/test_station_uncertainty_residual.py",
+        "reference/station_temperature_sheaf.py",
+        "tests/reference/test_station_temperature_sheaf.py",
+        "methods/registry.json"
       ]
     },
     {
