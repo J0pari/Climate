@@ -410,6 +410,20 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/fortran/integration_restart.f90",
+      "family": "integration_restart_identity",
+      "language": "fortran",
+      "maturity": "runnable",
+      "intended_role": "canonical narrow restart record binding finite physical-state values and simulation time to explicit solver, focused-configuration, stochastic-state, and provenance identities without owning serialization, scheduling, storage, or solver implementation",
+      "known_gaps": [
+        "the current executable split-run witness uses the deterministic RK4 reference integrator rather than a production climate solver",
+        "the physical-state vector is numerically owned here but still requires a typed adapter to the canonical physical-state contract for production use",
+        "stochastic restart is identity-bound but no random-number-generator state serializer is implemented by this module"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/fortran/time_integration.f90",
       "family": "time_integration_reference",
       "language": "fortran",

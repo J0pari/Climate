@@ -28,6 +28,13 @@ target_include_directories(climate_time_integration PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+add_library(climate_integration_restart STATIC
+    src/fortran/integration_restart.f90
+)
+target_include_directories(climate_integration_restart PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+
 add_library(climate_linear_implicit STATIC
     src/fortran/linear_implicit.f90
 )
@@ -240,6 +247,15 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_time_integration PRIVATE climate_time_integration)
     climate_add_canonical_test(time_integration test_time_integration)
+
+    add_executable(test_integration_restart
+        tests/fortran/test_integration_restart.f90
+    )
+    target_link_libraries(test_integration_restart PRIVATE
+        climate_integration_restart
+        climate_time_integration
+    )
+    climate_add_canonical_test(integration_restart test_integration_restart)
 
     add_executable(test_linear_implicit
         tests/fortran/test_linear_implicit.f90

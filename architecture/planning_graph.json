@@ -158,10 +158,10 @@
     {
       "id": "simulation.reproducible_restart",
       "title": "Define reproducible integration and restart state",
-      "status": "ready",
+      "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Specify the minimum climate-owned state required to reproduce an integration across restart boundaries while solver implementation, global scheduling, and resource arbitration remain external concerns.",
+      "summary": "A narrow climate-owned restart record now binds finite state values and simulation time to explicit solver, focused-configuration, stochastic-state, and provenance identities without embedding serialization, storage, or scheduling policy. A time-dependent RK4 split-run witness is bitwise equal to uninterrupted integration when the checkpoint time/state are restored. Production completion still requires an adapter to the typed physical-state contract and a production solver/stochastic-state checkpoint identity.",
       "depends_on": [
         "physics.authoritative_flux_recomposition",
         "state.typed_physical_state"
@@ -170,6 +170,13 @@
         "Restart identity binds physical state, time, focused configuration, solver identity, stochastic state, and required provenance.",
         "A split-run witness agrees with an uninterrupted run within the declared numerical semantics.",
         "Checkpoint format does not embed a second scheduler or generic integration framework."
+      ],
+      "evidence": [
+        "src/fortran/integration_restart.f90",
+        "src/fortran/time_integration.f90",
+        "tests/fortran/test_integration_restart.f90",
+        "tests/fortran/test_time_integration.f90",
+        "CMakeLists.txt"
       ]
     },
     {
