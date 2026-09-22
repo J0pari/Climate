@@ -896,7 +896,7 @@
       "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "Exact StationIdentitySheaf residual/global-section semantics remain unchanged. A separate prototype diagonal observation-uncertainty method now propagates caller-supplied same-unit endpoint standard deviations into standardized edge residuals and a descriptive chi-square-style statistic, masks missing values without imputation, and carries no significance threshold. Synthetic known-noise and injected-fault controls compare the standardized statistic against the ordinary raw residual-energy baseline. Correlated covariance and provenance-bearing empirical uncertainty remain open.",
+      "summary": "Exact StationIdentitySheaf residual/global-section semantics remain unchanged. Separate prototype uncertainty methods now cover both diagonal independent errors and caller-supplied full observation covariance. The correlated method propagates covariance through the active sheaf coboundary, removes only numerically null residual modes with an explicit machine-precision rank rule, and reports a descriptive generalized chi-square without a significance threshold. Synthetic independent/correlated known-noise, missingness, injected-fault, non-PSD, and common-mode-null controls are executable. Provenance-bearing empirical covariance, a sparse worldwide-scale implementation, and exact focused-environment execution remain open.",
       "depends_on": [
         "sheaf.climate_data_semantics",
         "data.immutable_observational_projection"

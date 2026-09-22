@@ -5,8 +5,11 @@ import unittest
 import numpy as np
 
 from reference.station_uncertainty_residual import (
+    CORRELATED_COVARIANCE_ASSUMPTION,
     COVARIANCE_ASSUMPTION,
+    CorrelatedObservationUncertainty,
     DiagonalObservationUncertainty,
+    correlated_uncertainty_residual,
     diagonal_uncertainty_residual,
 )
 from src.station_sheaf import (
@@ -105,6 +108,86 @@ class StationUncertaintyResidualTests(unittest.TestCase):
         )
         self.assertEqual(tight.raw_residual_energy, loose.raw_residual_energy)
         self.assertGreater(tight.chi_square, loose.chi_square)
+
+
+    def test_correlated_covariance_accounts_for_cycle_rank(self) -> None:
+        covariance = np.eye(3, dtype=np.float64)
+        declared = CorrelatedObservationUncertainty(
+            variables=(VARIABLE,),
+            covariance=covariance,
+            observed=np.ones((3, 1), dtype=bool),
+        )
+        report = correlated_uncertainty_residual(
+            SHEAF, EDGES, section([10.0, 11.0, 9.0]), declared
+        )
+        self.assertEqual(report.covariance_assumption, CORRELATED_COVARIANCE_ASSUMPTION)
+        self.assertEqual(report.degrees_of_freedom, 2)
+        self.assertEqual(report.row_units, ("degree_Celsius",) * 3)
+        self.assertLess(report.degrees_of_freedom, report.row_indices.size)
+        self.assertGreaterEqual(report.numerical_rank_tolerance, 0.0)
+
+    def test_correlated_known_noise_reduced_chi_square_is_calibrated(self) -> None:
+        rng = np.random.default_rng(20260924)
+        sigma = 2.0
+        correlation = 0.4
+        covariance = sigma**2 * np.asarray(
+            [
+                [1.0, correlation, correlation],
+                [correlation, 1.0, correlation],
+                [correlation, correlation, 1.0],
+            ]
+        )
+        declared = CorrelatedObservationUncertainty(
+            variables=(VARIABLE,),
+            covariance=covariance,
+            observed=np.ones((3, 1), dtype=bool),
+        )
+        reduced = []
+        for values in rng.multivariate_normal(
+            mean=np.full(3, 10.0), cov=covariance, size=1600
+        ):
+            report = correlated_uncertainty_residual(
+                SHEAF, EDGES, section(values), declared
+            )
+            reduced.append(report.reduced_chi_square())
+        mean_reduced = float(np.mean(reduced))
+        self.assertGreater(mean_reduced, 0.93)
+        self.assertLess(mean_reduced, 1.07)
+
+    def test_correlated_missingness_masks_residual_rows_without_imputation(self) -> None:
+        observed = np.asarray([[True], [True], [False]], dtype=bool)
+        declared = CorrelatedObservationUncertainty(
+            variables=(VARIABLE,),
+            covariance=np.eye(3, dtype=np.float64),
+            observed=observed,
+        )
+        report = correlated_uncertainty_residual(
+            SHEAF, EDGES, section([10.0, 11.0, 9.0]), declared
+        )
+        np.testing.assert_array_equal(report.row_indices, np.asarray([0]))
+        self.assertEqual(report.degrees_of_freedom, 1)
+
+    def test_correlated_covariance_rejects_non_psd_input(self) -> None:
+        covariance = np.asarray(
+            [[1.0, 2.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+        )
+        with self.assertRaisesRegex(ValueError, "positive semidefinite"):
+            CorrelatedObservationUncertainty(
+                variables=(VARIABLE,),
+                covariance=covariance,
+                observed=np.ones((3, 1), dtype=bool),
+            )
+
+    def test_common_mode_only_covariance_has_no_residual_variance(self) -> None:
+        declared = CorrelatedObservationUncertainty(
+            variables=(VARIABLE,),
+            covariance=np.ones((3, 3), dtype=np.float64),
+            observed=np.ones((3, 1), dtype=bool),
+        )
+        with self.assertRaisesRegex(ValueError, "no positive-variance mode"):
+            correlated_uncertainty_residual(
+                SHEAF, EDGES, section([10.0, 10.0, 10.0]), declared
+            )
 
     def test_invalid_observed_uncertainty_fails_closed(self) -> None:
         with self.assertRaisesRegex(ValueError, "finite and positive"):

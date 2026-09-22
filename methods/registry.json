@@ -1126,6 +1126,51 @@
       }
     },
     {
+      "method_id": "sheaf.observation_uncertainty.correlated_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "prototype",
+      "hypothesis_family": "station_sheaf_correlated_observation_uncertainty",
+      "input_contracts": [
+        "station_identity_sheaf/v1",
+        "station_section/v1",
+        "full_observation_covariance/v1"
+      ],
+      "output_contracts": [
+        "rank_aware_correlated_residual_statistic/v1"
+      ],
+      "assumptions": [
+        "the covariance matrix is ordered station-major and variable-minor to match the canonical sheaf 0-cochain coordinate ordering",
+        "each covariance entry carries the product of the declared units of its two station-variable coordinates and the matrix is finite, symmetric, and positive semidefinite",
+        "the active residual covariance is A C A^T for the observed-row sheaf coboundary A; missing section or uncertainty coordinates mask residual rows rather than being imputed",
+        "cycle redundancy is removed only by the explicit numerical-rank policy 64*n*machine_epsilon*max_abs_eigenvalue",
+        "the generalized chi-square statistic is descriptive and carries no built-in significance threshold or exact-global-section interpretation"
+      ],
+      "known_limitations": [
+        "the dense covariance/eigendecomposition reference is unsuitable for worldwide station scale without a sparse or structured covariance implementation",
+        "observation covariance provenance is caller-owned and is not supplied by the current NCEI fixture",
+        "the method does not define an approximate global section or alter exact sheaf/cohomology statements",
+        "the current local execution environment differs from the exact station-sheaf dependency pins"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [
+        "sheaf.real.local_residual_v1",
+        "sheaf.observation_uncertainty.diagonal_v1"
+      ],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/station_uncertainty_residual.py",
+          "src/station_sheaf.py"
+        ]
+      }
+    },
+    {
       "method_id": "sheaf.observation_uncertainty.diagonal_v1",
       "semantic_version": "0.1.0",
       "maturity": "prototype",
