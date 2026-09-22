@@ -123,7 +123,7 @@
       "status": "active",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
-      "summary": "An explicit component-exchange budget seam now converts caller-supplied energy (W/m^2), water-mass (kg/m^2/s), and horizontal-momentum (N/m^2) fluxes into exactly equal-and-opposite source/target extensive transfers over declared area and timestep, without choosing any closure formula. Existing time-integration and linear-algebra surfaces already identify SUNDIALS ARKODE as the production integrator direction and LAPACK as the maintained tridiagonal backend. Radiation/remapping production-library bindings plus boundary-layer, convection, and microphysics tendency interfaces remain open.",
+      "summary": "Explicit parameterization seams now include (1) equal-and-opposite component exchange for energy, water mass, and horizontal momentum and (2) a surface/boundary-layer adapter that maps caller-supplied sensible heat, water-mass, and stress fluxes into lowest-layer dry-air temperature, water-mass-fraction, and wind tendencies using explicit layer mass, area, timestep, and heat capacity. Neither seam chooses a closure formula. Existing integration and linear-algebra surfaces identify SUNDIALS ARKODE and LAPACK directions. Radiation/remapping production-library bindings plus convection and microphysics tendency interfaces remain open.",
       "depends_on": [
         "physics.authoritative_flux_recomposition"
       ],
@@ -135,6 +135,8 @@
       "evidence": [
         "src/fortran/component_exchange.f90",
         "tests/fortran/test_component_exchange.f90",
+        "src/fortran/boundary_layer_surface_exchange.f90",
+        "tests/fortran/test_boundary_layer_surface_exchange.f90",
         "src/fortran/time_integration.f90",
         "src/fortran/lapack_tridiagonal.f90",
         "src/fortran/vertical_diffusion.f90",

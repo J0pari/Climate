@@ -137,6 +137,21 @@
       "scientific_evidence_eligible": false
     },
     {
+      "path": "src/fortran/boundary_layer_surface_exchange.f90",
+      "family": "boundary_layer_surface_exchange_adapter",
+      "language": "fortran",
+      "maturity": "runnable",
+      "intended_role": "canonical narrow surface/boundary-layer adapter that converts caller-supplied sensible-heat, water-mass, and horizontal-stress fluxes into lowest-layer dry-air temperature, water-mass-fraction, and wind tendencies while delegating equal-and-opposite extensive accounting to the component-exchange contract",
+      "known_gaps": [
+        "the module supplies no turbulent transfer, stability, roughness, drag, Monin-Obukhov, or boundary-layer closure formula",
+        "water tendency uses a fixed caller-supplied reference layer air mass during the conversion; prognostic mass/state updating remains caller-owned",
+        "sensible heat is mapped with an explicit dry-air heat capacity and does not include latent enthalpy, phase change, radiation, or precipitation energetics",
+        "the adapter represents only surface-to-lowest-layer exchange and does not define vertical boundary-layer mixing above that layer"
+      ],
+      "authority_kind": "canonical_implementation",
+      "scientific_evidence_eligible": false
+    },
+    {
       "path": "src/fortran/component_exchange.f90",
       "family": "component_exchange_budget_contract",
       "language": "fortran",

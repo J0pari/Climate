@@ -214,6 +214,19 @@ target_include_directories(climate_component_exchange PUBLIC
     "${CMAKE_Fortran_MODULE_DIRECTORY}"
 )
 
+# Surface/boundary-layer adapter from caller-supplied physical fluxes to the
+# lowest atmospheric layer. Flux closures and coupled state updates remain external.
+add_library(climate_boundary_layer_surface_exchange STATIC
+    src/fortran/boundary_layer_surface_exchange.f90
+)
+target_include_directories(climate_boundary_layer_surface_exchange PUBLIC
+    "${CMAKE_Fortran_MODULE_DIRECTORY}"
+)
+target_link_libraries(climate_boundary_layer_surface_exchange PUBLIC
+    climate_component_exchange
+    climate_thermodynamic_reference_values
+)
+
 # Climate-specific geometric-height finite-volume diffusion operator. Solver
 # choice is deliberately separate from operator construction.
 add_library(climate_vertical_diffusion STATIC
@@ -402,6 +415,17 @@ if(ENABLE_TESTING)
     )
     target_link_libraries(test_component_exchange PRIVATE climate_component_exchange)
     climate_add_canonical_test(component_exchange test_component_exchange)
+
+    add_executable(test_boundary_layer_surface_exchange
+        tests/fortran/test_boundary_layer_surface_exchange.f90
+    )
+    target_link_libraries(test_boundary_layer_surface_exchange PRIVATE
+        climate_boundary_layer_surface_exchange
+    )
+    climate_add_canonical_test(
+        boundary_layer_surface_exchange
+        test_boundary_layer_surface_exchange
+    )
 
     add_executable(test_pressure_flux_coupling
         tests/fortran/test_pressure_flux_coupling.f90
