@@ -28,7 +28,7 @@ if __package__ in {None, ""}:
 
 import numpy as np
 from sklearn.feature_selection import mutual_info_regression
-from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neighbors import KNeighborsRegressor, NearestNeighbors
 from sklearn.preprocessing import StandardScaler
 
 from reference.multirepresentation_baselines import (
@@ -94,6 +94,18 @@ def load_evaluation_fixture(
     if selector.get("decision_when_not_rejected") not in SUPPORTED_DECISIONS:
         raise ValueError("invalid non-rejected selector decision")
 
+    dimension_selector = payload.get("dimension_selector")
+    if not isinstance(dimension_selector, dict):
+        raise ValueError("dimension_selector policy is required")
+    if dimension_selector.get("family") != "two_nearest_neighbor_integer_likelihood":
+        raise ValueError("dimension selector family is unsupported")
+    if dimension_selector.get("standardization") != "per_observed_coordinate":
+        raise ValueError("dimension selector standardization policy is unsupported")
+    if dimension_selector.get("neighbor_search") != "brute_euclidean":
+        raise ValueError("dimension selector neighbor-search policy is unsupported")
+    if dimension_selector.get("shared_dimension_rule") != "view_a_plus_view_b_minus_joint":
+        raise ValueError("dimension selector shared-dimension rule is unsupported")
+
     probe = payload.get("matched_information_probe")
     if not isinstance(probe, dict):
         raise ValueError("matched_information_probe policy is required")
@@ -156,6 +168,98 @@ def _pairwise_mutual_information_statistic(
     if not scores or not np.isfinite(scores).all():
         raise RuntimeError("mutual-information statistic became non-finite")
     return max(scores)
+
+
+def _twonn_integer_dimension(view: np.ndarray) -> dict[str, Any]:
+    values = _standardize(view)
+    if values.shape[1] < 1:
+        raise ValueError("dimension selection requires at least one observed coordinate")
+    distances = NearestNeighbors(
+        n_neighbors=3,
+        algorithm="brute",
+        metric="euclidean",
+    ).fit(values).kneighbors(
+        values,
+        return_distance=True,
+    )[0][:, 1:3]
+    if (
+        distances.shape != (values.shape[0], 2)
+        or not np.isfinite(distances).all()
+        or np.any(distances[:, 0] <= 0.0)
+        or np.any(distances[:, 1] < distances[:, 0])
+    ):
+        raise ValueError("two-nearest-neighbor distances are invalid")
+    ratios = distances[:, 1] / distances[:, 0]
+    log_ratio_sum = float(np.log(ratios).sum())
+    if not math.isfinite(log_ratio_sum) or log_ratio_sum <= 0.0:
+        raise ValueError("two-nearest-neighbor likelihood is degenerate")
+
+    sample_count = int(values.shape[0])
+    candidate_log_likelihoods: dict[str, float] = {}
+    best_dimension = None
+    best_log_likelihood = -math.inf
+    for dimension in range(1, values.shape[1] + 1):
+        log_likelihood = (
+            sample_count * math.log(float(dimension))
+            - (dimension + 1.0) * log_ratio_sum
+        )
+        candidate_log_likelihoods[str(dimension)] = log_likelihood
+        if log_likelihood > best_log_likelihood:
+            best_log_likelihood = log_likelihood
+            best_dimension = dimension
+    if best_dimension is None:
+        raise RuntimeError("dimension likelihood produced no candidate")
+    return {
+        "selected_dimension": int(best_dimension),
+        "continuous_mle": float(sample_count / log_ratio_sum),
+        "ambient_dimension": int(values.shape[1]),
+        "sample_count": sample_count,
+        "candidate_log_likelihoods": candidate_log_likelihoods,
+    }
+
+
+def select_world_dimensions(
+    world: StructuralWorld,
+    policy: dict[str, Any],
+) -> dict[str, Any]:
+    if policy.get("family") != "two_nearest_neighbor_integer_likelihood":
+        raise ValueError("dimension selector family is unsupported")
+    if policy.get("standardization") != "per_observed_coordinate":
+        raise ValueError("dimension selector standardization policy is unsupported")
+    if policy.get("neighbor_search") != "brute_euclidean":
+        raise ValueError("dimension selector neighbor-search policy is unsupported")
+    if policy.get("shared_dimension_rule") != "view_a_plus_view_b_minus_joint":
+        raise ValueError("dimension selector shared-dimension rule is unsupported")
+
+    view_a = _twonn_integer_dimension(world.view_a)
+    view_b = _twonn_integer_dimension(world.view_b)
+    joint = _twonn_integer_dimension(np.column_stack([world.view_a, world.view_b]))
+    selected_shared = (
+        int(view_a["selected_dimension"])
+        + int(view_b["selected_dimension"])
+        - int(joint["selected_dimension"])
+    )
+    if selected_shared < 0 or selected_shared > min(
+        int(view_a["selected_dimension"]),
+        int(view_b["selected_dimension"]),
+    ):
+        return {
+            "status": "inconsistent_dimension_decomposition",
+            "view_a": view_a,
+            "view_b": view_b,
+            "joint": joint,
+        }
+    return {
+        "status": "selected",
+        "view_a": view_a,
+        "view_b": view_b,
+        "joint": joint,
+        "selected_shared_dimension": selected_shared,
+        "selected_private_dimensions": [
+            int(view_a["selected_dimension"]) - selected_shared,
+            int(view_b["selected_dimension"]) - selected_shared,
+        ],
+    }
 
 
 def dependence_selector(
@@ -351,11 +455,14 @@ def evaluate_structural_worlds(
         raise RuntimeError("discovery and confirmation world identities differ")
 
     selector_policy = evaluation_fixture["dependence_selector"]
+    dimension_policy = evaluation_fixture["dimension_selector"]
     baseline_config = evaluation_fixture["coordinate_baselines"]
     probe_config = evaluation_fixture["matched_information_probe"]
     world_results: dict[str, Any] = {}
     discovery_calibrated: list[bool] = []
     confirmation_calibrated: list[bool] = []
+    discovery_dimensions_recovered: list[bool] = []
+    confirmation_dimensions_recovered: list[bool] = []
 
     for world_id in sorted(discovery):
         discovery_world = discovery[world_id]
@@ -379,10 +486,41 @@ def evaluate_structural_worlds(
             confirmation_world,
             selector_policy,
         )
+        discovery_dimensions = select_world_dimensions(
+            discovery_world,
+            dimension_policy,
+        )
+        confirmation_dimensions = select_world_dimensions(
+            confirmation_world,
+            dimension_policy,
+        )
+        expected_dimensions = {
+            "shared_dimension": int(discovery_world.ground_truth["shared_dimension"]),
+            "private_dimensions": [
+                int(value)
+                for value in discovery_world.ground_truth["private_dimensions"]
+            ],
+        }
+        discovery_dimension_ok = (
+            discovery_dimensions.get("status") == "selected"
+            and discovery_dimensions.get("selected_shared_dimension")
+            == expected_dimensions["shared_dimension"]
+            and discovery_dimensions.get("selected_private_dimensions")
+            == expected_dimensions["private_dimensions"]
+        )
+        confirmation_dimension_ok = (
+            confirmation_dimensions.get("status") == "selected"
+            and confirmation_dimensions.get("selected_shared_dimension")
+            == expected_dimensions["shared_dimension"]
+            and confirmation_dimensions.get("selected_private_dimensions")
+            == expected_dimensions["private_dimensions"]
+        )
         discovery_ok = discovery_selector["decision"] == expected
         confirmation_ok = confirmation_selector["decision"] == expected
         discovery_calibrated.append(discovery_ok)
         confirmation_calibrated.append(confirmation_ok)
+        discovery_dimensions_recovered.append(discovery_dimension_ok)
+        confirmation_dimensions_recovered.append(confirmation_dimension_ok)
 
         world_results[world_id] = {
             "relationship": discovery_world.relationship,
@@ -395,6 +533,11 @@ def evaluate_structural_worlds(
             "confirmation_selector": confirmation_selector,
             "discovery_selector_calibrated": discovery_ok,
             "confirmation_selector_calibrated": confirmation_ok,
+            "expected_dimensions": expected_dimensions,
+            "discovery_dimension_selection": discovery_dimensions,
+            "confirmation_dimension_selection": confirmation_dimensions,
+            "discovery_dimensions_recovered": discovery_dimension_ok,
+            "confirmation_dimensions_recovered": confirmation_dimension_ok,
             "confirmation_coordinate_baselines": _evaluate_coordinate_baselines(
                 confirmation_world,
                 baseline_config,
@@ -421,6 +564,14 @@ def evaluate_structural_worlds(
         "selector_summary": {
             "all_discovery_decisions_calibrated": all(discovery_calibrated),
             "all_confirmation_decisions_calibrated": all(confirmation_calibrated),
+        },
+        "dimension_summary": {
+            "all_discovery_dimensions_recovered": all(
+                discovery_dimensions_recovered
+            ),
+            "all_confirmation_dimensions_recovered": all(
+                confirmation_dimensions_recovered
+            ),
         },
         "worlds": world_results,
         "implementation_versions": {

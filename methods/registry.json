@@ -732,6 +732,49 @@
       }
     },
     {
+      "method_id": "multirepresentation.twonn_dimension.sklearn_v1",
+      "semantic_version": "0.1.0",
+      "maturity": "prototype",
+      "hypothesis_family": "intrinsic_dimension_decomposition_baseline",
+      "input_contracts": [
+        "paired_multirepresentation_fixture/v1",
+        "discovery_confirmation_partition/v1"
+      ],
+      "output_contracts": [
+        "multirepresentation_dimension_selection/v1"
+      ],
+      "assumptions": [
+        "each observed coordinate is standardized independently before Euclidean neighbor search",
+        "scikit-learn 1.2.2 NearestNeighbors with brute-force Euclidean search supplies the nearest-neighbor distances",
+        "each view and the concatenated joint sample select an integer intrinsic dimension by maximizing the closed-form TWO-NN likelihood over dimensions 1 through the observed ambient dimension",
+        "shared/private dimensions are derived only through the fixture-declared additive identity d_shared=d_a+d_b-d_joint and are scored against world authority only after selection",
+        "discovery and confirmation worlds are generated from distinct fixture-declared seed offsets"
+      ],
+      "known_limitations": [
+        "TWO-NN is a finite-sample intrinsic-dimension estimator with local-uniformity assumptions rather than a theorem about arbitrary climate state spaces",
+        "the additive shared/private decomposition is specific to the structural-world benchmark and is not a universal quotient or fiber-dimension identity",
+        "the selector does not identify product, fiber, quotient, stratum, topology, or causal semantics from dimension alone",
+        "duplicate observations make the nearest-neighbor likelihood degenerate and fail closed"
+      ],
+      "resource": {
+        "cpu_cores": 1,
+        "memory_bytes": 1073741824,
+        "gpu_count": 0,
+        "network": "none",
+        "max_seconds": 120
+      },
+      "reference_methods": [],
+      "build_identity": {
+        "policy": "source_digest_at_run",
+        "sources": [
+          "reference/multirepresentation_baselines.py",
+          "reference/multirepresentation_common.py",
+          "reference/multirepresentation_structure_evaluation.py",
+          "reference/multirepresentation_worlds.py"
+        ]
+      }
+    },
+    {
       "method_id": "optimization.scipy_lbfgsb.exact_gradient_v1",
       "semantic_version": "0.1.0",
       "maturity": "runnable",

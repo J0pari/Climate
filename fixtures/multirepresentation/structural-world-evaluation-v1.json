@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "fixture_id": "multirepresentation.structural-world-evaluation.v1",
-  "description": "Evaluation policy for the authoritative structural-worlds-v1 ground truth. This fixture owns confirmation sampling and method/test policy only; it does not restate world relationships, targets, or identifiability semantics.",
+  "description": "Evaluation policy for the authoritative structural-worlds-v1 ground truth. This fixture owns confirmation sampling and maintained statistical/method policy only; it does not restate world relationships, targets, dimensions, or identifiability semantics.",
   "world_fixture_id": "multirepresentation.structural-worlds.v1",
   "world_fixture_git_blob_sha": "55c6dd11be982c618ee032f4cef9291794d01fd8",
   "confirmation_seed_offset": 100000,
@@ -13,6 +13,13 @@
     "alpha": 0.005,
     "decision_when_rejected": "shared_coordinate_supported",
     "decision_when_not_rejected": "abstain_no_cross_view_evidence"
+  },
+  "dimension_selector": {
+    "family": "two_nearest_neighbor_integer_likelihood",
+    "standardization": "per_observed_coordinate",
+    "neighbor_search": "brute_euclidean",
+    "shared_dimension_rule": "view_a_plus_view_b_minus_joint",
+    "interpretation_boundary": "The TWO-NN likelihood selects intrinsic dimensions for each observed view and their concatenated joint sample without ground-truth access. Shared/private dimensions are then derived only by the declared additive dimension identity for this structural-world benchmark; the result is not a universal topology claim for climate data."
   },
   "coordinate_baselines": {
     "spectral": {
