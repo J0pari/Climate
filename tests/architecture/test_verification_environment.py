@@ -44,13 +44,20 @@ go install cuelang.org/go/cmd/cue@v0.17.1
             "leanprover/lean4:v4.34.0\n", encoding="utf-8"
         )
         (root / "architecture" / "snapshot" / "generate.py").write_text(
-            "def build_manifest(): pass\n", encoding="utf-8"
+            'def build_manifest(): pass\ncommand = ("cat-file", "commit")\n',
+            encoding="utf-8",
+        )
+        (root / "architecture" / "snapshot" / "manifest.py").write_text(
+            'source_commit_object_base64 = True\n'
+            'git_object_id("commit", source_commit_object)\n',
+            encoding="utf-8",
         )
         (root / "architecture" / "snapshot" / "archive.py").write_text(
             "def create_archive(): pass\n", encoding="utf-8"
         )
         (root / "architecture" / "check_snapshot.py").write_text(
-            'commands = ("archive", "identity")\n', encoding="utf-8"
+            'commands = ("archive", "identity", "--expected-commit")\n',
+            encoding="utf-8",
         )
         return temporary, root
 
@@ -137,6 +144,34 @@ go install cuelang.org/go/cmd/cue@v0.17.1
         temporary, root = self._root()
         self.addCleanup(temporary.cleanup)
         (root / "architecture" / "snapshot" / "archive.py").unlink()
+        report = verification_environment.inspect(root)
+        self.assertIn("source_snapshot.identity_tooling", report["unresolved"])
+
+    def test_conflicting_focused_python_pins_are_visible(self) -> None:
+        temporary, root = self._root()
+        self.addCleanup(temporary.cleanup)
+        (root / "requirements" / "second.txt").write_text(
+            "numpy==2.3.5\n", encoding="utf-8"
+        )
+        report = verification_environment.inspect(root)
+        self.assertIn("python.focused_requirements_compatible", report["unresolved"])
+        check = next(
+            item
+            for item in report["checks"]
+            if item["check_id"] == "python.focused_requirements_compatible"
+        )
+        self.assertEqual(
+            set(check["observed"]["conflicts"]["numpy"]),
+            {"2.3.5", "2.5.3"},
+        )
+
+    def test_snapshot_identity_check_requires_commit_object_binding(self) -> None:
+        temporary, root = self._root()
+        self.addCleanup(temporary.cleanup)
+        (root / "architecture" / "check_snapshot.py").write_text(
+            'commands = ("archive", "identity")\n',
+            encoding="utf-8",
+        )
         report = verification_environment.inspect(root)
         self.assertIn("source_snapshot.identity_tooling", report["unresolved"])
 

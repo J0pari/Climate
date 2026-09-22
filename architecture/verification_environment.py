@@ -13,13 +13,21 @@ ROOT = Path(__file__).resolve().parents[1]
 SEMVER = re.compile(r"^v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
 DIGEST_IMAGE = re.compile(r"@sha256:[0-9a-f]{64}$")
 PINNED_REQUIREMENT = re.compile(
-    r"^[A-Za-z0-9_.-]+(?:\[[A-Za-z0-9_,.-]+\])?==([^=<>!~\s;]+)(?:\s*;.*)?$"
+    r"^([A-Za-z0-9_.-]+)(?:\[[A-Za-z0-9_,.-]+\])?==([^=<>!~\s;]+)(?:\s*;(.*))?$"
 )
 
 
-def _exact_python_requirement(line: str) -> bool:
+def _parsed_python_requirement(line: str) -> tuple[str, str, str | None] | None:
     match = PINNED_REQUIREMENT.fullmatch(line)
-    return bool(match) and "*" not in match.group(1)
+    if not match or "*" in match.group(2):
+        return None
+    name = re.sub(r"[-_.]+", "-", match.group(1)).lower()
+    marker = match.group(3).strip() if match.group(3) else None
+    return name, match.group(2), marker
+
+
+def _exact_python_requirement(line: str) -> bool:
+    return _parsed_python_requirement(line) is not None
 
 
 def _exact_apt_version(value: object) -> bool:
@@ -128,16 +136,34 @@ def _requirements_checks(root: Path) -> list[Check]:
             )
         ]
     unpinned: dict[str, list[str]] = {}
+    unconditional_pins: dict[str, dict[str, set[str]]] = {}
     for path in files:
+        relative = path.relative_to(root).as_posix()
         bad = []
         for raw in path.read_text(encoding="utf-8").splitlines():
             line = raw.strip()
             if not line or line.startswith("#"):
                 continue
-            if not _exact_python_requirement(line):
+            parsed = _parsed_python_requirement(line)
+            if parsed is None:
                 bad.append(line)
+                continue
+            name, version, marker = parsed
+            if marker is None:
+                unconditional_pins.setdefault(name, {}).setdefault(version, set()).add(
+                    relative
+                )
         if bad:
-            unpinned[path.relative_to(root).as_posix()] = bad
+            unpinned[relative] = bad
+
+    conflicts = {
+        name: {
+            version: sorted(paths)
+            for version, paths in sorted(versions.items())
+        }
+        for name, versions in sorted(unconditional_pins.items())
+        if len(versions) > 1
+    }
     return [
         Check(
             "python.focused_requirements_exact",
@@ -147,6 +173,12 @@ def _requirements_checks(root: Path) -> list[Check]:
                 "unpinned": unpinned,
             },
             "every declared focused Python requirement uses an exact == pin",
+        ),
+        Check(
+            "python.focused_requirements_compatible",
+            not conflicts,
+            {"conflicts": conflicts},
+            "unconditional focused Python pins do not require conflicting versions in one complete verification environment",
         ),
         Check(
             "python.repository_lock",
@@ -208,9 +240,11 @@ def _bootstrap_checks(root: Path) -> list[Check]:
 
 def _source_identity_checks(root: Path) -> list[Check]:
     generator = root / "architecture" / "snapshot" / "generate.py"
+    manifest = root / "architecture" / "snapshot" / "manifest.py"
     archive = root / "architecture" / "snapshot" / "archive.py"
     cli = root / "architecture" / "check_snapshot.py"
     generator_text = generator.read_text(encoding="utf-8") if generator.is_file() else ""
+    manifest_text = manifest.read_text(encoding="utf-8") if manifest.is_file() else ""
     archive_text = archive.read_text(encoding="utf-8") if archive.is_file() else ""
     cli_text = cli.read_text(encoding="utf-8") if cli.is_file() else ""
     return [
@@ -218,16 +252,22 @@ def _source_identity_checks(root: Path) -> list[Check]:
             "source_snapshot.identity_tooling",
             generator.is_file()
             and "build_manifest" in generator_text
+            and '"cat-file", "commit"' in generator_text
+            and manifest.is_file()
+            and "source_commit_object_base64" in manifest_text
+            and 'git_object_id("commit", source_commit_object)' in manifest_text
             and archive.is_file()
             and "create_archive" in archive_text
             and '"archive"' in cli_text
-            and '"identity"' in cli_text,
+            and '"identity"' in cli_text
+            and "--expected-commit" in cli_text,
             {
                 "generator": generator.relative_to(root).as_posix() if generator.is_file() else None,
+                "manifest": manifest.relative_to(root).as_posix() if manifest.is_file() else None,
                 "archive": archive.relative_to(root).as_posix() if archive.is_file() else None,
                 "cli": cli.relative_to(root).as_posix() if cli.is_file() else None,
             },
-            "self-contained archive/no-VCS handoffs can bind exact commit/tree identity before execution",
+            "self-contained archive/no-VCS handoffs bind exact tree identity to an embedded Git commit object and an externally resolved expected commit",
         )
     ]
 
