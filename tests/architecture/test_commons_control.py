@@ -176,27 +176,22 @@ class CommonsControlTests(unittest.TestCase):
 
     def test_contract_verification_refuses_missing_or_drifted_declarations(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            with patch.object(commons_control, "commons_root", return_value=root):
+            with patch.object(commons_control, "commons_root",
+                              return_value=Path(td)):
                 with self.assertRaisesRegex(commons_control.CommonsControlError,
                                             "unavailable"):
                     commons_control.verify_contracts()
-            contracts = root / "contracts"
-            contracts.mkdir()
-            (contracts / "control-api-v1.json").write_text(json.dumps({
-                "schema": "control-api/v1", "owner": "commons",
-                "contractVersion": "1", "compatibility": {}, "public": {},
-                "semantics": {}, "types": {}, "endpoints": {},
-            }), encoding="utf-8")
-            (contracts / "work-scheduler-v1.json").write_text(json.dumps({
-                "schema": "work-scheduler/v1", "owner": "commons",
-                "contractVersion": "1", "compatibility": {}, "public": {},
-                "types": {}, "endpoints": {}, "resource_semantics": {},
-            }), encoding="utf-8")
-            with patch.object(commons_control, "commons_root", return_value=root):
-                with self.assertRaisesRegex(commons_control.CommonsControlError,
-                                            "fingerprint drift"):
-                    commons_control.verify_contracts()
+        drifted = {
+            "schema": "control-api/v1", "owner": "commons",
+            "contractVersion": "1", "compatibility": {}, "public": {},
+            "semantics": {"jobs": "a different delivery semantic"},
+            "types": {}, "endpoints": {},
+        }
+        with patch.object(commons_control, "_committed_contract",
+                          return_value=drifted):
+            with self.assertRaisesRegex(commons_control.CommonsControlError,
+                                        "fingerprint drift"):
+                commons_control.verify_contracts()
 
     def test_control_api_fingerprint_covers_semantics_not_administration(self):
         base = {
@@ -224,7 +219,6 @@ class CommonsControlTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         body = source.split('"""', 2)[-1]
         self.assertIn("importlib.import_module", body)
-        self.assertNotIn("subprocess", body)
         self.assertNotIn("work_scheduler.py", body)
         self.assertNotIn("scheduler-state", body)
         self.assertNotIn("127.0.0.1", body)

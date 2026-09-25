@@ -6,7 +6,9 @@ The adapter permits CPU experiment execution into run-artifacts; it does not
 grant Commons repository source writes or scientific evidence-promotion
 authority. The Commons client module (`control/client.py`) is imported from the
 resolved checkout and discovers the daemon's published address, so no port is
-hardcoded here and scheduler-state files are never parsed.
+hardcoded here and scheduler-state files are never parsed. Pinned Commons
+contracts are verified from the checkout's committed HEAD, so an unrelated
+session's in-flight worktree edits cannot silently move Climate's interface.
 """
 from __future__ import annotations
 
@@ -17,6 +19,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 from typing import Any, Mapping
 
@@ -99,18 +102,30 @@ def control_client(env: Mapping[str, str] | None = None):
             f"Commons control client failed to import: {exc}") from exc
 
 
+def _committed_contract(root: Path, relative: str) -> dict[str, Any]:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "show", f"HEAD:{relative}"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=True,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise CommonsControlError(
+            f"Commons committed contract is unavailable: {relative}") from exc
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise CommonsControlError(
+            f"Commons committed contract is not readable JSON: {relative}") from exc
+
+
 def _require_pinned_contract(
-    path: Path,
+    contract: Mapping[str, Any],
     pin: Mapping[str, Any],
     keys: tuple[str, ...],
 ) -> dict[str, Any]:
-    if not path.is_file():
-        raise CommonsControlError(f"Commons contract is unavailable: {path}")
-    try:
-        contract = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise CommonsControlError(
-            f"Commons contract is not readable JSON: {path}") from exc
     if contract.get("schema") != pin["schema"]:
         raise CommonsControlError(
             f"Commons contract schema {contract.get('schema')!r} "
@@ -133,12 +148,12 @@ def verify_contracts(
     root = commons_root(env)
     return {
         "control_api": _require_pinned_contract(
-            root / "contracts" / "control-api-v1.json",
+            _committed_contract(root, "contracts/control-api-v1.json"),
             load_control_api_pin(),
             CONTROL_API_ABI_KEYS,
         ),
         "work_scheduler": _require_pinned_contract(
-            root / "contracts" / "work-scheduler-v1.json",
+            _committed_contract(root, "contracts/work-scheduler-v1.json"),
             load_pin(),
             ABI_KEYS,
         ),
