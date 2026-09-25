@@ -1,0 +1,12 @@
+{
+  "equilibrium_temperature_anomaly_k": 0.8849557522123894,
+  "fast_timescale_years": 3.8828612763366532,
+  "fixture_id": "physics.two_layer_ebm.geoffroy_mean.v1",
+  "forcing_w_m2": 1.0,
+  "initial_energy_budget_residual_w_m2": -1.1102230246251565e-16,
+  "slow_timescale_years": 241.5881049013818,
+  "state_after_1000_years_k": [
+    0.8792381157158644,
+    0.8706241965064632
+  ]
+}

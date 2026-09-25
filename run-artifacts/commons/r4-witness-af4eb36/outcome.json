@@ -1,0 +1,298 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "multirepresentation.ebm_dynamics.exact_modes",
+      "bytes": 384,
+      "digest": "sha256:1f4ed154842b8a29a910ffcd54ef0aafc2d20faa77212345ce9c55d60bca16ef",
+      "media_type": "application/json",
+      "schema": "thermal_decay_timescales/v1",
+      "uri": "baseline-exact-modes.json"
+    },
+    {
+      "artifact_id": "multirepresentation.ebm_dynamics.representation_dynamics",
+      "bytes": 3205,
+      "digest": "sha256:8075308615049b5628cd8674fe49f4be9fae1764457167a061b7202f49e71ae9",
+      "media_type": "application/json",
+      "schema": "ebm_representation_dynamics/v1",
+      "uri": "candidate-representation-dynamics.json"
+    },
+    {
+      "artifact_id": "multirepresentation.ebm_dynamics.metric_results",
+      "bytes": 4336,
+      "digest": "sha256:a74acb058dd305d982b33af3f7216fba948b054d2a8dc745c46891316d5eb8f9",
+      "media_type": "application/json",
+      "schema": "metric_results/v1",
+      "uri": "metric-results.json"
+    }
+  ],
+  "evidence": [],
+  "experiment_id": "multirepresentation.ebm_dynamics.v1",
+  "metrics": [
+    {
+      "metric": {
+        "aggregation_domain": "maximum relative error against the exact fast and slow EBM timescales across temperature-state, heat-flux, thermal-mode, temperature-plus-flux, and all-full-rank-view representations",
+        "direction": "lower",
+        "metric_id": "multirepresentation.ebm.full_rank.max_relative_timescale_error",
+        "missing_data_policy": "both recovered modes are required for every rank-two representation condition",
+        "semantic_version": "0.1.0",
+        "target": 2e-11,
+        "uncertainty_method": "deterministic noiseless structural control; no sampling interval claimed",
+        "units": "relative error"
+      },
+      "status": "finite",
+      "value": 1.1846883524377171e-13
+    },
+    {
+      "metric": {
+        "aggregation_domain": "minimum DMD mode count across all declared rank-two representation conditions",
+        "direction": "target",
+        "metric_id": "multirepresentation.ebm.full_rank.resolved_mode_count_min",
+        "missing_data_policy": "each representation must return two finite real decay modes",
+        "semantic_version": "0.1.0",
+        "target": 2,
+        "uncertainty_method": "exact structural count",
+        "units": "mode count"
+      },
+      "status": "finite",
+      "value": 2.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "maximum resolved mode count over surface-temperature-only and TOA-imbalance-only unaugmented scalar Markov representations",
+        "direction": "target",
+        "metric_id": "multirepresentation.ebm.scalar.resolved_mode_count_max",
+        "missing_data_policy": "both scalar controls must execute",
+        "semantic_version": "0.1.0",
+        "target": 1,
+        "units": "mode count"
+      },
+      "status": "finite",
+      "value": 1.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "minimum one-step reconstruction error across the two scalar projection controls",
+        "direction": "higher",
+        "metric_id": "multirepresentation.ebm.scalar.one_step_relative_error_min",
+        "missing_data_policy": "both scalar controls must report finite prediction error",
+        "semantic_version": "0.1.0",
+        "target": 0.05,
+        "units": "relative error"
+      },
+      "status": "finite",
+      "value": 0.07552485316462607
+    },
+    {
+      "metric": {
+        "aggregation_domain": "minimum observed dimension minus matrix rank across temperature-plus-flux and all-full-rank-view concatenations",
+        "direction": "higher",
+        "metric_id": "multirepresentation.ebm.concat.redundant_dimension_count_min",
+        "missing_data_policy": "dimension and numerical matrix rank are required for both concatenated controls",
+        "semantic_version": "0.1.0",
+        "target": 2,
+        "units": "coordinate count"
+      },
+      "status": "finite",
+      "value": 2.0
+    },
+    {
+      "detail": "sample matrix has structural rank 2 below observed dimension 4",
+      "metric": {
+        "aggregation_domain": "sample-matrix condition number reported separately for each redundant concatenated representation",
+        "direction": "descriptive",
+        "metric_id": "multirepresentation.ebm.concat.condition_number",
+        "missing_data_policy": "each redundant concatenation reports rank_deficient or a finite condition number explicitly; no Infinity, NaN, regularization, or finite sentinel is allowed",
+        "semantic_version": "0.1.0",
+        "units": "dimensionless"
+      },
+      "reference_population": "temperature_plus_flux",
+      "status": "rank_deficient"
+    },
+    {
+      "detail": "sample matrix has structural rank 2 below observed dimension 6",
+      "metric": {
+        "aggregation_domain": "sample-matrix condition number reported separately for each redundant concatenated representation",
+        "direction": "descriptive",
+        "metric_id": "multirepresentation.ebm.concat.condition_number",
+        "missing_data_policy": "each redundant concatenation reports rank_deficient or a finite condition number explicitly; no Infinity, NaN, regularization, or finite sentinel is allowed",
+        "semantic_version": "0.1.0",
+        "units": "dimensionless"
+      },
+      "reference_population": "all_full_rank_views",
+      "status": "rank_deficient"
+    }
+  ],
+  "runs": [
+    {
+      "artifacts": [
+        {
+          "artifact_id": "multirepresentation.ebm_dynamics.exact_modes",
+          "bytes": 384,
+          "digest": "sha256:1f4ed154842b8a29a910ffcd54ef0aafc2d20faa77212345ce9c55d60bca16ef",
+          "media_type": "application/json",
+          "schema": "thermal_decay_timescales/v1",
+          "uri": "baseline-exact-modes.json"
+        }
+      ],
+      "commands": [
+        "'C:\\Python313\\python.exe' 'C:\\Users\\tmdru\\Desktop\\Coding\\Climate\\reference\\two_layer_energy_balance.py' --fixture 'C:\\Users\\tmdru\\Desktop\\Coding\\Climate\\fixtures\\physics\\two-layer-ebm-geoffroy-mean-v1.json' --json"
+      ],
+      "contract_fingerprint": "546e5e128417bdbc754bbbcb8a5a97718238122e309cbc3500e5c0bd4f51fb65",
+      "ended_at": "2026-09-25T07:05:59.864140+00:00",
+      "environment": {
+        "arch": "AMD64",
+        "libraries": {
+          "numpy": "2.5.3",
+          "scipy": "1.18.1"
+        },
+        "os": "Windows-11-10.0.26200-SP0",
+        "toolchains": {
+          "python": "3.13.7"
+        }
+      },
+      "execution": {
+        "requested": {
+          "backend_id": "scipy",
+          "implementation_build": "source-sha256:af802b05027cf95920ff9b7991d95b8c2e0493f488ba3990f481f5760ca1e461",
+          "implementation_id": "physics.two_layer_ebm.exact_modes_v1",
+          "method_id": "physics.two_layer_ebm.exact_modes_v1",
+          "precision": "FP64",
+          "resource_class": "R1_portable_cpu"
+        },
+        "resolved": {
+          "backend_id": "scipy",
+          "implementation_build": "source-sha256:af802b05027cf95920ff9b7991d95b8c2e0493f488ba3990f481f5760ca1e461",
+          "implementation_id": "physics.two_layer_ebm.exact_modes_v1",
+          "method_id": "physics.two_layer_ebm.exact_modes_v1",
+          "precision": "FP64",
+          "resource_class": "R1_portable_cpu"
+        },
+        "status": "eligible"
+      },
+      "exit_code": 0,
+      "experiment_id": "multirepresentation.ebm_dynamics.v1",
+      "experiment_spec_digest": "sha256:aefa50ce2d9c01b300d56461fb158d412bd1e700c34b2128c3e7019b9c65fe37",
+      "hardware": {
+        "cpu": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD"
+      },
+      "method_builds": {
+        "physics.two_layer_ebm.exact_modes_v1": "source-sha256:af802b05027cf95920ff9b7991d95b8c2e0493f488ba3990f481f5760ca1e461"
+      },
+      "producer_build": "af4eb361e61ffbfc52fb00503ae45aa39dd81721",
+      "repository_revision": "af4eb361e61ffbfc52fb00503ae45aa39dd81721",
+      "resolved_configuration": {
+        "numerical_policies": [
+          {
+            "configuration_id": "multirepresentation.ebm_dynamics.numerical.v1",
+            "digest": "sha256:9f42450e72804f99c38d3617d7a01b76ebc992b726b13604ade34aa2f1f8e62a",
+            "kind": "numerical_policy",
+            "owner": "multirepresentation.ebm_dynamics",
+            "provenance": "experiment_policy",
+            "record_path": "configurations/numerical/multirepresentation-ebm-dynamics.v1.json",
+            "semantic_version": "1.0.0"
+          }
+        ]
+      },
+      "resolved_dataset_digests": [
+        "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9"
+      ],
+      "run_id": "r4-witness-af4eb36.multirepresentation.ebm_dynamics.v1.physics.two_layer_ebm.exact_modes_v1",
+      "scientific_output_eligible": true,
+      "seeds": [],
+      "started_at": "2026-09-25T07:05:59.120735+00:00",
+      "stderr_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "sha256:8ea5fcc5e31c067e649ed10d89518aa1b17d15b23a0d4f972ceec58a86197a2f"
+    },
+    {
+      "artifacts": [
+        {
+          "artifact_id": "multirepresentation.ebm_dynamics.representation_dynamics",
+          "bytes": 3205,
+          "digest": "sha256:8075308615049b5628cd8674fe49f4be9fae1764457167a061b7202f49e71ae9",
+          "media_type": "application/json",
+          "schema": "ebm_representation_dynamics/v1",
+          "uri": "candidate-representation-dynamics.json"
+        },
+        {
+          "artifact_id": "multirepresentation.ebm_dynamics.metric_results",
+          "bytes": 4336,
+          "digest": "sha256:a74acb058dd305d982b33af3f7216fba948b054d2a8dc745c46891316d5eb8f9",
+          "media_type": "application/json",
+          "schema": "metric_results/v1",
+          "uri": "metric-results.json"
+        }
+      ],
+      "commands": [
+        "'C:\\Python313\\python.exe' 'C:\\Users\\tmdru\\Desktop\\Coding\\Climate\\reference\\two_layer_representation_dynamics.py' --fixture 'C:\\Users\\tmdru\\Desktop\\Coding\\Climate\\fixtures\\physics\\two-layer-ebm-geoffroy-mean-v1.json' --dt-years 1.0 --json"
+      ],
+      "contract_fingerprint": "546e5e128417bdbc754bbbcb8a5a97718238122e309cbc3500e5c0bd4f51fb65",
+      "ended_at": "2026-09-25T07:06:02.804043+00:00",
+      "environment": {
+        "arch": "AMD64",
+        "libraries": {
+          "numpy": "2.5.3",
+          "pydmd": "2025.8.1",
+          "scipy": "1.18.1"
+        },
+        "os": "Windows-11-10.0.26200-SP0",
+        "toolchains": {
+          "python": "3.13.7"
+        }
+      },
+      "execution": {
+        "requested": {
+          "backend_id": "pydmd",
+          "implementation_build": "source-sha256:fbc74d1f485b511f75fdf1de65169c3e121342550c75824c2c82ab21daa9e04d",
+          "implementation_id": "dynamics.dmd.pydmd_v1",
+          "method_id": "dynamics.dmd.pydmd_v1",
+          "precision": "FP64",
+          "resource_class": "R1_portable_cpu"
+        },
+        "resolved": {
+          "backend_id": "pydmd",
+          "implementation_build": "source-sha256:fbc74d1f485b511f75fdf1de65169c3e121342550c75824c2c82ab21daa9e04d",
+          "implementation_id": "dynamics.dmd.pydmd_v1",
+          "method_id": "dynamics.dmd.pydmd_v1",
+          "precision": "FP64",
+          "resource_class": "R1_portable_cpu"
+        },
+        "status": "eligible"
+      },
+      "exit_code": 0,
+      "experiment_id": "multirepresentation.ebm_dynamics.v1",
+      "experiment_spec_digest": "sha256:aefa50ce2d9c01b300d56461fb158d412bd1e700c34b2128c3e7019b9c65fe37",
+      "hardware": {
+        "cpu": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD"
+      },
+      "method_builds": {
+        "dynamics.dmd.pydmd_v1": "source-sha256:fbc74d1f485b511f75fdf1de65169c3e121342550c75824c2c82ab21daa9e04d",
+        "physics.two_layer_ebm.exact_modes_v1": "source-sha256:af802b05027cf95920ff9b7991d95b8c2e0493f488ba3990f481f5760ca1e461"
+      },
+      "producer_build": "af4eb361e61ffbfc52fb00503ae45aa39dd81721",
+      "repository_revision": "af4eb361e61ffbfc52fb00503ae45aa39dd81721",
+      "resolved_configuration": {
+        "numerical_policies": [
+          {
+            "configuration_id": "multirepresentation.ebm_dynamics.numerical.v1",
+            "digest": "sha256:9f42450e72804f99c38d3617d7a01b76ebc992b726b13604ade34aa2f1f8e62a",
+            "kind": "numerical_policy",
+            "owner": "multirepresentation.ebm_dynamics",
+            "provenance": "experiment_policy",
+            "record_path": "configurations/numerical/multirepresentation-ebm-dynamics.v1.json",
+            "semantic_version": "1.0.0"
+          }
+        ]
+      },
+      "resolved_dataset_digests": [
+        "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9"
+      ],
+      "run_id": "r4-witness-af4eb36.multirepresentation.ebm_dynamics.v1.dynamics.dmd.pydmd_v1",
+      "scientific_output_eligible": true,
+      "seeds": [],
+      "started_at": "2026-09-25T07:05:59.864526+00:00",
+      "stderr_digest": "sha256:c9a68f16aa1542073d705783d4ae40df20ca531d3a44bf4513909c7845e56bf6",
+      "stdout_digest": "sha256:ad33237c8353f2cc08398c126dc1ede9d871ea12051010f21d87e302092d8c08"
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,80 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "multirepresentation.ebm_dynamics.exact_modes",
+      "bytes": 384,
+      "digest": "sha256:1f4ed154842b8a29a910ffcd54ef0aafc2d20faa77212345ce9c55d60bca16ef",
+      "media_type": "application/json",
+      "schema": "thermal_decay_timescales/v1",
+      "uri": "baseline-exact-modes.json"
+    }
+  ],
+  "commands": [
+    "'C:\\Python313\\python.exe' 'C:\\Users\\tmdru\\Desktop\\Coding\\Climate\\reference\\two_layer_energy_balance.py' --fixture 'C:\\Users\\tmdru\\Desktop\\Coding\\Climate\\fixtures\\physics\\two-layer-ebm-geoffroy-mean-v1.json' --json"
+  ],
+  "contract_fingerprint": "546e5e128417bdbc754bbbcb8a5a97718238122e309cbc3500e5c0bd4f51fb65",
+  "ended_at": "2026-09-25T07:05:59.864140+00:00",
+  "environment": {
+    "arch": "AMD64",
+    "libraries": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1"
+    },
+    "os": "Windows-11-10.0.26200-SP0",
+    "toolchains": {
+      "python": "3.13.7"
+    }
+  },
+  "execution": {
+    "requested": {
+      "backend_id": "scipy",
+      "implementation_build": "source-sha256:af802b05027cf95920ff9b7991d95b8c2e0493f488ba3990f481f5760ca1e461",
+      "implementation_id": "physics.two_layer_ebm.exact_modes_v1",
+      "method_id": "physics.two_layer_ebm.exact_modes_v1",
+      "precision": "FP64",
+      "resource_class": "R1_portable_cpu"
+    },
+    "resolved": {
+      "backend_id": "scipy",
+      "implementation_build": "source-sha256:af802b05027cf95920ff9b7991d95b8c2e0493f488ba3990f481f5760ca1e461",
+      "implementation_id": "physics.two_layer_ebm.exact_modes_v1",
+      "method_id": "physics.two_layer_ebm.exact_modes_v1",
+      "precision": "FP64",
+      "resource_class": "R1_portable_cpu"
+    },
+    "status": "eligible"
+  },
+  "exit_code": 0,
+  "experiment_id": "multirepresentation.ebm_dynamics.v1",
+  "experiment_spec_digest": "sha256:aefa50ce2d9c01b300d56461fb158d412bd1e700c34b2128c3e7019b9c65fe37",
+  "hardware": {
+    "cpu": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD"
+  },
+  "method_builds": {
+    "physics.two_layer_ebm.exact_modes_v1": "source-sha256:af802b05027cf95920ff9b7991d95b8c2e0493f488ba3990f481f5760ca1e461"
+  },
+  "producer_build": "af4eb361e61ffbfc52fb00503ae45aa39dd81721",
+  "repository_revision": "af4eb361e61ffbfc52fb00503ae45aa39dd81721",
+  "resolved_configuration": {
+    "numerical_policies": [
+      {
+        "configuration_id": "multirepresentation.ebm_dynamics.numerical.v1",
+        "digest": "sha256:9f42450e72804f99c38d3617d7a01b76ebc992b726b13604ade34aa2f1f8e62a",
+        "kind": "numerical_policy",
+        "owner": "multirepresentation.ebm_dynamics",
+        "provenance": "experiment_policy",
+        "record_path": "configurations/numerical/multirepresentation-ebm-dynamics.v1.json",
+        "semantic_version": "1.0.0"
+      }
+    ]
+  },
+  "resolved_dataset_digests": [
+    "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9"
+  ],
+  "run_id": "r4-witness-af4eb36.multirepresentation.ebm_dynamics.v1.physics.two_layer_ebm.exact_modes_v1",
+  "scientific_output_eligible": true,
+  "seeds": [],
+  "started_at": "2026-09-25T07:05:59.120735+00:00",
+  "stderr_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_digest": "sha256:8ea5fcc5e31c067e649ed10d89518aa1b17d15b23a0d4f972ceec58a86197a2f"
+}

@@ -1,0 +1,90 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "multirepresentation.ebm_dynamics.representation_dynamics",
+      "bytes": 3205,
+      "digest": "sha256:8075308615049b5628cd8674fe49f4be9fae1764457167a061b7202f49e71ae9",
+      "media_type": "application/json",
+      "schema": "ebm_representation_dynamics/v1",
+      "uri": "candidate-representation-dynamics.json"
+    },
+    {
+      "artifact_id": "multirepresentation.ebm_dynamics.metric_results",
+      "bytes": 4336,
+      "digest": "sha256:a74acb058dd305d982b33af3f7216fba948b054d2a8dc745c46891316d5eb8f9",
+      "media_type": "application/json",
+      "schema": "metric_results/v1",
+      "uri": "metric-results.json"
+    }
+  ],
+  "commands": [
+    "'C:\\Python313\\python.exe' 'C:\\Users\\tmdru\\Desktop\\Coding\\Climate\\reference\\two_layer_representation_dynamics.py' --fixture 'C:\\Users\\tmdru\\Desktop\\Coding\\Climate\\fixtures\\physics\\two-layer-ebm-geoffroy-mean-v1.json' --dt-years 1.0 --json"
+  ],
+  "contract_fingerprint": "546e5e128417bdbc754bbbcb8a5a97718238122e309cbc3500e5c0bd4f51fb65",
+  "ended_at": "2026-09-25T07:06:02.804043+00:00",
+  "environment": {
+    "arch": "AMD64",
+    "libraries": {
+      "numpy": "2.5.3",
+      "pydmd": "2025.8.1",
+      "scipy": "1.18.1"
+    },
+    "os": "Windows-11-10.0.26200-SP0",
+    "toolchains": {
+      "python": "3.13.7"
+    }
+  },
+  "execution": {
+    "requested": {
+      "backend_id": "pydmd",
+      "implementation_build": "source-sha256:fbc74d1f485b511f75fdf1de65169c3e121342550c75824c2c82ab21daa9e04d",
+      "implementation_id": "dynamics.dmd.pydmd_v1",
+      "method_id": "dynamics.dmd.pydmd_v1",
+      "precision": "FP64",
+      "resource_class": "R1_portable_cpu"
+    },
+    "resolved": {
+      "backend_id": "pydmd",
+      "implementation_build": "source-sha256:fbc74d1f485b511f75fdf1de65169c3e121342550c75824c2c82ab21daa9e04d",
+      "implementation_id": "dynamics.dmd.pydmd_v1",
+      "method_id": "dynamics.dmd.pydmd_v1",
+      "precision": "FP64",
+      "resource_class": "R1_portable_cpu"
+    },
+    "status": "eligible"
+  },
+  "exit_code": 0,
+  "experiment_id": "multirepresentation.ebm_dynamics.v1",
+  "experiment_spec_digest": "sha256:aefa50ce2d9c01b300d56461fb158d412bd1e700c34b2128c3e7019b9c65fe37",
+  "hardware": {
+    "cpu": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD"
+  },
+  "method_builds": {
+    "dynamics.dmd.pydmd_v1": "source-sha256:fbc74d1f485b511f75fdf1de65169c3e121342550c75824c2c82ab21daa9e04d",
+    "physics.two_layer_ebm.exact_modes_v1": "source-sha256:af802b05027cf95920ff9b7991d95b8c2e0493f488ba3990f481f5760ca1e461"
+  },
+  "producer_build": "af4eb361e61ffbfc52fb00503ae45aa39dd81721",
+  "repository_revision": "af4eb361e61ffbfc52fb00503ae45aa39dd81721",
+  "resolved_configuration": {
+    "numerical_policies": [
+      {
+        "configuration_id": "multirepresentation.ebm_dynamics.numerical.v1",
+        "digest": "sha256:9f42450e72804f99c38d3617d7a01b76ebc992b726b13604ade34aa2f1f8e62a",
+        "kind": "numerical_policy",
+        "owner": "multirepresentation.ebm_dynamics",
+        "provenance": "experiment_policy",
+        "record_path": "configurations/numerical/multirepresentation-ebm-dynamics.v1.json",
+        "semantic_version": "1.0.0"
+      }
+    ]
+  },
+  "resolved_dataset_digests": [
+    "sha256:3d6a49ec0a5e40842b155cfc92c91f1c5d96185ba5bf4c7304a86615950fedf9"
+  ],
+  "run_id": "r4-witness-af4eb36.multirepresentation.ebm_dynamics.v1.dynamics.dmd.pydmd_v1",
+  "scientific_output_eligible": true,
+  "seeds": [],
+  "started_at": "2026-09-25T07:05:59.864526+00:00",
+  "stderr_digest": "sha256:c9a68f16aa1542073d705783d4ae40df20ca531d3a44bf4513909c7845e56bf6",
+  "stdout_digest": "sha256:ad33237c8353f2cc08398c126dc1ede9d871ea12051010f21d87e302092d8c08"
+}

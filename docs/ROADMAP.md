@@ -2,7 +2,7 @@
 
 > Generated planning projection. Do not hand-edit.
 > Declared planning authority: `architecture/planning_graph.json`.
-> Planning-authority fingerprint: `git-tree-sha1:a1550e312f759ea645b5106d92485f44f1da21ae`.
+> Planning-authority fingerprint: `git-tree-sha1:972934f5495b6a9878dea6563b4e043d6c366f0c`.
 
 Freshness means this projection matches its declared planning authority inputs in the checkout being inspected. Repository state is commit-scoped: movement of `main` invalidates cached conclusions until the current commit is re-oriented and the relevant verification is explicitly rerun.
 
@@ -14,8 +14,8 @@ External-integration obligations bind native external capabilities while keeping
 
 - Active: 10
 - Ready: 9
-- Blocked: 13
-- Done: 18
+- Blocked: 12
+- Done: 19
 - Dropped: 0
 
 ## Graph projection
@@ -48,7 +48,6 @@ External-integration obligations bind native external capabilities while keeping
 | `experimentation.multifidelity_response_interrogation` — Use cheap model exploration to choose discriminating high-fidelity experiments | `blocked` | `P1` | `R5_large_data` | `integration.native_capability_boundaries`, `orchestration.external_artifact_evaluation`, `validation.cross_model_evidence_transport` |
 | `integration.commons_storage_distribution` — Resolve Commons storage distribution for public Climate consumption | `blocked` | `P1` | `R4_integrated_system` | — |
 | `multirepresentation.cost_noise_authority` — Ground multirepresentation weighting in real cost and noise authority | `blocked` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
-| `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `blocked` | `P1` | `R4_integrated_system` | — |
 | `orchestration.external_artifact_evaluation` — Evaluate external model artifacts through Climate-owned tasks | `blocked` | `P1` | `R4_integrated_system` | `orchestration.commons_read_execution` |
 | `data.logical_materialization_identity` — Separate logical observation identity from storage realization | `blocked` | `P2` | `R2_portable_toolchain` | `data.global_free_station_federation` |
 | `experimental.clifford_task` — Give Clifford representations a falsifiable climate task | `blocked` | `P2` | `R2_portable_toolchain` | `diagnostics.spectral_oscillation_contracts` |
@@ -70,6 +69,7 @@ External-integration obligations bind native external capabilities while keeping
 | `experimentation.runtime_protocol_decomposition` — Decompose experiment runtime into composable execution protocols | `done` | `P1` | `R2_portable_toolchain` | `experimentation.claim_evidence_vertical_slice` |
 | `geometry.independent_derivative_route` — Add a second independent metric-derivative route | `done` | `P1` | `R2_portable_toolchain` | — |
 | `information_geometry.recovery_validation` — Validate information-geometry primitives on explicit statistical models | `done` | `P1` | `R2_portable_toolchain` | — |
+| `orchestration.commons_read_execution` — Exercise read-only Commons execution lineage | `done` | `P1` | `R4_integrated_system` | — |
 | `state.typed_physical_state` — Define typed physical-state boundaries | `done` | `P1` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition` |
 | `optimization.climate_objective_contracts` — Isolate climate-specific optimization objectives | `done` | `P2` | `R2_portable_toolchain` | `information_geometry.recovery_validation` |
 

@@ -1,0 +1,104 @@
+{
+  "dt_years": 1.0,
+  "exact_timescales_years": [
+    3.8828612763366532,
+    241.5881049013818
+  ],
+  "fixture_id": "physics.two_layer_ebm.geoffroy_mean.v1",
+  "implementation_versions": {
+    "numpy": "2.5.3",
+    "pydmd": "2025.8.1",
+    "scipy": "1.18.1"
+  },
+  "representations": {
+    "all_full_rank_views": {
+      "condition_number_detail": "sample matrix has structural rank 2 below observed dimension 6",
+      "condition_number_status": "rank_deficient",
+      "dimension": 6,
+      "dmd_timescales_years": [
+        3.882861276336658,
+        241.58810490141042
+      ],
+      "matrix_rank": 2,
+      "max_relative_timescale_error": 1.1846883524377171e-13,
+      "one_step_relative_error": 5.810585972377569e-16,
+      "redundant_dimension_count": 4
+    },
+    "heat_flux": {
+      "condition_number": 3.4403948968817373,
+      "condition_number_status": "finite",
+      "dimension": 2,
+      "dmd_timescales_years": [
+        3.8828612763366475,
+        241.58810490139734
+      ],
+      "matrix_rank": 2,
+      "max_relative_timescale_error": 6.435198895565355e-14,
+      "one_step_relative_error": 4.86835797033671e-16,
+      "redundant_dimension_count": 0
+    },
+    "surface_temperature_scalar": {
+      "condition_number": 1.0,
+      "condition_number_status": "finite",
+      "dimension": 1,
+      "dmd_timescales_years": [
+        3.920222893442911
+      ],
+      "matrix_rank": 1,
+      "one_step_relative_error": 0.07552485316462607,
+      "redundant_dimension_count": 0,
+      "resolved_mode_count": 1
+    },
+    "temperature_plus_flux": {
+      "condition_number_detail": "sample matrix has structural rank 2 below observed dimension 4",
+      "condition_number_status": "rank_deficient",
+      "dimension": 4,
+      "dmd_timescales_years": [
+        3.882861276336656,
+        241.58810490137785
+      ],
+      "matrix_rank": 2,
+      "max_relative_timescale_error": 1.6352699204453096e-14,
+      "one_step_relative_error": 3.313365201936386e-16,
+      "redundant_dimension_count": 2
+    },
+    "temperature_state": {
+      "condition_number": 1.4990499997261888,
+      "condition_number_status": "finite",
+      "dimension": 2,
+      "dmd_timescales_years": [
+        3.88286127633665,
+        241.58810490138433
+      ],
+      "matrix_rank": 2,
+      "max_relative_timescale_error": 1.0470433303570687e-14,
+      "one_step_relative_error": 3.2290198786870197e-16,
+      "redundant_dimension_count": 0
+    },
+    "thermal_modes": {
+      "condition_number": 2.5423913649264636,
+      "condition_number_status": "finite",
+      "dimension": 2,
+      "dmd_timescales_years": [
+        3.8828612763366515,
+        241.58810490137134
+      ],
+      "matrix_rank": 2,
+      "max_relative_timescale_error": 4.3293477030494526e-14,
+      "one_step_relative_error": 6.350989478693412e-16,
+      "redundant_dimension_count": 0
+    },
+    "toa_imbalance_scalar": {
+      "condition_number": 1.0,
+      "condition_number_status": "finite",
+      "dimension": 1,
+      "dmd_timescales_years": [
+        3.9202228934429093
+      ],
+      "matrix_rank": 1,
+      "one_step_relative_error": 0.07552485316462615,
+      "redundant_dimension_count": 0,
+      "resolved_mode_count": 1
+    }
+  }
+}

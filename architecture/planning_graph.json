@@ -350,14 +350,11 @@
     {
       "id": "orchestration.commons_read_execution",
       "title": "Exercise read-only Commons execution lineage",
-      "status": "blocked",
+      "status": "done",
       "priority": "P1",
       "resource_class": "R4_integrated_system",
       "summary": "Run one sandboxed Climate experiment through Commons while preserving run, trace, causation, build, artifact, and evidence identity without creating a second scheduler in Climate.",
       "depends_on": [],
-      "blockers": [
-        "The executable R4 witness is committed, but completion still requires the machine-local Commons scheduler state cutover/daemon and one successful commons_live_witness.py run against that real daemon."
-      ],
       "completion": [
         "One real read-only or sandboxed execution preserves Climate scientific semantics and end-to-end lineage.",
         "Climate owns only local numerical scheduling and checkpoint semantics; global resource arbitration remains external."
@@ -367,7 +364,8 @@
         "architecture/commons_interface.json",
         "architecture/commons_control.py",
         "docs/COMMONS-INTEGRATION.md",
-        "architecture/commons_live_witness.py"
+        "architecture/commons_live_witness.py",
+        "run-artifacts/commons/r4-witness-af4eb36/outcome.json"
       ]
     },
     {

@@ -1,0 +1,98 @@
+{
+  "metrics": [
+    {
+      "metric": {
+        "aggregation_domain": "maximum relative error against the exact fast and slow EBM timescales across temperature-state, heat-flux, thermal-mode, temperature-plus-flux, and all-full-rank-view representations",
+        "direction": "lower",
+        "metric_id": "multirepresentation.ebm.full_rank.max_relative_timescale_error",
+        "missing_data_policy": "both recovered modes are required for every rank-two representation condition",
+        "semantic_version": "0.1.0",
+        "target": 2e-11,
+        "uncertainty_method": "deterministic noiseless structural control; no sampling interval claimed",
+        "units": "relative error"
+      },
+      "status": "finite",
+      "value": 1.1846883524377171e-13
+    },
+    {
+      "metric": {
+        "aggregation_domain": "minimum DMD mode count across all declared rank-two representation conditions",
+        "direction": "target",
+        "metric_id": "multirepresentation.ebm.full_rank.resolved_mode_count_min",
+        "missing_data_policy": "each representation must return two finite real decay modes",
+        "semantic_version": "0.1.0",
+        "target": 2,
+        "uncertainty_method": "exact structural count",
+        "units": "mode count"
+      },
+      "status": "finite",
+      "value": 2.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "maximum resolved mode count over surface-temperature-only and TOA-imbalance-only unaugmented scalar Markov representations",
+        "direction": "target",
+        "metric_id": "multirepresentation.ebm.scalar.resolved_mode_count_max",
+        "missing_data_policy": "both scalar controls must execute",
+        "semantic_version": "0.1.0",
+        "target": 1,
+        "units": "mode count"
+      },
+      "status": "finite",
+      "value": 1.0
+    },
+    {
+      "metric": {
+        "aggregation_domain": "minimum one-step reconstruction error across the two scalar projection controls",
+        "direction": "higher",
+        "metric_id": "multirepresentation.ebm.scalar.one_step_relative_error_min",
+        "missing_data_policy": "both scalar controls must report finite prediction error",
+        "semantic_version": "0.1.0",
+        "target": 0.05,
+        "units": "relative error"
+      },
+      "status": "finite",
+      "value": 0.07552485316462607
+    },
+    {
+      "metric": {
+        "aggregation_domain": "minimum observed dimension minus matrix rank across temperature-plus-flux and all-full-rank-view concatenations",
+        "direction": "higher",
+        "metric_id": "multirepresentation.ebm.concat.redundant_dimension_count_min",
+        "missing_data_policy": "dimension and numerical matrix rank are required for both concatenated controls",
+        "semantic_version": "0.1.0",
+        "target": 2,
+        "units": "coordinate count"
+      },
+      "status": "finite",
+      "value": 2.0
+    },
+    {
+      "detail": "sample matrix has structural rank 2 below observed dimension 4",
+      "metric": {
+        "aggregation_domain": "sample-matrix condition number reported separately for each redundant concatenated representation",
+        "direction": "descriptive",
+        "metric_id": "multirepresentation.ebm.concat.condition_number",
+        "missing_data_policy": "each redundant concatenation reports rank_deficient or a finite condition number explicitly; no Infinity, NaN, regularization, or finite sentinel is allowed",
+        "semantic_version": "0.1.0",
+        "units": "dimensionless"
+      },
+      "reference_population": "temperature_plus_flux",
+      "status": "rank_deficient"
+    },
+    {
+      "detail": "sample matrix has structural rank 2 below observed dimension 6",
+      "metric": {
+        "aggregation_domain": "sample-matrix condition number reported separately for each redundant concatenated representation",
+        "direction": "descriptive",
+        "metric_id": "multirepresentation.ebm.concat.condition_number",
+        "missing_data_policy": "each redundant concatenation reports rank_deficient or a finite condition number explicitly; no Infinity, NaN, regularization, or finite sentinel is allowed",
+        "semantic_version": "0.1.0",
+        "units": "dimensionless"
+      },
+      "reference_population": "all_full_rank_views",
+      "status": "rank_deficient"
+    }
+  ],
+  "schema_version": 1
+}
