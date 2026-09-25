@@ -1,6 +1,6 @@
 {
   "schema": "control-api/v1",
-  "fingerprint": "72c8fdec2a2d6858c4b7f8497416f809a2439cfc0dd8d78ba1753b301df96090",
+  "fingerprint": "0188d69505befea317f6aa429019034c7e4e8e6b69886615e4b00f7ba19330b9",
   "adoptedAt": "2026-09-25",
   "capabilities": [
     "status",
