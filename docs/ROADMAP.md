@@ -2,7 +2,7 @@
 
 > Generated planning projection. Do not hand-edit.
 > Declared planning authority: `architecture/planning_graph.json`.
-> Planning-authority fingerprint: `git-tree-sha1:972934f5495b6a9878dea6563b4e043d6c366f0c`.
+> Planning-authority fingerprint: `git-tree-sha1:f4eba134d72a2f2c35d96a41b3ca54df1af2fd83`.
 
 Freshness means this projection matches its declared planning authority inputs in the checkout being inspected. Repository state is commit-scoped: movement of `main` invalidates cached conclusions until the current commit is re-oriented and the relevant verification is explicitly rerun.
 
@@ -13,9 +13,9 @@ External-integration obligations bind native external capabilities while keeping
 ## Planning summary
 
 - Active: 10
-- Ready: 9
+- Ready: 8
 - Blocked: 12
-- Done: 19
+- Done: 20
 - Dropped: 0
 
 ## Graph projection
@@ -34,7 +34,6 @@ External-integration obligations bind native external capabilities while keeping
 | `validation.cross_model_evidence_transport` — Make cross-model evidence transport explicit and testable | `active` | `P1` | `R2_portable_toolchain` | `experimentation.claim_evidence_vertical_slice` |
 | `integration.aimip_production_archive` — Use the public AIMIP production archive | `ready` | `P0` | `R5_large_data` | — |
 | `integration.climate_ref_production_cmip` — Use Climate-REF on production CMIP data | `ready` | `P0` | `R4_integrated_system` | — |
-| `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `ready` | `P1` | `R2_portable_toolchain` | — |
 | `diagnostics.feedback_observation_benchmarks` — Ground feedback diagnostics in explicit observations and process definitions | `ready` | `P1` | `R5_large_data` | `data.immutable_observational_projection` |
 | `adapters.versioned_array_ffi` — Define narrow versioned array FFI contracts | `ready` | `P2` | `R2_portable_toolchain` | `state.typed_physical_state` |
 | `experimental.scenario_feasibility_adapter` — Separate climate feasibility from modal truth | `ready` | `P2` | `R2_portable_toolchain` | `data.immutable_observational_projection` |
@@ -66,6 +65,7 @@ External-integration obligations bind native external capabilities while keeping
 | `physics.authoritative_flux_recomposition` — Recompose pressure-coordinate physics around authoritative fluxes | `done` | `P0` | `R2_portable_toolchain` | `architecture.reference_values` |
 | `physics.streaming_budget_accounting` — Compose physical kernels through a streaming budget ledger | `done` | `P0` | `R2_portable_toolchain` | `physics.authoritative_flux_recomposition` |
 | `sheaf.climate_data_semantics` — Realize scale-native climate-data sheaf semantics | `done` | `P0` | `R2_portable_toolchain` | `data.external_authority_audit`, `data.immutable_observational_projection` |
+| `architecture.reproducible_verification_environment` — Resolve a complete repository verification environment | `done` | `P1` | `R2_portable_toolchain` | — |
 | `experimentation.runtime_protocol_decomposition` — Decompose experiment runtime into composable execution protocols | `done` | `P1` | `R2_portable_toolchain` | `experimentation.claim_evidence_vertical_slice` |
 | `geometry.independent_derivative_route` — Add a second independent metric-derivative route | `done` | `P1` | `R2_portable_toolchain` | — |
 | `information_geometry.recovery_validation` — Validate information-geometry primitives on explicit statistical models | `done` | `P1` | `R2_portable_toolchain` | — |

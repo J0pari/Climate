@@ -15,9 +15,9 @@ fi
 
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  gfortran \
-  libblas-dev \
-  liblapack-dev \
+  gfortran=4:13.2.0-7ubuntu1 \
+  libblas-dev=3.12.0-3build1 \
+  liblapack-dev=3.12.0-3build1 \
   pkg-config
 sudo rm -rf /var/lib/apt/lists/*
 

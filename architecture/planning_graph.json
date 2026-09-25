@@ -876,7 +876,7 @@
     {
       "id": "architecture.reproducible_verification_environment",
       "title": "Resolve a complete repository verification environment",
-      "status": "ready",
+      "status": "done",
       "priority": "P1",
       "resource_class": "R2_portable_toolchain",
       "summary": "Retain focused per-experiment dependency slices while adding one resolved environment identity capable of running the complete verification suite from a clean checkout, including Python, Rust, Fortran/LAPACK, CUE, and numerical-library versions.",
@@ -886,6 +886,12 @@
         "Rust verification uses a committed dependency lock appropriate to the repository's application/test role.",
         "Fortran compiler and LAPACK/BLAS provider identity are recorded for verification runs.",
         "Evidence-eligible experiment receipts record the resolved environment/container identity rather than only hand-authored top-level dependency pins."
+      ],
+      "evidence": [
+        ".devcontainer/devcontainer.json",
+        ".devcontainer/bootstrap.sh",
+        "requirements/verification.lock",
+        "Cargo.lock"
       ]
     },
     {
