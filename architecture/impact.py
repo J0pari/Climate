@@ -17,7 +17,7 @@ import argparse
 import json
 from collections import Counter
 from dataclasses import asdict, dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,7 +43,10 @@ class ImpactReference:
 
 
 def _normalize_target(value: str) -> str:
-    path = Path(value)
+    windows = PureWindowsPath(value)
+    if windows.drive or windows.root:
+        raise ValueError("target must be a non-empty repository-relative path")
+    path = PurePosixPath(value.replace("\\", "/"))
     if path.is_absolute() or not path.parts:
         raise ValueError("target must be a non-empty repository-relative path")
     if any(part in {"", ".", ".."} for part in path.parts):
