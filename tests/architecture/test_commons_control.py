@@ -12,16 +12,65 @@ from unittest.mock import patch
 from architecture import commons_control
 
 
+class _FakeControlClient:
+    def __init__(self):
+        self.calls = []
+        self.job = {"jobId": "0123456789abcdef", "status": "queued",
+                    "idempotent": False}
+
+    def status(self, etag=None):
+        self.calls.append(("status", {"etag": etag}))
+        return {"readinessGate": "open"}
+
+    def list_jobs(self, repo=None, status=None):
+        self.calls.append(("jobs", {"repo": repo, "status": status}))
+        return {"jobs": [], "count": 0}
+
+    def inspect(self, job_id=None):
+        self.calls.append(("inspect", {"jobId": job_id}))
+        return {"jobId": job_id, "status": "done"}
+
+    def cancel(self, job_id=None):
+        self.calls.append(("cancel", {"jobId": job_id}))
+        return {"cancelled": True, "jobId": job_id}
+
+    def submit(self, **kwargs):
+        self.calls.append(("submit", kwargs))
+        return dict(self.job)
+
+    def send(self, **kwargs):
+        self.calls.append(("send", kwargs))
+        return {"messageId": "0" * 16, "status": "pending",
+                "idempotent": False}
+
+    def inbox(self, **kwargs):
+        self.calls.append(("inbox", kwargs))
+        return {"messages": [], "cursor": None}
+
+    def ack(self, **kwargs):
+        self.calls.append(("ack", kwargs))
+        return {"messageId": kwargs["message_id"], "status": "acked",
+                "idempotent": False}
+
+
 class CommonsControlTests(unittest.TestCase):
     def test_pin_and_interface_adopt_resource_generic_read_execution(self):
         root = Path(__file__).resolve().parents[2]
         pin = json.loads((root / "contracts/work-scheduler-pin.json").read_text())
+        control_pin = json.loads(
+            (root / "contracts/control-api-pin.json").read_text())
         interface = json.loads((root / "architecture/commons_interface.json").read_text())
         self.assertEqual(pin["owner"], "commons")
         self.assertEqual(pin["schema"], "work-scheduler/v1")
+        self.assertEqual(control_pin["owner"], "commons")
+        self.assertEqual(control_pin["schema"], "control-api/v1")
         self.assertEqual(interface["supported_control_level"], "read")
         self.assertEqual(interface["scheduler_contract"]["pin_path"],
                          "contracts/work-scheduler-pin.json")
+        self.assertEqual(interface["control_api"]["pin_path"],
+                         "contracts/control-api-pin.json")
+        self.assertEqual(interface["control_api"]["client"],
+                         "control/client.py")
 
     def test_abi_fingerprint_ignores_administration_but_not_resource_semantics(self):
         base = {
@@ -51,46 +100,72 @@ class CommonsControlTests(unittest.TestCase):
     def test_cpu_experiment_submission_preserves_climate_runtime_identity(self):
         root = Path(__file__).resolve().parents[2]
         experiment = root / "experiments" / "multirepresentation-ebm-dynamics.v1.json"
-        calls = []
-        def fake_invoke(args, env=None):
-            calls.append(args)
-            if args[:2] == ["contract", "--json"]:
-                pin = commons_control.load_pin()
-                contract = {
-                    "schema": pin["schema"],
-                    "owner": "commons",
-                    "contractVersion": "1",
-                    "compatibility": {},
-                    "public": {},
-                    "types": {},
-                    "endpoints": {},
-                    "resource_semantics": {},
-                }
-                # This test targets command construction, not the stored pin hash.
-                with patch.object(commons_control, "abi_fingerprint",
-                                  return_value=pin["fingerprint"]):
-                    return contract
-            return {"jobId": "0123456789abcdef", "status": "queued"}
-        with patch.object(commons_control, "_invoke", side_effect=fake_invoke), \
-             patch.object(commons_control, "abi_fingerprint",
-                          return_value=commons_control.load_pin()["fingerprint"]):
+        client = _FakeControlClient()
+        with patch.object(commons_control, "verify_contracts", return_value={}), \
+             patch.object(commons_control, "control_client", return_value=client):
             out = commons_control.submit_cpu_experiment(
                 experiment_path=experiment,
                 repository_revision="a" * 40,
                 run_scope="commons-fixture",
                 ram_mib=1024,
             )
-        submit = calls[-1]
-        self.assertIn("--resource-class", submit)
-        self.assertEqual(submit[submit.index("--resource-class") + 1], "cpu")
-        self.assertNotIn("--gpu-mib", submit)
-        self.assertIn(str(root / "src" / "experiment_runtime.py"), submit)
+        kind, submit = client.calls[-1]
+        self.assertEqual(kind, "submit")
+        self.assertEqual(submit["repo"], "climate")
+        self.assertEqual(submit["resourceClass"], "cpu")
+        self.assertNotIn("vramMib", submit)
+        self.assertEqual(submit["ramMib"], 1024)
+        self.assertEqual(submit["cwd"], str(root))
+        self.assertIn(str(root / "src" / "experiment_runtime.py"), submit["command"])
+        self.assertEqual(submit["idempotency_key"], "climate-commons-fixture")
         self.assertEqual(out["outputDir"], "run-artifacts/commons/commons-fixture")
+        self.assertEqual(out["idempotencyKey"], "climate-commons-fixture")
+
+    def test_explicit_idempotency_key_is_preserved(self):
+        root = Path(__file__).resolve().parents[2]
+        experiment = root / "experiments" / "multirepresentation-ebm-dynamics.v1.json"
+        client = _FakeControlClient()
+        with patch.object(commons_control, "verify_contracts", return_value={}), \
+             patch.object(commons_control, "control_client", return_value=client):
+            out = commons_control.submit_cpu_experiment(
+                experiment_path=experiment,
+                repository_revision="a" * 40,
+                run_scope="scope-a",
+                ram_mib=2048,
+                idempotency_key="stable-declaration-key",
+            )
+        self.assertEqual(client.calls[-1][1]["idempotency_key"],
+                         "stable-declaration-key")
+        self.assertEqual(out["idempotencyKey"], "stable-declaration-key")
+
+    def test_control_api_operations_delegate_to_the_pinned_client(self):
+        client = _FakeControlClient()
+        with patch.object(commons_control, "verify_contracts", return_value={}), \
+             patch.object(commons_control, "control_client", return_value=client):
+            self.assertEqual(
+                commons_control.scheduler_status(etag='"etag"'),
+                {"readinessGate": "open"})
+            commons_control.list_jobs(repo="climate", status="done")
+            commons_control.inspect_job("0" * 16)
+            commons_control.cancel_job("0" * 16)
+            commons_control.send_message(repo="commons", payload={"ok": True},
+                                         name="result", idempotency_key="key")
+            commons_control.inbox("climate", wait_seconds=1.0, limit=5,
+                                  after="cursor")
+            commons_control.ack_message("0" * 16)
+        self.assertEqual(
+            [call[0] for call in client.calls],
+            ["status", "jobs", "inspect", "cancel", "send", "inbox", "ack"])
+        self.assertEqual(client.calls[0][1], {"etag": '"etag"'})
+        self.assertEqual(client.calls[1][1],
+                         {"repo": "climate", "status": "done"})
+        self.assertEqual(client.calls[4][1]["idempotency_key"], "key")
+        self.assertEqual(client.calls[5][1],
+                         {"repo": "climate", "wait_seconds": 1.0,
+                          "limit": 5, "after": "cursor"})
 
     def test_experiment_outside_registered_directory_refuses(self):
-        with tempfile.TemporaryDirectory() as td, \
-             patch.object(commons_control, "verify_scheduler_contract",
-                          return_value={}):
+        with tempfile.TemporaryDirectory() as td:
             with self.assertRaises(commons_control.CommonsControlError):
                 commons_control.submit_cpu_experiment(
                     experiment_path=Path(td) / "x.json",
@@ -98,6 +173,61 @@ class CommonsControlTests(unittest.TestCase):
                     run_scope="outside",
                     ram_mib=1024,
                 )
+
+    def test_contract_verification_refuses_missing_or_drifted_declarations(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            with patch.object(commons_control, "commons_root", return_value=root):
+                with self.assertRaisesRegex(commons_control.CommonsControlError,
+                                            "unavailable"):
+                    commons_control.verify_contracts()
+            contracts = root / "contracts"
+            contracts.mkdir()
+            (contracts / "control-api-v1.json").write_text(json.dumps({
+                "schema": "control-api/v1", "owner": "commons",
+                "contractVersion": "1", "compatibility": {}, "public": {},
+                "semantics": {}, "types": {}, "endpoints": {},
+            }), encoding="utf-8")
+            (contracts / "work-scheduler-v1.json").write_text(json.dumps({
+                "schema": "work-scheduler/v1", "owner": "commons",
+                "contractVersion": "1", "compatibility": {}, "public": {},
+                "types": {}, "endpoints": {}, "resource_semantics": {},
+            }), encoding="utf-8")
+            with patch.object(commons_control, "commons_root", return_value=root):
+                with self.assertRaisesRegex(commons_control.CommonsControlError,
+                                            "fingerprint drift"):
+                    commons_control.verify_contracts()
+
+    def test_control_api_fingerprint_covers_semantics_not_administration(self):
+        base = {
+            "schema": "control-api/v1",
+            "contractVersion": "1",
+            "compatibility": {"additive": "x"},
+            "public": {"resources": []},
+            "semantics": {"jobs": "the durable queue"},
+            "types": {"A": {"required": ["x"], "optional": [], "docs": "x"}},
+            "endpoints": {},
+            "consumers": {"climate": {}},
+        }
+        first = commons_control.control_api_fingerprint(base)
+        admin = copy.deepcopy(base)
+        admin["consumers"]["other"] = {}
+        self.assertEqual(first, commons_control.control_api_fingerprint(admin))
+        changed = copy.deepcopy(base)
+        changed["semantics"]["jobs"] = "a different delivery semantic"
+        self.assertNotEqual(first, commons_control.control_api_fingerprint(changed))
+
+    def test_adapter_avoids_cli_spawns_ports_and_state_parsing(self):
+        source = (
+            Path(__file__).resolve().parents[2]
+            / "architecture" / "commons_control.py"
+        ).read_text(encoding="utf-8")
+        body = source.split('"""', 2)[-1]
+        self.assertIn("importlib.import_module", body)
+        self.assertNotIn("subprocess", body)
+        self.assertNotIn("work_scheduler.py", body)
+        self.assertNotIn("scheduler-state", body)
+        self.assertNotIn("127.0.0.1", body)
 
 
     def test_external_artifact_ref_requires_full_digest(self):

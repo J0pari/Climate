@@ -30,7 +30,7 @@ The purpose of this interface is to let Commons coordinate Climate without ownin
 - cross-repository evidence taxonomy;
 - workspace-level experiment DAGs and promotion decisions where Climate is one evaluator/producer among others.
 
-Neither side should duplicate the other's source of truth. Climate pins the resource-generic Commons `work-scheduler/v1` ABI in `contracts/work-scheduler-pin.json` while retaining the legacy GPU pin only for compatibility history; `architecture/commons_interface.json` is Climate's machine-readable declaration of its side of this boundary.
+Neither side should duplicate the other's source of truth. Climate pins the resource-generic Commons `work-scheduler/v1` ABI in `contracts/work-scheduler-pin.json` while retaining the legacy GPU pin only for compatibility history; `architecture/commons_interface.json` is Climate's machine-readable declaration of its side of this boundary. Climate reaches that boundary over Commons `control-api/v1` on loopback through the pinned Commons client (`control/client.py`), not scheduler CLI spawns or machine-state parsing; the control-API ABI is pinned in `contracts/control-api-pin.json`.
 
 ## 2. Control levels
 
@@ -211,7 +211,7 @@ dataset locality requirement
 
 Commons may translate these declarations into concrete leases. Climate should not assume a particular machine, GPU id, or cluster topology in its scientific spec.
 
-`work-scheduler/v1` represents Climate CPU experiment submission: the adapter submits `resourceClass=cpu`, a positive RAM declaration, the exact Climate experiment spec, explicit repository revision and run scope, and writes only beneath `run-artifacts/commons/`. CPU submission carries zero GPU claim and must not depend on GPU availability. The older `gpu-scheduler/v1` pin remains compatibility history, not the Climate execution route.
+`work-scheduler/v1` represents Climate CPU experiment submission: the adapter submits `resourceClass=cpu`, a positive RAM declaration, the exact Climate experiment spec, explicit repository revision and run scope, and writes only beneath `run-artifacts/commons/`. Submission travels as `POST /v1/jobs` with a stable `Idempotency-Key` derived from the run scope: a replay returns the same job, and a changed declaration under the same key is refused as a 409 conflict rather than forking a second run. CPU submission carries zero GPU claim and must not depend on GPU availability. The older `gpu-scheduler/v1` pin remains compatibility history, not the Climate execution route.
 
 ## 8. Sandboxing
 
@@ -233,7 +233,7 @@ Data-acquisition gates may need network/secrets and should be separated from pur
 
 ## 9. Compatibility and contract fingerprints
 
-Commons should fingerprint Climate's external contracts rather than internal source layout. Climate reciprocally verifies the Commons scheduler schema, owner, and ABI fingerprint before trusting its read-only control surface.
+Commons should fingerprint Climate's external contracts rather than internal source layout. Climate reciprocally verifies the Commons scheduler and control-API schema, owner, and ABI fingerprints against its pins before trusting its read-only control surface.
 
 Changes requiring deliberate compatibility review include:
 
@@ -385,10 +385,10 @@ python architecture/commons_live_witness.py \
   --ram <MiB>
 ```
 
-The witness submits through `work-scheduler/v1`, polls only the public
-`inspect --job` lifecycle, requires a successful terminal job, then validates
-that Climate's `outcome.json` has the requested experiment identity and
-repository revision. It never reads Commons private queue/state files.
+The witness submits through the Commons control API (`POST /v1/jobs`) and
+polls only the public job resource (`GET /v1/jobs/{id}`), requires a
+successful terminal job, then validates that Climate's `outcome.json` has the
+requested experiment identity and repository revision. It never reads Commons private queue/state files.
 
 A passing mocked/local witness proves the harness semantics only. Integrated-system
 R4 evidence requires this command to succeed against the machine-local Commons

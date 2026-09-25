@@ -8,11 +8,38 @@
     "pin_path": "contracts/work-scheduler-pin.json",
     "owner": "commons"
   },
+  "control_api": {
+    "schema": "control-api/v1",
+    "pin_path": "contracts/control-api-pin.json",
+    "client": "control/client.py",
+    "discovery": "the imported client resolves the daemon's published loopback address; no port is configured here"
+  },
   "entrypoints": {
     "inspect": [
       "python",
       "architecture/inspect_repository.py",
       "--json"
+    ],
+    "control_status": [
+      "python",
+      "architecture/commons_control.py",
+      "status"
+    ],
+    "inbox": [
+      "python",
+      "architecture/commons_control.py",
+      "inbox",
+      "--repo",
+      "climate"
+    ],
+    "send_result": [
+      "python",
+      "architecture/commons_control.py",
+      "send",
+      "--repo",
+      "<repo>",
+      "--payload",
+      "<json>"
     ],
     "run_experiment": [
       "python",
@@ -72,6 +99,7 @@
   "accepts": [
     "Commons run/trace/correlation/causation identity",
     "Commons scheduler contract verification",
+    "Commons control-api/v1 job and message resources",
     "content-addressed Training artifact identity for explicit Climate evaluation",
     "Commons evaluation-exchange/v1 external artifact references",
     "content-addressed native external runtime receipts for exact output import"

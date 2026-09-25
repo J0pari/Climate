@@ -1,29 +1,37 @@
-"""Fail-closed Climate client for Commons work-scheduler/v1.
+"""Fail-closed Climate client for the Commons control API (control-api/v1).
 
 Climate owns the experiment and scientific semantics. Commons receives only a
-declared command plus machine-resource requirements. The adapter permits CPU
-experiment execution into run-artifacts; it does not grant Commons repository
-source writes or scientific evidence-promotion authority.
+declared job plus machine-resource requirements over its loopback control API.
+The adapter permits CPU experiment execution into run-artifacts; it does not
+grant Commons repository source writes or scientific evidence-promotion
+authority. The Commons client module (`control/client.py`) is imported from the
+resolved checkout and discovers the daemon's published address, so no port is
+hardcoded here and scheduler-state files are never parsed.
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
 import re
-import subprocess
 import sys
 from typing import Any, Mapping
 
 ROOT = Path(__file__).resolve().parents[1]
 PIN = ROOT / "contracts" / "work-scheduler-pin.json"
+CONTROL_API_PIN = ROOT / "contracts" / "control-api-pin.json"
 EVALUATION_PIN = ROOT / "contracts" / "evaluation-exchange-pin.json"
 EVALUATIONS_DIR = ROOT / "evaluations"
 ABI_KEYS = (
     "schema", "contractVersion", "compatibility", "public", "types",
     "endpoints", "resource_semantics",
+)
+CONTROL_API_ABI_KEYS = (
+    "schema", "contractVersion", "compatibility", "public", "semantics",
+    "types", "endpoints",
 )
 _RUN_SCOPE = re.compile(r"^[A-Za-z0-9._-]+$")
 
@@ -40,10 +48,22 @@ def load_pin() -> dict[str, Any]:
     return json.loads(PIN.read_text(encoding="utf-8"))
 
 
-def abi_fingerprint(contract: Mapping[str, Any]) -> str:
-    abi = {key: contract.get(key) for key in ABI_KEYS if key in contract}
+def load_control_api_pin() -> dict[str, Any]:
+    return json.loads(CONTROL_API_PIN.read_text(encoding="utf-8"))
+
+
+def _fingerprint(contract: Mapping[str, Any], keys: tuple[str, ...]) -> str:
+    abi = {key: contract.get(key) for key in keys if key in contract}
     canonical = json.dumps(abi, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def abi_fingerprint(contract: Mapping[str, Any]) -> str:
+    return _fingerprint(contract, ABI_KEYS)
+
+
+def control_api_fingerprint(contract: Mapping[str, Any]) -> str:
+    return _fingerprint(contract, CONTROL_API_ABI_KEYS)
 
 
 def commons_root(env: Mapping[str, str] | None = None) -> Path:
@@ -62,63 +82,152 @@ def commons_root(env: Mapping[str, str] | None = None) -> Path:
         "Commons checkout unavailable; set COMMONS_ROOT explicitly")
 
 
-def scheduler_path(env: Mapping[str, str] | None = None) -> Path:
-    path = commons_root(env) / "control" / "work_scheduler.py"
-    if not path.is_file():
+def control_client(env: Mapping[str, str] | None = None):
+    """Import the pinned Commons client; it resolves the published address."""
+    root = commons_root(env)
+    client_path = root / "control" / "client.py"
+    if not client_path.is_file():
         raise CommonsControlError(
-            f"Commons work scheduler entrypoint is unavailable: {path}")
-    return path
-
-
-def _invoke(args: list[str], env: Mapping[str, str] | None = None) -> dict[str, Any]:
-    process = subprocess.run(
-        [sys.executable, str(scheduler_path(env)), *args],
-        cwd=str(commons_root(env)),
-        capture_output=True,
-        text=True,
-        timeout=60,
-        check=False,
-    )
-    if process.returncode != 0:
-        detail = (process.stderr or process.stdout).strip()
-        raise CommonsControlError(
-            f"Commons scheduler refused with exit {process.returncode}: {detail}")
+            f"Commons control client is unavailable: {client_path}")
+    root_text = str(root)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
     try:
-        return json.loads(process.stdout)
-    except json.JSONDecodeError as exc:
+        return importlib.import_module("control.client")
+    except Exception as exc:
         raise CommonsControlError(
-            "Commons scheduler returned non-JSON output") from exc
+            f"Commons control client failed to import: {exc}") from exc
 
 
-def verify_scheduler_contract(
-    env: Mapping[str, str] | None = None,
+def _require_pinned_contract(
+    path: Path,
+    pin: Mapping[str, Any],
+    keys: tuple[str, ...],
 ) -> dict[str, Any]:
-    contract = _invoke(["contract", "--json"], env)
-    pin = load_pin()
+    if not path.is_file():
+        raise CommonsControlError(f"Commons contract is unavailable: {path}")
+    try:
+        contract = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CommonsControlError(
+            f"Commons contract is not readable JSON: {path}") from exc
     if contract.get("schema") != pin["schema"]:
         raise CommonsControlError(
-            f"scheduler schema {contract.get('schema')!r} != pinned {pin['schema']!r}")
+            f"Commons contract schema {contract.get('schema')!r} "
+            f"!= pinned {pin['schema']!r}")
     if contract.get("owner") != pin["owner"]:
         raise CommonsControlError(
-            f"scheduler owner {contract.get('owner')!r} != pinned {pin['owner']!r}")
-    actual = abi_fingerprint(contract)
+            f"Commons contract owner {contract.get('owner')!r} "
+            f"!= pinned {pin['owner']!r}")
+    actual = _fingerprint(contract, keys)
     if actual != pin["fingerprint"]:
         raise CommonsControlError(
-            f"scheduler fingerprint drift: {actual} != {pin['fingerprint']}")
+            f"Commons contract fingerprint drift for {pin['schema']}: "
+            f"{actual} != {pin['fingerprint']}")
     return contract
 
 
-def scheduler_status(env: Mapping[str, str] | None = None) -> dict[str, Any]:
-    verify_scheduler_contract(env)
-    return _invoke(["status"], env)
+def verify_contracts(
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    root = commons_root(env)
+    return {
+        "control_api": _require_pinned_contract(
+            root / "contracts" / "control-api-v1.json",
+            load_control_api_pin(),
+            CONTROL_API_ABI_KEYS,
+        ),
+        "work_scheduler": _require_pinned_contract(
+            root / "contracts" / "work-scheduler-v1.json",
+            load_pin(),
+            ABI_KEYS,
+        ),
+    }
+
+
+def _api(operation: str, call):
+    try:
+        return call()
+    except CommonsControlError:
+        raise
+    except Exception as exc:
+        raise CommonsControlError(
+            f"Commons control API {operation} failed: {exc}") from exc
+
+
+def scheduler_status(
+    env: Mapping[str, str] | None = None,
+    etag: str | None = None,
+) -> dict[str, Any]:
+    verify_contracts(env)
+    client = control_client(env)
+    return _api("status", lambda: client.status(etag=etag))
+
+
+def list_jobs(
+    repo: str | None = None,
+    status: str | None = None,
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    verify_contracts(env)
+    client = control_client(env)
+    return _api("jobs", lambda: client.list_jobs(repo=repo, status=status))
 
 
 def inspect_job(
     job_id: str,
     env: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
-    verify_scheduler_contract(env)
-    return _invoke(["inspect", "--job", job_id], env)
+    verify_contracts(env)
+    client = control_client(env)
+    return _api(f"inspect {job_id}", lambda: client.inspect(job_id=job_id))
+
+
+def cancel_job(
+    job_id: str,
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    verify_contracts(env)
+    client = control_client(env)
+    return _api(f"cancel {job_id}", lambda: client.cancel(job_id=job_id))
+
+
+def inbox(
+    repo: str,
+    *,
+    wait_seconds: float | None = None,
+    limit: int | None = None,
+    after: str | None = None,
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    verify_contracts(env)
+    client = control_client(env)
+    return _api("inbox", lambda: client.inbox(
+        repo=repo, wait_seconds=wait_seconds, limit=limit, after=after))
+
+
+def ack_message(
+    message_id: str,
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    verify_contracts(env)
+    client = control_client(env)
+    return _api(f"ack {message_id}", lambda: client.ack(message_id=message_id))
+
+
+def send_message(
+    *,
+    repo: str,
+    payload: Any,
+    name: str | None = None,
+    idempotency_key: str | None = None,
+    env: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    verify_contracts(env)
+    client = control_client(env)
+    return _api("send", lambda: client.send(
+        repo=repo, payload=payload, name=name,
+        idempotency_key=idempotency_key))
 
 
 def submit_cpu_experiment(
@@ -129,10 +238,10 @@ def submit_cpu_experiment(
     ram_mib: int,
     max_minutes: float = 30.0,
     priority: int = 0,
+    idempotency_key: str | None = None,
     env: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     """Enqueue one existing Climate CPU experiment without changing its semantics."""
-    verify_scheduler_contract(env)
     if not repository_revision.strip():
         raise CommonsControlError("repository_revision must be explicit")
     if not _RUN_SCOPE.fullmatch(run_scope):
@@ -160,23 +269,27 @@ def submit_cpu_experiment(
         "--repository-revision", repository_revision,
         "--run-scope", run_scope,
     ]
-    ack = _invoke([
-        "submit",
-        "--name", f"climate-{run_scope}",
-        "--repo", "climate",
-        "--resource-class", "cpu",
-        "--priority", str(priority),
-        "--max-minutes", str(max_minutes),
-        "--ram", str(ram_mib),
-        "--cwd", str(ROOT),
-        "--cmd", *command,
-    ], env)
+    verify_contracts(env)
+    client = control_client(env)
+    key = idempotency_key or f"climate-{run_scope}"
+    ack = _api("submit", lambda: client.submit(
+        name=f"climate-{run_scope}",
+        repo="climate",
+        command=command,
+        cwd=str(ROOT),
+        resourceClass="cpu",
+        priority=priority,
+        maxMinutes=max_minutes,
+        ramMib=ram_mib,
+        idempotency_key=key,
+    ))
     return {
         **ack,
         "experiment": experiment.relative_to(ROOT).as_posix(),
         "outputDir": output_dir.relative_to(ROOT).as_posix(),
         "repositoryRevision": repository_revision,
         "runScope": run_scope,
+        "idempotencyKey": key,
     }
 
 
@@ -400,12 +513,36 @@ def require_external_evaluator(
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
-        description="Climate client for the Commons work scheduler")
+        description="Climate client for the Commons control API (control-api/v1)")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("status")
+    status_parser = sub.add_parser("status")
+    status_parser.add_argument("--etag", default=None)
+
+    jobs_parser = sub.add_parser("jobs")
+    jobs_parser.add_argument("--repo", default=None)
+    jobs_parser.add_argument("--status", default=None)
+
     inspect_parser = sub.add_parser("inspect")
     inspect_parser.add_argument("--job", required=True)
+
+    cancel_parser = sub.add_parser("cancel")
+    cancel_parser.add_argument("--job", required=True)
+
+    inbox_parser = sub.add_parser("inbox")
+    inbox_parser.add_argument("--repo", required=True)
+    inbox_parser.add_argument("--wait", type=float, default=None)
+    inbox_parser.add_argument("--limit", type=int, default=None)
+    inbox_parser.add_argument("--after", default=None)
+
+    ack_parser = sub.add_parser("ack")
+    ack_parser.add_argument("--message", required=True)
+
+    send_parser = sub.add_parser("send")
+    send_parser.add_argument("--repo", required=True)
+    send_parser.add_argument("--payload", required=True)
+    send_parser.add_argument("--name", default=None)
+    send_parser.add_argument("--key", default=None)
 
     submit_parser = sub.add_parser("submit-cpu")
     submit_parser.add_argument("--experiment", type=Path, required=True)
@@ -414,6 +551,7 @@ def main(argv=None) -> int:
     submit_parser.add_argument("--ram", type=int, required=True, dest="ram_mib")
     submit_parser.add_argument("--max-minutes", type=float, default=30.0)
     submit_parser.add_argument("--priority", type=int, default=0)
+    submit_parser.add_argument("--idempotency-key", default=None)
 
     import_parser = sub.add_parser("validate-external-import")
     import_parser.add_argument("--evaluation", required=True)
@@ -424,9 +562,29 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "status":
-            result = scheduler_status()
+            result = scheduler_status(etag=args.etag)
+        elif args.command == "jobs":
+            result = list_jobs(repo=args.repo, status=args.status)
         elif args.command == "inspect":
             result = inspect_job(args.job)
+        elif args.command == "cancel":
+            result = cancel_job(args.job)
+        elif args.command == "inbox":
+            result = inbox(
+                args.repo,
+                wait_seconds=args.wait,
+                limit=args.limit,
+                after=args.after,
+            )
+        elif args.command == "ack":
+            result = ack_message(args.message)
+        elif args.command == "send":
+            result = send_message(
+                repo=args.repo,
+                payload=json.loads(args.payload),
+                name=args.name,
+                idempotency_key=args.key,
+            )
         elif args.command == "submit-cpu":
             result = submit_cpu_experiment(
                 experiment_path=args.experiment,
@@ -435,6 +593,7 @@ def main(argv=None) -> int:
                 ram_mib=args.ram_mib,
                 max_minutes=args.max_minutes,
                 priority=args.priority,
+                idempotency_key=args.idempotency_key,
             )
         else:
             subject = _load_json_object(args.subject_ref, label="external subject reference")
@@ -444,7 +603,7 @@ def main(argv=None) -> int:
                 predictions_path=args.predictions,
                 receipt_path=args.receipt,
             )
-    except CommonsControlError as error:
+    except (CommonsControlError, json.JSONDecodeError) as error:
         print(str(error), file=sys.stderr)
         return 2
 

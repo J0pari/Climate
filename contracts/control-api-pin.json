@@ -1,0 +1,16 @@
+{
+  "schema": "control-api/v1",
+  "fingerprint": "72c8fdec2a2d6858c4b7f8497416f809a2439cfc0dd8d78ba1753b301df96090",
+  "adoptedAt": "2026-09-25",
+  "capabilities": [
+    "status",
+    "jobs:list",
+    "jobs:inspect",
+    "jobs:submit",
+    "jobs:cancel",
+    "messages:send",
+    "inbox",
+    "ack"
+  ],
+  "owner": "commons"
+}
