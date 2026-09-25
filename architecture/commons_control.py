@@ -173,8 +173,8 @@ def submit_cpu_experiment(
     ], env)
     return {
         **ack,
-        "experiment": str(experiment.relative_to(ROOT)),
-        "outputDir": str(output_dir.relative_to(ROOT)),
+        "experiment": experiment.relative_to(ROOT).as_posix(),
+        "outputDir": output_dir.relative_to(ROOT).as_posix(),
         "repositoryRevision": repository_revision,
         "runScope": run_scope,
     }
