@@ -9,7 +9,7 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 from .generate import build_manifest, manifest_payload
-from .git_objects import git_blob_id, local_file_mode
+from .git_objects import filesystem_tracks_executable_bit, git_blob_id, local_file_mode
 from .manifest import SnapshotManifest
 
 MANIFEST_MEMBER = "climate-snapshot.json"
@@ -86,7 +86,10 @@ def create_archive(
                     raise SnapshotArchiveError(
                         f"source bytes changed after manifest generation: {row.path}"
                     )
-                if local_file_mode(path) != row.mode:
+                if (
+                    filesystem_tracks_executable_bit()
+                    and local_file_mode(path) != row.mode
+                ):
                     raise SnapshotArchiveError(
                         f"source mode changed after manifest generation: {row.path}"
                     )

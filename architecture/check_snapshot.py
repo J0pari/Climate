@@ -11,6 +11,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from architecture.snapshot.archive import MANIFEST_MEMBER, REPOSITORY_PREFIX
+from architecture.snapshot.git_objects import filesystem_tracks_executable_bit
 from architecture.snapshot import (
     SnapshotArchiveError,
     SnapshotGenerationError,
@@ -161,6 +162,11 @@ def main() -> int:
                         "tree_sha1": loaded.tree_sha1,
                         "file_count": len(loaded.files),
                         "complete_tree": loaded.complete_tree,
+                        "mode_verification": (
+                            "local-executable-bit"
+                            if filesystem_tracks_executable_bit()
+                            else "unavailable-on-platform"
+                        ),
                     },
                     indent=2,
                 )

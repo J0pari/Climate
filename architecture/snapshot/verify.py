@@ -4,7 +4,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
-from .git_objects import git_blob_id, local_file_mode, sha256_digest, tree_id_from_files
+from .git_objects import (
+    filesystem_tracks_executable_bit,
+    git_blob_id,
+    local_file_mode,
+    sha256_digest,
+    tree_id_from_files,
+)
 from .manifest import SnapshotManifest
 
 
@@ -30,6 +36,7 @@ def verify_snapshot(root: Path, manifest: SnapshotManifest) -> list[Finding]:
     findings: list[Finding] = []
     verified: list[tuple[str, str, str]] = []
     expected_paths = {row.path for row in manifest.files}
+    tracks_modes = filesystem_tracks_executable_bit()
 
     for row in manifest.files:
         path = root / Path(*PurePosixPath(row.path).parts)
@@ -50,8 +57,8 @@ def verify_snapshot(root: Path, manifest: SnapshotManifest) -> list[Finding]:
                 row.path,
                 f"expected Git blob {row.git_blob_sha1}, found {blob}; sha256={sha256_digest(payload)}",
             ))
-        mode = local_file_mode(path)
-        if mode != row.mode:
+        mode = local_file_mode(path) if tracks_modes else row.mode
+        if tracks_modes and mode != row.mode:
             findings.append(Finding("snapshot.mode", row.path, f"expected mode {row.mode}, found {mode}"))
         verified.append((row.path, mode, blob))
 

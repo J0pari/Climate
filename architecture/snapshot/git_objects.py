@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import stat
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -49,6 +50,10 @@ def validate_relative_path(raw: str) -> PurePosixPath:
     if path.as_posix() != raw:
         raise ValueError(f"invalid repository-relative path: {raw!r}")
     return path
+
+
+def filesystem_tracks_executable_bit() -> bool:
+    return os.name != "nt"
 
 
 def local_file_mode(path: Path) -> str:

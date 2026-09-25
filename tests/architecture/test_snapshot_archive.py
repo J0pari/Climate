@@ -16,6 +16,7 @@ from architecture.snapshot import (
     verify_snapshot,
 )
 from architecture.snapshot.archive import MANIFEST_MEMBER, REPOSITORY_PREFIX, SnapshotArchiveError
+from architecture.snapshot.git_objects import filesystem_tracks_executable_bit
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -28,14 +29,20 @@ class SnapshotArchiveTests(unittest.TestCase):
         subprocess.run(["git", "init", "-q"], cwd=root, check=True)
         subprocess.run(["git", "config", "user.email", "snapshot@example.invalid"], cwd=root, check=True)
         subprocess.run(["git", "config", "user.name", "Snapshot Test"], cwd=root, check=True)
-        (root / "alpha.txt").write_text("alpha\n", encoding="utf-8")
+        subprocess.run(["git", "config", "core.autocrlf", "false"], cwd=root, check=True)
+        (root / "alpha.txt").write_text("alpha\n", encoding="utf-8", newline="\n")
         script = root / "run.sh"
-        script.write_text("#!/bin/sh\necho ok\n", encoding="utf-8")
+        script.write_text("#!/bin/sh\necho ok\n", encoding="utf-8", newline="\n")
         script.chmod(0o755)
         subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+        subprocess.run(["git", "update-index", "--chmod=+x", "run.sh"], cwd=root, check=True)
         subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
         return temporary, root
 
+    @unittest.skipUnless(
+        filesystem_tracks_executable_bit(),
+        "filesystem cannot represent executable-bit loss and restoration",
+    )
     def test_archive_round_trip_restores_only_lost_modes(self) -> None:
         temporary, root = self._repo()
         self.addCleanup(temporary.cleanup)

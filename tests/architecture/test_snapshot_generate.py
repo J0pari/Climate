@@ -28,12 +28,14 @@ class SnapshotGenerateTests(unittest.TestCase):
         subprocess.run(["git", "init", "-q"], cwd=root, check=True)
         subprocess.run(["git", "config", "user.email", "snapshot@example.invalid"], cwd=root, check=True)
         subprocess.run(["git", "config", "user.name", "Snapshot Test"], cwd=root, check=True)
-        (root / "alpha.txt").write_text("alpha\n", encoding="utf-8")
+        subprocess.run(["git", "config", "core.autocrlf", "false"], cwd=root, check=True)
+        (root / "alpha.txt").write_text("alpha\n", encoding="utf-8", newline="\n")
         (root / "nested").mkdir()
         script = root / "nested" / "run.sh"
-        script.write_text("#!/bin/sh\necho ok\n", encoding="utf-8")
+        script.write_text("#!/bin/sh\necho ok\n", encoding="utf-8", newline="\n")
         script.chmod(0o755)
         subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+        subprocess.run(["git", "update-index", "--chmod=+x", "nested/run.sh"], cwd=root, check=True)
         subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
         return temporary, root
 
@@ -122,7 +124,10 @@ class SnapshotGenerateTests(unittest.TestCase):
     def test_symlink_tree_is_rejected_until_transport_support_is_explicit(self) -> None:
         temporary, root = self._repo()
         self.addCleanup(temporary.cleanup)
-        os.symlink("alpha.txt", root / "alias.txt")
+        try:
+            os.symlink("alpha.txt", root / "alias.txt")
+        except OSError as error:
+            self.skipTest(f"symlink creation unavailable: {error}")
         subprocess.run(["git", "add", "alias.txt"], cwd=root, check=True)
         subprocess.run(["git", "commit", "-qm", "symlink"], cwd=root, check=True)
         with self.assertRaisesRegex(SnapshotGenerationError, "unsupported file mode"):
